@@ -103,6 +103,21 @@ DESCRIPTION="${DESCRIPTION:-Ported CLI utility}"
 AUTHOR="${AUTHOR:-Unknown}"
 AMINET_CAT="${AMINET_CAT:-util/cli}"
 
+# Validate Short description length (Aminet max: 40 chars)
+DESC_LEN=${#DESCRIPTION}
+if [ "$DESC_LEN" -gt 40 ]; then
+    echo "${RED}[FAIL]${RESET} Short description too long ($DESC_LEN chars, max 40)"
+    echo "       \"$DESCRIPTION\""
+    echo "       Shorten the DESCRIPTION in $PORT_DIR/Makefile"
+    ERRORS=$((ERRORS + 1))
+fi
+
+if [ "$ERRORS" -gt 0 ]; then
+    echo ""
+    echo "${RED}$ERRORS issue(s) must be fixed before publishing.${RESET}"
+    exit 1
+fi
+
 # --- Ask for uploader email ---
 
 echo "Aminet requires an uploader email (partially obfuscated on the site)."

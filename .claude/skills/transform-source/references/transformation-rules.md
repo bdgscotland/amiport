@@ -231,7 +231,20 @@ tmpnam("/tmp/myfile");
 tmpnam("T:myfile"); /* amiport: /tmp → T: assign */
 
 // Exit codes — Amiga uses RETURN_OK (0), RETURN_WARN (5), RETURN_ERROR (10), RETURN_FAIL (20)
-// EXIT_SUCCESS (0) and EXIT_FAILURE (1) are fine — clib2 handles them
+// EXIT_SUCCESS (0) maps to RETURN_OK — correct.
+// EXIT_FAILURE (1) does NOT map to any Amiga convention — Amiga scripts use
+// IF WARN (>=5), IF ERROR (>=10), IF FAIL (>=20). Exit code 1 is invisible.
+// RULE: Replace exit(1) with exit(10) for errors, exit(20) for fatal errors.
+// Or use the Amiga constants directly:
+// Before:
+exit(1);
+// After:
+exit(10); /* amiport: RETURN_ERROR — visible to Amiga IF ERROR scripts */
+
+// Before:
+exit(EXIT_FAILURE);
+// After:
+exit(10); /* amiport: RETURN_ERROR */
 ```
 
 ## 5. Conditional Compilation

@@ -4,7 +4,7 @@ include ../common.mk
 TARGET      = cal
 SOURCES     = ported/cal.c
 VERSION     = 1.0
-DESCRIPTION = Unix-style calendar display (OpenBSD cal port)
+DESCRIPTION = Unix-style calendar display
 AUTHOR      = Kim Letkeman, OpenBSD contributors
 
 .PHONY: all clean test package compare
