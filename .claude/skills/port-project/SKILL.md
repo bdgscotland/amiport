@@ -34,6 +34,11 @@ Dispatch a `source-analyzer` agent to analyze the source, or run the analysis in
 
 Review the portability report. If the verdict is **INFEASIBLE**, stop and explain why. For other verdicts, proceed.
 
+The report classifies issues by tier (ADR-008):
+- **Tier 1** (green) — automated shim transforms, proceed without user input
+- **Tier 2** (yellow) — emulation with caveats, present tradeoffs to user before applying
+- **Tier 3** (red) — redesign required, present pattern options and wait for human decision
+
 ### Stage 2: Set Up Port Directory
 1. Create `ports/<name>/original/` and copy the source files there
 2. Create `ports/<name>/ported/` — this is where transformed source goes
@@ -48,7 +53,7 @@ Dispatch a `code-transformer` agent, or for small projects, apply transformation
 
 Write transformed source to `ports/<name>/ported/`.
 
-Before transforming, verify which `amiport_*` shim functions actually exist by checking headers in `lib/posix-shim/include/amiport/`. If a needed wrapper is missing, either add it to the shim or stub the call.
+Before transforming, verify which `amiport_*` shim functions actually exist by checking headers in `lib/posix-shim/include/amiport/`. For Tier 2 functions, check `lib/posix-emu/include/amiport-emu/`. If a needed wrapper is missing, either add it to the appropriate library or stub the call.
 
 ### Stage 4: Build
 Build with: `make build TARGET=ports/<name>`
@@ -106,7 +111,9 @@ Use the examples in `examples/head/PORT.md` and `examples/mini-find/PORT.md` as 
 
 At each stage, you may need to make judgment calls:
 
-1. **Blocking features**: Stub them or skip them? Default: stub with a warning message if the feature is non-essential. If it's core functionality, stop and ask.
+1. **Tier 2 (emulation) features**: Present caveats to user before applying. Link against `libamiport-emu.a`.
+2. **Tier 3 (redesign) features**: Present redesign patterns from `redesign-patterns.md`. Wait for human decision. Do NOT auto-stub.
+3. **Unclassified blocking features**: Stub with a warning message if non-essential. If core functionality, stop and ask.
 
 2. **Multiple source files**: Transform all files, build all objects, link together. Update `SOURCES` in the Makefile to list all `.c` files.
 

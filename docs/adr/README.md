@@ -12,6 +12,10 @@ ADRs capture significant technical and architectural decisions with their contex
 | [ADR-002](002-docker-first-toolchain.md) | Docker-first cross-compilation toolchain | Accepted | 2026-03-19 |
 | [ADR-003](003-amigaos-3x-primary-target.md) | AmigaOS 3.x as primary target | Accepted | 2026-03-19 |
 | [ADR-004](004-vamos-for-testing.md) | vamos for CLI testing over full emulation | Accepted | 2026-03-19 |
+| [ADR-005](005-prebuilt-docker-images.md) | Prebuilt Docker images for toolchain | Accepted | 2026-03-19 |
+| [ADR-006](006-m68000-target-for-vamos.md) | m68000 target for vamos compatibility | Accepted | 2026-03-19 |
+| [ADR-007](007-toolchain-wrapper-scripts.md) | Toolchain wrapper scripts | Accepted | 2026-03-19 |
+| [ADR-008](008-tiered-posix-compatibility.md) | Tiered POSIX compatibility strategy | Accepted | 2026-03-20 |
 
 ## Template
 

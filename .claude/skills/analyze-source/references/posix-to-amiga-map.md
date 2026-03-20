@@ -3,11 +3,20 @@
 This is the master reference for mapping POSIX/Linux system calls to their AmigaOS equivalents
 or amiport shim wrappers. Used by the `analyze-source` and `transform-source` skills.
 
-## Severity Levels
+## Severity Levels (Tiered — see ADR-008)
 
+### Tier 1 — Shim (`lib/posix-shim/`)
 - **trivial**: Direct mapping exists, mechanical replacement
-- **needs-shim**: Requires amiport shim wrapper (behavior differs)
-- **blocking**: No Amiga equivalent — requires redesign or stubbing
+- **needs-shim**: Requires amiport shim wrapper (behaviour differs slightly)
+
+### Tier 2 — Emulation (`lib/posix-emu/`)
+- **needs-emu**: Approximate mapping via stateful emulation with documented behavioural differences
+
+### Tier 3 — Redesign (no library)
+- **needs-redesign**: No library can bridge this; requires structural rewrite using patterns from `redesign-patterns.md`
+
+### Legacy mapping
+- Previous `blocking` severity maps to either `needs-emu` (Tier 2) or `needs-redesign` (Tier 3) depending on whether emulation is feasible. See `docs/posix-tiers.md` for the full classification.
 
 ## File I/O
 
@@ -23,10 +32,11 @@ or amiport shim wrappers. Used by the `analyze-source` and `transform-source` sk
 | `unlink()` | `DeleteFile()` (dos.library) | `amiport_unlink()` | trivial | Direct mapping |
 | `rename()` | `Rename()` (dos.library) | `amiport_rename()` | trivial | Direct mapping |
 | `access()` | `Lock()`+`UnLock()` | `amiport_access()` | needs-shim | Only checks existence, not mode bits |
-| `fcntl()` | — | — | blocking | No equivalent; stub with errno ENOSYS |
-| `dup()`/`dup2()` | — | — | blocking | No file descriptor table; stub or redesign |
-| `pipe()` | — | — | blocking | No pipes in classic AmigaOS |
-| `mmap()` | — | — | blocking | No memory-mapped files |
+| `fcntl()` | — | — | needs-redesign | No equivalent; stub with errno ENOSYS (Tier 3) |
+| `dup()`/`dup2()` | — | — | needs-shim | Planned Tier 1 addition via fd_table ref-counting |
+| `pipe()` | PIPE: device | `amiport_emu_pipe()` | needs-emu | Tier 2 via PIPE: handler (AmigaOS 2.0+) |
+| `mmap()` (read-only) | `AllocMem()`+`Read()` | `amiport_emu_mmap()` | needs-emu | Tier 2 for MAP_PRIVATE+PROT_READ only |
+| `mmap()` (shared/write) | — | — | needs-redesign | Tier 3 — requires explicit file I/O redesign |
 
 ## Standard I/O (stdio.h)
 
@@ -37,7 +47,7 @@ or amiport shim wrappers. Used by the `analyze-source` and `transform-source` sk
 | `fread()`/`fwrite()` | Provided by clib2/newlib | — | trivial | |
 | `fprintf()`/`printf()` | Provided by clib2/newlib | — | trivial | |
 | `fgets()` | Provided by clib2/newlib | — | trivial | |
-| `popen()` | — | — | blocking | No pipes; requires SystemTags() workaround |
+| `popen()` | — | — | needs-redesign | Tier 3 — requires SystemTags() + PIPE: redesign |
 | `tmpfile()` | — | `amiport_tmpfile()` | needs-shim | Use T: assign for temp files. Declared in `amiport/unistd.h` |
 
 ## Directory Operations
@@ -56,9 +66,9 @@ or amiport shim wrappers. Used by the `analyze-source` and `transform-source` sk
 
 | POSIX | AmigaOS | Shim | Severity | Notes |
 |-------|---------|------|----------|-------|
-| `fork()` | — | — | blocking | No equivalent. Amiga uses CreateNewProc() but semantics differ completely |
-| `exec*()` | `SystemTags()` | — | blocking | Can run a command but not replace current process |
-| `wait()`/`waitpid()` | — | — | blocking | No child process concept |
+| `fork()` | — | — | needs-redesign | Tier 3 — see redesign patterns (subprocess-and-wait, async-subprocess, daemon-fork) |
+| `exec*()` | `SystemTags()` | — | needs-redesign | Tier 3 — can run command but not replace current process |
+| `wait()`/`waitpid()` | — | — | needs-redesign | Tier 3 — no child process concept |
 | `getpid()` | `FindTask(NULL)` | `amiport_getpid()` | needs-shim | Returns task pointer, not integer PID |
 | `exit()` | `exit()` via clib2 | — | trivial | C runtime handles this |
 | `system()` | `SystemTags()` | — | needs-shim | Different return value semantics |
@@ -70,9 +80,9 @@ or amiport shim wrappers. Used by the `analyze-source` and `transform-source` sk
 |-------|---------|------|----------|-------|
 | `signal()` | `SetSignal()` (exec.library) | `amiport_signal()` | needs-shim | Only SIGINT maps (to SIGBREAKF_CTRL_C) |
 | `raise()` | `Signal()` (exec.library) | `amiport_raise()` | needs-shim | Limited to Amiga signal flags |
-| `kill()` | — | — | blocking | No inter-process signaling |
-| `sigaction()` | — | — | blocking | No signal handlers; stub |
-| `alarm()` | `timer.device` | — | blocking | Requires timer device setup; stub for simple cases |
+| `kill()` | — | — | needs-redesign | Tier 3 — no inter-process signaling |
+| `sigaction()` | — | — | needs-redesign | Tier 3 — no signal handlers; stub |
+| `alarm()` | `timer.device` | `amiport_emu_alarm()` | needs-emu | Tier 2 — cooperative checking, not async |
 
 ## Memory
 
@@ -80,8 +90,9 @@ or amiport shim wrappers. Used by the `analyze-source` and `transform-source` sk
 |-------|---------|------|----------|-------|
 | `malloc()`/`free()` | `AllocVec()`/`FreeVec()` or clib2 | — | trivial | C runtime provides these |
 | `calloc()`/`realloc()` | Provided by clib2 | — | trivial | |
-| `mmap()` | — | — | blocking | No memory-mapped files or shared memory |
-| `mprotect()` | — | — | blocking | No memory protection on classic Amiga |
+| `mmap()` (read-only) | `AllocMem()`+`Read()` | `amiport_emu_mmap()` | needs-emu | Tier 2 for MAP_PRIVATE+PROT_READ |
+| `mmap()` (shared) | — | — | needs-redesign | Tier 3 — requires explicit file I/O redesign |
+| `mprotect()` | — | — | needs-redesign | Tier 3 — no memory protection on classic Amiga |
 
 ## String / Utility
 
@@ -105,9 +116,10 @@ or amiport shim wrappers. Used by the `analyze-source` and `transform-source` sk
 
 | POSIX | AmigaOS | Shim | Severity | Notes |
 |-------|---------|------|----------|-------|
-| `socket()` | bsdsocket.library | — | blocking | Separate library, not shimmed in MVP |
-| `connect()`/`bind()` | bsdsocket.library | — | blocking | |
-| `select()` | `WaitSelect()` | — | blocking | bsdsocket.library provides this |
+| `socket()` | bsdsocket.library | — | needs-redesign | Tier 3 — see bsdsocket redesign pattern |
+| `connect()`/`bind()` | bsdsocket.library | — | needs-redesign | Tier 3 |
+| `select()` (on files) | `WaitForChar()` | `amiport_emu_select()` | needs-emu | Tier 2 for file I/O; sockets need bsdsocket.library |
+| `select()` (on sockets) | `WaitSelect()` | — | needs-redesign | Tier 3 — bsdsocket.library provides this |
 
 ## Headers to Replace
 
