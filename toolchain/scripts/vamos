@@ -1,0 +1,22 @@
+#!/bin/bash
+# Wrapper for vamos - converts old-style calls to new format
+# Old: vamos -C "" ./program args
+# New: vamos -- ./program args
+
+# Remove -C "" if present
+args=()
+skip_next=0
+
+for arg in "$@"; do
+  if [ $skip_next -eq 1 ]; then
+    skip_next=0
+    continue
+  fi
+  if [ "$arg" = "-C" ]; then
+    skip_next=1
+    continue
+  fi
+  args+=("$arg")
+done
+
+/Users/duncan/.pyenv/shims/vamos -- "${args[@]}"

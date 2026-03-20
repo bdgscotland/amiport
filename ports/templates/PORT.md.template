@@ -1,0 +1,67 @@
+# Port: __TARGET__
+
+## Overview
+
+| Field | Value |
+|-------|-------|
+| Program | __TARGET__ |
+| Version | __VERSION__ |
+| Source | __SOURCE_URL__ (__SOURCE_VERSION__) |
+| Category | __CATEGORY__ — __CATEGORY_NAME__ |
+| License | __LICENSE__ |
+| Original Author | __AUTHOR__ |
+| Port Date | __DATE_ISO__ |
+
+## Description
+
+<!-- What the program does. 2-3 sentences. -->
+
+## Prior Art on Aminet
+
+<!-- Stage 0 research results. What exists, why a new port is needed. -->
+
+## Portability Analysis
+
+<!-- Verdict: PORTABLE / MODERATE / COMPLEX / INFEASIBLE -->
+<!-- Tier breakdown table: -->
+
+| Issue | Tier | Resolution |
+|-------|------|------------|
+| | | |
+
+## Transformations Applied
+
+| Line(s) | Original | Transformed | Comment |
+|----------|----------|-------------|---------|
+| | | | |
+
+## Shim Functions Exercised
+
+<!-- Bulleted list of amiport_* functions used -->
+
+## Build Configuration
+
+| Setting | Value |
+|---------|-------|
+| Compiler | m68k-amigaos-gcc (bebbo) |
+| Target | m68k-amigaos, 68000+ |
+| CFLAGS | `-O2 -noixemul -m68000 -Wall` |
+| Libraries | `-lamiport` (posix-shim) |
+| Binary size | |
+
+## Test Results
+
+<!-- Tested via vamos (Category 1-2) or FS-UAE (Category 3-4). -->
+
+| Test | Command | Input | Expected | Result |
+|------|---------|-------|----------|--------|
+| | | | | |
+
+## Known Limitations
+
+<!-- Documented gaps with rationale. Not bugs — architectural constraints. -->
+
+## Review
+
+<!-- /review-amiga score summary. -->
+<!-- e.g., Reviewed with `/review-amiga`. Score: **READY**. No critical issues. -->
