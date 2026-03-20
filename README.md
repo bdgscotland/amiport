@@ -93,21 +93,31 @@ These exercise the shim library and validate the build/test pipeline:
 | `build-manager` | Compiler error diagnosis and fixing |
 | `test-runner` | Emulator test execution |
 | `port-coordinator` | Full pipeline orchestration |
+| `dependency-auditor` | Audit external library dependencies |
+| `aminet-publisher` | Prepare and publish ports to Aminet |
 
-### POSIX Shim Library
+### Port Categories (ADR-011)
 
-`lib/posix-shim/` maps POSIX functions to AmigaOS equivalents (37 functions, 100% unit tested):
+Not all ports are CLI tools. The pipeline supports five categories:
 
-- File I/O: `open`, `close`, `read`, `write`, `lseek`, `stat`, `fstat`
-- Directories: `opendir`, `readdir`, `closedir`, `mkdir`, `getcwd`, `chdir`
-- Process: `sleep`, `usleep`, `getenv`, `getpid`
-- Parsing: `getopt`, `strtok_r`
-- Errors: `err`, `errx`, `warn`, `warnx`, `strtonum` (BSD compat)
-- Signals: `signal`, `raise` (SIGINT via Ctrl-C only)
-- Time: `time`, `gettimeofday`
-- Misc: `tmpfile`, `isatty`, `access`
+| Category | Description | Libraries | Test Method |
+|----------|-------------|-----------|-------------|
+| 1. CLI tools | Pure POSIX utilities (wc, grep, sed) | posix-shim | vamos |
+| 2. Scripting interpreters | Lua, bc, awk | posix-shim | vamos |
+| 3. Console UI apps | less, vim, nano | posix-shim + console-shim | FS-UAE |
+| 4. Network apps | curl, wget, irc | posix-shim + bsdsocket-shim | FS-UAE + TCP/IP |
+| 5. GUI apps | (future) | Intuition/MUI | FS-UAE |
 
-**Not supported** (requires redesign): `fork`/`exec`, `mmap`, `pthreads`, BSD sockets
+### Libraries
+
+| Library | Purpose | Link Flag |
+|---------|---------|-----------|
+| `lib/posix-shim/` | Tier 1: Direct POSIX-to-AmigaOS wrappers (40+ functions) | `-lamiport` |
+| `lib/posix-emu/` | Tier 2: Approximate POSIX emulation (regex, mmap, pipe, select) | `-lamiport-emu` |
+| `lib/console-shim/` | Minimal ncurses API via Amiga console.device ANSI escapes | `-lamiport-console` |
+| `lib/bsdsocket-shim/` | BSD socket API via bsdsocket.library with auto lifecycle | `-lamiport-net` |
+
+**Not supported** (requires redesign): `fork`/`exec`, `pthreads`, GUI toolkits (X11, GTK, Qt)
 
 See [docs/architecture.md](docs/architecture.md) for full details.
 
@@ -121,13 +131,19 @@ make setup-emu          # Install FS-UAE emulator
 make fetch-ndk          # Download AmigaOS NDK
 
 # Build
-make build-shim         # Cross-compile POSIX shim library
+make build-shim         # Cross-compile POSIX shim library (Tier 1)
+make build-emu          # Cross-compile POSIX emulation library (Tier 2)
+make build-console      # Cross-compile console shim (ncurses)
+make build-net          # Cross-compile BSD socket shim
 make build TARGET=...   # Build a specific port or example
 make build-ports        # Build all ports
 
 # Test
 make test TARGET=...    # Test a build via vamos
-make test-shim          # Run shim unit tests (80 tests)
+make test-shim          # Run POSIX shim unit tests
+make test-emu           # Run POSIX emulation tests
+make test-console       # Run console shim tests
+make test-net           # Run BSD socket shim tests
 make compare TARGET=... # Compare native vs Amiga output
 make smoke-test         # Full end-to-end validation
 

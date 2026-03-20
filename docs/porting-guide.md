@@ -25,7 +25,8 @@ Produces a portability report identifying:
 - POSIX headers that need replacement
 - System calls that need shimming
 - Blocking patterns (fork, mmap, pthreads) that require redesign
-- Severity classification (trivial / needs-shim / blocking)
+- **Port category** (CLI, scripting, console UI, network, GUI)
+- Severity classification (trivial / needs-shim / needs-emu / needs-redesign)
 
 ### 2. Transform
 
@@ -47,7 +48,7 @@ Creates a `ported/` directory alongside the original with:
 
 Cross-compiles the ported source using the Docker toolchain. Handles:
 - Compiler flag selection based on target profile
-- Linking with posix-shim library
+- Linking with posix-shim library (+ console-shim/bsdsocket-shim for Categories 3-4)
 - Iterative error fixing
 
 ### 4. Test
@@ -71,15 +72,29 @@ Built into the build skill — creates an LHA archive with the binary and docume
 - Games with text/simple graphics
 - Compression tools (with bundled algorithm implementations)
 
-**Harder but possible**:
-- Programs using ncurses (map to Amiga console device)
-- Programs with simple networking (requires bsdsocket.library)
-- Larger applications with many source files (needs agent teams)
+**Category 2 — Scripting interpreters** (Lua, bc, awk):
+- Mostly portable C, minimal POSIX surface
+- May need dlopen stubs, path remapping
+- Test via vamos
+
+**Category 3 — Console UI apps** (less, vim, nano):
+- Programs using ncurses/termcap
+- Link with `-lamiport-console` (maps ncurses to Amiga console.device ANSI escapes)
+- Replace `#include <curses.h>` → `#include <amiport-console/curses.h>`
+- Test interactively via FS-UAE (vamos has limited terminal support)
+- See `docs/references/console-ansi-mapping.md` for supported escape sequences
+
+**Category 4 — Network apps** (curl, wget, irc):
+- Programs using BSD sockets
+- Link with `-lamiport-net` (wraps bsdsocket.library with auto lifecycle)
+- Replace `#include <sys/socket.h>` → `#include <amiport-net/socket.h>` etc.
+- Test via FS-UAE with a TCP/IP stack (AmiTCP or Roadshow)
+- See `docs/references/bsdsocket-mapping.md` for full API mapping
 
 **Not currently supported**:
-- GUI applications (GTK, Qt, X11)
+- GUI applications (GTK, Qt, X11) — Category 5, future
 - Programs requiring fork/exec process model
-- Programs depending on shared memory (mmap, shm)
+- Programs depending on shared memory (mmap with MAP_SHARED)
 - Multithreaded programs (pthreads)
 - Programs with x86 inline assembly
 
