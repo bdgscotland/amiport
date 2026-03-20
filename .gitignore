@@ -18,6 +18,18 @@ tests/shim/test_*
 # Port build artifacts (binaries, Aminet readmes)
 ports/*/bin/
 ports/*/*.readme
+ports/*/diff
+ports/*/cal
+
+# Test binaries (emu, console, net)
+tests/emu/test_*
+!tests/emu/test_*.c
+!tests/emu/test_*.h
+tests/console/test_*
+!tests/console/test_*.c
+tests/net/test_*
+!tests/net/test_*.c
+!tests/net/test_*.h
 
 # Emulator staging directory (populated by make install-emu)
 build/amiga/
