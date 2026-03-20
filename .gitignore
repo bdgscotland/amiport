@@ -38,6 +38,10 @@ build/amiga/
 # Docker
 .docker-env
 
+# Local environment (user identity, credentials)
+.env
+!.env.example
+
 # Claude Code local settings
 .claude/settings.local.json
 

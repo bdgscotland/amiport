@@ -22,6 +22,8 @@ if [ -z "${1:-}" ]; then
     exit 1
 fi
 
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PROJECT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 PORT_DIR="$1"
 PORT_NAME=$(basename "$PORT_DIR")
 
@@ -120,9 +122,35 @@ fi
 
 # --- Ask for uploader email ---
 
-echo "Aminet requires an uploader email (partially obfuscated on the site)."
-printf "Your email: "
-read -r UPLOADER_EMAIL
+# Load identity from .env (local to this machine, gitignored)
+ENV_FILE="$PROJECT_DIR/.env"
+if [ -f "$ENV_FILE" ]; then
+    . "$ENV_FILE"
+    echo "[OK] Loaded identity from .env: $AMINET_NAME <$AMINET_EMAIL>"
+elif [ -f "$PROJECT_DIR/.env.example" ]; then
+    echo "${YELLOW}[WARN]${RESET} No .env file found. Create one from the template:"
+    echo "       cp .env.example .env"
+    echo ""
+fi
+
+# Prompt for anything not in .env
+if [ -z "${AMINET_EMAIL:-}" ]; then
+    echo "Aminet requires your details for the upload."
+    echo "(Your email is partially obfuscated on the site — @ and . stripped.)"
+    echo ""
+    printf "Your email: "
+    read -r AMINET_EMAIL
+    printf "Your name: "
+    read -r AMINET_NAME
+    echo ""
+    echo "To avoid entering this every time, create .env in the project root:"
+    echo "  AMINET_EMAIL=$AMINET_EMAIL"
+    echo "  AMINET_NAME=$AMINET_NAME"
+    echo ""
+fi
+
+UPLOADER_EMAIL="$AMINET_EMAIL"
+UPLOADER_NAME="${AMINET_NAME:-amiport}"
 
 if [ -z "$UPLOADER_EMAIL" ]; then
     echo "Email is required for Aminet uploads."
@@ -139,18 +167,21 @@ Short:        $DESCRIPTION
 Type:         $AMINET_CAT
 Architecture: m68k-amigaos >= 3.0
 Uploader:     $UPLOADER_EMAIL
-Author:       $AUTHOR (ported by amiport)
+Author:       $AUTHOR (ported by $UPLOADER_NAME)
 Version:      $VERSION
 URL:          https://github.com/bdgscotland/amiport
 
 $PORT_NAME — $DESCRIPTION
 
-Ported to AmigaOS 3.x using amiport, an AI-assisted porting toolkit.
-Cross-compiled with m68k-amigaos-gcc, tested in vamos emulator.
+Original author: $AUTHOR
+Ported by: $UPLOADER_NAME using amiport (AI-assisted porting toolkit)
+Source: https://github.com/bdgscotland/amiport
 
-Includes source code (original POSIX and ported Amiga versions).
+Cross-compiled with m68k-amigaos-gcc for AmigaOS 3.x (68000+).
+Tested in vamos emulator and FS-UAE.
 
-See PORT.md for full transformation details and test results.
+Includes full source code (original POSIX and ported Amiga versions)
+and PORT.md documenting every transformation applied.
 READMEEOF
 
 echo "${GREEN}[OK]${RESET} Generated $README_FILE"
