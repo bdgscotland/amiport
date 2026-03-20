@@ -262,19 +262,25 @@ fi
 echo ""
 echo "Uploading to Aminet..."
 
-ftp -n main.aminet.net << FTPEOF
-user anonymous $UPLOADER_EMAIL
-cd new
-binary
-put $ARCHIVE_FILE ${ARCHIVE_NAME}.lha
-put $README_FILE ${ARCHIVE_NAME}.readme
-bye
-FTPEOF
+# Determine archive extension for remote filename
+ARCHIVE_EXT="${ARCHIVE_FILE##*.}"
+
+curl -s -T "$ARCHIVE_FILE" \
+    "ftp://main.aminet.net/new/${ARCHIVE_NAME}.${ARCHIVE_EXT}" \
+    --user "anonymous:${UPLOADER_EMAIL}" && \
+curl -s -T "$README_FILE" \
+    "ftp://main.aminet.net/new/${ARCHIVE_NAME}.readme" \
+    --user "anonymous:${UPLOADER_EMAIL}"
 
 if [ $? -eq 0 ]; then
     echo ""
     echo "${GREEN}${BOLD}=== Upload complete ===${RESET}"
     echo "Files uploaded to main.aminet.net/new/"
+    echo ""
+    echo "${BOLD}REMINDER: Update documentation:${RESET}"
+    echo "  1. PORTS.md — Set status to 'Submitted YYYY-MM-DD' and update tracking table"
+    echo "  2. README.md — Update port status in the Ports table"
+    echo "  3. Run 'make check-aminet' after 24h to verify publication"
     echo "They will appear on Aminet after moderator review."
 else
     echo ""
