@@ -1,0 +1,21 @@
+# Makefile for __TARGET__ (amiport)
+include ../common.mk
+
+TARGET      = __TARGET__
+SOURCES     = ported/__TARGET__.c
+VERSION     = 1.0
+DESCRIPTION = __DESCRIPTION__
+AUTHOR      = __AUTHOR__
+
+.PHONY: all clean test package compare
+
+test: $(TARGET)
+	@echo "=== Testing $(TARGET) ==="
+	@# TODO: Add test commands here
+	@echo "=== $(TARGET) tests complete ==="
+
+compare: $(TARGET)
+	@echo "=== Comparing native vs Amiga: $(TARGET) ==="
+	$(NATIVE_CC) $(NATIVE_CFLAGS) -o $(TARGET)_native original/__TARGET__.c
+	@# TODO: Add test input and diff commands here
+	@rm -f $(TARGET)_native

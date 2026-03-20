@@ -15,6 +15,10 @@ tests/shim/test_*
 !tests/shim/test_*.c
 !tests/shim/test_*.h
 
+# Port build artifacts (binaries, Aminet readmes)
+ports/*/bin/
+ports/*/*.readme
+
 # Toolchain
 /opt/amiga/
 

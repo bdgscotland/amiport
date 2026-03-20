@@ -21,7 +21,8 @@ The porting pipeline has 5 stages, each backed by a Claude skill:
 - `lib/posix-shim/` — C compatibility library: POSIX function wrappers using AmigaOS calls
 - `toolchain/` — Cross-compiler Docker images, build scripts, target profiles
 - `docs/` — Architecture docs, API mapping tables, porting guide
-- `examples/` — Reference ports (wc, etc.) with original and ported source
+- `ports/` — Output directory for real ports (each port gets original/, ported/, Makefile, PORT.md)
+- `examples/` — Reference ports for testing the pipeline (wc, head, mini-find)
 
 ## Coding Conventions for Amiga C
 

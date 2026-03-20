@@ -9,7 +9,7 @@
 #   clean            Remove build artifacts
 #   fetch-ndk        Download AmigaOS NDK 3.2 R4
 
-.PHONY: setup-toolchain build-shim build test test-shim package clean fetch-ndk help doctor smoke-test compare
+.PHONY: setup-toolchain build-shim build test test-shim package clean fetch-ndk help doctor smoke-test compare list-ports build-ports
 
 help:
 	@echo "amiport — AI-powered Amiga porting toolkit"
@@ -26,6 +26,8 @@ help:
 	@echo "  doctor           Check prerequisites (Docker, vamos, etc.)"
 	@echo "  smoke-test       Run full end-to-end validation"
 	@echo "  compare          Compare native vs Amiga output (TARGET=examples/foo)"
+	@echo "  list-ports       List all ports and their status"
+	@echo "  build-ports      Build all ports"
 	@echo ""
 	@echo "Claude Code skills:"
 	@echo "  /analyze-source <path>   Analyze source for portability"
@@ -97,7 +99,32 @@ compare:
 	@echo "=== Comparing native vs Amiga: $(TARGET) ==="
 	$(MAKE) -C $(TARGET) compare
 
+list-ports:
+	@echo "=== amiport ports ==="
+	@for dir in ports/*/; do \
+		if [ -f "$$dir/Makefile" ]; then \
+			name=$$(basename "$$dir"); \
+			if [ -f "$$dir/$$name" ]; then status="BUILT"; \
+			elif [ -f "$$dir/ported/$$name.c" ]; then status="READY"; \
+			elif [ -f "$$dir/original/$$name.c" ]; then status="ORIGINAL ONLY"; \
+			else status="EMPTY"; fi; \
+			printf "  %-20s %s\n" "$$name" "$$status"; \
+		fi; \
+	done
+	@echo ""
+
+build-ports: build-shim
+	@for dir in ports/*/; do \
+		if [ -f "$$dir/Makefile" ]; then \
+			echo "Building $$(basename $$dir)..."; \
+			$(MAKE) -C "$$dir" TARGET=$$(basename "$$dir") || exit 1; \
+		fi; \
+	done
+
 clean:
 	$(MAKE) -C lib/posix-shim clean
 	$(MAKE) -C tests/shim clean
-	@if [ -n "$(TARGET)" ]; then $(MAKE) -C $(TARGET) clean; fi
+	@for dir in ports/*/; do \
+		if [ -f "$$dir/Makefile" ]; then $(MAKE) -C "$$dir" TARGET=$$(basename "$$dir") clean 2>/dev/null; fi; \
+	done
+	@if [ -n "$(TARGET)" ]; then $(MAKE) -C $(TARGET) TARGET=$(notdir $(TARGET)) clean; fi
