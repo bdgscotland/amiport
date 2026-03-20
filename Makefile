@@ -73,7 +73,7 @@ fetch-ndk:
 doctor:
 	@bash scripts/doctor.sh
 
-smoke-test: doctor build-shim test-shim
+smoke-test: doctor setup-toolchain build-shim test-shim
 	@echo ""
 	@echo "=== Building examples ==="
 	$(MAKE) build TARGET=examples/wc
