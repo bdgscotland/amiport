@@ -5,118 +5,150 @@ AI-powered toolkit for porting Linux/POSIX C software to the Commodore Amiga. Us
 ## How It Works
 
 ```
-Source Code → Analyze → Transform → Build → Test → Package
-               │          │          │        │        │
-          portability   POSIX→    cross-   vamos    ADF/LHA
-           report      Amiga    compile  emulator  archive
+Source Code → Research → Analyze → Transform → Build → Test → Package
+                │          │          │          │        │        │
+            check if    portability  POSIX→    cross-   vamos    LHA for
+            already on   report     Amiga    compile  emulator  Aminet
+            Aminet
 ```
-
-**amiport** provides:
-
-- **Claude skills** that form an automated porting pipeline
-- **A POSIX shim library** (`lib/posix-shim/`) bridging Linux system calls to AmigaOS equivalents
-- **Docker-based cross-compilation** using [bebbo's amiga-gcc](https://github.com/bebbo/amiga-gcc) or [VBCC](http://sun.hasenbraten.de/vbcc/)
-- **Emulator-based testing** via [vamos](https://github.com/cnvogelg/amitools) (virtual AmigaOS runtime)
 
 ## Quick Start
 
 ```bash
-# Clone the repo
-git clone https://github.com/duncanmackinnon/amiport.git
+git clone https://github.com/bdgscotland/amiport.git
 cd amiport
 
-# Set up the cross-compilation toolchain (requires Docker)
-make setup-toolchain
+# Check prerequisites and set up toolchain
+make doctor             # Check what's installed
+make setup-toolchain    # Pull cross-compiler Docker image
 
-# Port a project end-to-end
-# (from within Claude Code)
-/port-project examples/wc/original/wc.c
+# Validate everything works
+make smoke-test         # Full end-to-end: build shim → build examples → test in vamos
+
+# Port a project (from within Claude Code)
+/port-project /path/to/source.c
 ```
 
-## Supported Targets
+**Prerequisites:** Docker, Python 3, pip (`pip install amitools` for vamos)
 
-| Target | Status | Notes |
-|--------|--------|-------|
-| AmigaOS 3.x (68020+) | Primary | Most capable classic OS, best toolchain support |
-| AmigaOS 2.0 (68000+) | Supported | Reduced API surface |
-| AmigaOS 1.3 (68000) | Limited | Minimal dos.library, significant restrictions |
-| AmigaOS 4.x (PPC) | Future | Has native POSIX via newlib |
-| MorphOS / AROS | Future | Amiga-compatible, broader POSIX support |
+## Ports
+
+Ported programs live in `ports/` — each packages independently for [Aminet](https://aminet.net) upload.
+
+| Port | Description | Status |
+|------|-------------|--------|
+| `cal` | Unix calendar display (OpenBSD) | Built & tested |
+
+```bash
+make list-ports                      # Show all ports and status
+make build TARGET=ports/cal          # Build a specific port
+make test TARGET=ports/cal           # Test in vamos emulator
+make -C ports/cal TARGET=cal package # Create LHA for Aminet
+```
+
+## Interactive Emulator Testing
+
+Test ports on a full Amiga desktop using FS-UAE:
+
+```bash
+make setup-emu          # Install FS-UAE, check for Kickstart ROM
+make build-ports        # Build everything
+make install-emu        # Copy binaries to emulator directory
+make emu                # Launch FS-UAE — ports mounted as WORK:
+```
+
+In the Amiga shell: `WORK:cal 3 2026`
+
+**Requires:** [FS-UAE](https://fs-uae.net), Kickstart 3.1 ROM (~$10 from [amigaforever.com](https://www.amigaforever.com))
+
+## Example Ports (Pipeline Validation)
+
+These exercise the shim library and validate the build/test pipeline:
+
+| Example | Complexity | Shim Functions Exercised |
+|---------|-----------|-------------------------|
+| `wc` | Trivial | None (stdio only) |
+| `head` | Moderate | `amiport_open`, `amiport_read`, `amiport_close`, `amiport_write`, `amiport_getopt` |
+| `mini-find` | Complex | `amiport_opendir`, `amiport_readdir`, `amiport_closedir`, `amiport_stat`, `amiport_getopt` |
 
 ## Architecture
 
-The porting pipeline is implemented as Claude Code skills and agents:
-
-### Skills (pipeline stages)
+### Pipeline Skills
 
 | Skill | Purpose |
 |-------|---------|
-| `/analyze-source` | Scan C code for portability issues, produce structured report |
+| `/analyze-source` | Scan C code for portability issues |
 | `/transform-source` | Replace POSIX calls with Amiga/shim equivalents |
-| `/build-amiga` | Cross-compile using bebbo-gcc or VBCC |
-| `/test-amiga` | Run binaries in vamos emulator, verify output |
-| `/port-project` | Orchestrate the full pipeline end-to-end |
+| `/build-amiga` | Cross-compile using Docker toolchain |
+| `/test-amiga` | Test binaries in vamos emulator |
+| `/port-project` | Orchestrate the full pipeline (including Aminet research) |
 
-### Agents (specialized roles)
+### Specialized Agents
 
 | Agent | Role |
 |-------|------|
+| `aminet-researcher` | Check if a tool already exists for AmigaOS |
 | `source-analyzer` | Deep portability analysis |
 | `code-transformer` | Systematic source transformation |
 | `build-manager` | Compiler error diagnosis and fixing |
 | `test-runner` | Emulator test execution |
 | `port-coordinator` | Full pipeline orchestration |
 
-See [docs/architecture.md](docs/architecture.md) for details.
+### POSIX Shim Library
 
-## Example Ports
+`lib/posix-shim/` maps POSIX functions to AmigaOS equivalents (37 functions, 100% unit tested):
 
-| Example | Complexity | Shim Functions Exercised | Key Patterns |
-|---------|-----------|-------------------------|-------------|
-| `wc` | Trivial | None (stdio only) | Basic stdio C program |
-| `head` | Moderate | `amiport_open`, `amiport_read`, `amiport_close`, `amiport_write`, `amiport_getopt` | Low-level file I/O through shim |
-| `mini-find` | Complex | `amiport_opendir`, `amiport_readdir`, `amiport_closedir`, `amiport_stat`, `amiport_getopt` | Directory traversal, stat, recursion |
+- File I/O: `open`, `close`, `read`, `write`, `lseek`, `stat`, `fstat`
+- Directories: `opendir`, `readdir`, `closedir`, `mkdir`, `getcwd`, `chdir`
+- Process: `sleep`, `usleep`, `getenv`, `getpid`
+- Parsing: `getopt`, `strtok_r`
+- Errors: `err`, `errx`, `warn`, `warnx`, `strtonum` (BSD compat)
+- Signals: `signal`, `raise` (SIGINT via Ctrl-C only)
+- Time: `time`, `gettimeofday`
+- Misc: `tmpfile`, `isatty`, `access`
 
-Each example includes `original/` (POSIX source), `ported/` (Amiga source), `PORT.md` (transformation log), and a `Makefile` with build and test targets.
+**Not supported** (requires redesign): `fork`/`exec`, `mmap`, `pthreads`, BSD sockets
 
-## The POSIX Shim
+See [docs/architecture.md](docs/architecture.md) for full details.
 
-`lib/posix-shim/` provides a compatibility layer mapping common POSIX functions to AmigaOS equivalents:
-
-- File I/O (`open`, `close`, `read`, `write`, `lseek`)
-- Directory operations (`opendir`, `readdir`, `closedir`)
-- Command-line parsing (`getopt`)
-- Error mapping (AmigaDOS IoErr → POSIX errno)
-- Signal stubs (SIGINT via `SetSignal()`)
-
-**Not supported** (requires redesign, not just shimming):
-- `fork` / `exec` (no process model equivalent)
-- `mmap` (no memory-mapped files)
-- `pthreads` (no preemptive threading — Amiga uses cooperative tasks)
-- BSD sockets (requires bsdsocket.library, separate effort)
-
-## Toolchain
-
-The recommended setup uses Docker for reproducible builds:
+## All Make Targets
 
 ```bash
-make setup-toolchain    # Pull/build Docker images
-make build-shim         # Cross-compile the POSIX shim library
-make build TARGET=examples/wc   # Build a specific project
-make test TARGET=examples/wc    # Test via vamos
-make package TARGET=examples/wc # Create LHA archive
-```
+# Setup
+make doctor             # Check prerequisites
+make setup-toolchain    # Pull/build cross-compiler
+make setup-emu          # Install FS-UAE emulator
+make fetch-ndk          # Download AmigaOS NDK
 
-See [docs/toolchain-setup.md](docs/toolchain-setup.md) for native installation options.
+# Build
+make build-shim         # Cross-compile POSIX shim library
+make build TARGET=...   # Build a specific port or example
+make build-ports        # Build all ports
+
+# Test
+make test TARGET=...    # Test a build via vamos
+make test-shim          # Run shim unit tests (80 tests)
+make compare TARGET=... # Compare native vs Amiga output
+make smoke-test         # Full end-to-end validation
+
+# Emulator
+make install-emu        # Copy binaries to emulator directory
+make emu                # Launch FS-UAE
+
+# Package & Info
+make package TARGET=... # Create LHA archive for Aminet
+make list-ports         # Show all ports and status
+make clean              # Remove build artifacts
+```
 
 ## Contributing
 
-Contributions welcome! Areas where help is especially appreciated:
+Contributions welcome! Especially:
 
-- Expanding the POSIX shim (more functions, better OS version support)
-- Adding example ports of real-world utilities
+- Porting useful CLI tools (check Aminet first — use the `aminet-researcher` agent)
+- Expanding the POSIX shim
 - Testing on real Amiga hardware
-- AmigaOS 4.x / MorphOS / AROS target support
+- Improving vamos compatibility
 
 ## License
 
@@ -124,8 +156,9 @@ MIT License. See [LICENSE](LICENSE).
 
 ## Acknowledgments
 
-- [bebbo/amiga-gcc](https://github.com/bebbo/amiga-gcc) — m68k cross-compiler
+- [amigadev/m68k-amigaos-gcc](https://hub.docker.com/r/amigadev/m68k-amigaos-gcc) — pre-built cross-compiler
+- [bebbo/amiga-gcc](https://github.com/bebbo/amiga-gcc) — m68k cross-compiler (upstream)
 - [VBCC](http://sun.hasenbraten.de/vbcc/) — portable C compiler with Amiga targets
 - [amitools/vamos](https://github.com/cnvogelg/amitools) — virtual AmigaOS runtime
-- [clib2](https://github.com/adtools/clib2) — C runtime library for AmigaOS
-- [AmigaPorts](https://github.com/amigaports) — community porting efforts
+- [FS-UAE](https://fs-uae.net) — Amiga emulator for interactive testing
+- [Aminet](https://aminet.net) — The Amiga software archive
