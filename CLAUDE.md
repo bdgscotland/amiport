@@ -32,6 +32,31 @@ The porting pipeline has 5 stages, each backed by a Claude skill:
 - Use `amiport_*` shim wrappers from `lib/posix-shim/` rather than raw AmigaOS calls in ported code
 - Always include Amiga version string: `static const char *verstag = "$VER: progname 1.0 (DD.MM.YYYY)";` (use current date)
 
+## Using the Pipeline — IMPORTANT
+
+**Always use the skills and agents for porting work. Do not do their jobs manually.**
+
+- To port a project: use `/port-project <path>` — it orchestrates the full pipeline
+- To analyze source: dispatch the `source-analyzer` agent or use `/analyze-source`
+- To transform source: dispatch the `code-transformer` agent or use `/transform-source`
+- To build: dispatch the `build-manager` agent or use `/build-amiga`
+- To test: dispatch the `test-runner` agent or use `/test-amiga`
+- To check Aminet for existing ports: dispatch the `aminet-researcher` agent
+- To publish to Aminet: dispatch the `aminet-publisher` agent
+
+The `/port-project` skill runs Stage 0 (Aminet research) through Stage 6 (packaging) automatically, dispatching the appropriate agents at each step. Use it as the entry point for all porting work.
+
+**Available agents:**
+| Agent | When to dispatch |
+|-------|-----------------|
+| `aminet-researcher` | Before any port — check if it already exists |
+| `source-analyzer` | Stage 1 — portability analysis |
+| `code-transformer` | Stage 3 — source transformation |
+| `build-manager` | Stage 4 — cross-compilation and error fixing |
+| `test-runner` | Stage 5 — vamos testing |
+| `port-coordinator` | Full pipeline orchestration for complex ports |
+| `aminet-publisher` | Publishing — curated, never automatic |
+
 ## Porting Rules
 
 - **Verify shim availability** — check `lib/posix-shim/include/amiport/` headers before assuming an `amiport_*` function exists. The mapping docs list planned functions that may not be implemented yet.
