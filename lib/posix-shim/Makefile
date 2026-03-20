@@ -3,11 +3,13 @@
 # Cross-compiles using m68k-amigaos-gcc (bebbo toolchain)
 # Produces libamiport.a
 
-CC = m68k-amigaos-gcc
-AR = m68k-amigaos-ar
-RANLIB = m68k-amigaos-ranlib
+# Use wrapper scripts that auto-detect Docker vs native toolchain
+TOOLCHAIN_BIN = ../../toolchain/scripts
+CC = $(TOOLCHAIN_BIN)/m68k-amigaos-gcc
+AR = $(TOOLCHAIN_BIN)/m68k-amigaos-ar
+RANLIB = $(TOOLCHAIN_BIN)/m68k-amigaos-ranlib
 
-CFLAGS = -O2 -noixemul -m68020 -Wall -Iinclude
+CFLAGS = -O2 -noixemul -m68000 -Wall -Iinclude
 TARGET = libamiport.a
 
 SRCDIR = src

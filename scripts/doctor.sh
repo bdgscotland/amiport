@@ -33,13 +33,15 @@ else
     fi
 fi
 
-# 2. Cross-compiler: amiga-gcc Docker image OR native m68k-amigaos-gcc
-if docker image inspect amiga-gcc >/dev/null 2>&1; then
-    ok "Cross-compiler (amiga-gcc Docker image)"
+# 2. Cross-compiler: Docker image OR native m68k-amigaos-gcc
+if docker image inspect amigadev/m68k-amigaos-gcc >/dev/null 2>&1; then
+    ok "Cross-compiler (amigadev/m68k-amigaos-gcc Docker image)"
+elif docker image inspect amiport/bebbo-gcc >/dev/null 2>&1; then
+    ok "Cross-compiler (amiport/bebbo-gcc Docker image)"
 elif command -v m68k-amigaos-gcc >/dev/null 2>&1; then
     ok "Cross-compiler (native m68k-amigaos-gcc)"
 else
-    fail "Cross-compiler (amiga-gcc image or m68k-amigaos-gcc not found)" "make setup-toolchain"
+    fail "Cross-compiler (no Docker image or native gcc found)" "make setup-toolchain"
 fi
 
 # 3. vamos

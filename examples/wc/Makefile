@@ -9,13 +9,13 @@ SOURCE = ported/wc.c
 all: $(TARGET)
 
 $(TARGET): $(SOURCE) $(SHIM_LIB)
-	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS)
+	$(CC) $(CFLAGS) -o $(TARGET) $< $(LDFLAGS)
 
 test: $(TARGET)
 	@echo "=== Testing wc ==="
 	@echo "The quick brown fox jumps over the lazy dog." > test_input.txt
 	@echo "Second line here." >> test_input.txt
-	timeout 10 vamos ./$(TARGET) test_input.txt
+	vamos ./$(TARGET) test_input.txt
 	@rm -f test_input.txt
 	@echo "=== wc tests complete ==="
 

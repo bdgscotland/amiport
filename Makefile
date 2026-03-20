@@ -44,13 +44,13 @@ build:
 ifndef TARGET
 	$(error TARGET is required. Usage: make build TARGET=examples/wc)
 endif
-	$(MAKE) -C $(TARGET)
+	$(MAKE) -C $(TARGET) TARGET=$(notdir $(TARGET))
 
 test:
 ifndef TARGET
 	$(error TARGET is required. Usage: make test TARGET=examples/wc)
 endif
-	$(MAKE) -C $(TARGET) test
+	$(MAKE) -C $(TARGET) TARGET=$(notdir $(TARGET)) test
 
 test-shim:
 	$(MAKE) -C tests/shim

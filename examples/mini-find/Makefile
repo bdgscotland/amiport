@@ -9,7 +9,7 @@ SOURCE = ported/mini-find.c
 all: $(TARGET)
 
 $(TARGET): $(SOURCE) $(SHIM_LIB)
-	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS)
+	$(CC) $(CFLAGS) -o $(TARGET) $< $(LDFLAGS)
 
 test: $(TARGET)
 	@echo "=== Testing mini-find ==="
@@ -18,15 +18,15 @@ test: $(TARGET)
 	@echo "world" > test_tree/file2.txt
 	@echo "nested" > test_tree/subdir/file3.c
 	@echo "--- List all ---"
-	timeout 10 vamos ./$(TARGET) test_tree
+	vamos -- ./$(TARGET) test_tree
 	@echo "--- Files only ---"
-	timeout 10 vamos ./$(TARGET) -t f test_tree
+	vamos -- ./$(TARGET) -t f test_tree
 	@echo "--- Dirs only ---"
-	timeout 10 vamos ./$(TARGET) -t d test_tree
+	vamos -- ./$(TARGET) -t d test_tree
 	@echo "--- Pattern *.c ---"
-	timeout 10 vamos ./$(TARGET) -n "*.c" test_tree
+	vamos -- ./$(TARGET) -n "*.c" test_tree
 	@echo "--- Nonexistent dir ---"
-	timeout 10 vamos ./$(TARGET) nonexistent || true
+	vamos -- ./$(TARGET) nonexistent || true
 	@rm -rf test_tree
 	@echo "=== mini-find tests complete ==="
 

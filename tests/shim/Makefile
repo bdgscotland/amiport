@@ -6,8 +6,9 @@
 #        make run      (run only)
 #        make clean    (remove binaries)
 
-CC = m68k-amigaos-gcc
-CFLAGS = -O2 -noixemul -m68020 -Wall -I../../lib/posix-shim/include -I.
+TOOLCHAIN_BIN = ../../toolchain/scripts
+CC = $(TOOLCHAIN_BIN)/m68k-amigaos-gcc
+CFLAGS = -O2 -noixemul -m68000 -Wall -I../../lib/posix-shim/include -I.
 LDFLAGS = -L../../lib/posix-shim -lamiport
 VAMOS = vamos -q
 
