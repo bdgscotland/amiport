@@ -67,7 +67,12 @@ The `/port-project` skill runs Stage 0 (Aminet research) through Stage 6 (packag
 | `test-runner` | Stage 5 — vamos testing |
 | `port-coordinator` | Full pipeline orchestration for complex ports |
 | `dependency-auditor` | Before complex ports — audit external library dependencies |
+| `perf-optimizer` | After a port works — optimize for 68k hardware characteristics |
 | `aminet-publisher` | Publishing — curated, never automatic |
+
+**Post-port quality skills:**
+- `/review-amiga <path>` — Amiga-specific code review (stack safety, BPTR handling, memory patterns, conventions)
+- Dispatch `perf-optimizer` agent for 68k performance optimization (loop patterns, integer ops, memory access)
 
 ## Porting Rules
 
