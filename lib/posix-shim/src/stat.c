@@ -26,6 +26,9 @@ int amiport_stat(const char *path, struct amiport_stat *buf)
 
     memset(buf, 0, sizeof(struct amiport_stat));
 
+    /* Clear FileInfoBlock before Examine */
+    memset(&fib, 0, sizeof(struct FileInfoBlock));
+
     lock = Lock((CONST_STRPTR)path, SHARED_LOCK);
     if (!lock) {
         amiport_map_errno();

@@ -87,6 +87,7 @@ struct amiport_dirent *amiport_readdir(AMIPORT_DIR *dir)
     /* Set type: positive DirEntryType = directory */
     dir->entry.d_type = (dir->fib.fib_DirEntryType > 0) ?
                          AMIPORT_DT_DIR : AMIPORT_DT_REG;
+    dir->entry.d_fileno = 1; /* No real inode on AmigaOS */
 
     return &dir->entry;
 }

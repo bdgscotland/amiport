@@ -24,6 +24,12 @@ static BPTR fd_table[AMIPORT_MAX_FDS];
 static int  fd_used[AMIPORT_MAX_FDS];
 static int  fd_initialized = 0;
 
+/* FILE* to fd mapping (for fileno() support) */
+#include <amiport/stdio.h>
+
+amiport_file_entry amiport_files[AMIPORT_MAX_FILE_ENTRIES];
+int amiport_file_count = 0;
+
 static void init_fd_table(void)
 {
     int i;
@@ -275,6 +281,9 @@ int amiport_fstat(int fd, struct amiport_stat *buf)
 
     memset(buf, 0, sizeof(struct amiport_stat));
 
+    /* Clear FileInfoBlock before ExamineFH */
+    memset(&fib, 0, sizeof(struct FileInfoBlock));
+
     /* ExamineFH is available on AmigaOS 2.0+ (dos.library 36+) */
     ok = ExamineFH(fd_table[fd], &fib);
     if (!ok) {
@@ -300,4 +309,91 @@ int amiport_fstat(int fd, struct amiport_stat *buf)
                     AMIGA_EPOCH_OFFSET;
 
     return 0;
+}
+
+/* FILE* wrappers to track fileno() mappings.
+ * Undefine the fopen/fclose macros here so we can call the real libc functions
+ * without triggering infinite recursion. */
+#undef fopen
+#undef fclose
+
+FILE *
+amiport_fopen(const char *path, const char *mode)
+{
+    FILE *fp;
+    int fd;
+
+    if (!mode || !*mode) {
+        errno = EINVAL;
+        return NULL;
+    }
+
+    /* Use the real libc fopen() for stdio buffering — this avoids opening
+     * the file twice (once via amiport_open + once via libc fopen). */
+    fp = fopen(path, mode);
+    if (!fp)
+        return NULL;
+
+    /* Allocate a slot in our fd table so fileno() works.
+     * We use a sentinel BPTR of 1 (non-zero = "in use") since we don't
+     * have the raw AmigaDOS handle from libc's fopen. */
+    init_fd_table();
+    fd = -1;
+    {
+        int i;
+        for (i = 3; i < AMIPORT_MAX_FDS; i++) {
+            if (!fd_used[i]) {
+                fd_table[i] = (BPTR)1; /* sentinel — not a real BPTR */
+                fd_used[i] = 1;
+                fd = i;
+                break;
+            }
+        }
+    }
+    if (fd < 0) {
+        /* fd table full — still return fp so the caller can use it,
+         * but fileno() will return -1 for this handle. */
+    }
+
+    /* Register the FILE* -> fd mapping so fileno() can find it */
+    if (fd >= 0 && amiport_file_count < AMIPORT_MAX_FILE_ENTRIES) {
+        amiport_files[amiport_file_count].fp = fp;
+        amiport_files[amiport_file_count].fd = fd;
+        amiport_file_count++;
+    }
+
+    return fp;
+}
+
+int
+amiport_fclose(FILE *fp)
+{
+    int i, fd = -1;
+    int result;
+
+    if (!fp)
+        return -1;
+
+    /* Find and remove from our table */
+    for (i = 0; i < amiport_file_count; i++) {
+        if (amiport_files[i].fp == fp) {
+            fd = amiport_files[i].fd;
+            /* Remove by shifting remaining entries */
+            for (; i < amiport_file_count - 1; i++)
+                amiport_files[i] = amiport_files[i + 1];
+            amiport_file_count--;
+            break;
+        }
+    }
+
+    /* Close the FILE* using the real libc fclose */
+    result = fclose(fp);
+
+    /* Release our fd table slot (sentinel BPTR — don't call AmigaDOS Close) */
+    if (fd >= 0 && fd < AMIPORT_MAX_FDS) {
+        fd_table[fd] = 0;
+        fd_used[fd] = 0;
+    }
+
+    return result;
 }

@@ -15,9 +15,15 @@ struct amiport_stat {
     LONG  st_size;      /* File size in bytes */
     ULONG st_mtime;     /* Modification time (Unix timestamp approx) */
     int   st_isdir;     /* Non-zero if directory */
+    ULONG st_dev;       /* Device ID (always 0 on AmigaOS) */
+    ULONG st_ino;       /* Inode number (always 0 on AmigaOS) */
 };
 
+/* POSIX compatibility alias */
+typedef struct amiport_stat stat;
+
 /* Mode flags */
+#define AMIPORT_S_IFMT   0170000  /* Mask for file type bits */
 #define AMIPORT_S_IFDIR  0040000
 #define AMIPORT_S_IFREG  0100000
 
@@ -29,10 +35,13 @@ int amiport_fstat(int fd, struct amiport_stat *buf);
 #define AMIPORT_S_ISREG(m)  (((m) & 0170000) == AMIPORT_S_IFREG)
 
 #ifndef AMIPORT_NO_STAT_MACROS
+#define S_IFMT    AMIPORT_S_IFMT
 #define S_IFDIR   AMIPORT_S_IFDIR
 #define S_IFREG   AMIPORT_S_IFREG
 #define S_ISDIR   AMIPORT_S_ISDIR
 #define S_ISREG   AMIPORT_S_ISREG
+#define fstat     amiport_fstat
+#define stat      amiport_stat
 #endif
 
 #endif /* AMIPORT_SYS_STAT_H */

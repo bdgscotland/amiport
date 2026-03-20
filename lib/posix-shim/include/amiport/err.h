@@ -1,8 +1,15 @@
 /*
  * amiport/err.h -- BSD err/warn family and strtonum for AmigaOS
  *
- * Provides err(), errx(), warn(), warnx(), and strtonum()
- * as inline/macro implementations for ported software.
+ * Provides err(), errx(), warn(), warnx(), warnc() and strtonum()
+ * as inline implementations for ported software.
+ *
+ * All functions are variadic to match the BSD/POSIX signatures exactly:
+ *   void err(int eval, const char *fmt, ...)
+ *   void errx(int eval, const char *fmt, ...)
+ *   void warn(const char *fmt, ...)
+ *   void warnx(const char *fmt, ...)
+ *   void warnc(int code, const char *fmt, ...)
  */
 
 #ifndef AMIPORT_ERR_H
@@ -13,41 +20,86 @@
 #include <string.h>
 #include <errno.h>
 #include <limits.h>
+#include <stdarg.h>
 
 /*
- * warn/warnx -- print warning message to stderr
+ * warn -- print "progname: fmt ...: strerror" to stderr
  */
 static void
-amiport_warn(const char *fmt)
+amiport_warn(const char *fmt, ...)
 {
-	if (fmt != NULL)
-		(void)fprintf(stderr, "%s", fmt);
-	(void)fprintf(stderr, ": %s\n", strerror(errno));
+	va_list ap;
+	if (fmt != NULL) {
+		va_start(ap, fmt);
+		(void)vfprintf(stderr, fmt, ap);
+		va_end(ap);
+		(void)fprintf(stderr, ": ");
+	}
+	(void)fprintf(stderr, "%s\n", strerror(errno));
 }
 
+/*
+ * warnx -- print "progname: fmt ..." to stderr (no errno)
+ */
 static void
-amiport_warnx(const char *fmt)
+amiport_warnx(const char *fmt, ...)
 {
-	if (fmt != NULL)
-		(void)fprintf(stderr, "%s", fmt);
+	va_list ap;
+	if (fmt != NULL) {
+		va_start(ap, fmt);
+		(void)vfprintf(stderr, fmt, ap);
+		va_end(ap);
+	}
 	(void)fprintf(stderr, "\n");
 }
 
 /*
- * err/errx -- print error message to stderr, then exit
+ * err -- print warning then exit
  */
 static void
-amiport_err(int eval, const char *fmt)
+amiport_err(int eval, const char *fmt, ...)
 {
-	amiport_warn(fmt);
+	va_list ap;
+	if (fmt != NULL) {
+		va_start(ap, fmt);
+		(void)vfprintf(stderr, fmt, ap);
+		va_end(ap);
+		(void)fprintf(stderr, ": ");
+	}
+	(void)fprintf(stderr, "%s\n", strerror(errno));
 	exit(eval);
 }
 
+/*
+ * errx -- print message then exit (no errno)
+ */
 static void
-amiport_errx(int eval, const char *fmt)
+amiport_errx(int eval, const char *fmt, ...)
 {
-	amiport_warnx(fmt);
+	va_list ap;
+	if (fmt != NULL) {
+		va_start(ap, fmt);
+		(void)vfprintf(stderr, fmt, ap);
+		va_end(ap);
+	}
+	(void)fprintf(stderr, "\n");
 	exit(eval);
+}
+
+/*
+ * warnc -- print warning message with explicit error code to stderr
+ */
+static void
+amiport_warnc(int code, const char *fmt, ...)
+{
+	va_list ap;
+	if (fmt != NULL) {
+		va_start(ap, fmt);
+		(void)vfprintf(stderr, fmt, ap);
+		va_end(ap);
+		(void)fprintf(stderr, ": ");
+	}
+	(void)fprintf(stderr, "%s\n", strerror(code));
 }
 
 /*
@@ -97,6 +149,7 @@ amiport_strtonum(const char *numstr, long long minval, long long maxval,
 #define err    amiport_err
 #define errx   amiport_errx
 #define warn   amiport_warn
+#define warnc  amiport_warnc
 #define warnx  amiport_warnx
 #define strtonum amiport_strtonum
 #endif
