@@ -16,5 +16,6 @@
 #include <amiport-emu/mmap.h>
 #include <amiport-emu/pipe.h>
 #include <amiport-emu/alarm.h>
+#include <amiport-emu/regex.h>
 
 #endif /* AMIPORT_EMU_H */

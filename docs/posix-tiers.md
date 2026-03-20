@@ -51,6 +51,18 @@ One wrapper per function. Semantics match POSIX for all common use cases. The tr
 |`raise(SIGINT)` |`amiport_raise()`       |`Signal()`                  |                                                                 |
 |`tmpfile()`     |`amiport_tmpfile()`     |`Open("T:...")`             |Uses T: assign                                                   |
 
+|`fnmatch()`    |`amiport_fnmatch()`     |Pure C implementation       |Shell-style glob matching                                        |
+|`scandir()`    |`amiport_scandir()`     |`opendir()`+`readdir()`     |With filter and sort callbacks                                   |
+|`alphasort()`  |`amiport_alphasort()`   |`strcmp()` wrapper           |For use with `scandir()`                                         |
+|`strlcpy()`    |`amiport_strlcpy()`     |Pure C implementation       |BSD safe string copy                                             |
+|`strlcat()`    |`amiport_strlcat()`     |Pure C implementation       |BSD safe string concatenation                                    |
+|`reallocarray()`|`amiport_reallocarray()`|`realloc()` with overflow check|OpenBSD safe array reallocation                               |
+|`asprintf()`   |`amiport_asprintf()`    |`vsnprintf()`+`malloc()`    |Dynamic string formatting                                        |
+|`vasprintf()`  |`amiport_vasprintf()`   |`vsnprintf()`+`malloc()`    |va_list variant of asprintf                                      |
+|`mkstemp()`    |`amiport_mkstemp()`     |`Open()` with unique name   |Uses task address + counter for uniqueness                       |
+|`pread()`      |`amiport_pread()`       |`Seek()`+`Read()`+`Seek()`  |Non-atomic positional read                                       |
+|`pwrite()`     |`amiport_pwrite()`      |`Seek()`+`Write()`+`Seek()` |Non-atomic positional write                                      |
+
 ### Planned Tier 1 additions
 
 |POSIX function    |Implementation approach      |Priority                                           |
@@ -135,6 +147,25 @@ These require stateful emulation layers that approximate POSIX behaviour with do
 **When to use:** Programs using alarm() for simple timeouts where the main loop can check periodically.
 
 **When NOT to use:** Programs relying on SIGALRM to interrupt blocking read()/select() calls.
+
+### regex — POSIX regular expressions
+
+**POSIX contract:** Compile and execute regular expressions (BRE and ERE).
+
+**Emulation strategy:** A minimal backtracking NFA regex engine compiled into `lib/posix-emu/`. Supports literal matching, `.`, `^`, `$`, `[]`, `[^]`, `*`, `+`, `?`, `|`, `()`, `\1`-`\9` backreferences, and common escapes (`\t`, `\n`).
+
+**Behavioural differences:**
+
+- No locale-dependent collation (`[.ch.]`, `[=a=]`)
+- No POSIX character classes (`[:alpha:]`, `[:digit:]`)
+- Maximum pattern length: 512 bytes compiled
+- Maximum 9 capture groups
+- Backtracking NFA — not suitable for adversarial patterns (catastrophic backtracking possible)
+- `REG_NEWLINE` flag only partially supported
+
+**When to use:** Programs using regex for simple pattern matching (grep, diff `-I`, sed basics).
+
+**When NOT to use:** Programs relying on full POSIX locale support or running untrusted regex patterns.
 
 ### Tier 2 design rules
 

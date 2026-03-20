@@ -99,9 +99,19 @@ or amiport shim wrappers. Used by the `analyze-source` and `transform-source` sk
 | POSIX | AmigaOS | Shim | Severity | Notes |
 |-------|---------|------|----------|-------|
 | `getopt()` | — | `amiport_getopt()` | needs-shim | Not in AmigaOS; bundled in posix-shim |
-| `regex` (POSIX) | — | — | needs-shim | Must bundle a regex library |
+| `regex` (POSIX) | — | `amiport_emu_regcomp()` etc. | needs-emu | Tier 2 regex emulation in `lib/posix-emu/` |
 | `strdup()` | Provided by clib2 | — | trivial | |
 | `strtok_r()` | — | `amiport_strtok_r()` | needs-shim | Not always available; simple to implement |
+| `strlcpy()` | — | `amiport_strlcpy()` | needs-shim | BSD safe string copy |
+| `strlcat()` | — | `amiport_strlcat()` | needs-shim | BSD safe string concatenation |
+| `reallocarray()` | — | `amiport_reallocarray()` | needs-shim | OpenBSD overflow-checked realloc |
+| `asprintf()` | — | `amiport_asprintf()` | needs-shim | Dynamic string formatting |
+| `vasprintf()` | — | `amiport_vasprintf()` | needs-shim | va_list variant |
+| `mkstemp()` | — | `amiport_mkstemp()` | needs-shim | Secure temp file via T: assign |
+| `pread()` | — | `amiport_pread()` | needs-shim | Positional read (non-atomic) |
+| `pwrite()` | — | `amiport_pwrite()` | needs-shim | Positional write (non-atomic) |
+| `fnmatch()` | — | `amiport_fnmatch()` | needs-shim | Shell-style glob matching |
+| `scandir()` | — | `amiport_scandir()` | needs-shim | Directory scanning with filter/sort |
 
 ## Time
 
