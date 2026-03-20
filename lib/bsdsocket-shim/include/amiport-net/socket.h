@@ -16,39 +16,49 @@
 #define AMIPORT_NET_SOCKET_H
 
 #ifdef __AMIGA__
+/*
+ * On Amiga, pull in the NDK's sys/socket.h FIRST. It defines sa_family_t,
+ * socklen_t, struct sockaddr, struct linger, and all the SO_* / AF_* macros.
+ * We must not redefine any of these.
+ */
 #include <exec/types.h>
-#endif
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-/* --- Types that POSIX programs expect --- */
+#include <sys/socket.h>
+#else
+/*
+ * Non-Amiga host build: provide the types ourselves so the code compiles
+ * for testing on Linux/macOS without the NDK.
+ */
 
 #ifndef _SOCKLEN_T
 #define _SOCKLEN_T
-typedef int socklen_t;
+typedef unsigned long socklen_t;
 #endif
 
 #ifndef _SA_FAMILY_T
 #define _SA_FAMILY_T
-typedef unsigned short sa_family_t;
+typedef unsigned char sa_family_t;
 #endif
 
 /* Generic socket address */
+#ifndef _STRUCT_SOCKADDR
+#define _STRUCT_SOCKADDR
 struct sockaddr {
-    sa_family_t sa_family;
-    char        sa_data[14];
+    unsigned char sa_len;
+    sa_family_t   sa_family;
+    char          sa_data[14];
 };
+#endif
 
 /* Socket storage (large enough for any address family) */
+#ifndef _STRUCT_SOCKADDR_STORAGE
+#define _STRUCT_SOCKADDR_STORAGE
 struct sockaddr_storage {
     sa_family_t ss_family;
     char        _ss_pad[126];
 };
+#endif
 
 /* --- Address families --- */
-
 #define AF_UNSPEC  0
 #define AF_INET    2
 
@@ -56,19 +66,16 @@ struct sockaddr_storage {
 #define PF_INET    AF_INET
 
 /* --- Socket types --- */
-
 #define SOCK_STREAM    1
 #define SOCK_DGRAM     2
 #define SOCK_RAW       3
 
 /* --- Protocol numbers --- */
-
 #define IPPROTO_IP     0
 #define IPPROTO_TCP    6
 #define IPPROTO_UDP    17
 
 /* --- Socket options --- */
-
 #define SOL_SOCKET     0xFFFF
 
 #define SO_REUSEADDR   0x0004
@@ -83,24 +90,30 @@ struct sockaddr_storage {
 #define SO_TYPE        0x1008
 
 /* --- Shutdown modes --- */
-
 #define SHUT_RD        0
 #define SHUT_WR        1
 #define SHUT_RDWR      2
 
 /* --- Message flags --- */
-
 #define MSG_OOB        0x01
 #define MSG_PEEK       0x02
 #define MSG_DONTROUTE  0x04
 #define MSG_DONTWAIT   0x40
 
 /* --- Linger structure --- */
-
+#ifndef _STRUCT_LINGER
+#define _STRUCT_LINGER
 struct linger {
     int l_onoff;
     int l_linger;
 };
+#endif
+
+#endif /* __AMIGA__ */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /* --- fd_set for select --- */
 
@@ -141,25 +154,25 @@ void amiport_socket_cleanup(void);
 
 /* Core socket operations */
 int amiport_socket(int domain, int type, int protocol);
-int amiport_connect(int sockfd, const struct sockaddr *addr, int addrlen);
-int amiport_bind(int sockfd, const struct sockaddr *addr, int addrlen);
+int amiport_connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen);
+int amiport_bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen);
 int amiport_listen(int sockfd, int backlog);
-int amiport_accept(int sockfd, struct sockaddr *addr, int *addrlen);
+int amiport_accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen);
 int amiport_closesocket(int sockfd);
 
 /* Data transfer */
 int amiport_send(int sockfd, const void *buf, int len, int flags);
 int amiport_recv(int sockfd, void *buf, int len, int flags);
 int amiport_sendto(int sockfd, const void *buf, int len, int flags,
-                   const struct sockaddr *dest, int addrlen);
+                   const struct sockaddr *dest, socklen_t addrlen);
 int amiport_recvfrom(int sockfd, void *buf, int len, int flags,
-                     struct sockaddr *src, int *addrlen);
+                     struct sockaddr *src, socklen_t *addrlen);
 
 /* Socket options */
 int amiport_setsockopt(int sockfd, int level, int optname,
-                       const void *optval, int optlen);
+                       const void *optval, socklen_t optlen);
 int amiport_getsockopt(int sockfd, int level, int optname,
-                       void *optval, int *optlen);
+                       void *optval, socklen_t *optlen);
 
 /* Shutdown */
 int amiport_shutdown(int sockfd, int how);

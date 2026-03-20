@@ -9,9 +9,16 @@
 
 #include <amiport-net/socket.h>
 
-#ifdef __cplusplus
-extern "C" {
+#ifdef __AMIGA__
+/*
+ * Pull in the NDK's <netdb.h> which defines struct hostent using Amiga types.
+ * We must not redefine it.
+ */
+#ifndef _NETDB_H
+#include <netdb.h>
 #endif
+
+#else /* !__AMIGA__ — host build */
 
 /* Host entry structure */
 struct hostent {
@@ -24,12 +31,28 @@ struct hostent {
 
 #define h_addr h_addr_list[0]
 
-/* Error codes for DNS resolution */
+#endif /* __AMIGA__ */
+
+/* Error codes for DNS resolution — guard in case NDK defines them */
+#ifndef HOST_NOT_FOUND
 #define HOST_NOT_FOUND 1
+#endif
+#ifndef TRY_AGAIN
 #define TRY_AGAIN      2
+#endif
+#ifndef NO_RECOVERY
 #define NO_RECOVERY    3
+#endif
+#ifndef NO_DATA
 #define NO_DATA        4
+#endif
+#ifndef NO_ADDRESS
 #define NO_ADDRESS     NO_DATA
+#endif
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /* DNS resolution */
 struct hostent *amiport_gethostbyname(const char *name);

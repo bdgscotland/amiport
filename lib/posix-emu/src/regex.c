@@ -304,7 +304,8 @@ compile_piece(compile_state *cs)
 
     if (quant == '*' || ((cs->cflags & REG_EXTENDED) && (quant == '+' || quant == '?'))) {
         unsigned char op;
-        unsigned char saved[AMIPORT_REGEX_MAX_COMPILED];
+        /* Static buffer to avoid 2KB stack allocation on the 68k */
+        static unsigned char saved[AMIPORT_REGEX_MAX_COMPILED];
         int i;
 
         switch (quant) {
@@ -330,7 +331,7 @@ compile_piece(compile_state *cs)
 
     /* BRE: * is a quantifier after an atom */
     if (!(cs->cflags & REG_EXTENDED) && quant == '*') {
-        unsigned char saved[AMIPORT_REGEX_MAX_COMPILED];
+        static unsigned char saved[AMIPORT_REGEX_MAX_COMPILED];
         int i;
 
         memcpy(saved, cs->code + atom_start, atom_len);
@@ -362,31 +363,69 @@ compile_branch(compile_state *cs)
 static int
 compile_ere(compile_state *cs)
 {
-    int branch_start;
-
-    branch_start = cs->code_len;
+    /* Record where this ERE's code starts (may be non-zero inside a group) */
+    int ere_start = cs->code_len;
 
     if (compile_branch(cs) < 0)
         return -1;
 
-    /* Handle alternation (ERE only) */
+    /* Handle alternation (ERE only).
+     *
+     * For each additional alternative we insert a BRANCH instruction BEFORE
+     * the already-compiled left side.  The layout for A|B is:
+     *
+     *   [BRANCH offset_to_B]  <-- try the current path; on failure jump to B
+     *   <A code>
+     *   [JUMP offset_past_B]  <-- A succeeded; skip over B
+     *   <B code>              <-- B starts here
+     *
+     * OP_BRANCH carries a forward offset to the start of the next alternative.
+     * The try_match handler for OP_BRANCH tries the inline path first, and if
+     * that fails it jumps to pc+2+offset (the next alternative).
+     */
     while ((cs->cflags & REG_EXTENDED) && cs->pattern[cs->pos] == '|') {
+        int left_len;
+        int branch_offset_pos;
         int jump_fixup;
-        cs->pos++; /* skip '|' */
+        /* Static buffer avoids a 2KB stack allocation on the small 68k stack */
+        static unsigned char left_code[AMIPORT_REGEX_MAX_COMPILED];
+        int i;
 
-        /* Emit jump over the next branch (to be fixed up) */
+        /* Save the code compiled so far for this ERE (the left-hand branch) */
+        left_len = cs->code_len - ere_start;
+        if (left_len > (int)sizeof(left_code)) {
+            cs->error = REG_ESPACE;
+            return -1;
+        }
+        memcpy(left_code, cs->code + ere_start, left_len);
+
+        /* Rewind to ere_start and emit: [BRANCH placeholder] <left_code> [JUMP placeholder] */
+        cs->code_len = ere_start;
+        emit(cs, OP_BRANCH);
+        branch_offset_pos = cs->code_len;
+        emit(cs, 0); /* placeholder: offset to next alternative */
+
+        for (i = 0; i < left_len; i++)
+            emit(cs, left_code[i]);
+
         emit(cs, OP_JUMP);
         jump_fixup = cs->code_len;
-        emit(cs, 0); /* placeholder */
+        emit(cs, 0); /* placeholder: offset past right-hand branch */
 
-        /* Reset for next branch */
-        emit(cs, OP_BRANCH);
+        /* The right-hand branch starts here — fix up the BRANCH offset */
+        cs->code[branch_offset_pos] = (unsigned char)(cs->code_len - branch_offset_pos - 1);
+
+        cs->pos++; /* skip '|' */
 
         if (compile_branch(cs) < 0)
             return -1;
 
-        /* Fix up the jump offset */
+        /* Fix up the JUMP to skip over the right-hand branch */
         cs->code[jump_fixup] = (unsigned char)(cs->code_len - jump_fixup - 1);
+
+        /* Update ere_start: for chained alternation (A|B|C), the entire
+         * [BRANCH ... A ... JUMP ... B] block is now the new "left side" */
+        ere_start = ere_start; /* unchanged — already points to first BRANCH */
     }
 
     return 0;
@@ -402,6 +441,62 @@ static int
 match_class(const unsigned char *bitmap, unsigned char c)
 {
     return (bitmap[c / 8] >> (c % 8)) & 1;
+}
+
+/*
+ * match_atom_only: Match the atom sub-pattern at code[sub_start..sub_start+sub_len)
+ * against str at position pos.  Returns the new string position after the atom
+ * on success, or -1 on failure.  Does NOT continue into the surrounding program.
+ *
+ * This is used by OP_STAR / OP_PLUS / OP_QUEST to count repetitions without
+ * accidentally running into the instructions that follow the quantifier.
+ */
+static int
+match_atom_only(const unsigned char *code, int sub_start, int sub_len,
+                const char *str, int pos, match_state *ms)
+{
+    unsigned char op;
+
+    if (sub_len <= 0)
+        return -1;
+
+    op = code[sub_start];
+
+    switch (op) {
+    case OP_LITERAL: {
+        unsigned char expected = code[sub_start + 1];
+        unsigned char actual;
+        if (str[pos] == '\0') return -1;
+        actual = (unsigned char)str[pos];
+        if (ms->cflags & REG_ICASE)
+            actual = (unsigned char)tolower(actual);
+        if (actual != expected) return -1;
+        return pos + 1;
+    }
+
+    case OP_ANY:
+        if (str[pos] == '\0') return -1;
+        if (str[pos] == '\n' && (ms->cflags & REG_NEWLINE)) return -1;
+        return pos + 1;
+
+    case OP_CLASS:
+    case OP_NCLASS: {
+        unsigned char actual;
+        int in_class;
+        if (str[pos] == '\0') return -1;
+        actual = (unsigned char)str[pos];
+        in_class = match_class(code + sub_start + 2, actual);
+        if (op == OP_NCLASS) in_class = !in_class;
+        if (!in_class) return -1;
+        return pos + 1;
+    }
+
+    default:
+        /* For complex sub-patterns (groups, etc.) fall back to full match
+         * using a temporary OP_END sentinel — not needed for current usage
+         * since quantifiers only wrap simple atoms. */
+        return -1;
+    }
 }
 
 static int
@@ -461,17 +556,16 @@ try_match(const unsigned char *code, int pc, const char *str, int pos,
         int sub_start = pc + 2;
         int next_pc = sub_start + sub_len;
         int result;
-        int count = 0;
         int max_count;
         int i;
 
-        /* Greedy: try matching as many as possible, then backtrack */
-        /* First, count how many times the sub-pattern matches */
+        /* Greedy: count how many times the atom matches using match_atom_only,
+         * which does NOT run the instructions after the quantifier. */
         max_count = 0;
         {
             int tpos = pos;
             while (1) {
-                int r = try_match(code, sub_start, str, tpos, ms);
+                int r = match_atom_only(code, sub_start, sub_len, str, tpos, ms);
                 if (r < 0 || r == tpos) break;
                 tpos = r;
                 max_count++;
@@ -479,13 +573,13 @@ try_match(const unsigned char *code, int pc, const char *str, int pos,
             }
         }
 
-        /* Try from max down to 0 */
+        /* Try from max down to 0 (backtracking) */
         for (i = max_count; i >= 0; i--) {
             int tpos = pos;
             int j;
             int ok = 1;
             for (j = 0; j < i; j++) {
-                int r = try_match(code, sub_start, str, tpos, ms);
+                int r = match_atom_only(code, sub_start, sub_len, str, tpos, ms);
                 if (r < 0) { ok = 0; break; }
                 tpos = r;
             }
@@ -504,11 +598,11 @@ try_match(const unsigned char *code, int pc, const char *str, int pos,
         int max_count = 0;
         int i;
 
-        /* Count max matches */
+        /* Count max matches using match_atom_only */
         {
             int tpos = pos;
             while (1) {
-                int r = try_match(code, sub_start, str, tpos, ms);
+                int r = match_atom_only(code, sub_start, sub_len, str, tpos, ms);
                 if (r < 0 || r == tpos) break;
                 tpos = r;
                 max_count++;
@@ -522,7 +616,7 @@ try_match(const unsigned char *code, int pc, const char *str, int pos,
             int j;
             int ok = 1;
             for (j = 0; j < i; j++) {
-                int r = try_match(code, sub_start, str, tpos, ms);
+                int r = match_atom_only(code, sub_start, sub_len, str, tpos, ms);
                 if (r < 0) { ok = 0; break; }
                 tpos = r;
             }
@@ -541,7 +635,7 @@ try_match(const unsigned char *code, int pc, const char *str, int pos,
         int r;
 
         /* Try with the optional match first (greedy) */
-        r = try_match(code, sub_start, str, pos, ms);
+        r = match_atom_only(code, sub_start, sub_len, str, pos, ms);
         if (r >= 0) {
             result = match_at(code, next_pc, str, r, ms);
             if (result >= 0) return result;
@@ -555,8 +649,14 @@ try_match(const unsigned char *code, int pc, const char *str, int pos,
         return match_at(code, pc + 2 + offset, str, pos, ms);
     }
 
-    case OP_BRANCH:
-        return match_at(code, pc + 1, str, pos, ms);
+    case OP_BRANCH: {
+        /* Try the inline (left) path starting at pc+2.
+         * If that fails, try the alternative at pc+2+offset. */
+        int offset = code[pc + 1];
+        int result = match_at(code, pc + 2, str, pos, ms);
+        if (result >= 0) return result;
+        return match_at(code, pc + 2 + offset, str, pos, ms);
+    }
 
     case OP_GROUPSTART: {
         int group = code[pc + 1];
