@@ -9,14 +9,15 @@
 #   clean            Remove build artifacts
 #   fetch-ndk        Download AmigaOS NDK 3.2 R4
 
-.PHONY: setup-toolchain build-shim build test test-shim package clean fetch-ndk help doctor smoke-test compare list-ports build-ports install-emu setup-emu emu publish
+.PHONY: setup-toolchain build-shim build-emu build test test-shim package clean fetch-ndk help doctor smoke-test compare list-ports build-ports install-emu setup-emu emu publish
 
 help:
 	@echo "amiport — AI-powered Amiga porting toolkit"
 	@echo ""
 	@echo "Targets:"
 	@echo "  setup-toolchain  Set up cross-compilation toolchain (Docker)"
-	@echo "  build-shim       Cross-compile the POSIX shim library"
+	@echo "  build-shim       Cross-compile the POSIX shim library (Tier 1)"
+	@echo "  build-emu        Cross-compile the POSIX emulation library (Tier 2)"
 	@echo "  build            Build a port (TARGET=examples/wc)"
 	@echo "  test             Test a build via vamos (TARGET=examples/wc)"
 	@echo "  test-shim        Run POSIX shim library tests via vamos"
@@ -45,6 +46,9 @@ setup-toolchain:
 
 build-shim:
 	$(MAKE) -C lib/posix-shim
+
+build-emu:
+	$(MAKE) -C lib/posix-emu
 
 build:
 ifndef TARGET
@@ -147,6 +151,7 @@ emu: install-emu
 
 clean:
 	$(MAKE) -C lib/posix-shim clean
+	$(MAKE) -C lib/posix-emu clean
 	$(MAKE) -C tests/shim clean
 	@for dir in ports/*/; do \
 		if [ -f "$$dir/Makefile" ]; then $(MAKE) -C "$$dir" TARGET=$$(basename "$$dir") clean 2>/dev/null; fi; \

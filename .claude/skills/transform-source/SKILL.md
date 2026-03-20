@@ -23,10 +23,33 @@ You are transforming C source code from POSIX/Linux to AmigaOS 3.x compatibility
 4. **Document every change** with an `/* amiport: ... */` comment
 5. **Report what was changed**
 
+## Tiered Transformation (ADR-008)
+
+Transformations differ by tier. See `docs/posix-tiers.md` for the full classification.
+
+### Tier 1 — Shim (automated)
+- Apply mechanically: header swap + function rename to `amiport_*` wrappers
+- Comment: `/* amiport: replaced X() with amiport_X() */`
+- No human review needed
+
+### Tier 2 — Emulation (semi-automated)
+- Apply the transformation using `amiport_emu_*` wrappers from `lib/posix-emu/`
+- Add include: `#include <amiport-emu/select.h>` (or whichever module)
+- **Always add a caveat comment**: `/* amiport-emu: select() emulated via WaitForChar() polling — 20ms granularity, no socket support */`
+- Document caveats in PORT.md
+- Link against `libamiport-emu.a` in addition to `libamiport.a`
+
+### Tier 3 — Redesign (human review required)
+- Do NOT silently stub these
+- Do NOT auto-apply redesign patterns
+- Add a clear comment marking the location: `/* amiport-redesign: NEEDS HUMAN REVIEW — fork()+exec() pattern, see redesign-patterns.md */`
+- The port-coordinator presents redesign options to the user
+
 ## Rules
 
 - **NEVER remove functionality** — stub it if no Amiga equivalent exists
-- **Prefer posix-shim wrappers** (`amiport_*` functions) over raw AmigaDOS calls
+- **Prefer posix-shim wrappers** (`amiport_*` functions) over raw AmigaDOS calls (Tier 1)
+- **Prefer posix-emu wrappers** (`amiport_emu_*` functions) for Tier 2 over inline emulation
 - **Preserve the original** — always work on a copy in `ported/`
 - **Use C89** — no C99 features (no `//` comments, no mixed declarations, no VLAs)
 - **Add version string**: `static const char *verstag = "$VER: progname 1.0 (DD.MM.YYYY)";` (use today's date)
@@ -50,10 +73,20 @@ The posix-shim (`lib/posix-shim/`) provides these wrapper families. Check the ac
 
 If you need a wrapper that doesn't exist yet, check `lib/posix-shim/include/` headers to verify. If it's truly missing, either add it to the shim or stub the call inline with a comment.
 
+**Tier 2 Emulation wrappers** (in `lib/posix-emu/`):
+- I/O multiplexing: `amiport_emu_select()` — emulated via WaitForChar() polling
+- Memory mapping: `amiport_emu_mmap()`, `amiport_emu_munmap()` — read-only, AllocMem()+Read()
+- Pipes: `amiport_emu_pipe()` — via PIPE: device
+- Timers: `amiport_emu_alarm()`, `amiport_emu_check_alarm()` — via timer.device
+
+Check `lib/posix-emu/include/amiport-emu/` headers for exact signatures and emulation notices.
+
 ## Reference Material
 
-- `.claude/skills/transform-source/references/transformation-rules.md` — Detailed rules for each transformation type
+- `.claude/skills/transform-source/references/transformation-rules.md` — Detailed rules for each Tier 1 transformation type
 - `.claude/skills/transform-source/references/amiga-api-reference.md` — AmigaOS API quick reference
+- `.claude/skills/transform-source/references/redesign-patterns.md` — Tier 3 redesign pattern templates
+- `docs/posix-tiers.md` — Master tier classification with all functions and emulation details
 
 ## Include Path
 
@@ -73,7 +106,8 @@ Or simply `#include <amiport/amiport.h>` for everything.
 
 After transformation, report:
 - Number of files modified
-- Number of transformations applied (by type)
-- Any blocking issues that were stubbed
-- Any shim functions used that needed to be verified or added
-- Build command to compile the result
+- **Tier 1** transformations applied (by type) — automated, shim wrappers
+- **Tier 2** transformations applied — emulation wrappers with caveats
+- **Tier 3** issues flagged — redesign needed, awaiting human review
+- Any shim/emu functions used that needed to be verified or added
+- Build command to compile the result (include `-lamiport-emu` if Tier 2 functions used)

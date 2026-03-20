@@ -16,10 +16,10 @@ You are analyzing C source code to determine what changes are needed to port it 
 3. **Identify system calls** — find all function calls that are POSIX/Linux-specific
 4. **Detect blocking patterns** — fork/exec, mmap, pthreads, sockets, x86 asm
 5. **Check architecture assumptions** (see below)
-6. **Classify each issue** by severity:
-   - `trivial` — Direct mapping exists, mechanical replacement
-   - `needs-shim` — Requires amiport posix-shim wrapper
-   - `blocking` — No Amiga equivalent, requires redesign or stubbing
+6. **Classify each issue** by tier and severity (see ADR-008 and `docs/posix-tiers.md`):
+   - **Tier 1 — Shim** (green): `trivial` or `needs-shim` — Direct or near-direct AmigaDOS mapping via `lib/posix-shim/`
+   - **Tier 2 — Emulation** (yellow): `needs-emu` — Approximate mapping via `lib/posix-emu/` with documented behavioural differences
+   - **Tier 3 — Redesign** (red): `needs-redesign` — No library can bridge this; requires structural rewrite using patterns from `redesign-patterns.md`
 7. **Produce a structured report**
 
 ## Architecture & Compiler Checks
@@ -47,8 +47,26 @@ The Amiga's m68k architecture and C89 compilers differ from modern x86/Linux in 
 ## Reference Material
 
 Consult these files for accurate classification:
-- `.claude/skills/analyze-source/references/posix-to-amiga-map.md` — Master mapping table
+- `docs/posix-tiers.md` — Master tier classification with all functions, emulation details, and redesign patterns
+- `.claude/skills/analyze-source/references/posix-to-amiga-map.md` — POSIX-to-AmigaOS function mapping table
 - `.claude/skills/analyze-source/references/common-patterns.md` — Frequently encountered patterns
+- `.claude/skills/transform-source/references/redesign-patterns.md` — Tier 3 redesign pattern templates
+
+## Tier Classification Decision Tree
+
+When encountering a POSIX function not already classified:
+
+1. Does AmigaDOS have a function that does the same thing with the same calling convention?
+   - YES → **Tier 1** (shim) — `trivial` or `needs-shim`
+   - MOSTLY → **Tier 1** with documented edge cases
+   - NO → continue
+2. Can the behaviour be emulated with a stateful wrapper that handles the common case?
+   - YES, common case works → **Tier 2** (emulation) — `needs-emu`
+   - YES, but only niche cases → **Tier 3** (redesign)
+   - NO → continue
+3. Does the function represent a fundamentally different execution model?
+   - YES → **Tier 3** (redesign) — `needs-redesign`
+   - No Amiga equivalent at all → stub with warning, classify as **Tier 3**
 
 ## Output Format
 
@@ -60,32 +78,41 @@ Produce a report in this structure:
 ## Summary
 - Total source files: N
 - Lines of code: N
-- Trivial issues: N
-- Needs-shim issues: N
-- Blocking issues: N
+- Tier 1 (shim) issues: N (green)
+- Tier 2 (emulation) issues: N (yellow)
+- Tier 3 (redesign) issues: N (red)
 - Architecture issues: N
 - **Portability verdict**: [EASY | MODERATE | HARD | INFEASIBLE]
 
 ## POSIX Headers Found
-| Header | Files Using It | Severity | Replacement |
-|--------|---------------|----------|-------------|
-| ...    | ...           | ...      | ...         |
+| Header | Files Using It | Tier | Severity | Replacement |
+|--------|---------------|------|----------|-------------|
+| ...    | ...           | ...  | ...      | ...         |
 
-## System Calls Requiring Changes
-| Function | File:Line | Severity | Notes |
-|----------|-----------|----------|-------|
-| ...      | ...       | ...      | ...   |
+## Tier 1 — Shim (Automated)
+| Function | File:Line | Severity | Shim Wrapper | Notes |
+|----------|-----------|----------|--------------|-------|
+| ...      | ...       | ...      | ...          | ...   |
+
+## Tier 2 — Emulation (Semi-automated)
+| Function | File:Line | Emu Wrapper | Caveats |
+|----------|-----------|-------------|---------|
+| ...      | ...       | ...         | ...     |
+
+## Tier 3 — Redesign (Human Review Required)
+| Function | File:Line | Pattern | Recommendation |
+|----------|-----------|---------|----------------|
+| ...      | ...       | ...     | ...            |
+
+[Detailed description of each Tier 3 issue with redesign pattern options]
 
 ## Architecture Issues
 | Issue | File:Line | Severity | Notes |
 |-------|-----------|----------|-------|
 | ...   | ...       | ...      | ...   |
 
-## Blocking Issues
-[Detailed description of each blocking issue and suggested workaround]
-
 ## Recommended Approach
-[Summary of what the porting effort looks like]
+[Summary of what the porting effort looks like, broken down by tier]
 ```
 
 ## Verdicts

@@ -229,7 +229,95 @@ static const char *verstag = "$VER: progname 1.0 (19.03.2026)";
 LONG __stack = 32768;
 ```
 
-## Blocking Patterns — What to Do
+## 7. Tier 2 Emulation Replacements
+
+For functions classified as `needs-emu` (Tier 2), use `amiport_emu_*` wrappers from `lib/posix-emu/`.
+Always add a `/* amiport-emu: ... */` comment documenting the behavioural difference.
+
+### select() / poll()
+```c
+/* RULE: Replace select() with amiport_emu_select() — Tier 2 emulation */
+
+/* Before: */
+#include <sys/select.h>
+fd_set readfds;
+FD_ZERO(&readfds);
+FD_SET(fd, &readfds);
+select(fd + 1, &readfds, NULL, NULL, &timeout);
+
+/* After: */
+#include <amiport-emu/select.h>
+/* amiport-emu: select() emulated via WaitForChar() polling — 20ms granularity, no socket support, exceptfds ignored */
+amiport_emu_fd_set readfds;
+AMIPORT_EMU_FD_ZERO(&readfds);
+AMIPORT_EMU_FD_SET(fd, &readfds);
+amiport_emu_select(fd + 1, &readfds, NULL, NULL, &timeout);
+```
+
+### mmap() (read-only)
+```c
+/* RULE: Replace read-only mmap() with amiport_emu_mmap() — Tier 2 emulation */
+
+/* Before: */
+#include <sys/mman.h>
+void *p = mmap(NULL, size, PROT_READ, MAP_PRIVATE, fd, 0);
+/* ... use p ... */
+munmap(p, size);
+
+/* After: */
+#include <amiport-emu/mmap.h>
+/* amiport-emu: mmap() emulated via AllocMem+Read — entire file loaded upfront, no lazy paging */
+void *p = amiport_emu_mmap(NULL, size, AMIPORT_EMU_PROT_READ, AMIPORT_EMU_MAP_PRIVATE, fd, 0);
+/* ... use p ... */
+amiport_emu_munmap(p, size);
+```
+
+### pipe()
+```c
+/* RULE: Replace pipe() with amiport_emu_pipe() — Tier 2 emulation */
+
+/* Before: */
+int pipefd[2];
+pipe(pipefd);
+
+/* After: */
+#include <amiport-emu/pipe.h>
+/* amiport-emu: pipe() emulated via PIPE: device — named pipe, different buffering, no SIGPIPE */
+int pipefd[2];
+amiport_emu_pipe(pipefd);
+```
+
+### alarm()
+```c
+/* RULE: Replace alarm() with amiport_emu_alarm() — Tier 2 emulation */
+
+/* Before: */
+alarm(30);
+
+/* After: */
+#include <amiport-emu/alarm.h>
+/* amiport-emu: alarm() emulated via timer.device — cooperative, not async. Call amiport_emu_check_alarm() in main loop */
+amiport_emu_alarm_init(); /* once at startup */
+amiport_emu_alarm(30);
+/* In main loop: amiport_emu_check_alarm(); */
+/* At cleanup: amiport_emu_alarm_cleanup(); */
+```
+
+## Tier 3 — Redesign Patterns (Do NOT Auto-Apply)
+
+For functions classified as `needs-redesign` (Tier 3), do NOT stub silently.
+Mark the location for human review and reference `redesign-patterns.md`:
+
+```c
+/* amiport-redesign: NEEDS HUMAN REVIEW
+ * fork()+exec()+waitpid() pattern detected — subprocess-and-wait
+ * See .claude/skills/transform-source/references/redesign-patterns.md
+ * Options: SystemTags() (blocking) or CreateNewProcTags() (async) */
+```
+
+See `redesign-patterns.md` in this same directory for all available patterns.
+
+## Legacy: Blocking Patterns — What to Do
 
 When you encounter these, **do not silently remove them**. Stub with a clear message:
 
