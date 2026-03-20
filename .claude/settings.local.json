@@ -19,7 +19,9 @@
       "Bash(git -C /Users/duncan/Developer/amiport rm --cached .claude/settings.local.json)",
       "Bash(git -C /Users/duncan/Developer/amiport rm --cached -f .claude/settings.local.json)",
       "Bash(git rm:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(gh repo:*)"
     ]
   }
 }
