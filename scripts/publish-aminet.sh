@@ -73,11 +73,15 @@ else
     ERRORS=$((ERRORS + 1))
 fi
 
-# Check lha is available
-if command -v lha >/dev/null 2>&1; then
+# Check archiver is available (lha preferred, zip as fallback)
+if command -v lha >/dev/null 2>&1 && lha --help 2>&1 | grep -q "create\|a "; then
+    ARCHIVER="lha"
     echo "${GREEN}[OK]${RESET} lha archiver available"
+elif command -v zip >/dev/null 2>&1; then
+    ARCHIVER="zip"
+    echo "${GREEN}[OK]${RESET} zip archiver available (Aminet accepts .zip)"
 else
-    echo "${RED}[FAIL]${RESET} lha not found — brew install lha"
+    echo "${RED}[FAIL]${RESET} No archiver found — install zip or lha"
     ERRORS=$((ERRORS + 1))
 fi
 
@@ -92,7 +96,7 @@ echo ""
 # --- Read metadata from Makefile ---
 
 get_var() {
-    grep "^$1" "$PORT_DIR/Makefile" | head -1 | sed "s/^$1[[:space:]]*=[[:space:]]*//"
+    grep "^$1" "$PORT_DIR/Makefile" 2>/dev/null | head -1 | sed "s/^$1[[:space:]]*=[[:space:]]*//" || true
 }
 
 VERSION=$(get_var VERSION)
@@ -186,19 +190,29 @@ READMEEOF
 
 echo "${GREEN}[OK]${RESET} Generated $README_FILE"
 
-# --- Build LHA package ---
+# --- Build archive ---
 
-LHA_FILE="$PORT_DIR/${ARCHIVE_NAME}.lha"
+if [ "$ARCHIVER" = "lha" ]; then
+    ARCHIVE_FILE="$PORT_DIR/${ARCHIVE_NAME}.lha"
+    (cd "$PORT_DIR" && lha a "${ARCHIVE_NAME}.lha" \
+        "$PORT_NAME" \
+        "${ARCHIVE_NAME}.readme" \
+        PORT.md \
+        original/ \
+        ported/ \
+    )
+else
+    ARCHIVE_FILE="$PORT_DIR/${ARCHIVE_NAME}.zip"
+    (cd "$PORT_DIR" && zip -r "${ARCHIVE_NAME}.zip" \
+        "$PORT_NAME" \
+        "${ARCHIVE_NAME}.readme" \
+        PORT.md \
+        original/ \
+        ported/ \
+    )
+fi
 
-(cd "$PORT_DIR" && lha a "${ARCHIVE_NAME}.lha" \
-    "$PORT_NAME" \
-    "${ARCHIVE_NAME}.readme" \
-    PORT.md \
-    original/ \
-    ported/ \
-)
-
-echo "${GREEN}[OK]${RESET} Created $LHA_FILE"
+echo "${GREEN}[OK]${RESET} Created $ARCHIVE_FILE"
 
 # --- Preview ---
 
@@ -212,8 +226,12 @@ echo ""
 echo "${BOLD}--- .readme ---${RESET}"
 cat "$README_FILE"
 echo ""
-echo "${BOLD}--- LHA contents ---${RESET}"
-lha l "$LHA_FILE"
+echo "${BOLD}--- Archive contents ---${RESET}"
+if [ "$ARCHIVER" = "lha" ]; then
+    lha l "$ARCHIVE_FILE"
+else
+    unzip -l "$ARCHIVE_FILE"
+fi
 echo ""
 
 # --- Confirm ---
@@ -224,7 +242,7 @@ read -r CONFIRM
 if [ "$CONFIRM" != "yes" ]; then
     echo ""
     echo "Upload cancelled. Files are ready at:"
-    echo "  $LHA_FILE"
+    echo "  $ARCHIVE_FILE"
     echo "  $README_FILE"
     echo ""
     echo "You can upload manually:"
@@ -244,7 +262,7 @@ ftp -n main.aminet.net << FTPEOF
 user anonymous $UPLOADER_EMAIL
 cd new
 binary
-put $LHA_FILE ${ARCHIVE_NAME}.lha
+put $ARCHIVE_FILE ${ARCHIVE_NAME}.lha
 put $README_FILE ${ARCHIVE_NAME}.readme
 bye
 FTPEOF
