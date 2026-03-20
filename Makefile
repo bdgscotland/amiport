@@ -9,7 +9,7 @@
 #   clean            Remove build artifacts
 #   fetch-ndk        Download AmigaOS NDK 3.2 R4
 
-.PHONY: setup-toolchain build-shim build-emu build-console build-net build test test-shim test-emu test-console test-net package clean fetch-ndk help doctor smoke-test compare list-ports build-ports install-emu setup-emu emu publish
+.PHONY: setup-toolchain build-shim build-emu build-console build-net build test test-shim test-emu test-console test-net package clean fetch-ndk help doctor smoke-test compare list-ports build-ports install-emu setup-emu emu publish check-aminet
 
 help:
 	@echo "amiport — AI-powered Amiga porting toolkit"
@@ -140,6 +140,9 @@ list-ports:
 		fi; \
 	done
 	@echo ""
+
+check-aminet:
+	@bash scripts/check-aminet.sh
 
 build-ports: build-shim
 	@for dir in ports/*/; do \

@@ -33,17 +33,18 @@ make smoke-test         # Full end-to-end: build shim → build examples → tes
 
 ## Ports
 
-Ported programs live in `ports/` — each packages independently for [Aminet](https://aminet.net) upload.
+Ported programs live in `ports/` — each packages independently for [Aminet](https://aminet.net) upload. See **[PORTS.md](PORTS.md)** for the full catalog with versions, shim coverage, and Aminet status.
 
 | Port | Description | Status |
 |------|-------------|--------|
-| `cal` | Unix calendar display (OpenBSD) | Built & tested |
+| [cal](ports/cal/) | Unix calendar display (OpenBSD) | Built & tested |
+| [diff](ports/diff/) | File comparison utility (OpenBSD) | Built & tested |
 
 ```bash
 make list-ports                      # Show all ports and status
 make build TARGET=ports/cal          # Build a specific port
 make test TARGET=ports/cal           # Test in vamos emulator
-make -C ports/cal TARGET=cal package # Create LHA for Aminet
+make publish TARGET=ports/cal        # Package and upload to Aminet
 ```
 
 ## Interactive Emulator Testing
