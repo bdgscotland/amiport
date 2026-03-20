@@ -69,6 +69,16 @@ The porting pipeline is implemented as Claude Code skills and agents:
 
 See [docs/architecture.md](docs/architecture.md) for details.
 
+## Example Ports
+
+| Example | Complexity | Shim Functions Exercised | Key Patterns |
+|---------|-----------|-------------------------|-------------|
+| `wc` | Trivial | None (stdio only) | Basic stdio C program |
+| `head` | Moderate | `amiport_open`, `amiport_read`, `amiport_close`, `amiport_write`, `amiport_getopt` | Low-level file I/O through shim |
+| `mini-find` | Complex | `amiport_opendir`, `amiport_readdir`, `amiport_closedir`, `amiport_stat`, `amiport_getopt` | Directory traversal, stat, recursion |
+
+Each example includes `original/` (POSIX source), `ported/` (Amiga source), `PORT.md` (transformation log), and a `Makefile` with build and test targets.
+
 ## The POSIX Shim
 
 `lib/posix-shim/` provides a compatibility layer mapping common POSIX functions to AmigaOS equivalents:
