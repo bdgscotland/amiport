@@ -1,0 +1,20 @@
+# Known Pitfalls — Hard-Won Lessons
+
+These are real bugs encountered in real ports. Check for them every time.
+
+## fopen() Macro Collision
+
+`amiport/stdio.h` defines `#define fopen(p, m) amiport_fopen(p, m)`. Inside `file_io.c` (which implements `amiport_fopen`), this causes infinite recursion. **Fix:** `#undef fopen` before the implementation. Same for `fclose`.
+
+## vamos argv Pointer Arithmetic
+
+On vamos, argv entries are NOT contiguous — each is independently allocated. Code that does `argv[argc-1] - argv[0]` will crash. **Fix:** Use explicit `strlen()` iteration.
+
+## pledge/unveil Stubs
+
+OpenBSD code almost always calls `pledge()` and `unveil()`. Stub as macros:
+```c
+#define pledge(p, e) (0)
+#define unveil(p, f) (0)
+```
+Never shim as functions.
