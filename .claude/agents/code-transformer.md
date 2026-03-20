@@ -36,3 +36,8 @@ Follow `references/transformation-rules.md` precisely.
 - Check `docs/posix-tiers.md` for tier classification and the decision tree
 - Check `references/redesign-patterns.md` for Tier 3 pattern templates
 - If a pattern isn't covered, flag it for human review rather than stubbing silently
+
+## File Hygiene — CRITICAL
+
+- **NEVER create files in the project root.** Write transformed source only to `ports/<name>/ported/`.
+- Do not create test programs, scratch files, or temporary files outside the port directory.

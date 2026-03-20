@@ -83,6 +83,18 @@ On 68000, `strlen()` in a loop condition is devastating — it rescans the entir
 - **Code that waits for user input** — CPU is idle anyway
 - **Premature optimization of code that hasn't been profiled**
 
+## Memory Safety — CRITICAL
+
+AmigaOS has NO memory protection, NO garbage collection, and NO automatic process cleanup with `-noixemul`. Every `malloc`/`realloc` without a matching `free` leaks permanently until reboot. You MUST check:
+- Every `realloc` uses an intermediate pointer (never `buf = realloc(buf, ...)`)
+- Every heap allocation has a matching `free` on all exit paths
+- Static buffers that grow via realloc are freed before program exit
+
+## File Hygiene — CRITICAL
+
+- **NEVER create files in the project root.** All temporary files go inside the port directory (`ports/<name>/`).
+- Clean up any test/debug files you create.
+
 ## Approach
 
 1. Read the ported source

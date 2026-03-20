@@ -63,6 +63,12 @@ Use these skills in order:
 
 If any stage fails, diagnose and iterate. You may need to go back to transformation after a build failure, or back to analysis after discovering new issues during transformation.
 
+## File Hygiene — CRITICAL
+
+- **NEVER create files in the project root.** All files go inside the port directory (`ports/<name>/`).
+- When dispatching sub-agents, explicitly instruct them to keep files inside the port directory and clean up after.
+- The `perf-optimizer` agent is **mandatory** — dispatch it after build+test succeed, before packaging.
+
 ## Quality Bar
 
 A port is not done until:
