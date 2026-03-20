@@ -16,5 +16,7 @@
 #include <amiport/err.h>
 #include <amiport/sys/stat.h>
 #include <amiport/sys/time.h>
+#include <amiport/fnmatch.h>
+#include <amiport/scandir.h>
 
 #endif /* AMIPORT_H */

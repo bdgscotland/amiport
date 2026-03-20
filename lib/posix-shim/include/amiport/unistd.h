@@ -10,6 +10,36 @@
 
 #include <exec/types.h>
 
+/* Standard file descriptor numbers */
+#ifndef STDIN_FILENO
+#define STDIN_FILENO  0
+#define STDOUT_FILENO 1
+#define STDERR_FILENO 2
+#endif
+
+/* POSIX types not always available on AmigaOS.
+ * Guard each with the same macros used by bebbo-gcc libnix sys/types.h
+ * so there is no conflict when both headers are included. */
+#ifndef _OFF_T_DECLARED
+typedef long off_t;
+#define _OFF_T_DECLARED
+#endif
+
+#ifndef _SSIZE_T_DECLARED
+typedef long ssize_t;
+#define _SSIZE_T_DECLARED
+#endif
+
+#ifndef __u_char_defined
+typedef unsigned char u_char;
+#define __u_char_defined
+#endif
+
+#ifndef __u_int_defined
+typedef unsigned int u_int;
+#define __u_int_defined
+#endif
+
 /* File access mode flags (matching POSIX values) */
 #ifndef O_RDONLY
 #define O_RDONLY    0x0000

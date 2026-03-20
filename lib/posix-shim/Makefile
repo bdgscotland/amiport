@@ -20,7 +20,9 @@ SRCS = $(SRCDIR)/file_io.c \
        $(SRCDIR)/errno_map.c \
        $(SRCDIR)/time_funcs.c \
        $(SRCDIR)/stat.c \
-       $(SRCDIR)/process.c
+       $(SRCDIR)/process.c \
+       $(SRCDIR)/fnmatch.c \
+       $(SRCDIR)/scandir.c
 
 OBJS = $(SRCS:.c=.o)
 
