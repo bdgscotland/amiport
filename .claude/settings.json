@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Read",
+      "Glob",
+      "Grep",
+      "Bash(git *)",
+      "Bash(make *)",
+      "Bash(docker run *amiport*)",
+      "Bash(vamos *)",
+      "Bash(lha *)",
+      "Bash(chmod +x *)"
+    ]
+  }
+}
