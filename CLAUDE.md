@@ -24,6 +24,11 @@ The porting pipeline has 5 stages, each backed by a Claude skill:
 - `lib/bsdsocket-shim/` — BSD socket API via bsdsocket.library with auto lifecycle (ADR-010)
 - `toolchain/` — Cross-compiler Docker images, build scripts, target profiles
 - `docs/` — Architecture docs, API mapping tables, porting guide, tier classification
+- `tests/shim/` — Tier 1 posix-shim unit tests (11 test files)
+- `tests/emu/` — Tier 2 posix-emu tests (4 test files)
+- `tests/console/` — Console shim tests (non-interactive)
+- `tests/net/` — BSD socket shim tests (inet, fd tracking)
+- `tests/common/` — Shared test framework
 - `ports/` — Output directory for real ports (each port gets original/, ported/, Makefile, PORT.md)
 - `examples/` — Reference ports for testing the pipeline (wc, head, mini-find)
 
@@ -88,6 +93,9 @@ make build-net         # Build the BSD socket shim library
 make build TARGET=examples/wc   # Build a specific port
 make test TARGET=examples/wc    # Test via vamos
 make test-shim         # Run POSIX shim library tests via vamos
+make test-emu          # Run POSIX emulation library tests via vamos
+make test-console      # Run console shim tests via vamos
+make test-net          # Run BSD socket shim tests via vamos
 make package TARGET=examples/wc # Create LHA archive
 make clean             # Remove build artifacts
 ```
@@ -103,9 +111,9 @@ The toolchain scripts in `toolchain/scripts/` handle detection and invocation. A
 
 ## Testing
 
-Use **vamos** (from amitools) for CLI program testing — it provides a virtual AmigaOS runtime without needing a full emulator. The `test-amiga` skill handles this.
+Use **vamos** (from amitools) for CLI program testing (Categories 1-2) — it provides a virtual AmigaOS runtime without needing a full emulator. The `test-amiga` skill handles this.
 
-For GUI programs or hardware-dependent code, use **FS-UAE** with a configured AmigaOS 3.x installation.
+For console UI apps (Category 3), network apps (Category 4), GUI programs, or hardware-dependent code, use **FS-UAE** with a configured AmigaOS 3.x installation. Network apps additionally require a TCP/IP stack (AmiTCP or Roadshow) configured in the emulator.
 
 ## Key References
 

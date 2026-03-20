@@ -16,8 +16,10 @@
                          ▲                   ▲
                          │                   │
                     ┌─────────────────────────────┐
-                    │     lib/posix-shim/          │
-                    │  POSIX compatibility layer   │
+                    │     lib/posix-shim/          │  Tier 1: Direct POSIX wrappers
+                    │     lib/posix-emu/           │  Tier 2: Approximate emulation
+                    │     lib/console-shim/        │  ncurses → ANSI escapes
+                    │     lib/bsdsocket-shim/      │  BSD sockets → bsdsocket.library
                     └─────────────────────────────┘
 ```
 
@@ -45,11 +47,28 @@ Agents define **who** does the work — model selection, tool access, persona, a
 - **test-runner**: Uses Haiku for lightweight test execution. Bash + read only.
 - **port-coordinator**: Uses parent model for orchestration decisions. Full tool access.
 
-### POSIX Shim Library
+### Libraries
 
-`lib/posix-shim/` is a C library that provides POSIX-compatible wrapper functions implemented using AmigaOS system calls. Ported code links against this library.
+The project provides four libraries, corresponding to the tiered compatibility model (ADR-008) and port categories (ADR-011):
+
+| Library | Purpose | Link Flag | API Prefix |
+|---------|---------|-----------|------------|
+| `lib/posix-shim/` | Tier 1: Direct POSIX-to-AmigaOS wrappers | `-lamiport` | `amiport_*` |
+| `lib/posix-emu/` | Tier 2: Approximate POSIX emulation with caveats | `-lamiport-emu` | `amiport_emu_*` |
+| `lib/console-shim/` | ncurses subset via Amiga console.device ANSI escapes (ADR-009) | `-lamiport-console` | ncurses-compatible |
+| `lib/bsdsocket-shim/` | BSD socket API via bsdsocket.library with auto lifecycle (ADR-010) | `-lamiport-net` | `amiport_*` |
 
 Key design principle: **one wrapper per POSIX function**, so transformations are simple function renames rather than complex inline rewrites.
+
+### Port Categories (ADR-011)
+
+| Category | Libraries Needed | Test Strategy |
+|----------|-----------------|---------------|
+| 1. CLI tools | posix-shim [+ posix-emu] | vamos |
+| 2. Scripting interpreters | posix-shim + minor stubs | vamos |
+| 3. Console UI apps | posix-shim + console-shim | FS-UAE |
+| 4. Network apps | posix-shim + bsdsocket-shim | FS-UAE + TCP/IP |
+| 5. GUI apps (future) | Intuition/MUI | FS-UAE |
 
 ### Toolchain
 
@@ -65,8 +84,8 @@ Docker containers provide reproducible cross-compilation environments:
 1. **Input**: Path to a C source tree
 2. **Analysis**: Source files scanned, portability report generated (JSON)
 3. **Transformation**: Source copied to `ported/` directory, POSIX calls replaced with shim wrappers
-4. **Build**: Cross-compiled using Docker toolchain, linked with posix-shim
-5. **Test**: Binary executed in vamos, output compared to expected results
+4. **Build**: Cross-compiled using Docker toolchain, linked with posix-shim [+ console-shim/bsdsocket-shim as needed]
+5. **Test**: Binary executed in vamos (CLI/scripting) or FS-UAE (console UI/network)
 6. **Package**: Binary + docs packed into LHA archive
 
 ## Governance
