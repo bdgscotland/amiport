@@ -9,7 +9,7 @@
 #   clean            Remove build artifacts
 #   fetch-ndk        Download AmigaOS NDK 3.2 R4
 
-.PHONY: setup-toolchain build-shim build test test-shim package clean fetch-ndk help doctor smoke-test compare list-ports build-ports
+.PHONY: setup-toolchain build-shim build test test-shim package clean fetch-ndk help doctor smoke-test compare list-ports build-ports install-emu emu
 
 help:
 	@echo "amiport — AI-powered Amiga porting toolkit"
@@ -28,6 +28,8 @@ help:
 	@echo "  compare          Compare native vs Amiga output (TARGET=examples/foo)"
 	@echo "  list-ports       List all ports and their status"
 	@echo "  build-ports      Build all ports"
+	@echo "  install-emu      Copy built binaries to emulator directory"
+	@echo "  emu              Launch FS-UAE with built binaries mounted as WORK:"
 	@echo ""
 	@echo "Claude Code skills:"
 	@echo "  /analyze-source <path>   Analyze source for portability"
@@ -120,6 +122,17 @@ build-ports: build-shim
 			$(MAKE) -C "$$dir" TARGET=$$(basename "$$dir") || exit 1; \
 		fi; \
 	done
+
+install-emu:
+	@bash scripts/install-emu.sh
+
+emu: install-emu
+	@if ! command -v fs-uae >/dev/null 2>&1; then \
+		echo "FS-UAE not found. Install with: brew install fs-uae"; \
+		echo "You also need a Kickstart 3.1 ROM in ~/Documents/FS-UAE/Kickstarts/"; \
+		exit 1; \
+	fi
+	fs-uae toolchain/configs/amiport-test.fs-uae
 
 clean:
 	$(MAKE) -C lib/posix-shim clean

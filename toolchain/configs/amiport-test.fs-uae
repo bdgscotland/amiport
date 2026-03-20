@@ -1,0 +1,23 @@
+# FS-UAE configuration for testing amiport builds
+#
+# Usage:
+#   make emu                        # launch with all built ports
+#   fs-uae toolchain/configs/amiport-test.fs-uae   # launch directly
+#
+# Prerequisites:
+#   brew install fs-uae
+#   Place Kickstart 3.1 ROM at ~/Documents/FS-UAE/Kickstarts/kick31.rom
+#   (Purchase from amigaforever.com or extract from real hardware)
+
+amiga_model = A1200
+
+# Kickstart 3.1 ROM — update path if yours is named differently
+kickstart_file = $BASE/Kickstarts/kick31.rom
+
+# Mount build output as WORK: — all compiled ports appear here
+hard_drive_0 = $CONFIG/../../build/amiga
+hard_drive_0_label = WORK
+
+# Window settings
+window_width = 720
+window_height = 568
