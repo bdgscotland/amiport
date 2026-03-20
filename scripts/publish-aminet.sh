@@ -173,13 +173,12 @@ Architecture: m68k-amigaos >= 3.0
 Uploader:     $UPLOADER_EMAIL
 Author:       $AUTHOR (ported by $UPLOADER_NAME)
 Version:      $VERSION
-URL:          https://github.com/bdgscotland/amiport
 
 $PORT_NAME — $DESCRIPTION
 
 Original author: $AUTHOR
-Ported by: $UPLOADER_NAME using amiport (AI-assisted porting toolkit)
-Source: https://github.com/bdgscotland/amiport
+Ported by $UPLOADER_NAME using amiport (AI-assisted porting toolkit).
+Project: https://github.com/bdgscotland/amiport
 
 Cross-compiled with m68k-amigaos-gcc for AmigaOS 3.x (68000+).
 Tested in vamos emulator and FS-UAE.
