@@ -14,9 +14,14 @@ amiga_model = A1200
 # Kickstart 3.1 ROM — update path if yours is named differently
 kickstart_file = $BASE/Kickstarts/kick3.1.rom
 
+# System hard drive — bootable Workbench 3.1 installation
+hard_drive_0 = $CONFIG/../../build/system
+hard_drive_0_label = System
+hard_drive_0_priority = 1
+
 # Mount build output as WORK: — all compiled ports appear here
-hard_drive_0 = $CONFIG/../../build/amiga
-hard_drive_0_label = WORK
+hard_drive_1 = $CONFIG/../../build/amiga
+hard_drive_1_label = WORK
 
 # Keyboard — use symbolic mapping so Mac keys match what's printed on them
 keyboard_input_grab = 1
