@@ -19,6 +19,9 @@ tests/shim/test_*
 ports/*/bin/
 ports/*/*.readme
 
+# Emulator staging directory (populated by make install-emu)
+build/amiga/
+
 # Toolchain
 /opt/amiga/
 
