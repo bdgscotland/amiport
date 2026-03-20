@@ -1,0 +1,50 @@
+Short:        Extract fields/columns from text
+Type:         util/cli
+Architecture: m68k-amigaos >= 3.0
+Uploader:     duncan@bowring.us
+Author:       University of California, Berkeley (ported by Duncan Bowring)
+Version:      1.0
+URL:          https://github.com/bdgscotland/amiport
+
+cut -- extract selected fields, bytes, or characters from each line of input.
+
+This is a port of OpenBSD cut (cut.c v1.28, 2023-03-08), ported to AmigaOS
+3.x using the amiport AI-assisted porting toolkit.
+
+Original author: University of California, Berkeley / OpenBSD contributors.
+Ported by Duncan Bowring using amiport.
+Project: https://github.com/bdgscotland/amiport
+
+Usage:
+  cut -b list [-n] [file ...]
+  cut -c list [file ...]
+  cut -f list [-ds] [file ...]
+
+Options:
+  -b list   Select bytes at positions in list
+  -c list   Select characters at positions in list (byte-mode on AmigaOS)
+  -d delim  Use delim as field delimiter (default: TAB)
+  -f list   Select fields separated by the delimiter
+  -n        Do not split multibyte characters (no-op on AmigaOS)
+  -s        Suppress lines with no field delimiter
+
+List syntax: comma-separated positions or ranges (e.g. 1,3-5,7-)
+
+Examples:
+  cut -d: -f1 S:User-Startup     ; extract first field from each line
+  cut -b1-40 bigfile              ; first 40 bytes per line
+  cut -d, -f2,4 data.csv         ; fields 2 and 4 from CSV
+
+Cross-compiled with m68k-amigaos-gcc (bebbo) for AmigaOS 3.x (68000+),
+-noixemul, no ixemul.library required. Runs from Workbench or Shell.
+
+Known limitation: The -c (character) and -n (no-split multibyte) options
+operate in byte mode only. AmigaOS libnix does not provide reliable mblen(),
+so multibyte/UTF-8 character boundaries are not detected. For ISO 8859-1
+text (the norm on classic Amiga systems) this makes no practical difference.
+
+Tested in vamos emulator. Passes all POSIX cut test cases for byte, field,
+and delimiter modes.
+
+Includes full source code (original OpenBSD POSIX source and ported Amiga
+version) and PORT.md documenting every transformation applied.
