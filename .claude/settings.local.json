@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git init:*)",
+      "WebSearch",
+      "WebFetch(domain:amigadev.elowar.com)",
+      "WebFetch(domain:archive.org)",
+      "WebFetch(domain:www.haage-partner.de)",
+      "WebFetch(domain:babel.de)",
+      "WebFetch(domain:os.amigaworld.de)",
+      "WebFetch(domain:aminet.net)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:erikarn.github.io)",
+      "WebFetch(domain:www.hyperion-entertainment.com)",
+      "Bash(chmod +x /Users/duncan/Developer/amiport/toolchain/scripts/*.sh)",
+      "Bash(gh auth:*)",
+      "Bash(git -C /Users/duncan/Developer/amiport add -A)",
+      "Bash(git -C /Users/duncan/Developer/amiport status)",
+      "Bash(git -C /Users/duncan/Developer/amiport rm --cached .claude/settings.local.json)",
+      "Bash(git -C /Users/duncan/Developer/amiport rm --cached -f .claude/settings.local.json)",
+      "Bash(git rm:*)",
+      "Bash(git add:*)"
+    ]
+  }
+}

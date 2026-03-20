@@ -1,0 +1,37 @@
+# Build output
+*.o
+*.a
+*.elf
+*.adf
+*.lha
+*.lib
+build/
+
+# Toolchain
+/opt/amiga/
+
+# Docker
+.docker-env
+
+# Claude Code local settings
+.claude/settings.local.json
+
+# Editor
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Node (defensive)
+node_modules/
+
+# Python (vamos/amitools)
+__pycache__/
+*.pyc
+.venv/
+venv/
