@@ -87,7 +87,12 @@ The `/port-project` skill runs Stage 0 (Aminet research) through Stage 6 (packag
 6. **docs/adr/** — Create a new ADR for architectural decisions; update README.md index
 7. **docs/pdr/** — Create a new PDR for product/scope decisions; update README.md index
 
-**Do not consider a change complete until all affected documentation is updated.** A new skill without README/architecture/porting-guide references is incomplete. An ADR without an index entry is lost.
+**When completing a port (`/port-project`) or publishing to Aminet:**
+
+8. **PORTS.md** — Add the port to the catalog table (name, version, description, category, source, status). Update Aminet tracking table after publishing.
+9. **README.md** — Add the port to the Ports summary table
+
+**Do not consider a change complete until all affected documentation is updated.** A new skill without README/architecture/porting-guide references is incomplete. An ADR without an index entry is lost. A port without a PORTS.md entry is invisible.
 
 ## Porting Rules
 
