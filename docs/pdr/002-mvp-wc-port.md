@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted
+Completed — MVP validated, pipeline proven through smoke test and first real port (cal)
 
 ## Date
 

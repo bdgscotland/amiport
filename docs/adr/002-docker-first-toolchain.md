@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted
+Accepted (amended by [ADR-005](005-prebuilt-docker-images.md) and [ADR-007](007-toolchain-wrapper-scripts.md))
 
 ## Date
 

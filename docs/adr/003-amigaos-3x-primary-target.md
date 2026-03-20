@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted
+Accepted (amended by [ADR-006](006-m68000-target-for-vamos.md) — default CPU changed to 68000)
 
 ## Date
 
