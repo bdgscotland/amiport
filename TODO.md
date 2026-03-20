@@ -18,7 +18,33 @@
 - [ ] **Test with GCC 13.3/15.2 branches** — bebbo's toolchain now has `amiga13.3` and `amiga15.2` branches with register parameter support. Evaluate whether we can offer these as optional target profiles.
 - [ ] **Verify newlib-availability.md** — bebbo has been cross-porting functions between libnix and newlib; our reference may already be stale for some entries.
 
-## High-Value Port Targets
+## Beyond CLI — Non-CLI Port Categories
+
+See ADR-011 for the full taxonomy. Categories 2-4 are now in progress.
+
+### Category 2: Scripting Interpreters
+- [ ] **Port Lua 5.4** — Proof-of-concept for Category 2. See CIDR-006.
+- [ ] **dlopen() stubs** — Add `amiport_emu_dlopen()` returning NULL to posix-emu (blocks Lua C modules).
+- [ ] **Path remapping for `require()`** — Map `/usr/local/lib/lua/` → `LUA:` assign.
+
+### Category 3: Console UI Apps
+- [x] **console-shim library** — `lib/console-shim/` implementing ncurses subset (ADR-009).
+- [x] **Console ANSI mapping reference** — `docs/references/console-ansi-mapping.md`.
+- [ ] **Port `less`** — First console UI target. Uses console-shim for terminal control.
+- [ ] **Window size detection** — Query Intuition window dimensions for dynamic LINES/COLS.
+- [ ] **Console-shim tests** — Basic smoke tests (init, output, cleanup) runnable via vamos.
+
+### Category 4: Network Apps
+- [x] **bsdsocket-shim library** — `lib/bsdsocket-shim/` wrapping bsdsocket.library (ADR-010).
+- [x] **BSD socket mapping reference** — `docs/references/bsdsocket-mapping.md`.
+- [ ] **Port a simple network tool** — wget-lite or a basic HTTP client to validate the shim.
+- [ ] **IoctlSocket() wrapper** — Add `amiport_ioctlsocket()` for non-blocking socket mode.
+- [ ] **bsdsocket-shim tests** — Unit tests for inet functions, fd tracking (runnable via vamos).
+
+### Category 5: GUI Apps (Future)
+- See CIDR-002 and CIDR-005. Not yet in scope.
+
+## High-Value Port Targets — CLI (Category 1)
 
 Priority order based on community demand and Aminet staleness:
 

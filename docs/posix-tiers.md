@@ -239,20 +239,37 @@ struct Process *child = CreateNewProcTags(
 
 **Transform to:** Each thread becomes an Exec `Task` or `Process`. Shared state is replaced with message passing via `MsgPort` + `PutMsg()`/`GetMsg()`. This is a significant rewrite and requires understanding the program's concurrency architecture.
 
-### Pattern: BSD sockets → bsdsocket.library
+### Pattern: BSD sockets → bsdsocket-shim library
 
 **Recognise when:** Code uses `socket()`, `connect()`, `bind()`, `listen()`, `accept()`, `send()`, `recv()`, and includes `<sys/socket.h>`, `<netinet/in.h>`, `<arpa/inet.h>`.
 
-**Transform to:** Link against `bsdsocket.library` (AmiTCP/Roadshow/Miami). The API is intentionally BSD-compatible, so the changes are:
+**Transform to:** Link against `lib/bsdsocket-shim/` (ADR-010). The shim wraps bsdsocket.library (AmiTCP/Roadshow/Miami) with automatic lifecycle management:
 
-- Replace headers: `<sys/socket.h>` → `<proto/socket.h>` + `<bsdsocket/socketbasetags.h>`
-- Open the library at startup: `SocketBase = OpenLibrary("bsdsocket.library", 4)`
-- Replace `close(sockfd)` → `CloseSocket(sockfd)` (file fds and socket fds use different close calls)
-- Replace `ioctl(sockfd, ...)` → `IoctlSocket(sockfd, ...)`
-- Replace `select()` on sockets → `WaitSelect()` (bsdsocket.library's version, not Tier 2 emulation)
-- Add cleanup: `CloseLibrary(SocketBase)` at exit
+- Replace headers: `<sys/socket.h>` → `<amiport-net/socket.h>`, `<netinet/in.h>` → `<amiport-net/netinet/in.h>`, etc.
+- Replace `socket()` → `amiport_socket()`, `connect()` → `amiport_connect()`, etc.
+- Replace `close(sockfd)` → `amiport_closesocket()` (routes to CloseSocket automatically)
+- Replace `select()` on sockets → `amiport_net_select()` (uses WaitSelect, handles mixed file/socket)
+- Replace `gethostbyname()` → `amiport_gethostbyname()`
+- Library open/close is automatic (first use → atexit cleanup)
 
-**Limitations:** Requires a TCP/IP stack to be installed and running. Not all Amiga users will have one. Port should detect missing bsdsocket.library gracefully.
+See `docs/references/bsdsocket-mapping.md` for the full API mapping table.
+
+**Limitations:** Requires a TCP/IP stack to be installed and running. No IPv6. No SSL/TLS (requires AmiSSL separately). Graceful degradation returns ENOTSUP when no stack installed.
+
+### Pattern: ncurses/termcap → console-shim library
+
+**Recognise when:** Code uses `initscr()`, `endwin()`, `getch()`, `addstr()`, `mvprintw()`, etc. and includes `<curses.h>` or `<ncurses.h>`.
+
+**Transform to:** Link against `lib/console-shim/` (ADR-009). The shim maps ncurses calls to ANSI escape sequences on Amiga console.device:
+
+- Replace headers: `<curses.h>` / `<ncurses.h>` → `<amiport-console/curses.h>`
+- Most ncurses functions work unchanged (initscr, endwin, move, addch, getch, attron, etc.)
+- Input uses RAW: console mode for character-at-a-time reading
+- Colors map to standard 8 ANSI colors
+
+See `docs/references/console-ansi-mapping.md` for escape sequence mapping.
+
+**Limitations:** No mouse support. No wide characters. No alternate screen buffer. Line drawing uses ASCII fallbacks. Window size detection limited. Tier 2 functions (getch, newwin) have caveats.
 
 ### Pattern: mmap(MAP_SHARED) → explicit file I/O
 

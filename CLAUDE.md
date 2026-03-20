@@ -20,6 +20,8 @@ The porting pipeline has 5 stages, each backed by a Claude skill:
 - `.claude/agents/` — Agent definitions (source-analyzer, code-transformer, build-manager, test-runner, port-coordinator, dependency-auditor)
 - `lib/posix-shim/` — Tier 1: Direct POSIX-to-AmigaOS wrappers (`amiport_*` functions)
 - `lib/posix-emu/` — Tier 2: Approximate POSIX emulation with documented caveats (`amiport_emu_*` functions)
+- `lib/console-shim/` — Minimal ncurses API mapped to Amiga console.device ANSI escapes (ADR-009)
+- `lib/bsdsocket-shim/` — BSD socket API via bsdsocket.library with auto lifecycle (ADR-010)
 - `toolchain/` — Cross-compiler Docker images, build scripts, target profiles
 - `docs/` — Architecture docs, API mapping tables, porting guide, tier classification
 - `ports/` — Output directory for real ports (each port gets original/, ported/, Makefile, PORT.md)
@@ -81,6 +83,8 @@ make setup-toolchain   # Install/pull cross-compiler (Docker)
 make fetch-ndk         # Download AmigaOS NDK 3.2 R4
 make build-shim        # Build the POSIX shim library (Tier 1)
 make build-emu         # Build the POSIX emulation library (Tier 2)
+make build-console     # Build the console shim library (ncurses)
+make build-net         # Build the BSD socket shim library
 make build TARGET=examples/wc   # Build a specific port
 make test TARGET=examples/wc    # Test via vamos
 make test-shim         # Run POSIX shim library tests via vamos
@@ -115,6 +119,25 @@ For GUI programs or hardware-dependent code, use **FS-UAE** with a configured Am
 - `.claude/skills/analyze-source/references/posix-to-amiga-map.md` — Portability classification
 - `docs/references/bsd-isms.md` — BSD-specific functions and their shim status
 - `docs/references/newlib-availability.md` — What C library functions are in -noixemul runtime
+- `docs/references/console-ansi-mapping.md` — ncurses-to-ANSI escape mapping for console-shim
+- `docs/references/bsdsocket-mapping.md` — POSIX socket-to-bsdsocket.library mapping
+- `docs/adr/009-console-shim-for-ncurses.md` — ADR for console UI shim
+- `docs/adr/010-bsdsocket-shim-for-networking.md` — ADR for BSD socket shim
+- `docs/adr/011-beyond-cli-port-categories.md` — ADR for port category taxonomy
+
+## Port Categories (ADR-011)
+
+Not all ports are CLI tools. The pipeline supports five categories:
+
+| Category | Description | Libraries Needed | Test Method |
+|----------|-------------|-----------------|-------------|
+| 1. CLI tools | Pure POSIX utilities | posix-shim, posix-emu | vamos |
+| 2. Scripting interpreters | Lua, bc, awk | posix-shim + minor stubs | vamos |
+| 3. Console UI apps | less, vim, nano | posix-shim + console-shim | FS-UAE |
+| 4. Network apps | curl, wget, irc | posix-shim + bsdsocket-shim | FS-UAE + TCP/IP |
+| 5. GUI apps | (future) | Intuition/MUI | FS-UAE |
+
+When linking ported programs, use `-lamiport-console` for console UI apps and `-lamiport-net` for network apps, in addition to `-lamiport` (posix-shim).
 
 ## Known Pitfalls
 
