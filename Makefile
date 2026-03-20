@@ -9,17 +9,23 @@
 #   clean            Remove build artifacts
 #   fetch-ndk        Download AmigaOS NDK 3.2 R4
 
-.PHONY: setup-toolchain build-shim build test test-shim package clean fetch-ndk help doctor smoke-test compare list-ports build-ports install-emu setup-emu emu publish
+.PHONY: setup-toolchain build-shim build-emu build-console build-net build test test-shim test-emu test-console test-net package clean fetch-ndk help doctor smoke-test compare list-ports build-ports install-emu setup-emu emu publish
 
 help:
 	@echo "amiport — AI-powered Amiga porting toolkit"
 	@echo ""
 	@echo "Targets:"
 	@echo "  setup-toolchain  Set up cross-compilation toolchain (Docker)"
-	@echo "  build-shim       Cross-compile the POSIX shim library"
+	@echo "  build-shim       Cross-compile the POSIX shim library (Tier 1)"
+	@echo "  build-emu        Cross-compile the POSIX emulation library (Tier 2)"
+	@echo "  build-console    Cross-compile the console shim library (ncurses)"
+	@echo "  build-net        Cross-compile the BSD socket shim library"
 	@echo "  build            Build a port (TARGET=examples/wc)"
 	@echo "  test             Test a build via vamos (TARGET=examples/wc)"
 	@echo "  test-shim        Run POSIX shim library tests via vamos"
+	@echo "  test-emu         Run POSIX emulation library tests via vamos"
+	@echo "  test-console     Run console shim tests via vamos"
+	@echo "  test-net         Run BSD socket shim tests via vamos"
 	@echo "  package          Create LHA archive (TARGET=examples/wc)"
 	@echo "  fetch-ndk        Download AmigaOS NDK 3.2 R4"
 	@echo "  clean            Remove build artifacts"
@@ -46,6 +52,15 @@ setup-toolchain:
 build-shim:
 	$(MAKE) -C lib/posix-shim
 
+build-emu:
+	$(MAKE) -C lib/posix-emu
+
+build-console:
+	$(MAKE) -C lib/console-shim
+
+build-net:
+	$(MAKE) -C lib/bsdsocket-shim
+
 build:
 ifndef TARGET
 	$(error TARGET is required. Usage: make build TARGET=examples/wc)
@@ -60,6 +75,15 @@ endif
 
 test-shim:
 	$(MAKE) -C tests/shim
+
+test-emu:
+	$(MAKE) -C tests/emu
+
+test-console: build-console
+	$(MAKE) -C tests/console
+
+test-net: build-net
+	$(MAKE) -C tests/net
 
 package:
 ifndef TARGET
@@ -147,6 +171,9 @@ emu: install-emu
 
 clean:
 	$(MAKE) -C lib/posix-shim clean
+	$(MAKE) -C lib/posix-emu clean
+	-$(MAKE) -C lib/console-shim clean
+	-$(MAKE) -C lib/bsdsocket-shim clean
 	$(MAKE) -C tests/shim clean
 	@for dir in ports/*/; do \
 		if [ -f "$$dir/Makefile" ]; then $(MAKE) -C "$$dir" TARGET=$$(basename "$$dir") clean 2>/dev/null; fi; \

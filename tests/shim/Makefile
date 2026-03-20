@@ -22,7 +22,9 @@ TESTS = test_file_io \
         test_signal \
         test_process \
         test_time \
-        test_misc
+        test_misc \
+        test_string_bsd \
+        test_stdio_ext
 
 .PHONY: all build run clean
 

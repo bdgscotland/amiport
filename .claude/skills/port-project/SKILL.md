@@ -34,6 +34,18 @@ Dispatch a `source-analyzer` agent to analyze the source, or run the analysis in
 
 Review the portability report. If the verdict is **INFEASIBLE**, stop and explain why. For other verdicts, proceed.
 
+The report classifies issues by tier (ADR-008) and port category (ADR-011):
+- **Tier 1** (green) — automated shim transforms, proceed without user input
+- **Tier 2** (yellow) — emulation with caveats, present tradeoffs to user before applying
+- **Tier 3** (red) — redesign required, present pattern options and wait for human decision
+
+**Port category determines the pipeline strategy:**
+- **Category 1 (CLI)** — standard pipeline, vamos testing
+- **Category 2 (Scripting)** — standard pipeline, may need dlopen stubs, vamos testing
+- **Category 3 (Console UI)** — add console-shim, link with `-lamiport-console`, FS-UAE testing
+- **Category 4 (Network)** — add bsdsocket-shim, link with `-lamiport-net`, FS-UAE + TCP/IP testing
+- **Category 5 (GUI)** — not yet supported, stop and explain
+
 ### Stage 2: Set Up Port Directory
 1. Create `ports/<name>/original/` and copy the source files there
 2. Create `ports/<name>/ported/` — this is where transformed source goes
@@ -48,7 +60,7 @@ Dispatch a `code-transformer` agent, or for small projects, apply transformation
 
 Write transformed source to `ports/<name>/ported/`.
 
-Before transforming, verify which `amiport_*` shim functions actually exist by checking headers in `lib/posix-shim/include/amiport/`. If a needed wrapper is missing, either add it to the shim or stub the call.
+Before transforming, verify which `amiport_*` shim functions actually exist by checking headers in `lib/posix-shim/include/amiport/`. For Tier 2 functions, check `lib/posix-emu/include/amiport-emu/`. If a needed wrapper is missing, either add it to the appropriate library or stub the call.
 
 ### Stage 4: Build
 Build with: `make build TARGET=ports/<name>`
@@ -56,11 +68,22 @@ Build with: `make build TARGET=ports/<name>`
 If the build fails, iterate: read the errors, fix the transformed source, and rebuild. Maximum 5 iterations.
 
 ### Stage 5: Test
-Test with: `make test TARGET=ports/<name>`
+For Category 1-2 (CLI/scripting): Test with `make test TARGET=ports/<name>` (vamos).
+
+For Category 3 (Console UI): vamos can run basic smoke tests (start, print version, exit). Interactive testing requires FS-UAE — note this in PORT.md.
+
+For Category 4 (Network): vamos cannot test networking. Build verification only, with a note that full testing requires FS-UAE with a TCP/IP stack (AmiTCP or Roadshow).
 
 If tests fail, analyze the failure and fix. May require going back to the transform stage.
 
-### Stage 6: Package
+### Stage 6: Review (recommended)
+Run `/review-amiga` on the ported source. This checks for Amiga-specific issues that the transform and build stages don't catch: stack safety, BPTR cleanup on error paths, memory patterns, and AmigaOS conventions.
+
+For performance-critical ports, dispatch the `perf-optimizer` agent to analyze hot paths and suggest 68k-optimized alternatives.
+
+Fix any CRITICAL issues before packaging. WARN issues should be documented in PORT.md.
+
+### Stage 7: Package
 Package with: `make -C ports/<name> TARGET=<name> package`
 
 This creates `<name>-<version>.lha` containing the binary, readme, and PORT.md — ready for Aminet upload.
@@ -106,7 +129,9 @@ Use the examples in `examples/head/PORT.md` and `examples/mini-find/PORT.md` as 
 
 At each stage, you may need to make judgment calls:
 
-1. **Blocking features**: Stub them or skip them? Default: stub with a warning message if the feature is non-essential. If it's core functionality, stop and ask.
+1. **Tier 2 (emulation) features**: Present caveats to user before applying. Link against `libamiport-emu.a`.
+2. **Tier 3 (redesign) features**: Present redesign patterns from `redesign-patterns.md`. Wait for human decision. Do NOT auto-stub.
+3. **Unclassified blocking features**: Stub with a warning message if non-essential. If core functionality, stop and ask.
 
 2. **Multiple source files**: Transform all files, build all objects, link together. Update `SOURCES` in the Makefile to list all `.c` files.
 
@@ -126,9 +151,9 @@ Use the actual current date in DD.MM.YYYY format.
 
 A port is successful when:
 - The binary compiles without errors
-- Basic functionality works in vamos
-- Output matches the native version for standard test cases
-- PORT.md documents the entire process
+- Basic functionality works in vamos (Category 1-2) or builds cleanly (Category 3-4)
+- Output matches the native version for standard test cases (where testable)
+- PORT.md documents the entire process, including port category and test strategy
 - The port is in `ports/<name>/` and buildable with `make build TARGET=ports/<name>`
 
 ## Listing Ports
