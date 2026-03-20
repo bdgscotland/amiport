@@ -1,7 +1,7 @@
 ---
 name: build-amiga
 description: Cross-compile C source for Amiga using bebbo-gcc or VBCC in Docker. Manages compiler flags, linking against posix-shim, and packaging. Use after source transformation.
-allowed-tools: Bash, Read, Write, Edit, Grep
+allowed-tools: Bash, Read, Write, Edit, Grep, Glob
 ---
 
 # Build for Amiga

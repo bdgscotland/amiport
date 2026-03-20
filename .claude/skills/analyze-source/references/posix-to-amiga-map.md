@@ -38,7 +38,7 @@ or amiport shim wrappers. Used by the `analyze-source` and `transform-source` sk
 | `fprintf()`/`printf()` | Provided by clib2/newlib | — | trivial | |
 | `fgets()` | Provided by clib2/newlib | — | trivial | |
 | `popen()` | — | — | blocking | No pipes; requires SystemTags() workaround |
-| `tmpfile()` | — | `amiport_tmpfile()` | needs-shim | Use T: assign for temp files |
+| `tmpfile()` | — | `amiport_tmpfile()` | needs-shim | Use T: assign for temp files. Declared in `amiport/unistd.h` |
 
 ## Directory Operations
 

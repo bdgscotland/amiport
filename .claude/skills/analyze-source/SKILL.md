@@ -15,17 +15,40 @@ You are analyzing C source code to determine what changes are needed to port it 
 2. **Catalog `#include` directives** — identify which headers are POSIX-specific vs standard C
 3. **Identify system calls** — find all function calls that are POSIX/Linux-specific
 4. **Detect blocking patterns** — fork/exec, mmap, pthreads, sockets, x86 asm
-5. **Classify each issue** by severity:
+5. **Check architecture assumptions** (see below)
+6. **Classify each issue** by severity:
    - `trivial` — Direct mapping exists, mechanical replacement
    - `needs-shim` — Requires amiport posix-shim wrapper
    - `blocking` — No Amiga equivalent, requires redesign or stubbing
-6. **Produce a structured report**
+7. **Produce a structured report**
+
+## Architecture & Compiler Checks
+
+The Amiga's m68k architecture and C89 compilers differ from modern x86/Linux in ways that cause subtle bugs. Look for these specifically:
+
+### Endianness
+- m68k is **big-endian**. Flag any code that assumes little-endian byte order: casting between `char*` and integer types, manual byte-swapping that assumes LE, network byte order functions used for host byte order (they're no-ops on BE).
+
+### Integer Sizes
+- On some m68k compilers, `int` may be 16-bit (though bebbo-gcc uses 32-bit). Flag any code relying on `sizeof(int) == 4` or `sizeof(long) == 8`. Amiga `LONG` is always 32-bit.
+- `size_t` may differ. Flag raw casts between `size_t` and `int`.
+
+### Alignment
+- m68k requires 16-bit alignment for word/longword access. Flag `__attribute__((packed))` structs that are accessed via pointer — these cause bus errors on 68000 (ok on 68020+, but slower).
+- Flag pointer arithmetic that casts between types of different alignment requirements.
+
+### GNU Extensions
+- Flag `__attribute__((…))` (except `unused` which is harmless), statement expressions `({…})`, `typeof`, zero-length arrays, `__builtin_*` functions.
+- C99/C11 features to flag: `//` comments, mixed declarations and code, VLAs, `_Bool`, compound literals, designated initializers (some are OK with bebbo-gcc but risky).
+
+### 64-bit Types
+- No native 64-bit on m68k. Flag `long long`, `int64_t`, `uint64_t` — these work via emulation (slow) and may not be available in all runtimes.
 
 ## Reference Material
 
 Consult these files for accurate classification:
-- `references/posix-to-amiga-map.md` — Master mapping table
-- `references/common-patterns.md` — Frequently encountered patterns
+- `.claude/skills/analyze-source/references/posix-to-amiga-map.md` — Master mapping table
+- `.claude/skills/analyze-source/references/common-patterns.md` — Frequently encountered patterns
 
 ## Output Format
 
@@ -40,6 +63,7 @@ Produce a report in this structure:
 - Trivial issues: N
 - Needs-shim issues: N
 - Blocking issues: N
+- Architecture issues: N
 - **Portability verdict**: [EASY | MODERATE | HARD | INFEASIBLE]
 
 ## POSIX Headers Found
@@ -51,6 +75,11 @@ Produce a report in this structure:
 | Function | File:Line | Severity | Notes |
 |----------|-----------|----------|-------|
 | ...      | ...       | ...      | ...   |
+
+## Architecture Issues
+| Issue | File:Line | Severity | Notes |
+|-------|-----------|----------|-------|
+| ...   | ...       | ...      | ...   |
 
 ## Blocking Issues
 [Detailed description of each blocking issue and suggested workaround]

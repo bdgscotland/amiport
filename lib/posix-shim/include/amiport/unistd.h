@@ -44,7 +44,7 @@ unsigned int amiport_sleep(unsigned int seconds);
 char *amiport_getcwd(char *buf, int size);
 int   amiport_chdir(const char *path);
 
-/* Environment */
+/* Environment — returns malloc'd string, caller must free() */
 char *amiport_getenv(const char *name);
 
 /* Misc */
@@ -60,5 +60,13 @@ LONG  amiport_getpid(void);
 
 /* isatty equivalent */
 int amiport_isatty(int fd);
+
+/* Thread-safe strtok (not provided by all Amiga C runtimes) */
+char *amiport_strtok_r(char *str, const char *delim, char **saveptr);
+
+/* Create a temporary file using T: assign.
+ * Returns FILE* opened for read/write, or NULL on failure. */
+#include <stdio.h>
+FILE *amiport_tmpfile(void);
 
 #endif /* AMIPORT_UNISTD_H */

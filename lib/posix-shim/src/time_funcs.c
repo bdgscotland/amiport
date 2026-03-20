@@ -10,9 +10,6 @@
 #include <proto/dos.h>
 #include <dos/dos.h>
 
-/* Seconds between Unix epoch (1970) and Amiga epoch (1978) */
-#define AMIGA_EPOCH_OFFSET  252460800L
-
 int amiport_gettimeofday(struct amiport_timeval *tv)
 {
     struct DateStamp ds;
@@ -44,4 +41,22 @@ LONG amiport_time(LONG *tloc)
     }
 
     return tv.tv_sec;
+}
+
+int amiport_usleep(ULONG usec)
+{
+    ULONG ticks;
+
+    /* Convert microseconds to Amiga ticks (1 tick = 20ms = 20000us on PAL).
+     * Minimum delay is 1 tick if usec > 0. */
+    ticks = usec / 20000;
+    if (ticks == 0 && usec > 0) {
+        ticks = 1;
+    }
+
+    if (ticks > 0) {
+        Delay(ticks);
+    }
+
+    return 0;
 }

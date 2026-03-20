@@ -6,6 +6,8 @@
  */
 
 #include <amiport/unistd.h>
+#include <amiport/sys/stat.h>
+#include <amiport/sys/time.h>
 #include <amiport/errno_map.h>
 
 #include <proto/dos.h>
@@ -66,13 +68,40 @@ int amiport_open(const char *path, int flags)
 
     init_fd_table();
 
-    /* Map POSIX flags to AmigaDOS modes */
-    if (flags & O_WRONLY) {
-        if (flags & O_APPEND) {
-            mode = MODE_READWRITE;
-        } else {
-            mode = MODE_NEWFILE;
+    /*
+     * Map POSIX flags to AmigaDOS modes:
+     *
+     *   POSIX pattern              AmigaDOS mode
+     *   ─────────────────────────  ─────────────────
+     *   O_RDONLY                   MODE_OLDFILE
+     *   O_WRONLY | O_CREAT|O_TRUNC  MODE_NEWFILE
+     *   O_WRONLY (no O_CREAT)     MODE_NEWFILE
+     *   O_WRONLY | O_APPEND       MODE_READWRITE + Seek(END)
+     *   O_RDWR                    MODE_READWRITE
+     *   O_CREAT without O_TRUNC   try MODE_OLDFILE, fallback MODE_NEWFILE
+     */
+    if (flags & O_APPEND) {
+        mode = MODE_READWRITE;
+    } else if (flags & O_TRUNC) {
+        mode = MODE_NEWFILE;
+    } else if ((flags & O_CREAT) && !(flags & O_TRUNC)) {
+        /* O_CREAT without O_TRUNC: open existing, or create if missing */
+        fh = Open((CONST_STRPTR)path, MODE_OLDFILE);
+        if (!fh) {
+            if (IoErr() == ERROR_OBJECT_NOT_FOUND) {
+                fh = Open((CONST_STRPTR)path, MODE_NEWFILE);
+                if (!fh) {
+                    amiport_map_errno();
+                    return -1;
+                }
+            } else {
+                amiport_map_errno();
+                return -1;
+            }
         }
+        return alloc_fd(fh);
+    } else if (flags & O_WRONLY) {
+        mode = MODE_NEWFILE;
     } else if (flags & O_RDWR) {
         mode = MODE_READWRITE;
     } else {
@@ -216,70 +245,6 @@ int amiport_access(const char *path, int mode)
     return 0;
 }
 
-unsigned int amiport_sleep(unsigned int seconds)
-{
-    /* Delay() takes ticks (1/50s on PAL) */
-    Delay(seconds * 50);
-    return 0;
-}
-
-char *amiport_getcwd(char *buf, int size)
-{
-    BPTR lock;
-
-    lock = Lock("", SHARED_LOCK);
-    if (!lock) {
-        amiport_map_errno();
-        return NULL;
-    }
-
-    if (!NameFromLock(lock, (STRPTR)buf, size)) {
-        UnLock(lock);
-        amiport_map_errno();
-        return NULL;
-    }
-
-    UnLock(lock);
-    return buf;
-}
-
-int amiport_chdir(const char *path)
-{
-    BPTR lock;
-    BPTR old_lock;
-
-    lock = Lock((CONST_STRPTR)path, SHARED_LOCK);
-    if (!lock) {
-        amiport_map_errno();
-        return -1;
-    }
-
-    old_lock = CurrentDir(lock);
-    if (old_lock) {
-        UnLock(old_lock);
-    }
-    return 0;
-}
-
-char *amiport_getenv(const char *name)
-{
-    static char env_buf[256];
-    LONG len;
-
-    len = GetVar((CONST_STRPTR)name, (STRPTR)env_buf, sizeof(env_buf) - 1, 0);
-    if (len < 0) {
-        return NULL;
-    }
-    env_buf[len] = '\0';
-    return env_buf;
-}
-
-LONG amiport_getpid(void)
-{
-    /* Return task address as a pseudo-PID */
-    return (LONG)FindTask(NULL);
-}
-
 int amiport_isatty(int fd)
 {
     init_fd_table();
@@ -289,4 +254,50 @@ int amiport_isatty(int fd)
     }
 
     return IsInteractive(fd_table[fd]) ? 1 : 0;
+}
+
+int amiport_fstat(int fd, struct amiport_stat *buf)
+{
+    struct FileInfoBlock fib;
+    BOOL ok;
+
+    init_fd_table();
+
+    if (!buf) {
+        errno = EINVAL;
+        return -1;
+    }
+
+    if (fd < 0 || fd >= AMIPORT_MAX_FDS || !fd_used[fd]) {
+        errno = EBADF;
+        return -1;
+    }
+
+    memset(buf, 0, sizeof(struct amiport_stat));
+
+    /* ExamineFH is available on AmigaOS 2.0+ (dos.library 36+) */
+    ok = ExamineFH(fd_table[fd], &fib);
+    if (!ok) {
+        amiport_map_errno();
+        return -1;
+    }
+
+    /* Fill stat structure — same logic as amiport_stat() */
+    if (fib.fib_DirEntryType > 0) {
+        buf->st_mode = AMIPORT_S_IFDIR | 0755;
+        buf->st_isdir = 1;
+    } else {
+        buf->st_mode = AMIPORT_S_IFREG | 0644;
+        buf->st_isdir = 0;
+    }
+
+    buf->st_size = fib.fib_Size;
+
+    /* Convert Amiga DateStamp to Unix timestamp */
+    buf->st_mtime = (fib.fib_Date.ds_Days * 86400L) +
+                    (fib.fib_Date.ds_Minute * 60L) +
+                    (fib.fib_Date.ds_Tick / TICKS_PER_SECOND) +
+                    AMIGA_EPOCH_OFFSET;
+
+    return 0;
 }
