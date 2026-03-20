@@ -7,6 +7,14 @@
 *.lib
 build/
 
+# Compiled Amiga binaries (produced by make build)
+examples/wc/wc
+examples/head/head
+examples/mini-find/mini-find
+tests/shim/test_*
+!tests/shim/test_*.c
+!tests/shim/test_*.h
+
 # Toolchain
 /opt/amiga/
 

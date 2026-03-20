@@ -9,7 +9,7 @@ SOURCE = ported/head.c
 all: $(TARGET)
 
 $(TARGET): $(SOURCE) $(SHIM_LIB)
-	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS)
+	$(CC) $(CFLAGS) -o $(TARGET) $< $(LDFLAGS)
 
 test: $(TARGET)
 	@echo "=== Testing head ==="
@@ -26,14 +26,14 @@ test: $(TARGET)
 	@echo "line 11" >> test_input.txt
 	@echo "line 12" >> test_input.txt
 	@echo "--- Default (10 lines) ---"
-	timeout 10 vamos ./$(TARGET) test_input.txt
+	vamos -- ./$(TARGET) test_input.txt
 	@echo "--- First 3 lines ---"
-	timeout 10 vamos ./$(TARGET) -n 3 test_input.txt
+	vamos -- ./$(TARGET) -n 3 test_input.txt
 	@echo "--- Empty file ---"
 	@touch empty.txt
-	timeout 10 vamos ./$(TARGET) empty.txt
+	vamos -- ./$(TARGET) empty.txt
 	@echo "--- Nonexistent file ---"
-	timeout 10 vamos ./$(TARGET) nonexistent.txt || true
+	vamos -- ./$(TARGET) nonexistent.txt || true
 	@rm -f test_input.txt empty.txt
 	@echo "=== head tests complete ==="
 

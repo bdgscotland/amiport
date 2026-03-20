@@ -15,7 +15,10 @@ RECOMMENDED=""
 # Check Docker
 if command -v docker &> /dev/null; then
     HAS_DOCKER=true
-    if docker image inspect amiport/bebbo-gcc &> /dev/null; then
+    if docker image inspect amigadev/m68k-amigaos-gcc &> /dev/null 2>&1; then
+        HAS_DOCKER_BEBBO=true
+        RECOMMENDED="docker-bebbo-gcc"
+    elif docker image inspect amiport/bebbo-gcc &> /dev/null 2>&1; then
         HAS_DOCKER_BEBBO=true
         RECOMMENDED="docker-bebbo-gcc"
     fi

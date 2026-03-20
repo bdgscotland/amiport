@@ -45,19 +45,32 @@ echo ""
 
 # Docker setup (preferred)
 if [ "$HAS_DOCKER" = "1" ]; then
-    echo "Building Docker toolchain (bebbo-gcc)..."
-    echo "This will take several minutes on first run."
-    echo ""
+    # Try pre-built image first (much faster than building from source)
+    PREBUILT_IMAGE="amigadev/m68k-amigaos-gcc"
 
-    docker build -t amiport/bebbo-gcc -f "$DOCKER_DIR/Dockerfile.bebbo-gcc" "$DOCKER_DIR"
+    if docker image inspect "$PREBUILT_IMAGE" &> /dev/null; then
+        echo "[OK] Pre-built image '$PREBUILT_IMAGE' already available"
+    else
+        echo "Pulling pre-built Docker image ($PREBUILT_IMAGE)..."
+        echo "This is much faster than building from source."
+        echo ""
 
-    echo ""
-    echo "[OK] Docker toolchain ready!"
+        if docker pull "$PREBUILT_IMAGE" 2>/dev/null; then
+            echo ""
+            echo "[OK] Pre-built image pulled successfully!"
+        else
+            echo "[--] Pre-built image not available, building from source..."
+            echo "This will take several minutes on first run."
+            echo ""
+            docker build -t amiport/bebbo-gcc -f "$DOCKER_DIR/Dockerfile.bebbo-gcc" "$DOCKER_DIR"
+            echo ""
+            echo "[OK] Docker toolchain built from source!"
+        fi
+    fi
+
     echo ""
     echo "Usage:"
-    echo "  docker run -v \"\$(pwd)\":/work amiport/bebbo-gcc m68k-amigaos-gcc -o prog prog.c"
-    echo ""
-    echo "Or use: make build TARGET=examples/wc"
+    echo "  make build TARGET=examples/wc"
     exit 0
 fi
 
