@@ -1,4 +1,4 @@
-# Makefile for amiport POSIX shim tests
+# Makefile for amiport POSIX emulation (Tier 2) tests
 #
 # Cross-compiles test binaries and runs them via vamos.
 # Usage: make          (build and run all tests)
@@ -8,32 +8,33 @@
 
 TOOLCHAIN_BIN = ../../toolchain/scripts
 CC = $(TOOLCHAIN_BIN)/m68k-amigaos-gcc
-CFLAGS = -O2 -noixemul -m68000 -Wall -I../../lib/posix-shim/include -I.
-LDFLAGS = -L../../lib/posix-shim -lamiport
+CFLAGS = -O2 -noixemul -m68000 -Wall \
+         -I../../lib/posix-shim/include \
+         -I../../lib/posix-emu/include \
+         -I.
+LDFLAGS = -L../../lib/posix-emu -lamiport-emu \
+          -L../../lib/posix-shim -lamiport
 VAMOS = vamos -q
 
 SHIM_DIR = ../../lib/posix-shim
+EMU_DIR = ../../lib/posix-emu
 
-TESTS = test_file_io \
-        test_getopt \
-        test_errno \
-        test_dir_ops \
-        test_stat \
-        test_signal \
-        test_process \
-        test_time \
-        test_misc \
-        test_string_bsd \
-        test_stdio_ext
+TESTS = test_regex \
+        test_mmap \
+        test_pipe \
+        test_select
 
 .PHONY: all build run clean
 
 all: build run
 
-build: $(SHIM_DIR)/libamiport.a $(TESTS)
+build: $(SHIM_DIR)/libamiport.a $(EMU_DIR)/libamiport-emu.a $(TESTS)
 
 $(SHIM_DIR)/libamiport.a:
 	$(MAKE) -C $(SHIM_DIR)
+
+$(EMU_DIR)/libamiport-emu.a:
+	$(MAKE) -C $(EMU_DIR)
 
 %: %.c test_framework.h
 	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS)

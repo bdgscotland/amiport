@@ -18,5 +18,7 @@
 #include <amiport/sys/time.h>
 #include <amiport/fnmatch.h>
 #include <amiport/scandir.h>
+#include <amiport/string.h>
+#include <amiport/stdio_ext.h>
 
 #endif /* AMIPORT_H */

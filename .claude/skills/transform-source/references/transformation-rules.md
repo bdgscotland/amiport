@@ -229,7 +229,108 @@ static const char *verstag = "$VER: progname 1.0 (19.03.2026)";
 LONG __stack = 32768;
 ```
 
-## 7. Tier 2 Emulation Replacements
+## 7. BSD-ism Replacements
+
+### Header additions for BSD functions
+```c
+/* RULE: Add amiport shim headers for BSD functions */
+
+// For strlcpy/strlcat/reallocarray:
+#include <amiport/string.h>
+
+// For asprintf/vasprintf/mkstemp/pread/pwrite:
+#include <amiport/stdio_ext.h>
+
+// For err/errx/warn/warnx/strtonum:
+#include <amiport/err.h>
+
+// For fnmatch:
+#include <amiport/fnmatch.h>
+
+// For scandir/alphasort:
+#include <amiport/scandir.h>
+
+// For regex (Tier 2):
+#include <amiport-emu/regex.h>
+```
+
+### BSD string functions
+```c
+/* RULE: Replace BSD string functions with amiport shim wrappers */
+
+// Before:
+strlcpy(dst, src, sizeof(dst));
+// After:
+amiport_strlcpy(dst, src, sizeof(dst)); /* amiport: replaced strlcpy() */
+
+// Before:
+strlcat(dst, src, sizeof(dst));
+// After:
+amiport_strlcat(dst, src, sizeof(dst)); /* amiport: replaced strlcat() */
+```
+
+Note: With AMIPORT_NO_STRING_MACROS not defined, the convenience macros handle this
+automatically — just include `<amiport/string.h>` and use the original function names.
+
+### BSD/GNU memory and string formatting
+```c
+/* RULE: Replace BSD/GNU memory and formatting functions */
+
+// Before:
+p = reallocarray(p, n, sizeof(*p));
+// After:
+p = amiport_reallocarray(p, n, sizeof(*p)); /* amiport: replaced reallocarray() */
+
+// Before:
+asprintf(&str, "hello %s", name);
+// After:
+amiport_asprintf(&str, "hello %s", name); /* amiport: replaced asprintf() */
+
+// Before:
+fd = mkstemp(template);
+// After:
+fd = amiport_mkstemp(template); /* amiport: replaced mkstemp() */
+
+// Before:
+n = pread(fd, buf, count, offset);
+// After:
+n = amiport_pread(fd, buf, count, offset); /* amiport: replaced pread() — non-atomic seek+read */
+```
+
+### BSD security stubs
+```c
+/* RULE: Stub OpenBSD security functions */
+
+// Before:
+#include <unistd.h>
+if (pledge("stdio rpath", NULL) == -1)
+    err(1, "pledge");
+if (unveil("/path", "r") == -1)
+    err(1, "unveil");
+// After:
+/* amiport: pledge/unveil not available on AmigaOS — stubbed */
+#define pledge(p, e) (0)
+#define unveil(p, f) (0)
+```
+
+### BSD fgetln → fgets
+```c
+/* RULE: Replace fgetln() with fgets() */
+
+// Before:
+char *line;
+size_t len;
+line = fgetln(fp, &len);
+// After:
+/* amiport: replaced fgetln() with fgets() — line is NUL-terminated */
+static char _line_buf[8192];
+char *line;
+size_t len;
+line = fgets(_line_buf, sizeof(_line_buf), fp);
+if (line) len = strlen(line);
+```
+
+## 8. Tier 2 Emulation Replacements
 
 For functions classified as `needs-emu` (Tier 2), use `amiport_emu_*` wrappers from `lib/posix-emu/`.
 Always add a `/* amiport-emu: ... */` comment documenting the behavioural difference.
@@ -302,6 +403,31 @@ amiport_emu_alarm(30);
 /* In main loop: amiport_emu_check_alarm(); */
 /* At cleanup: amiport_emu_alarm_cleanup(); */
 ```
+
+### regex (POSIX)
+```c
+/* RULE: Replace POSIX regex with amiport_emu_regex — Tier 2 emulation */
+
+/* Before: */
+#include <regex.h>
+regex_t re;
+regmatch_t matches[2];
+regcomp(&re, "pattern", REG_EXTENDED);
+if (regexec(&re, string, 2, matches, 0) == 0) { /* matched */ }
+regfree(&re);
+
+/* After: */
+#include <amiport-emu/regex.h>
+/* amiport-emu: regex emulated — no locale collation, no [:class:], max 9 groups, backtracking NFA */
+amiport_emu_regex_t re;
+amiport_emu_regmatch_t matches[2];
+amiport_emu_regcomp(&re, "pattern", REG_EXTENDED);
+if (amiport_emu_regexec(&re, string, 2, matches, 0) == 0) { /* matched */ }
+amiport_emu_regfree(&re);
+```
+
+Note: With AMIPORT_NO_REGEX_MACROS not defined, convenience macros allow using
+the original POSIX names. Just include `<amiport-emu/regex.h>`.
 
 ## Tier 3 — Redesign Patterns (Do NOT Auto-Apply)
 

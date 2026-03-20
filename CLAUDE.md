@@ -17,7 +17,7 @@ The porting pipeline has 5 stages, each backed by a Claude skill:
 ## Codebase Map
 
 - `.claude/skills/` — Skill definitions for each pipeline stage
-- `.claude/agents/` — Agent definitions (source-analyzer, code-transformer, build-manager, test-runner, port-coordinator)
+- `.claude/agents/` — Agent definitions (source-analyzer, code-transformer, build-manager, test-runner, port-coordinator, dependency-auditor)
 - `lib/posix-shim/` — Tier 1: Direct POSIX-to-AmigaOS wrappers (`amiport_*` functions)
 - `lib/posix-emu/` — Tier 2: Approximate POSIX emulation with documented caveats (`amiport_emu_*` functions)
 - `toolchain/` — Cross-compiler Docker images, build scripts, target profiles
@@ -44,6 +44,8 @@ The porting pipeline has 5 stages, each backed by a Claude skill:
 - To build: dispatch the `build-manager` agent or use `/build-amiga`
 - To test: dispatch the `test-runner` agent or use `/test-amiga`
 - To check Aminet for existing ports: dispatch the `aminet-researcher` agent
+- To audit external library dependencies: dispatch the `dependency-auditor` agent
+- To add a missing POSIX function to the shim: use `/extend-shim <function-name>`
 - To publish to Aminet: dispatch the `aminet-publisher` agent
 
 The `/port-project` skill runs Stage 0 (Aminet research) through Stage 6 (packaging) automatically, dispatching the appropriate agents at each step. Use it as the entry point for all porting work.
@@ -57,6 +59,7 @@ The `/port-project` skill runs Stage 0 (Aminet research) through Stage 6 (packag
 | `build-manager` | Stage 4 — cross-compilation and error fixing |
 | `test-runner` | Stage 5 — vamos testing |
 | `port-coordinator` | Full pipeline orchestration for complex ports |
+| `dependency-auditor` | Before complex ports — audit external library dependencies |
 | `aminet-publisher` | Publishing — curated, never automatic |
 
 ## Porting Rules
@@ -110,3 +113,48 @@ For GUI programs or hardware-dependent code, use **FS-UAE** with a configured Am
 - `.claude/skills/transform-source/references/transformation-rules.md` — How to transform Tier 1 patterns
 - `.claude/skills/transform-source/references/redesign-patterns.md` — Tier 3 redesign pattern templates
 - `.claude/skills/analyze-source/references/posix-to-amiga-map.md` — Portability classification
+- `docs/references/bsd-isms.md` — BSD-specific functions and their shim status
+- `docs/references/newlib-availability.md` — What C library functions are in -noixemul runtime
+
+## Known Pitfalls
+
+Hard-won lessons from real ports (cal, diff). Read these before porting.
+
+### fopen() macro collision
+The `amiport/stdio.h` header defines `#define fopen(p, m) amiport_fopen(p, m)`. Inside `file_io.c` (which implements `amiport_fopen`), calling `fopen()` triggers infinite recursion. **Fix:** Add `#undef fopen` before the implementation. This also applies to `fclose`.
+
+### vamos argv pointer arithmetic
+POSIX programs sometimes compute argument string positions by pointer arithmetic on argv entries (e.g., `argv[argc-1] - argv[0]` to estimate total arg string length). On vamos, argv entries are NOT allocated in a contiguous block — each is independently allocated. **Fix:** Use explicit `strlen()` iteration instead of pointer subtraction between argv entries.
+
+### printf format specifiers for Amiga types
+Amiga `LONG` is `long` (32-bit), and `ULONG` is `unsigned long`. Use `%ld` / `%lu` format specifiers, not `%d` / `%u`. On 68000, `int` may be 16-bit in some compiler configurations.
+
+### Stack size
+Amiga default stack is 4KB. Most ported programs need more. Always add a stack cookie: `long __stack = 32768;` (or 65536 for recursive programs like find/diff). The value is in bytes.
+
+### pledge/unveil stubs
+OpenBSD code almost always calls `pledge()` and `unveil()`. These should be stubbed as `#define pledge(p, e) (0)` and `#define unveil(p, f) (0)` — never shimmed as functions.
+
+### T: assign for temp files
+AmigaOS has no `/tmp`. Use `T:` (which maps to `RAM:T/` by default). The `amiport_tmpfile()` and `amiport_mkstemp()` functions handle this.
+
+### Epoch offset
+AmigaOS epoch is 1978-01-01, Unix is 1970-01-01. The offset is 252460800 seconds (AMIGA_EPOCH_OFFSET). All time conversions must add this.
+
+## Shim Extension Workflow
+
+When a port needs a POSIX function that's not yet in the shim library:
+
+1. **Use `/extend-shim <function-name>`** — this skill automates the full process
+2. It will: research the function → classify the tier → write implementation + header + test → rebuild
+3. The new function becomes available for all future ports
+4. Alternative: dispatch the `build-manager` agent which can diagnose "undefined reference" errors and recommend `/extend-shim`
+
+### Adding a shim manually (if needed)
+
+1. Check `docs/references/newlib-availability.md` — is it already in libnix?
+2. Check `docs/references/bsd-isms.md` — is it a BSD-ism with a known solution?
+3. Classify per `docs/posix-tiers.md` decision tree
+4. Implement in `lib/posix-shim/` (Tier 1) or `lib/posix-emu/` (Tier 2)
+5. Add test in `tests/shim/` or `tests/emu/`
+6. Update `docs/posix-tiers.md` and `posix-to-amiga-map.md`
