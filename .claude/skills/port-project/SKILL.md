@@ -26,6 +26,9 @@ Create this structure at the start of the pipeline. Copy `ports/Makefile.templat
 
 ## Pipeline
 
+### Stage 0: Research (before any work)
+Dispatch an `aminet-researcher` agent to check whether this tool already exists for AmigaOS 3.x. If a recent, functional port already exists, stop and tell the user — don't duplicate work. If an old or limited version exists, note this in PORT.md and proceed (our port will be the upgrade). This step is mandatory.
+
 ### Stage 1: Analyze
 Dispatch a `source-analyzer` agent to analyze the source, or run the analysis inline for small projects (< 5 files).
 
