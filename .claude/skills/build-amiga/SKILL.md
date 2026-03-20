@@ -50,12 +50,45 @@ vc +kick13 \
 - `-m68020` — Target 68020 CPU (default). Change per target profile.
 - `-I` / `-L` — Point to posix-shim headers and library
 
+## Category-Specific Linking (ADR-011)
+
+Different port categories need different libraries:
+
+| Category | Include Paths | Link Flags |
+|----------|--------------|------------|
+| 1. CLI tools | `-I../../lib/posix-shim/include` | `-lamiport` |
+| 2. Scripting interpreters | Same as CLI | `-lamiport` |
+| 3. Console UI apps | Add `-I../../lib/console-shim/include` | `-lamiport -lamiport-console` |
+| 4. Network apps | Add `-I../../lib/bsdsocket-shim/include` | `-lamiport -lamiport-net` |
+
+For Tier 2 emulation: add `-I../../lib/posix-emu/include` and `-lamiport-emu`.
+
+### Console UI build example
+```bash
+m68k-amigaos-gcc -O2 -noixemul -m68020 \
+  -I../../lib/posix-shim/include \
+  -I../../lib/console-shim/include \
+  -L../../lib/posix-shim -L../../lib/console-shim \
+  -o program source.c \
+  -lamiport -lamiport-console
+```
+
+### Network app build example
+```bash
+m68k-amigaos-gcc -O2 -noixemul -m68020 \
+  -I../../lib/posix-shim/include \
+  -I../../lib/bsdsocket-shim/include \
+  -L../../lib/posix-shim -L../../lib/bsdsocket-shim \
+  -o program source.c \
+  -lamiport -lamiport-net
+```
+
 ## Error Handling
 
 When compilation fails:
 1. Read the full error output
 2. Identify whether it's a missing header, undefined function, type mismatch, or linker error
-3. For missing functions: check if the posix-shim needs to be extended
+3. For missing functions: check if the posix-shim (or console-shim/bsdsocket-shim) needs to be extended
 4. For type errors: check transformation rules for the correct replacement
 5. Fix the source and retry
 6. Maximum 5 retry cycles before reporting failure

@@ -16,10 +16,10 @@ You are analyzing C source code to determine what changes are needed to port it 
 3. **Identify system calls** — find all function calls that are POSIX/Linux-specific
 4. **Detect blocking patterns** — fork/exec, mmap, pthreads, sockets, x86 asm
 5. **Check architecture assumptions** (see below)
-6. **Classify each issue** by severity:
-   - `trivial` — Direct mapping exists, mechanical replacement
-   - `needs-shim` — Requires amiport posix-shim wrapper
-   - `blocking` — No Amiga equivalent, requires redesign or stubbing
+6. **Classify each issue** by tier and severity (see ADR-008 and `docs/posix-tiers.md`):
+   - **Tier 1 — Shim** (green): `trivial` or `needs-shim` — Direct or near-direct AmigaDOS mapping via `lib/posix-shim/`
+   - **Tier 2 — Emulation** (yellow): `needs-emu` — Approximate mapping via `lib/posix-emu/` with documented behavioural differences
+   - **Tier 3 — Redesign** (red): `needs-redesign` — No library can bridge this; requires structural rewrite using patterns from `redesign-patterns.md`
 7. **Produce a structured report**
 
 ## Architecture & Compiler Checks
@@ -44,11 +44,60 @@ The Amiga's m68k architecture and C89 compilers differ from modern x86/Linux in 
 ### 64-bit Types
 - No native 64-bit on m68k. Flag `long long`, `int64_t`, `uint64_t` — these work via emulation (slow) and may not be available in all runtimes.
 
+## Port Category Classification (ADR-011)
+
+As part of the analysis, classify the project into one of five port categories:
+
+| Category | Indicators | Recommended Libraries | Test Strategy |
+|----------|-----------|----------------------|---------------|
+| 1. CLI tool | Pure stdin/stdout/file I/O, getopt | posix-shim, posix-emu | vamos |
+| 2. Scripting interpreter | Large portable C, setjmp, dlopen stubs | posix-shim + minor stubs | vamos |
+| 3. Console UI app | `#include <curses.h>`, initscr, getch, mvaddstr | posix-shim + console-shim | FS-UAE |
+| 4. Network app | `#include <sys/socket.h>`, socket, connect, gethostbyname | posix-shim + bsdsocket-shim | FS-UAE + TCP/IP |
+| 5. GUI app | X11, GTK, Qt, SDL includes | Not yet supported | FS-UAE |
+
+Include the category in the report:
+```json
+{
+  "category": "console-ui",
+  "rationale": "Uses ncurses (initscr, endwin, mvaddch, getch)",
+  "recommended_shims": ["posix-shim", "console-shim"],
+  "link_flags": ["-lamiport", "-lamiport-console"],
+  "test_strategy": "fs-uae"
+}
+```
+
+**Detection heuristics:**
+- Category 3: `#include <curses.h>`, `<ncurses.h>`, `<term.h>`, calls to `initscr`, `endwin`, `getch`, `mvaddstr`, `attron`
+- Category 4: `#include <sys/socket.h>`, `<netinet/in.h>`, `<netdb.h>`, `<arpa/inet.h>`, calls to `socket`, `connect`, `bind`, `listen`, `accept`, `send`, `recv`, `gethostbyname`
+- Category 2: Large codebase (>20 files), `setjmp`/`longjmp`, `dlopen`, interpreter-like patterns
+- Category 5: `#include <X11/*.h>`, `<gtk/*.h>`, `<SDL.h>` — flag as not yet supported
+
 ## Reference Material
 
 Consult these files for accurate classification:
-- `.claude/skills/analyze-source/references/posix-to-amiga-map.md` — Master mapping table
+- `docs/posix-tiers.md` — Master tier classification with all functions, emulation details, and redesign patterns
+- `.claude/skills/analyze-source/references/posix-to-amiga-map.md` — POSIX-to-AmigaOS function mapping table
 - `.claude/skills/analyze-source/references/common-patterns.md` — Frequently encountered patterns
+- `.claude/skills/transform-source/references/redesign-patterns.md` — Tier 3 redesign pattern templates
+- `docs/references/console-ansi-mapping.md` — ncurses-to-ANSI escape mapping (Category 3)
+- `docs/references/bsdsocket-mapping.md` — POSIX socket-to-bsdsocket.library mapping (Category 4)
+
+## Tier Classification Decision Tree
+
+When encountering a POSIX function not already classified:
+
+1. Does AmigaDOS have a function that does the same thing with the same calling convention?
+   - YES → **Tier 1** (shim) — `trivial` or `needs-shim`
+   - MOSTLY → **Tier 1** with documented edge cases
+   - NO → continue
+2. Can the behaviour be emulated with a stateful wrapper that handles the common case?
+   - YES, common case works → **Tier 2** (emulation) — `needs-emu`
+   - YES, but only niche cases → **Tier 3** (redesign)
+   - NO → continue
+3. Does the function represent a fundamentally different execution model?
+   - YES → **Tier 3** (redesign) — `needs-redesign`
+   - No Amiga equivalent at all → stub with warning, classify as **Tier 3**
 
 ## Output Format
 
@@ -58,34 +107,46 @@ Produce a report in this structure:
 # Portability Analysis: <project name>
 
 ## Summary
+- **Port category**: [CLI tool | Scripting interpreter | Console UI app | Network app | GUI app]
 - Total source files: N
 - Lines of code: N
-- Trivial issues: N
-- Needs-shim issues: N
-- Blocking issues: N
+- Tier 1 (shim) issues: N (green)
+- Tier 2 (emulation) issues: N (yellow)
+- Tier 3 (redesign) issues: N (red)
 - Architecture issues: N
+- **Required libraries**: posix-shim [+ console-shim] [+ bsdsocket-shim]
+- **Test strategy**: [vamos | FS-UAE | FS-UAE + TCP/IP]
 - **Portability verdict**: [EASY | MODERATE | HARD | INFEASIBLE]
 
 ## POSIX Headers Found
-| Header | Files Using It | Severity | Replacement |
-|--------|---------------|----------|-------------|
-| ...    | ...           | ...      | ...         |
+| Header | Files Using It | Tier | Severity | Replacement |
+|--------|---------------|------|----------|-------------|
+| ...    | ...           | ...  | ...      | ...         |
 
-## System Calls Requiring Changes
-| Function | File:Line | Severity | Notes |
-|----------|-----------|----------|-------|
-| ...      | ...       | ...      | ...   |
+## Tier 1 — Shim (Automated)
+| Function | File:Line | Severity | Shim Wrapper | Notes |
+|----------|-----------|----------|--------------|-------|
+| ...      | ...       | ...      | ...          | ...   |
+
+## Tier 2 — Emulation (Semi-automated)
+| Function | File:Line | Emu Wrapper | Caveats |
+|----------|-----------|-------------|---------|
+| ...      | ...       | ...         | ...     |
+
+## Tier 3 — Redesign (Human Review Required)
+| Function | File:Line | Pattern | Recommendation |
+|----------|-----------|---------|----------------|
+| ...      | ...       | ...     | ...            |
+
+[Detailed description of each Tier 3 issue with redesign pattern options]
 
 ## Architecture Issues
 | Issue | File:Line | Severity | Notes |
 |-------|-----------|----------|-------|
 | ...   | ...       | ...      | ...   |
 
-## Blocking Issues
-[Detailed description of each blocking issue and suggested workaround]
-
 ## Recommended Approach
-[Summary of what the porting effort looks like]
+[Summary of what the porting effort looks like, broken down by tier]
 ```
 
 ## Verdicts

@@ -17,6 +17,8 @@
 #include <errno.h>
 #include <string.h>
 
+#include <amiport/internal.h>
+
 /* File descriptor table */
 #define AMIPORT_MAX_FDS 64
 
@@ -396,4 +398,22 @@ amiport_fclose(FILE *fp)
     }
 
     return result;
+}
+
+/* --- Internal API (used by posix-emu and bsdsocket-shim) --- */
+
+BPTR amiport_fd_to_fh(int fd)
+{
+    init_fd_table();
+    if (fd < 0 || fd >= AMIPORT_MAX_FDS || !fd_used[fd])
+        return 0;
+    return fd_table[fd];
+}
+
+int amiport_fd_is_valid(int fd)
+{
+    init_fd_table();
+    if (fd < 0 || fd >= AMIPORT_MAX_FDS)
+        return 0;
+    return fd_used[fd];
 }

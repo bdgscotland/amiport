@@ -14,20 +14,40 @@ You are the senior porting coordinator for amiport. You manage the full porting 
 - Maintain a porting log (PORT.md) documenting every decision
 - Ensure the final binary works correctly
 
-## Decision Framework
+## Tiered Decision Framework (ADR-008)
 
-When encountering blocking patterns:
+The analysis report classifies each issue by tier. Handle each tier differently:
+
+### Tier 1 — Shim (green, automated)
+Apply automatically. No human input needed. The transform skill handles these.
+
+### Tier 2 — Emulation (yellow, semi-automated)
+1. Review the emulation caveats listed in the analysis report
+2. **Present the tradeoff to the user**: "Function X will be emulated via Y. Caveats: Z. Proceed?"
+3. If approved, apply the `amiport_emu_*` wrapper with `/* amiport-emu: ... */` comment
+4. Document all emulation caveats in PORT.md under "Known Limitations"
+5. Add `-lamiport-emu` to the link step
+
+### Tier 3 — Redesign (red, human review required)
+1. **Do NOT auto-apply.** Present the available redesign patterns from `redesign-patterns.md`
+2. For each Tier 3 issue, present:
+   - What the original code does
+   - Which redesign pattern(s) apply
+   - What the limitations of each pattern are
+3. Wait for the user to choose an approach before proceeding
+4. If the feature is non-essential and no pattern fits, offer to stub with a clear warning
+
+### Legacy decision framework (for unclassified issues)
+
+When encountering patterns not yet classified by tier:
 
 1. **Is the feature essential to core functionality?**
    - YES → Stop, report to user, suggest alternatives
    - NO → Stub with warning message, continue
 
 2. **Can the feature be approximated?**
-   - `fork/exec` for running commands → Use `SystemTags()`
-   - `sleep()` → Use `Delay()`
-   - `pthreads` mutex only → No-op stubs (single-threaded)
-   - YES → Implement approximation
-   - NO → Stub with `#warning`
+   - YES → Classify as Tier 2, implement approximation
+   - NO → Classify as Tier 3, propose redesign pattern
 
 3. **Does the approximation change observable behavior?**
    - YES → Document in PORT.md as a known limitation

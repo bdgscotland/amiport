@@ -55,6 +55,44 @@ Each rule specifies: pattern to match, replacement, and when to apply.
 #include <amiport/sys/time.h>
 ```
 
+// Console UI headers (Category 3 — link with -lamiport-console):
+// Before:
+#include <curses.h>
+// After:
+#include <amiport-console/curses.h>
+
+// Before:
+#include <ncurses.h>
+// After:
+#include <amiport-console/curses.h>
+
+// Before:
+#include <term.h>
+// After:
+#include <amiport-console/term.h>
+
+// Network headers (Category 4 — link with -lamiport-net):
+// Before:
+#include <sys/socket.h>
+// After:
+#include <amiport-net/socket.h>
+
+// Before:
+#include <netinet/in.h>
+// After:
+#include <amiport-net/netinet/in.h>
+
+// Before:
+#include <netdb.h>
+// After:
+#include <amiport-net/netdb.h>
+
+// Before:
+#include <arpa/inet.h>
+// After:
+#include <amiport-net/arpa/inet.h>
+```
+
 Headers to **remove entirely** (with a comment):
 ```c
 // Before:
@@ -229,7 +267,221 @@ static const char *verstag = "$VER: progname 1.0 (19.03.2026)";
 LONG __stack = 32768;
 ```
 
-## Blocking Patterns — What to Do
+## 7. BSD-ism Replacements
+
+### Header additions for BSD functions
+```c
+/* RULE: Add amiport shim headers for BSD functions */
+
+// For strlcpy/strlcat/reallocarray:
+#include <amiport/string.h>
+
+// For asprintf/vasprintf/mkstemp/pread/pwrite:
+#include <amiport/stdio_ext.h>
+
+// For err/errx/warn/warnx/strtonum:
+#include <amiport/err.h>
+
+// For fnmatch:
+#include <amiport/fnmatch.h>
+
+// For scandir/alphasort:
+#include <amiport/scandir.h>
+
+// For regex (Tier 2):
+#include <amiport-emu/regex.h>
+```
+
+### BSD string functions
+```c
+/* RULE: Replace BSD string functions with amiport shim wrappers */
+
+// Before:
+strlcpy(dst, src, sizeof(dst));
+// After:
+amiport_strlcpy(dst, src, sizeof(dst)); /* amiport: replaced strlcpy() */
+
+// Before:
+strlcat(dst, src, sizeof(dst));
+// After:
+amiport_strlcat(dst, src, sizeof(dst)); /* amiport: replaced strlcat() */
+```
+
+Note: With AMIPORT_NO_STRING_MACROS not defined, the convenience macros handle this
+automatically — just include `<amiport/string.h>` and use the original function names.
+
+### BSD/GNU memory and string formatting
+```c
+/* RULE: Replace BSD/GNU memory and formatting functions */
+
+// Before:
+p = reallocarray(p, n, sizeof(*p));
+// After:
+p = amiport_reallocarray(p, n, sizeof(*p)); /* amiport: replaced reallocarray() */
+
+// Before:
+asprintf(&str, "hello %s", name);
+// After:
+amiport_asprintf(&str, "hello %s", name); /* amiport: replaced asprintf() */
+
+// Before:
+fd = mkstemp(template);
+// After:
+fd = amiport_mkstemp(template); /* amiport: replaced mkstemp() */
+
+// Before:
+n = pread(fd, buf, count, offset);
+// After:
+n = amiport_pread(fd, buf, count, offset); /* amiport: replaced pread() — non-atomic seek+read */
+```
+
+### BSD security stubs
+```c
+/* RULE: Stub OpenBSD security functions */
+
+// Before:
+#include <unistd.h>
+if (pledge("stdio rpath", NULL) == -1)
+    err(1, "pledge");
+if (unveil("/path", "r") == -1)
+    err(1, "unveil");
+// After:
+/* amiport: pledge/unveil not available on AmigaOS — stubbed */
+#define pledge(p, e) (0)
+#define unveil(p, f) (0)
+```
+
+### BSD fgetln → fgets
+```c
+/* RULE: Replace fgetln() with fgets() */
+
+// Before:
+char *line;
+size_t len;
+line = fgetln(fp, &len);
+// After:
+/* amiport: replaced fgetln() with fgets() — line is NUL-terminated */
+static char _line_buf[8192];
+char *line;
+size_t len;
+line = fgets(_line_buf, sizeof(_line_buf), fp);
+if (line) len = strlen(line);
+```
+
+## 8. Tier 2 Emulation Replacements
+
+For functions classified as `needs-emu` (Tier 2), use `amiport_emu_*` wrappers from `lib/posix-emu/`.
+Always add a `/* amiport-emu: ... */` comment documenting the behavioural difference.
+
+### select() / poll()
+```c
+/* RULE: Replace select() with amiport_emu_select() — Tier 2 emulation */
+
+/* Before: */
+#include <sys/select.h>
+fd_set readfds;
+FD_ZERO(&readfds);
+FD_SET(fd, &readfds);
+select(fd + 1, &readfds, NULL, NULL, &timeout);
+
+/* After: */
+#include <amiport-emu/select.h>
+/* amiport-emu: select() emulated via WaitForChar() polling — 20ms granularity, no socket support, exceptfds ignored */
+amiport_emu_fd_set readfds;
+AMIPORT_EMU_FD_ZERO(&readfds);
+AMIPORT_EMU_FD_SET(fd, &readfds);
+amiport_emu_select(fd + 1, &readfds, NULL, NULL, &timeout);
+```
+
+### mmap() (read-only)
+```c
+/* RULE: Replace read-only mmap() with amiport_emu_mmap() — Tier 2 emulation */
+
+/* Before: */
+#include <sys/mman.h>
+void *p = mmap(NULL, size, PROT_READ, MAP_PRIVATE, fd, 0);
+/* ... use p ... */
+munmap(p, size);
+
+/* After: */
+#include <amiport-emu/mmap.h>
+/* amiport-emu: mmap() emulated via AllocMem+Read — entire file loaded upfront, no lazy paging */
+void *p = amiport_emu_mmap(NULL, size, AMIPORT_EMU_PROT_READ, AMIPORT_EMU_MAP_PRIVATE, fd, 0);
+/* ... use p ... */
+amiport_emu_munmap(p, size);
+```
+
+### pipe()
+```c
+/* RULE: Replace pipe() with amiport_emu_pipe() — Tier 2 emulation */
+
+/* Before: */
+int pipefd[2];
+pipe(pipefd);
+
+/* After: */
+#include <amiport-emu/pipe.h>
+/* amiport-emu: pipe() emulated via PIPE: device — named pipe, different buffering, no SIGPIPE */
+int pipefd[2];
+amiport_emu_pipe(pipefd);
+```
+
+### alarm()
+```c
+/* RULE: Replace alarm() with amiport_emu_alarm() — Tier 2 emulation */
+
+/* Before: */
+alarm(30);
+
+/* After: */
+#include <amiport-emu/alarm.h>
+/* amiport-emu: alarm() emulated via timer.device — cooperative, not async. Call amiport_emu_check_alarm() in main loop */
+amiport_emu_alarm_init(); /* once at startup */
+amiport_emu_alarm(30);
+/* In main loop: amiport_emu_check_alarm(); */
+/* At cleanup: amiport_emu_alarm_cleanup(); */
+```
+
+### regex (POSIX)
+```c
+/* RULE: Replace POSIX regex with amiport_emu_regex — Tier 2 emulation */
+
+/* Before: */
+#include <regex.h>
+regex_t re;
+regmatch_t matches[2];
+regcomp(&re, "pattern", REG_EXTENDED);
+if (regexec(&re, string, 2, matches, 0) == 0) { /* matched */ }
+regfree(&re);
+
+/* After: */
+#include <amiport-emu/regex.h>
+/* amiport-emu: regex emulated — no locale collation, no [:class:], max 9 groups, backtracking NFA */
+amiport_emu_regex_t re;
+amiport_emu_regmatch_t matches[2];
+amiport_emu_regcomp(&re, "pattern", REG_EXTENDED);
+if (amiport_emu_regexec(&re, string, 2, matches, 0) == 0) { /* matched */ }
+amiport_emu_regfree(&re);
+```
+
+Note: With AMIPORT_NO_REGEX_MACROS not defined, convenience macros allow using
+the original POSIX names. Just include `<amiport-emu/regex.h>`.
+
+## Tier 3 — Redesign Patterns (Do NOT Auto-Apply)
+
+For functions classified as `needs-redesign` (Tier 3), do NOT stub silently.
+Mark the location for human review and reference `redesign-patterns.md`:
+
+```c
+/* amiport-redesign: NEEDS HUMAN REVIEW
+ * fork()+exec()+waitpid() pattern detected — subprocess-and-wait
+ * See .claude/skills/transform-source/references/redesign-patterns.md
+ * Options: SystemTags() (blocking) or CreateNewProcTags() (async) */
+```
+
+See `redesign-patterns.md` in this same directory for all available patterns.
+
+## Legacy: Blocking Patterns — What to Do
 
 When you encounter these, **do not silently remove them**. Stub with a clear message:
 
