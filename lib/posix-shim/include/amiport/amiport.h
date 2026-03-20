@@ -13,5 +13,7 @@
 #include <amiport/getopt.h>
 #include <amiport/signal.h>
 #include <amiport/errno_map.h>
+#include <amiport/sys/stat.h>
+#include <amiport/sys/time.h>
 
 #endif /* AMIPORT_H */

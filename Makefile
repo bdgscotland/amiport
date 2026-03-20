@@ -9,7 +9,7 @@
 #   clean            Remove build artifacts
 #   fetch-ndk        Download AmigaOS NDK 3.2 R4
 
-.PHONY: setup-toolchain build-shim build test package clean fetch-ndk help
+.PHONY: setup-toolchain build-shim build test test-shim package clean fetch-ndk help
 
 help:
 	@echo "amiport — AI-powered Amiga porting toolkit"
@@ -19,6 +19,7 @@ help:
 	@echo "  build-shim       Cross-compile the POSIX shim library"
 	@echo "  build            Build a port (TARGET=examples/wc)"
 	@echo "  test             Test a build via vamos (TARGET=examples/wc)"
+	@echo "  test-shim        Run POSIX shim library tests via vamos"
 	@echo "  package          Create LHA archive (TARGET=examples/wc)"
 	@echo "  fetch-ndk        Download AmigaOS NDK 3.2 R4"
 	@echo "  clean            Remove build artifacts"
@@ -48,6 +49,9 @@ ifndef TARGET
 endif
 	$(MAKE) -C $(TARGET) test
 
+test-shim:
+	$(MAKE) -C tests/shim
+
 package:
 ifndef TARGET
 	$(error TARGET is required. Usage: make package TARGET=examples/wc)
@@ -65,4 +69,5 @@ fetch-ndk:
 
 clean:
 	$(MAKE) -C lib/posix-shim clean
+	$(MAKE) -C tests/shim clean
 	@if [ -n "$(TARGET)" ]; then $(MAKE) -C $(TARGET) clean; fi

@@ -17,7 +17,8 @@ SRCS = $(SRCDIR)/file_io.c \
        $(SRCDIR)/signal_emu.c \
        $(SRCDIR)/errno_map.c \
        $(SRCDIR)/time_funcs.c \
-       $(SRCDIR)/stat.c
+       $(SRCDIR)/stat.c \
+       $(SRCDIR)/process.c
 
 OBJS = $(SRCS:.c=.o)
 

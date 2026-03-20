@@ -5,6 +5,7 @@
  */
 
 #include <amiport/sys/stat.h>
+#include <amiport/sys/time.h>
 #include <amiport/errno_map.h>
 
 #include <proto/dos.h>
@@ -12,9 +13,6 @@
 
 #include <errno.h>
 #include <string.h>
-
-/* Seconds between Unix epoch (1970) and Amiga epoch (1978) */
-#define AMIGA_EPOCH_OFFSET  252460800L
 
 int amiport_stat(const char *path, struct amiport_stat *buf)
 {
@@ -62,12 +60,4 @@ int amiport_stat(const char *path, struct amiport_stat *buf)
     return 0;
 }
 
-int amiport_fstat(int fd, struct amiport_stat *buf)
-{
-    /* fstat requires ExamineFH which is AmigaOS 2.0+ (dos.library 36+) */
-    /* For now, return an error — callers should use amiport_stat() */
-    (void)fd;
-    (void)buf;
-    errno = ENOSYS;
-    return -1;
-}
+/* amiport_fstat() is implemented in file_io.c where it has access to the fd table */

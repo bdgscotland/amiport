@@ -29,10 +29,11 @@ The porting pipeline has 5 stages, each backed by a Claude skill:
 - Include `<proto/*.h>` headers for Amiga system calls (not `<clib/*.h>` pragmas)
 - Use Amiga types (`LONG`, `ULONG`, `STRPTR`, `BPTR`, `APTR`) when interfacing with OS libraries
 - Use `amiport_*` shim wrappers from `lib/posix-shim/` rather than raw AmigaOS calls in ported code
-- Always include Amiga version string: `static const char *verstag = "$VER: progname 1.0 (19.03.2026)";`
+- Always include Amiga version string: `static const char *verstag = "$VER: progname 1.0 (DD.MM.YYYY)";` (use current date)
 
 ## Porting Rules
 
+- **Verify shim availability** — check `lib/posix-shim/include/amiport/` headers before assuming an `amiport_*` function exists. The mapping docs list planned functions that may not be implemented yet.
 - **Prefer shim wrappers** over inline AmigaDOS rewrites — keeps ported code clean
 - **Never remove functionality** — stub it with a clear message if no Amiga equivalent exists
 - **Preserve original source** as reference in `original/` directory alongside the port in `ported/`
@@ -43,13 +44,18 @@ The porting pipeline has 5 stages, each backed by a Claude skill:
 ## Build Instructions
 
 ```bash
+make help              # Show all available targets
 make setup-toolchain   # Install/pull cross-compiler (Docker)
+make fetch-ndk         # Download AmigaOS NDK 3.2 R4
 make build-shim        # Build the POSIX shim library
 make build TARGET=examples/wc   # Build a specific port
 make test TARGET=examples/wc    # Test via vamos
+make test-shim         # Run POSIX shim library tests via vamos
 make package TARGET=examples/wc # Create LHA archive
 make clean             # Remove build artifacts
 ```
+
+**Prerequisites:** Docker (for cross-compiler), Python + amitools (`pip install amitools`) for vamos testing.
 
 ## Toolchain
 
@@ -67,5 +73,7 @@ For GUI programs or hardware-dependent code, use **FS-UAE** with a configured Am
 ## Key References
 
 - `docs/api-mapping.md` — Master POSIX-to-AmigaOS function mapping
+- `docs/architecture.md` — System architecture overview
+- `docs/porting-guide.md` — Step-by-step porting guide
 - `.claude/skills/transform-source/references/transformation-rules.md` — How to transform each pattern
 - `.claude/skills/analyze-source/references/posix-to-amiga-map.md` — Portability classification
