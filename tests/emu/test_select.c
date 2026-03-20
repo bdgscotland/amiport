@@ -36,7 +36,7 @@ TEST(select_write_ready)
 {
     int fd;
     amiport_emu_fd_set writefds;
-    struct amiport_emu_timeval tv;
+    struct amiport_timeval tv;
     int result;
 
     /* Open a file for writing — should always be "write ready" */
@@ -58,7 +58,7 @@ TEST(select_write_ready)
 TEST(select_timeout_zero)
 {
     amiport_emu_fd_set readfds;
-    struct amiport_emu_timeval tv;
+    struct amiport_timeval tv;
     int result;
 
     AMIPORT_EMU_FD_ZERO(&readfds);

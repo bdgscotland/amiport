@@ -108,6 +108,11 @@ int amiport_emu_munmap(void *addr, unsigned long length)
 
     (void)length;
 
+    if (addr == NULL) {
+        errno = EINVAL;
+        return -1;
+    }
+
     for (i = 0; i < MAX_MAPPINGS; i++) {
         if (mappings[i].addr == addr) {
             FreeVec(addr);

@@ -127,12 +127,12 @@ int amiport_socket(int domain, int type, int protocol)
     return fd;
 }
 
-int amiport_connect(int sockfd, const struct sockaddr *addr, int addrlen)
+int amiport_connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen)
 {
     if (ensure_init() != 0) return -1;
 
 #ifdef __AMIGA__
-    return connect(sockfd, (struct sockaddr *)addr, addrlen);
+    return connect(sockfd, (struct sockaddr *)addr, (LONG)addrlen);
 #else
     (void)sockfd; (void)addr; (void)addrlen;
     errno = ENOSYS;
@@ -140,12 +140,12 @@ int amiport_connect(int sockfd, const struct sockaddr *addr, int addrlen)
 #endif
 }
 
-int amiport_bind(int sockfd, const struct sockaddr *addr, int addrlen)
+int amiport_bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen)
 {
     if (ensure_init() != 0) return -1;
 
 #ifdef __AMIGA__
-    return bind(sockfd, (struct sockaddr *)addr, addrlen);
+    return bind(sockfd, (struct sockaddr *)addr, (LONG)addrlen);
 #else
     (void)sockfd; (void)addr; (void)addrlen;
     errno = ENOSYS;
@@ -166,14 +166,14 @@ int amiport_listen(int sockfd, int backlog)
 #endif
 }
 
-int amiport_accept(int sockfd, struct sockaddr *addr, int *addrlen)
+int amiport_accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen)
 {
     int fd;
 
     if (ensure_init() != 0) return -1;
 
 #ifdef __AMIGA__
-    fd = accept(sockfd, addr, (LONG *)addrlen);
+    fd = accept(sockfd, addr, (LONG *)(void *)addrlen);
 #else
     (void)sockfd; (void)addr; (void)addrlen;
     fd = -1;
@@ -230,13 +230,13 @@ int amiport_recv(int sockfd, void *buf, int len, int flags)
 }
 
 int amiport_sendto(int sockfd, const void *buf, int len, int flags,
-                   const struct sockaddr *dest, int addrlen)
+                   const struct sockaddr *dest, socklen_t addrlen)
 {
     if (ensure_init() != 0) return -1;
 
 #ifdef __AMIGA__
     return sendto(sockfd, (UBYTE *)buf, len, flags,
-                  (struct sockaddr *)dest, addrlen);
+                  (struct sockaddr *)dest, (LONG)addrlen);
 #else
     (void)sockfd; (void)buf; (void)len; (void)flags;
     (void)dest; (void)addrlen;
@@ -246,13 +246,13 @@ int amiport_sendto(int sockfd, const void *buf, int len, int flags,
 }
 
 int amiport_recvfrom(int sockfd, void *buf, int len, int flags,
-                     struct sockaddr *src, int *addrlen)
+                     struct sockaddr *src, socklen_t *addrlen)
 {
     if (ensure_init() != 0) return -1;
 
 #ifdef __AMIGA__
     return recvfrom(sockfd, (UBYTE *)buf, len, flags,
-                    src, (LONG *)addrlen);
+                    src, (LONG *)(void *)addrlen);
 #else
     (void)sockfd; (void)buf; (void)len; (void)flags;
     (void)src; (void)addrlen;
@@ -264,12 +264,12 @@ int amiport_recvfrom(int sockfd, void *buf, int len, int flags,
 /* --- Socket options --- */
 
 int amiport_setsockopt(int sockfd, int level, int optname,
-                       const void *optval, int optlen)
+                       const void *optval, socklen_t optlen)
 {
     if (ensure_init() != 0) return -1;
 
 #ifdef __AMIGA__
-    return setsockopt(sockfd, level, optname, (void *)optval, optlen);
+    return setsockopt(sockfd, level, optname, (void *)optval, (LONG)optlen);
 #else
     (void)sockfd; (void)level; (void)optname;
     (void)optval; (void)optlen;
@@ -279,12 +279,12 @@ int amiport_setsockopt(int sockfd, int level, int optname,
 }
 
 int amiport_getsockopt(int sockfd, int level, int optname,
-                       void *optval, int *optlen)
+                       void *optval, socklen_t *optlen)
 {
     if (ensure_init() != 0) return -1;
 
 #ifdef __AMIGA__
-    return getsockopt(sockfd, level, optname, optval, (LONG *)optlen);
+    return getsockopt(sockfd, level, optname, optval, (LONG *)(void *)optlen);
 #else
     (void)sockfd; (void)level; (void)optname;
     (void)optval; (void)optlen;
