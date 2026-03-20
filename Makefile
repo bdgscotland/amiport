@@ -9,7 +9,7 @@
 #   clean            Remove build artifacts
 #   fetch-ndk        Download AmigaOS NDK 3.2 R4
 
-.PHONY: setup-toolchain build-shim build test test-shim package clean fetch-ndk help doctor smoke-test compare list-ports build-ports install-emu setup-emu emu
+.PHONY: setup-toolchain build-shim build test test-shim package clean fetch-ndk help doctor smoke-test compare list-ports build-ports install-emu setup-emu emu publish
 
 help:
 	@echo "amiport — AI-powered Amiga porting toolkit"
@@ -29,6 +29,7 @@ help:
 	@echo "  list-ports       List all ports and their status"
 	@echo "  build-ports      Build all ports"
 	@echo "  setup-emu        Install FS-UAE and check for Kickstart ROM"
+	@echo "  publish          Prepare and upload a port to Aminet (TARGET=ports/cal)"
 	@echo "  install-emu      Copy built binaries to emulator directory"
 	@echo "  emu              Launch FS-UAE with built binaries mounted as WORK:"
 	@echo ""
@@ -123,6 +124,12 @@ build-ports: build-shim
 			$(MAKE) -C "$$dir" TARGET=$$(basename "$$dir") || exit 1; \
 		fi; \
 	done
+
+publish:
+ifndef TARGET
+	$(error TARGET is required. Usage: make publish TARGET=ports/cal)
+endif
+	@bash scripts/publish-aminet.sh $(TARGET)
 
 setup-emu:
 	@bash scripts/setup-emu.sh
