@@ -235,8 +235,13 @@ echo ""
 
 # --- Confirm ---
 
-printf "${BOLD}Upload to Aminet? (yes/no): ${RESET}"
-read -r CONFIRM
+# Allow --yes flag to skip confirmation (for CI/automation)
+if [ "${AMINET_CONFIRM:-}" = "yes" ] || [ "${2:-}" = "--yes" ]; then
+    CONFIRM="yes"
+else
+    printf "${BOLD}Upload to Aminet? (yes/no): ${RESET}"
+    read -r CONFIRM < /dev/tty
+fi
 
 if [ "$CONFIRM" != "yes" ]; then
     echo ""
