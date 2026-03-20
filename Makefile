@@ -9,7 +9,7 @@
 #   clean            Remove build artifacts
 #   fetch-ndk        Download AmigaOS NDK 3.2 R4
 
-.PHONY: setup-toolchain build-shim build-emu build-console build-net build test test-shim test-emu package clean fetch-ndk help doctor smoke-test compare list-ports build-ports install-emu setup-emu emu publish
+.PHONY: setup-toolchain build-shim build-emu build-console build-net build test test-shim test-emu test-console test-net package clean fetch-ndk help doctor smoke-test compare list-ports build-ports install-emu setup-emu emu publish
 
 help:
 	@echo "amiport — AI-powered Amiga porting toolkit"
@@ -24,6 +24,8 @@ help:
 	@echo "  test             Test a build via vamos (TARGET=examples/wc)"
 	@echo "  test-shim        Run POSIX shim library tests via vamos"
 	@echo "  test-emu         Run POSIX emulation library tests via vamos"
+	@echo "  test-console     Run console shim tests via vamos"
+	@echo "  test-net         Run BSD socket shim tests via vamos"
 	@echo "  package          Create LHA archive (TARGET=examples/wc)"
 	@echo "  fetch-ndk        Download AmigaOS NDK 3.2 R4"
 	@echo "  clean            Remove build artifacts"
@@ -76,6 +78,12 @@ test-shim:
 
 test-emu:
 	$(MAKE) -C tests/emu
+
+test-console: build-console
+	$(MAKE) -C tests/console
+
+test-net: build-net
+	$(MAKE) -C tests/net
 
 package:
 ifndef TARGET

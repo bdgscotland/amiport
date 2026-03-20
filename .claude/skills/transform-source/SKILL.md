@@ -81,6 +81,19 @@ If you need a wrapper that doesn't exist yet, check `lib/posix-shim/include/` he
 
 Check `lib/posix-emu/include/amiport-emu/` headers for exact signatures and emulation notices.
 
+**Console UI wrappers** (in `lib/console-shim/`):
+- ncurses API subset: `initscr()`, `endwin()`, `getch()`, `addch()`, `addstr()`, `mvprintw()`, `attron()`, `attroff()`, `start_color()`, `init_pair()`, `keypad()`, `curs_set()`, `box()`, `newwin()`
+- Headers: `<amiport-console/curses.h>`, `<amiport-console/term.h>`
+- Link with: `-lamiport-console`
+
+**Network wrappers** (in `lib/bsdsocket-shim/`):
+- Socket API: `amiport_socket()`, `amiport_connect()`, `amiport_bind()`, `amiport_listen()`, `amiport_accept()`, `amiport_send()`, `amiport_recv()`, `amiport_closesocket()`, `amiport_net_select()`, `amiport_gethostbyname()`
+- IP utilities: `amiport_inet_addr()`, `amiport_inet_ntoa()`, `amiport_inet_aton()`
+- Headers: `<amiport-net/socket.h>`, `<amiport-net/netinet/in.h>`, `<amiport-net/netdb.h>`, `<amiport-net/arpa/inet.h>`
+- Link with: `-lamiport-net`
+
+Check `lib/console-shim/include/amiport-console/` and `lib/bsdsocket-shim/include/amiport-net/` headers for exact API.
+
 ## Reference Material
 
 - `.claude/skills/transform-source/references/transformation-rules.md` — Detailed rules for each Tier 1 transformation type
@@ -110,4 +123,7 @@ After transformation, report:
 - **Tier 2** transformations applied — emulation wrappers with caveats
 - **Tier 3** issues flagged — redesign needed, awaiting human review
 - Any shim/emu functions used that needed to be verified or added
-- Build command to compile the result (include `-lamiport-emu` if Tier 2 functions used)
+- Build command to compile the result:
+  - Include `-lamiport-emu` if Tier 2 functions used
+  - Include `-lamiport-console` if ncurses functions used (Category 3)
+  - Include `-lamiport-net` if socket functions used (Category 4)

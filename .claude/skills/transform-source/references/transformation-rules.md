@@ -55,6 +55,44 @@ Each rule specifies: pattern to match, replacement, and when to apply.
 #include <amiport/sys/time.h>
 ```
 
+// Console UI headers (Category 3 — link with -lamiport-console):
+// Before:
+#include <curses.h>
+// After:
+#include <amiport-console/curses.h>
+
+// Before:
+#include <ncurses.h>
+// After:
+#include <amiport-console/curses.h>
+
+// Before:
+#include <term.h>
+// After:
+#include <amiport-console/term.h>
+
+// Network headers (Category 4 — link with -lamiport-net):
+// Before:
+#include <sys/socket.h>
+// After:
+#include <amiport-net/socket.h>
+
+// Before:
+#include <netinet/in.h>
+// After:
+#include <amiport-net/netinet/in.h>
+
+// Before:
+#include <netdb.h>
+// After:
+#include <amiport-net/netdb.h>
+
+// Before:
+#include <arpa/inet.h>
+// After:
+#include <amiport-net/arpa/inet.h>
+```
+
 Headers to **remove entirely** (with a comment):
 ```c
 // Before:
