@@ -22,7 +22,8 @@ EMU_DIR = ../../lib/posix-emu
 TESTS = test_regex \
         test_mmap \
         test_pipe \
-        test_select
+        test_select \
+        test_alarm
 
 .PHONY: all build run clean
 

@@ -2,9 +2,11 @@
 #
 # Builds libamiport-net.a for linking with ported network programs.
 
-CC = m68k-amigaos-gcc
-AR = m68k-amigaos-ar
-RANLIB = m68k-amigaos-ranlib
+# Use wrapper scripts that auto-detect Docker vs native toolchain
+TOOLCHAIN_BIN = ../../toolchain/scripts
+CC = $(TOOLCHAIN_BIN)/m68k-amigaos-gcc
+AR = $(TOOLCHAIN_BIN)/m68k-amigaos-ar
+RANLIB = $(TOOLCHAIN_BIN)/m68k-amigaos-ranlib
 
 CFLAGS = -O2 -Wall -Wextra -noixemul -m68020 \
          -Iinclude

@@ -7,14 +7,10 @@
 
 #include <amiport-console/curses.h>
 
-/* Color pair storage (shared with output.c via extern) */
-static struct { short fg, bg; } color_pairs_storage[COLOR_PAIRS];
+/* Color pair storage — shared with output.c via extern linkage */
+struct amiport_color_pair { short fg, bg; };
+struct amiport_color_pair amiport_color_pairs[COLOR_PAIRS];
 static int colors_started = 0;
-
-/* Provide external linkage for output.c */
-/* Note: output.c has its own copy — in a real build these would be unified.
- * For now, start_color/init_pair work through the ANSI sequence emission
- * in the attribute system. */
 
 int start_color(void)
 {
@@ -23,8 +19,8 @@ int start_color(void)
 
     /* Initialize all pairs to default (white on black) */
     for (i = 0; i < COLOR_PAIRS; i++) {
-        color_pairs_storage[i].fg = COLOR_WHITE;
-        color_pairs_storage[i].bg = COLOR_BLACK;
+        amiport_color_pairs[i].fg = COLOR_WHITE;
+        amiport_color_pairs[i].bg = COLOR_BLACK;
     }
 
     return OK;
@@ -41,8 +37,8 @@ int init_pair(short pair, short f, short b)
     if (pair < 0 || pair >= COLOR_PAIRS) return ERR;
     if (!colors_started) return ERR;
 
-    color_pairs_storage[pair].fg = f;
-    color_pairs_storage[pair].bg = b;
+    amiport_color_pairs[pair].fg = f;
+    amiport_color_pairs[pair].bg = b;
 
     return OK;
 }
