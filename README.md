@@ -38,6 +38,7 @@ Ported programs live in `ports/` — each packages independently for [Aminet](ht
 | Port | Description | Status |
 |------|-------------|--------|
 | [cal](ports/cal/) | Unix calendar display (OpenBSD) | Built & tested |
+| [cut](ports/cut/) | Extract fields/columns from text (OpenBSD) | Built & tested |
 | [diff](ports/diff/) | File comparison utility (OpenBSD) | Built & tested |
 
 ```bash

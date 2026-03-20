@@ -30,6 +30,7 @@ The porting pipeline has 5 stages, each backed by a Claude skill:
 - `tests/net/` — BSD socket shim tests (inet, fd tracking)
 - `tests/common/` — Shared test framework
 - `ports/` — Output directory for real ports (each port gets original/, ported/, Makefile, PORT.md)
+- `ports/templates/` — Canonical templates for per-port artifacts (Makefile, PORT.md, .readme, directory structure)
 - `examples/` — Reference ports for testing the pipeline (wc, head, mini-find)
 
 ## Coding Conventions for Amiga C
@@ -68,12 +69,12 @@ The `/port-project` skill runs Stage 0 (Aminet research) through Stage 6 (packag
 | `test-runner` | Stage 5 — vamos testing |
 | `port-coordinator` | Full pipeline orchestration for complex ports |
 | `dependency-auditor` | Before complex ports — audit external library dependencies |
-| `perf-optimizer` | After a port works — optimize for 68k hardware characteristics |
+| `perf-optimizer` | **Mandatory** Stage 6b — memory safety and 68k optimization |
 | `aminet-publisher` | Publishing — curated, never automatic |
 
-**Post-port quality skills:**
+**Post-port quality skills (both mandatory for every port):**
 - `/review-amiga <path>` — Amiga-specific code review (stack safety, BPTR handling, memory patterns, conventions)
-- Dispatch `perf-optimizer` agent for 68k performance optimization (loop patterns, integer ops, memory access)
+- `perf-optimizer` agent — memory leak detection and 68k optimization. **AmigaOS has no memory protection or GC.** Every malloc/realloc without a matching free leaks permanently until reboot. This agent is not optional.
 
 ## Documentation Rules — IMPORTANT
 
@@ -96,6 +97,8 @@ The `/port-project` skill runs Stage 0 (Aminet research) through Stage 6 (packag
 
 ## Porting Rules
 
+- **Use port templates** — read `ports/templates/STRUCTURE.md` and copy `Makefile.template`, `PORT.md.template`, `readme.template` when setting up a new port. Fill in `__PLACEHOLDER__` variables.
+- **All files stay inside the port directory** — never create build artifacts, test files, or temporary files in the project root. This includes test binaries, test input files, and native comparison builds.
 - **Verify shim/emu availability** — check `lib/posix-shim/include/amiport/` for Tier 1 and `lib/posix-emu/include/amiport-emu/` for Tier 2 before assuming a wrapper exists
 - **Follow the tier model** (ADR-008) — Tier 1 shim is automated, Tier 2 emu needs caveat documentation, Tier 3 redesign needs human review
 - **Prefer shim/emu wrappers** over inline AmigaDOS rewrites — keeps ported code clean
