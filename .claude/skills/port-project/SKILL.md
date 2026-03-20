@@ -76,7 +76,14 @@ For Category 4 (Network): vamos cannot test networking. Build verification only,
 
 If tests fail, analyze the failure and fix. May require going back to the transform stage.
 
-### Stage 6: Package
+### Stage 6: Review (recommended)
+Run `/review-amiga` on the ported source. This checks for Amiga-specific issues that the transform and build stages don't catch: stack safety, BPTR cleanup on error paths, memory patterns, and AmigaOS conventions.
+
+For performance-critical ports, dispatch the `perf-optimizer` agent to analyze hot paths and suggest 68k-optimized alternatives.
+
+Fix any CRITICAL issues before packaging. WARN issues should be documented in PORT.md.
+
+### Stage 7: Package
 Package with: `make -C ports/<name> TARGET=<name> package`
 
 This creates `<name>-<version>.lha` containing the binary, readme, and PORT.md — ready for Aminet upload.

@@ -5,11 +5,11 @@ AI-powered toolkit for porting Linux/POSIX C software to the Commodore Amiga. Us
 ## How It Works
 
 ```
-Source Code → Research → Analyze → Transform → Build → Test → Package
-                │          │          │          │        │        │
-            check if    portability  POSIX→    cross-   vamos    LHA for
-            already on   report     Amiga    compile  emulator  Aminet
-            Aminet
+Source Code → Research → Analyze → Transform → Build → Test → Review → Package
+                │          │          │          │        │        │         │
+            check if    portability  POSIX→    cross-   vamos   Amiga-    LHA for
+            already on   report     Amiga    compile  emulator specific   Aminet
+            Aminet                                             review
 ```
 
 ## Quick Start
@@ -81,6 +81,7 @@ These exercise the shim library and validate the build/test pipeline:
 | `/transform-source` | Replace POSIX calls with Amiga/shim equivalents |
 | `/build-amiga` | Cross-compile using Docker toolchain |
 | `/test-amiga` | Test binaries in vamos emulator |
+| `/review-amiga` | Amiga-specific code review (stack, memory, BPTR, conventions) |
 | `/port-project` | Orchestrate the full pipeline (including Aminet research) |
 
 ### Specialized Agents
@@ -93,6 +94,7 @@ These exercise the shim library and validate the build/test pipeline:
 | `build-manager` | Compiler error diagnosis and fixing |
 | `test-runner` | Emulator test execution |
 | `port-coordinator` | Full pipeline orchestration |
+| `perf-optimizer` | 68k hardware performance optimization |
 | `dependency-auditor` | Audit external library dependencies |
 | `aminet-publisher` | Prepare and publish ports to Aminet |
 

@@ -59,7 +59,18 @@ Cross-compiles the ported source using the Docker toolchain. Handles:
 
 Runs the compiled binary in vamos and verifies output.
 
-### 5. Package
+### 5. Review (recommended)
+
+Run `/review-amiga` on the ported source to check for Amiga-specific issues:
+- Stack safety and sizing
+- BPTR handling and cleanup
+- Memory allocation patterns
+- Path conventions (no hardcoded Unix paths)
+- AmigaOS conventions (version string, return codes)
+
+For performance-critical ports, dispatch the `perf-optimizer` agent to suggest 68k-specific optimizations.
+
+### 6. Package
 
 Built into the build skill — creates an LHA archive with the binary and documentation.
 

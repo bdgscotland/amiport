@@ -19,6 +19,7 @@ ADRs capture significant technical and architectural decisions with their contex
 | [ADR-009](009-console-shim-for-ncurses.md) | Console UI shim for ncurses porting | Accepted | 2026-03-20 |
 | [ADR-010](010-bsdsocket-shim-for-networking.md) | BSD socket shim for network app porting | Accepted | 2026-03-20 |
 | [ADR-011](011-beyond-cli-port-categories.md) | Beyond CLI — expanding port target categories | Accepted | 2026-03-20 |
+| [ADR-012](012-post-porting-quality-gates.md) | Post-porting quality gates | Accepted | 2026-03-20 |
 
 ## Template
 

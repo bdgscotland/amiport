@@ -74,6 +74,20 @@ The `/port-project` skill runs Stage 0 (Aminet research) through Stage 6 (packag
 - `/review-amiga <path>` — Amiga-specific code review (stack safety, BPTR handling, memory patterns, conventions)
 - Dispatch `perf-optimizer` agent for 68k performance optimization (loop patterns, integer ops, memory access)
 
+## Documentation Rules — IMPORTANT
+
+**When adding or changing any skill, agent, pipeline stage, library, or architectural decision:**
+
+1. **CLAUDE.md** — Update the pipeline, agent table, and any affected sections
+2. **README.md** — Update the skills table, agents table, pipeline diagram, and make targets
+3. **docs/architecture.md** — Update the pipeline ASCII diagram and component tables
+4. **docs/porting-guide.md** — Update the step-by-step workflow
+5. **.claude/skills/port-project/SKILL.md** — Update pipeline stages if affected
+6. **docs/adr/** — Create a new ADR for architectural decisions; update README.md index
+7. **docs/pdr/** — Create a new PDR for product/scope decisions; update README.md index
+
+**Do not consider a change complete until all affected documentation is updated.** A new skill without README/architecture/porting-guide references is incomplete. An ADR without an index entry is lost.
+
 ## Porting Rules
 
 - **Verify shim/emu availability** — check `lib/posix-shim/include/amiport/` for Tier 1 and `lib/posix-emu/include/amiport-emu/` for Tier 2 before assuming a wrapper exists
