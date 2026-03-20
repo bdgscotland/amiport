@@ -44,6 +44,35 @@ The Amiga's m68k architecture and C89 compilers differ from modern x86/Linux in 
 ### 64-bit Types
 - No native 64-bit on m68k. Flag `long long`, `int64_t`, `uint64_t` — these work via emulation (slow) and may not be available in all runtimes.
 
+## Port Category Classification (ADR-011)
+
+As part of the analysis, classify the project into one of five port categories:
+
+| Category | Indicators | Recommended Libraries | Test Strategy |
+|----------|-----------|----------------------|---------------|
+| 1. CLI tool | Pure stdin/stdout/file I/O, getopt | posix-shim, posix-emu | vamos |
+| 2. Scripting interpreter | Large portable C, setjmp, dlopen stubs | posix-shim + minor stubs | vamos |
+| 3. Console UI app | `#include <curses.h>`, initscr, getch, mvaddstr | posix-shim + console-shim | FS-UAE |
+| 4. Network app | `#include <sys/socket.h>`, socket, connect, gethostbyname | posix-shim + bsdsocket-shim | FS-UAE + TCP/IP |
+| 5. GUI app | X11, GTK, Qt, SDL includes | Not yet supported | FS-UAE |
+
+Include the category in the report:
+```json
+{
+  "category": "console-ui",
+  "rationale": "Uses ncurses (initscr, endwin, mvaddch, getch)",
+  "recommended_shims": ["posix-shim", "console-shim"],
+  "link_flags": ["-lamiport", "-lamiport-console"],
+  "test_strategy": "fs-uae"
+}
+```
+
+**Detection heuristics:**
+- Category 3: `#include <curses.h>`, `<ncurses.h>`, `<term.h>`, calls to `initscr`, `endwin`, `getch`, `mvaddstr`, `attron`
+- Category 4: `#include <sys/socket.h>`, `<netinet/in.h>`, `<netdb.h>`, `<arpa/inet.h>`, calls to `socket`, `connect`, `bind`, `listen`, `accept`, `send`, `recv`, `gethostbyname`
+- Category 2: Large codebase (>20 files), `setjmp`/`longjmp`, `dlopen`, interpreter-like patterns
+- Category 5: `#include <X11/*.h>`, `<gtk/*.h>`, `<SDL.h>` — flag as not yet supported
+
 ## Reference Material
 
 Consult these files for accurate classification:
@@ -51,6 +80,8 @@ Consult these files for accurate classification:
 - `.claude/skills/analyze-source/references/posix-to-amiga-map.md` — POSIX-to-AmigaOS function mapping table
 - `.claude/skills/analyze-source/references/common-patterns.md` — Frequently encountered patterns
 - `.claude/skills/transform-source/references/redesign-patterns.md` — Tier 3 redesign pattern templates
+- `docs/references/console-ansi-mapping.md` — ncurses-to-ANSI escape mapping (Category 3)
+- `docs/references/bsdsocket-mapping.md` — POSIX socket-to-bsdsocket.library mapping (Category 4)
 
 ## Tier Classification Decision Tree
 
@@ -76,12 +107,15 @@ Produce a report in this structure:
 # Portability Analysis: <project name>
 
 ## Summary
+- **Port category**: [CLI tool | Scripting interpreter | Console UI app | Network app | GUI app]
 - Total source files: N
 - Lines of code: N
 - Tier 1 (shim) issues: N (green)
 - Tier 2 (emulation) issues: N (yellow)
 - Tier 3 (redesign) issues: N (red)
 - Architecture issues: N
+- **Required libraries**: posix-shim [+ console-shim] [+ bsdsocket-shim]
+- **Test strategy**: [vamos | FS-UAE | FS-UAE + TCP/IP]
 - **Portability verdict**: [EASY | MODERATE | HARD | INFEASIBLE]
 
 ## POSIX Headers Found

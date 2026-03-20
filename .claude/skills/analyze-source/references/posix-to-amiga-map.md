@@ -122,14 +122,51 @@ or amiport shim wrappers. Used by the `analyze-source` and `transform-source` sk
 | `sleep()` | `Delay()` (dos.library) | `amiport_sleep()` | needs-shim | Delay() uses ticks (1/50s PAL, 1/60s NTSC) |
 | `usleep()` | `timer.device` | `amiport_usleep()` | needs-shim | Requires timer device for microsecond precision |
 
-## Networking
+## Networking (Category 4 — see ADR-010)
 
 | POSIX | AmigaOS | Shim | Severity | Notes |
 |-------|---------|------|----------|-------|
-| `socket()` | bsdsocket.library | — | needs-redesign | Tier 3 — see bsdsocket redesign pattern |
-| `connect()`/`bind()` | bsdsocket.library | — | needs-redesign | Tier 3 |
-| `select()` (on files) | `WaitForChar()` | `amiport_emu_select()` | needs-emu | Tier 2 for file I/O; sockets need bsdsocket.library |
-| `select()` (on sockets) | `WaitSelect()` | — | needs-redesign | Tier 3 — bsdsocket.library provides this |
+| `socket()` | `socket()` via bsdsocket.library | `amiport_socket()` | needs-shim | Auto library lifecycle via bsdsocket-shim |
+| `connect()` | `connect()` via bsdsocket.library | `amiport_connect()` | needs-shim | Identical API |
+| `bind()` | `bind()` via bsdsocket.library | `amiport_bind()` | needs-shim | Identical API |
+| `listen()` | `listen()` via bsdsocket.library | `amiport_listen()` | needs-shim | Identical API |
+| `accept()` | `accept()` via bsdsocket.library | `amiport_accept()` | needs-shim | Identical API |
+| `send()` | `send()` via bsdsocket.library | `amiport_send()` | needs-shim | Identical API |
+| `recv()` | `recv()` via bsdsocket.library | `amiport_recv()` | needs-shim | Identical API |
+| `sendto()` | `sendto()` via bsdsocket.library | `amiport_sendto()` | needs-shim | Identical API |
+| `recvfrom()` | `recvfrom()` via bsdsocket.library | `amiport_recvfrom()` | needs-shim | Identical API |
+| `close()` (socket) | `CloseSocket()` | `amiport_closesocket()` | needs-shim | **Must use CloseSocket, not close!** |
+| `setsockopt()` | `setsockopt()` via bsdsocket.library | `amiport_setsockopt()` | needs-shim | Identical API |
+| `getsockopt()` | `getsockopt()` via bsdsocket.library | `amiport_getsockopt()` | needs-shim | Identical API |
+| `shutdown()` | `shutdown()` via bsdsocket.library | `amiport_shutdown()` | needs-shim | Identical API |
+| `select()` (sockets) | `WaitSelect()` | `amiport_net_select()` | needs-shim | Extra signal mask param handled by shim |
+| `select()` (files) | `WaitForChar()` | `amiport_emu_select()` | needs-emu | Tier 2 for file I/O only |
+| `gethostbyname()` | `gethostbyname()` via bsdsocket.library | `amiport_gethostbyname()` | needs-shim | Identical API |
+| `gethostbyaddr()` | `gethostbyaddr()` via bsdsocket.library | `amiport_gethostbyaddr()` | needs-shim | Identical API |
+| `getaddrinfo()` | — | — | needs-redesign | Not in bsdsocket.library — use gethostbyname |
+| `inet_addr()` | Pure C in shim | `amiport_inet_addr()` | needs-shim | No library needed |
+| `inet_ntoa()` | Pure C in shim | `amiport_inet_ntoa()` | needs-shim | No library needed |
+| `inet_aton()` | Pure C in shim | `amiport_inet_aton()` | needs-shim | No library needed |
+
+## Console UI (Category 3 — see ADR-009)
+
+| POSIX/ncurses | AmigaOS | Shim | Severity | Notes |
+|---------------|---------|------|----------|-------|
+| `initscr()` | Console setup + RAW: mode | via console-shim | needs-shim | Opens raw console, allocates stdscr |
+| `endwin()` | Restore console | via console-shim | needs-shim | Restores cooked mode |
+| `getch()` | `Read()` in RAW: mode | via console-shim | needs-shim | Decodes ANSI escape sequences for keys |
+| `addch()`/`addstr()` | ANSI output | via console-shim | trivial | Direct ANSI escape mapping |
+| `move()` | `ESC[y;xH` | via console-shim | trivial | Direct ANSI cursor positioning |
+| `attron()`/`attroff()` | ANSI SGR sequences | via console-shim | trivial | Bold, underline, reverse, color |
+| `start_color()`/`init_pair()` | ANSI color codes | via console-shim | trivial | 8 ANSI colors supported |
+| `clear()`/`erase()` | `ESC[2J` | via console-shim | trivial | Direct ANSI clear |
+| `refresh()` | Diff-based output | via console-shim | needs-shim | Compares buffer, emits changes |
+| `newwin()`/`subwin()` | Buffer management | via console-shim | needs-shim | Window buffer allocation |
+| `keypad()` | ANSI key decoding | via console-shim | needs-shim | Arrow/function key sequences |
+| `curs_set()` | `ESC[?25h/l` | via console-shim | needs-shim | Partial support |
+| `box()`/`wborder()` | ASCII characters | via console-shim | trivial | Uses +, -, | fallbacks |
+| `mousemask()` | — | — | needs-redesign | No mouse support in console.device |
+| `newterm()` | — | — | needs-redesign | No multiple terminal support |
 
 ## Headers to Replace
 
@@ -147,4 +184,15 @@ When transforming source, these `#include` directives indicate POSIX dependencie
 #include <dlfcn.h>        → remove (no dynamic loading on classic Amiga)
 #include <pthread.h>      → remove (no pthreads; blocking)
 #include <sys/mman.h>     → remove (no mmap; blocking)
+
+# Console UI (Category 3 — link with -lamiport-console):
+#include <curses.h>       → #include <amiport-console/curses.h>
+#include <ncurses.h>      → #include <amiport-console/curses.h>
+#include <term.h>         → #include <amiport-console/term.h>
+
+# Networking (Category 4 — link with -lamiport-net):
+#include <sys/socket.h>   → #include <amiport-net/socket.h>
+#include <netinet/in.h>   → #include <amiport-net/netinet/in.h>
+#include <netdb.h>        → #include <amiport-net/netdb.h>
+#include <arpa/inet.h>    → #include <amiport-net/arpa/inet.h>
 ```

@@ -34,10 +34,17 @@ Dispatch a `source-analyzer` agent to analyze the source, or run the analysis in
 
 Review the portability report. If the verdict is **INFEASIBLE**, stop and explain why. For other verdicts, proceed.
 
-The report classifies issues by tier (ADR-008):
+The report classifies issues by tier (ADR-008) and port category (ADR-011):
 - **Tier 1** (green) — automated shim transforms, proceed without user input
 - **Tier 2** (yellow) — emulation with caveats, present tradeoffs to user before applying
 - **Tier 3** (red) — redesign required, present pattern options and wait for human decision
+
+**Port category determines the pipeline strategy:**
+- **Category 1 (CLI)** — standard pipeline, vamos testing
+- **Category 2 (Scripting)** — standard pipeline, may need dlopen stubs, vamos testing
+- **Category 3 (Console UI)** — add console-shim, link with `-lamiport-console`, FS-UAE testing
+- **Category 4 (Network)** — add bsdsocket-shim, link with `-lamiport-net`, FS-UAE + TCP/IP testing
+- **Category 5 (GUI)** — not yet supported, stop and explain
 
 ### Stage 2: Set Up Port Directory
 1. Create `ports/<name>/original/` and copy the source files there
@@ -61,7 +68,11 @@ Build with: `make build TARGET=ports/<name>`
 If the build fails, iterate: read the errors, fix the transformed source, and rebuild. Maximum 5 iterations.
 
 ### Stage 5: Test
-Test with: `make test TARGET=ports/<name>`
+For Category 1-2 (CLI/scripting): Test with `make test TARGET=ports/<name>` (vamos).
+
+For Category 3 (Console UI): vamos can run basic smoke tests (start, print version, exit). Interactive testing requires FS-UAE — note this in PORT.md.
+
+For Category 4 (Network): vamos cannot test networking. Build verification only, with a note that full testing requires FS-UAE with a TCP/IP stack (AmiTCP or Roadshow).
 
 If tests fail, analyze the failure and fix. May require going back to the transform stage.
 
@@ -133,9 +144,9 @@ Use the actual current date in DD.MM.YYYY format.
 
 A port is successful when:
 - The binary compiles without errors
-- Basic functionality works in vamos
-- Output matches the native version for standard test cases
-- PORT.md documents the entire process
+- Basic functionality works in vamos (Category 1-2) or builds cleanly (Category 3-4)
+- Output matches the native version for standard test cases (where testable)
+- PORT.md documents the entire process, including port category and test strategy
 - The port is in `ports/<name>/` and buildable with `make build TARGET=ports/<name>`
 
 ## Listing Ports
