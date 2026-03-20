@@ -3,15 +3,15 @@
 ## Pipeline Overview
 
 ```
-┌─────────────┐    ┌──────────────┐    ┌─────────────┐    ┌────────────┐    ┌───────────┐
-│   Analyze    │───▶│  Transform   │───▶│    Build     │───▶│    Test     │───▶│  Package   │
-│              │    │              │    │              │    │            │    │           │
-│ /analyze-    │    │ /transform-  │    │ /build-      │    │ /test-     │    │ (in build │
-│  source      │    │  source      │    │  amiga       │    │  amiga     │    │  skill)   │
-└─────────────┘    └──────────────┘    └─────────────┘    └────────────┘    └───────────┘
-       │                  │                   │                  │
-  source-analyzer   code-transformer    build-manager       test-runner
-    (agent)            (agent)            (agent)            (agent)
+┌─────────────┐    ┌──────────────┐    ┌─────────────┐    ┌────────────┐    ┌───────────┐    ┌───────────┐
+│   Analyze    │───▶│  Transform   │───▶│    Build     │───▶│    Test     │───▶│   Review   │───▶│  Package   │
+│              │    │              │    │              │    │            │    │           │    │           │
+│ /analyze-    │    │ /transform-  │    │ /build-      │    │ /test-     │    │ /review-  │    │ (in build │
+│  source      │    │  source      │    │  amiga       │    │  amiga     │    │  amiga    │    │  skill)   │
+└─────────────┘    └──────────────┘    └─────────────┘    └────────────┘    └───────────┘    └───────────┘
+       │                  │                   │                  │                 │
+  source-analyzer   code-transformer    build-manager       test-runner     perf-optimizer
+    (agent)            (agent)            (agent)            (agent)          (agent)
 
                          ▲                   ▲
                          │                   │
@@ -35,6 +35,7 @@ Skills define **what** to do — the instructions, rules, and reference material
 | `transform-source` | `.claude/skills/transform-source/` | User runs `/transform-source <path>` or called by port-project |
 | `build-amiga` | `.claude/skills/build-amiga/` | User runs `/build-amiga` or called by port-project |
 | `test-amiga` | `.claude/skills/test-amiga/` | User runs `/test-amiga` or called by port-project |
+| `review-amiga` | `.claude/skills/review-amiga/` | User runs `/review-amiga` or called by port-project |
 | `port-project` | `.claude/skills/port-project/` | User runs `/port-project <path>` for full pipeline |
 
 ### Agents (Specialized Roles)
@@ -45,6 +46,7 @@ Agents define **who** does the work — model selection, tool access, persona, a
 - **code-transformer**: Uses parent model for high-quality code edits. Full edit access.
 - **build-manager**: Uses Sonnet for iterative build-fix cycles. Bash + edit access.
 - **test-runner**: Uses Haiku for lightweight test execution. Bash + read only.
+- **perf-optimizer**: Uses parent model for 68k hardware performance optimization. Read + analysis tools.
 - **port-coordinator**: Uses parent model for orchestration decisions. Full tool access.
 
 ### Libraries
