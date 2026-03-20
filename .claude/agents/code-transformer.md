@@ -23,8 +23,9 @@ Always apply transformations in this sequence:
 2. Type replacements
 3. Function call replacements
 4. Constant replacements (paths, etc.)
-5. Conditional compilation blocks
-6. Amiga boilerplate
+5. Exit code replacements — `exit(1)` → `exit(10)`, `exit(EXIT_FAILURE)` → `exit(10)`, `err(1, ...)` → `err(10, ...)`, `errx(1, ...)` → `errx(10, ...)`
+6. Conditional compilation blocks
+7. Amiga boilerplate
 
 Follow `references/transformation-rules.md` precisely.
 

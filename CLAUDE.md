@@ -40,6 +40,7 @@ The porting pipeline has 5 stages, each backed by a Claude skill:
 - Use `amiport_*` shim wrappers from `lib/posix-shim/` for Tier 1 (direct mapping) rather than raw AmigaOS calls
 - Use `amiport_emu_*` wrappers from `lib/posix-emu/` for Tier 2 (emulation) with caveat comments
 - Always include Amiga version string: `static const char *verstag = "$VER: progname 1.0 (DD.MM.YYYY)";` (use current date)
+- **Use Amiga exit codes**, not POSIX: `exit(0)` is fine (RETURN_OK), but `exit(1)` is wrong — use `exit(10)` for errors (RETURN_ERROR) and `exit(20)` for fatal errors (RETURN_FAIL). Amiga scripts use `IF WARN` (>=5), `IF ERROR` (>=10), `IF FAIL` (>=20) — exit code 1 is invisible to them.
 
 ## Using the Pipeline — IMPORTANT
 
@@ -181,6 +182,9 @@ Amiga `LONG` is `long` (32-bit), and `ULONG` is `unsigned long`. Use `%ld` / `%l
 
 ### Stack size
 Amiga default stack is 4KB. Most ported programs need more. Always add a stack cookie: `long __stack = 32768;` (or 65536 for recursive programs like find/diff). The value is in bytes.
+
+### Exit codes
+POSIX programs use `exit(0)` for success and `exit(1)` for failure. On AmigaOS, exit code 1 is meaningless — Amiga shells test with `IF WARN` (>=5), `IF ERROR` (>=10), `IF FAIL` (>=20). **Fix:** Replace `exit(1)` / `exit(EXIT_FAILURE)` with `exit(10)` (RETURN_ERROR). Use `exit(20)` for fatal/unrecoverable errors. The `err()`/`errx()` functions in `amiport/err.h` pass the exit code through — update those calls too (e.g., `errx(1, ...)` → `errx(10, ...)`).
 
 ### pledge/unveil stubs
 OpenBSD code almost always calls `pledge()` and `unveil()`. These should be stubbed as `#define pledge(p, e) (0)` and `#define unveil(p, f) (0)` — never shimmed as functions.

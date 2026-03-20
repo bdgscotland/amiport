@@ -169,7 +169,7 @@ main(int argc, char *argv[])
 	const char *errstr;
 
 	if (pledge("stdio", NULL) == -1)	/* amiport: pledge() stubbed as no-op */
-		err(1, "pledge");
+		err(10, /* amiport: RETURN_ERROR */ "pledge");
 
 	yflag = year = 0;
 	while ((ch = getopt(argc, argv, "jmwy")) != -1)
@@ -213,20 +213,20 @@ main(int argc, char *argv[])
 	case 2:
 		month = parsemonth(*argv++);
 		if (!month)
-			errx(1, "Unable to parse month");
+			errx(10, /* amiport: RETURN_ERROR */ "Unable to parse month");
 		/* FALLTHROUGH */
 	case 1:
 		if (argc == 1 && !isdigit((unsigned char)*argv[0])) {
 			month = parsemonth(*argv);
 			if (!month)
-				errx(1, "illegal year value: use 1-9999");
+				errx(10, /* amiport: RETURN_ERROR */ "illegal year value: use 1-9999");
 			(void)time(&now);
 			local_time = localtime(&now);
 			year = local_time->tm_year + 1900;
 		} else {
 			year = strtonum(*argv, 1, 9999, &errstr);	/* amiport: strtonum() provided by amiport/err.h */
 			if (errstr)
-				errx(1, "illegal year value: use 1-9999");
+				errx(10, /* amiport: RETURN_ERROR */ "illegal year value: use 1-9999");
 		}
 		break;
 	case 0:
@@ -559,7 +559,7 @@ usage(void)
 {
 
 	(void)fprintf(stderr, "usage: cal [-jmwy] [month] [year]\n");
-	exit(1);
+	exit(10); /* amiport: RETURN_ERROR — visible to Amiga IF ERROR scripts */
 }
 
 /*
@@ -594,6 +594,6 @@ parsemonth(const char *s)
 		}
 	}
 	if (v <= 0 || v > 12)
-		errx(1, "invalid month: use 1-12 or a name");
+		errx(10, /* amiport: RETURN_ERROR */ "invalid month: use 1-12 or a name");
 	return (v);
 }
