@@ -44,6 +44,9 @@ jobs:
       - name: Check documentation consistency
         run: make check-docs
 
+      - name: Check agent/skill frontmatter
+        run: make check-agents
+
       - name: Build example ports
         run: |
           make build TARGET=examples/wc

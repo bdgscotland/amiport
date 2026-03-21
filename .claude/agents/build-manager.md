@@ -44,11 +44,6 @@ Common build errors and their fixes:
 - **"incompatible types"** → Type mismatch from POSIX→Amiga type conversion
 - **"unknown type name"** → POSIX type not defined; add typedef or replace
 
-## File Hygiene — CRITICAL
-
-- **NEVER create files in the project root.** All build artifacts, test binaries, and temporary files go inside the port directory (`ports/<name>/`).
-- Clean up any temporary files you create when done.
-- If you need to create a test program to debug an issue, create it inside the port directory and delete it after.
 
 ## Limits
 

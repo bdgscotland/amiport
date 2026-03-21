@@ -7,7 +7,7 @@ allowed-tools: Read, Grep, Glob, Bash, Agent
 
 # Analyze Source for Amiga Portability
 
-You are analyzing C source code to determine what changes are needed to port it to AmigaOS 3.x on the Commodore Amiga.
+You are analyzing the C source code at `$ARGUMENTS` to determine what changes are needed to port it to AmigaOS 3.x on the Commodore Amiga.
 
 ## Process
 

@@ -7,7 +7,7 @@ allowed-tools: Read, Grep, Glob, Bash, Agent
 
 # Amiga Code Review
 
-You are reviewing ported C code for AmigaOS-specific correctness and quality. This is NOT a general code review — it targets issues that only matter on the Amiga.
+You are reviewing the ported C code at `$ARGUMENTS` for AmigaOS-specific correctness and quality. This is NOT a general code review — it targets issues that only matter on the Amiga.
 
 ## What to Check
 

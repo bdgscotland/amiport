@@ -7,7 +7,7 @@ allowed-tools: Read, Write, Edit, Bash, Grep, Glob
 
 # Transform Source for Amiga Compatibility
 
-You are transforming C source code from POSIX/Linux to AmigaOS 3.x compatibility.
+You are transforming the C source code at `$ARGUMENTS` from POSIX/Linux to AmigaOS 3.x compatibility.
 
 ## Process
 
