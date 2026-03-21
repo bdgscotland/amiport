@@ -346,7 +346,7 @@ int amiport_isatty(int fd)
 
 int amiport_fstat(int fd, struct amiport_stat *buf)
 {
-    struct FileInfoBlock fib;
+    struct FileInfoBlock *fib;
     BOOL ok;
 
     init_fd_table();
@@ -363,22 +363,29 @@ int amiport_fstat(int fd, struct amiport_stat *buf)
 
     memset(buf, 0, sizeof(struct amiport_stat));
 
-    /* Clear FileInfoBlock before ExamineFH */
-    memset(&fib, 0, sizeof(struct FileInfoBlock));
+    /* amiport: debug-agent — use AllocDosObject(DOS_FIB) for guaranteed longword alignment.
+     * ExamineFH() requires the FIB to be longword-aligned; stack allocation with -m68000
+     * may only guarantee 2-byte alignment, causing an Address Error inside dos.library. */
+    fib = (struct FileInfoBlock *)AllocDosObject(DOS_FIB, NULL);
+    if (!fib) {
+        errno = ENOMEM;
+        return -1;
+    }
 
     /* ExamineFH is available on AmigaOS 2.0+ (dos.library 36+) */
-    ok = ExamineFH(fd_table[fd], &fib);
+    ok = ExamineFH(fd_table[fd], fib);
     if (!ok) {
         amiport_map_errno();
         /* vamos may return failure with IoErr()==0; treat as I/O error */
         if (errno == 0) {
             errno = EIO;
         }
+        FreeDosObject(DOS_FIB, fib);
         return -1;
     }
 
     /* Fill stat structure — same logic as amiport_stat() */
-    if (fib.fib_DirEntryType > 0) {
+    if (fib->fib_DirEntryType > 0) {
         buf->st_mode = AMIPORT_S_IFDIR | 0755;
         buf->st_isdir = 1;
     } else {
@@ -386,14 +393,15 @@ int amiport_fstat(int fd, struct amiport_stat *buf)
         buf->st_isdir = 0;
     }
 
-    buf->st_size = fib.fib_Size;
+    buf->st_size = fib->fib_Size;
 
     /* Convert Amiga DateStamp to Unix timestamp */
-    buf->st_mtime = (fib.fib_Date.ds_Days * 86400L) +
-                    (fib.fib_Date.ds_Minute * 60L) +
-                    (fib.fib_Date.ds_Tick / TICKS_PER_SECOND) +
+    buf->st_mtime = (fib->fib_Date.ds_Days * 86400L) +
+                    (fib->fib_Date.ds_Minute * 60L) +
+                    (fib->fib_Date.ds_Tick / TICKS_PER_SECOND) +
                     AMIGA_EPOCH_OFFSET;
 
+    FreeDosObject(DOS_FIB, fib);
     return 0;
 }
 
@@ -482,6 +490,65 @@ amiport_fclose(FILE *fp)
     }
 
     return result;
+}
+
+/*
+ * fdopen — associate a FILE* stream with an existing amiport file descriptor
+ *
+ * amiport: uses NameFromFH() to recover the path from the BPTR, then
+ * re-opens via libc fopen(). The original fd remains valid but the file
+ * position is NOT shared between the fd and the FILE* (they are independent
+ * opens). This covers the common use case of fdopen() after open() on
+ * regular files. Does not work on pipe fds (NameFromFH fails on PIPE:).
+ */
+#undef fdopen
+FILE *
+amiport_fdopen(int fd, const char *mode)
+{
+    BPTR fh;
+    char namebuf[256];
+    FILE *fp;
+    LONG len;
+
+    init_fd_table();
+
+    if (fd < 0 || fd >= AMIPORT_MAX_FDS || !fd_used[fd]) {
+        errno = EBADF;
+        return NULL;
+    }
+    if (!mode || !*mode) {
+        errno = EINVAL;
+        return NULL;
+    }
+
+    fh = fd_table[fd];
+    if (fh == 0 || fh == (BPTR)1) {
+        /* Sentinel BPTR (from amiport_fopen) or NULL — can't recover path */
+        errno = EBADF;
+        return NULL;
+    }
+
+    /* Recover filename from the BPTR via AmigaDOS */
+    len = NameFromFH(fh, (STRPTR)namebuf, sizeof(namebuf));
+    if (!len) {
+        /* NameFromFH failed — likely a PIPE: or console handle */
+        errno = ENOTSUP;
+        return NULL;
+    }
+
+    /* Re-open via libc fopen for proper FILE* buffering */
+    fp = fopen(namebuf, mode);
+    if (!fp)
+        return NULL;
+
+    /* Register in the file mapping table (reuse existing fd) */
+    if (amiport_file_count < AMIPORT_MAX_FILE_ENTRIES) {
+        amiport_files[amiport_file_count].fp = fp;
+        amiport_files[amiport_file_count].fd = fd;
+        amiport_file_count++;
+    }
+
+    return fp;
 }
 
 /* --- Internal API (used by posix-emu and bsdsocket-shim) --- */

@@ -84,3 +84,89 @@ int amiport_getopt(int argc, char * const argv[], const char *optstring)
 
     return amiport_optopt;
 }
+
+/*
+ * getopt_long — parse long options (GNU extension)
+ *
+ * Handles --option, --option=value, and abbreviated long options.
+ * Falls through to getopt() for short options.
+ */
+int amiport_getopt_long(int argc, char * const argv[],
+                        const char *optstring,
+                        const struct option *longopts, int *longindex)
+{
+    const char *arg;
+    int i;
+    const char *eq;
+    size_t namelen;
+
+    if (amiport_optind >= argc || argv[amiport_optind] == NULL)
+        return -1;
+
+    arg = argv[amiport_optind];
+
+    /* Not a long option — delegate to getopt */
+    if (arg[0] != '-' || arg[1] != '-')
+        return amiport_getopt(argc, argv, optstring);
+
+    /* "--" alone ends option processing */
+    if (arg[2] == '\0') {
+        amiport_optind++;
+        return -1;
+    }
+
+    /* Parse "--name" or "--name=value" */
+    arg += 2; /* skip "--" */
+    eq = strchr(arg, '=');
+    namelen = eq ? (size_t)(eq - arg) : strlen(arg);
+
+    /* Search longopts for a match */
+    for (i = 0; longopts[i].name != NULL; i++) {
+        if (strncmp(longopts[i].name, arg, namelen) != 0)
+            continue;
+        if (strlen(longopts[i].name) != namelen)
+            continue;
+
+        /* Exact match found */
+        if (longindex)
+            *longindex = i;
+
+        amiport_optind++;
+
+        if (longopts[i].has_arg == required_argument) {
+            if (eq) {
+                amiport_optarg = (char *)(eq + 1);
+            } else if (amiport_optind < argc) {
+                amiport_optarg = argv[amiport_optind++];
+            } else {
+                if (amiport_opterr)
+                    fprintf(stderr, "%s: option '--%s' requires an argument\n",
+                            argv[0], longopts[i].name);
+                return '?';
+            }
+        } else if (longopts[i].has_arg == optional_argument) {
+            amiport_optarg = eq ? (char *)(eq + 1) : NULL;
+        } else {
+            amiport_optarg = NULL;
+            if (eq) {
+                if (amiport_opterr)
+                    fprintf(stderr, "%s: option '--%s' doesn't allow an argument\n",
+                            argv[0], longopts[i].name);
+                return '?';
+            }
+        }
+
+        if (longopts[i].flag) {
+            *longopts[i].flag = longopts[i].val;
+            return 0;
+        }
+        return longopts[i].val;
+    }
+
+    /* No match found */
+    if (amiport_opterr)
+        fprintf(stderr, "%s: unrecognized option '--%.*s'\n",
+                argv[0], (int)namelen, arg);
+    amiport_optind++;
+    return '?';
+}
