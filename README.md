@@ -35,14 +35,14 @@ make smoke-test         # Full end-to-end: build shim → build examples → tes
 
 Ported programs live in `ports/` — each packages independently for [Aminet](https://aminet.net) upload. See **[PORTS.md](PORTS.md)** for the full catalog with versions, shim coverage, and Aminet status.
 
-| Port | Description | Status |
-|------|-------------|--------|
-| [cal](ports/cal/) | Unix calendar display (OpenBSD) | Built & tested |
-| [cut](ports/cut/) | Extract fields/columns from text (OpenBSD) | Built & tested |
-| [diff](ports/diff/) | File comparison utility (OpenBSD) | Built & tested |
-| [grep](ports/grep/) | Pattern search — regex, fixed string, recursive (OpenBSD) | Built & tested |
-| [sed](ports/sed/) | Stream editor — text transformation (OpenBSD) | Built & tested |
-| [lua](ports/lua/) | Lua 5.4.7 scripting language (PUC-Rio) | Built & tested |
+| Port | Version | Category | Description | Status |
+|------|---------|----------|-------------|--------|
+| [cal](ports/cal/) | 1.32 | CLI | Unix calendar display (OpenBSD) | Built & tested |
+| [cut](ports/cut/) | 1.28 | CLI | Extract fields/columns from text (OpenBSD) | Built & tested |
+| [diff](ports/diff/) | 1.95 | CLI | File comparison utility (OpenBSD) | Built & tested |
+| [grep](ports/grep/) | 1.68 | CLI | Pattern search — regex, fixed string, recursive (OpenBSD) | Built & tested |
+| [sed](ports/sed/) | 1.47 | CLI | Stream editor — text transformation (OpenBSD) | Built & tested |
+| [lua](ports/lua/) | 5.4.7 | Scripting | Lua scripting language — first Lua 5.4 on any Amiga platform (PUC-Rio) | Built & tested |
 
 ```bash
 make list-ports                      # Show all ports and status
