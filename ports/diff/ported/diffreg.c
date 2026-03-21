@@ -446,8 +446,13 @@ files_differ(FILE *f1, FILE *f2, int flags)
 	    (stb1.st_mode & S_IFMT) != (stb2.st_mode & S_IFMT))
 		return (1);
 
+	/* amiport: skip inode comparison — AmigaOS has no inodes, st_dev and
+	 * st_ino are always 0, which would make all files appear identical.
+	 * Always fall through to the byte-by-byte comparison below. */
+#ifndef __AMIGA__
 	if (stb1.st_dev == stb2.st_dev && stb1.st_ino == stb2.st_ino)
 		return (0);
+#endif
 
 	for (;;) {
 		i = fread(buf1, 1, sizeof(buf1), f1);
