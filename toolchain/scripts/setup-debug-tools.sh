@@ -12,14 +12,15 @@ PROJECT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
 DEBUG_TOOLS_DIR="$PROJECT_DIR/toolchain/debug-tools"
 DOWNLOAD_DIR="$DEBUG_TOOLS_DIR/.downloads"
 
-AMINET_BASE="https://aminet.net/pub/aminet"
+AMINET_BASE="https://aminet.net"
 
 # Tool definitions: name|aminet_path|archive_name
-# Archive names match what's currently on Aminet. If Aminet updates
-# the version, the download will fail with a clear error message.
+# Archive names match what's currently on Aminet (case-sensitive!).
+# If Aminet updates the version, the download will fail with a clear error.
+# Note: MungWall uses .lzh format, not .lha.
 TOOLS=(
-    "Enforcer|dev/debug|Enforcer.lha"
-    "MungWall|dev/debug|MungWall.lha"
+    "Enforcer|dev/debug|enforcer.lha"
+    "MungWall|dev/debug|Mungwall37_64.lzh"
     "SegTracker|dev/debug|SegTracker.lha"
     "bgdbserver|dev/debug|bgdbserver.lha"
 )

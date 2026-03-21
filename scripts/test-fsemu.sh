@@ -135,8 +135,10 @@ build_boot_volume() {
     local port_name
     port_name=$(basename "$port_dir")
 
-    # Create results directory (mounted as RESULTS: in FS-UAE)
-    RESULTS_DIR=$(mktemp -d "${TMPDIR:-/tmp}/amiport-fsemu-XXXXXX")
+    # Reuse RESULTS_DIR if already created (by serial capture setup in main)
+    if [ -z "${RESULTS_DIR:-}" ] || [ ! -d "${RESULTS_DIR:-}" ]; then
+        RESULTS_DIR=$(mktemp -d "${TMPDIR:-/tmp}/amiport-fsemu-XXXXXX")
+    fi
 
     # Install binaries to build/amiga/ if not already there
     bash "$PROJECT_DIR/scripts/install-emu.sh" 2>/dev/null
@@ -238,19 +240,13 @@ window_height = 568
 EOF
 
     # Debug mode: add 68030 CPU, serial→TCP, JIT off, bsdsocket
+    # FS-UAE LISTENS on SERIAL_PORT (server), serial-capture.py CONNECTS to it (client)
     if [ "$DEBUG_MODE" = true ]; then
-        local serial_port
-        serial_port=$(cat "$RESULTS_DIR/.serial-port" 2>/dev/null || echo "")
-        if [ -z "$serial_port" ]; then
-            echo -e "${RED}ERROR: Serial port not found in sentinel file${NC}"
-            return 1
-        fi
-
         cat >> "$config_file" << EOF
 
 # Debug mode settings (ADR-016)
 cpu = 68030
-serial_port = tcp://127.0.0.1:${serial_port}/wait
+serial_port = tcp://127.0.0.1:${SERIAL_PORT}/wait
 jit_compiler = 0
 bsdsocket_library = 1
 EOF
@@ -274,6 +270,35 @@ run_emulator() {
     # On FS-UAE 3.x, the window will appear briefly during the test run
     fs-uae "$config_file" >/dev/null 2>&1 &
     local fsuae_pid=$!
+
+    # In debug mode, start serial capture client AFTER FS-UAE (FS-UAE is the server)
+    # serial-capture.py retries connecting until FS-UAE starts listening
+    if [ "$DEBUG_MODE" = true ]; then
+        local ready_file="$RESULTS_DIR/.serial-ready"
+        echo -e "${YELLOW}Connecting serial capture to FS-UAE on port ${SERIAL_PORT}...${NC}"
+        python3 "$SCRIPT_DIR/serial-capture.py" "127.0.0.1:${SERIAL_PORT}" "$ENFORCER_LOG" --ready-file "$ready_file" &
+        SERIAL_PID=$!
+
+        # Wait for connection (serial-capture.py writes ready file when connected)
+        local wait_count=0
+        while [ ! -f "$ready_file" ]; do
+            wait_count=$((wait_count + 1))
+            if [ $wait_count -ge 100 ]; then  # 10s timeout
+                echo -e "${YELLOW}  Serial capture still connecting (FS-UAE may be slow to start)...${NC}"
+                # Don't abort — let the watchdog handle overall timeout
+                break
+            fi
+            if ! kill -0 "$SERIAL_PID" 2>/dev/null; then
+                echo -e "${RED}  Serial capture exited — FS-UAE may not support serial TCP${NC}"
+                SERIAL_PID=""
+                break
+            fi
+            sleep 0.1
+        done
+        if [ -f "$ready_file" ]; then
+            echo "  Serial capture connected"
+        fi
+    fi
 
     # Watchdog loop
     while true; do
@@ -546,37 +571,16 @@ main() {
     # Pre-flight checks
     preflight
 
-    # Start serial capture daemon (debug mode only)
+    # Create results directory early (needed by serial capture for sentinel file)
+    RESULTS_DIR=$(mktemp -d "${TMPDIR:-/tmp}/amiport-fsemu-XXXXXX")
+
+    # Debug mode setup: pick a serial port for FS-UAE config
+    # FS-UAE listens on this port (server), serial-capture.py connects to it (client)
     if [ "$DEBUG_MODE" = true ]; then
         ENFORCER_LOG="$port_dir/enforcer.log"
-        local sentinel_file="$RESULTS_DIR/.serial-ready"
-        local port_file="$RESULTS_DIR/.serial-port"
-
-        echo -e "${YELLOW}Starting serial capture daemon...${NC}"
-        python3 "$SCRIPT_DIR/serial-capture.py" "$ENFORCER_LOG" "$sentinel_file" &
-        SERIAL_PID=$!
-
-        # Wait for sentinel file (5s fast-fail timeout)
-        local wait_count=0
-        while [ ! -f "$sentinel_file" ]; do
-            wait_count=$((wait_count + 1))
-            if [ $wait_count -ge 50 ]; then
-                echo -e "${RED}ERROR: Serial capture daemon failed to start (5s timeout)${NC}"
-                kill "$SERIAL_PID" 2>/dev/null || true
-                exit 1
-            fi
-            if ! kill -0 "$SERIAL_PID" 2>/dev/null; then
-                echo -e "${RED}ERROR: Serial capture daemon exited unexpectedly${NC}"
-                exit 1
-            fi
-            sleep 0.1
-        done
-
-        # Read the ephemeral port from sentinel file and write to port file for generate_config
-        local serial_port
-        serial_port=$(cat "$sentinel_file")
-        echo "$serial_port" > "$port_file"
-        echo "  Serial capture listening on port $serial_port"
+        # Use a port in the ephemeral range, offset by PID to avoid conflicts
+        SERIAL_PORT=$(( 10000 + ($$ % 50000) ))
+        echo "$SERIAL_PORT" > "$RESULTS_DIR/.serial-port"
     fi
 
     # Build boot volume
