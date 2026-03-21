@@ -113,7 +113,7 @@ static long long
 amiport_strtonum(const char *numstr, long long minval, long long maxval,
     const char **errstrp)
 {
-	long val;
+	long long val;
 	char *ep;
 
 	if (minval > maxval) {
@@ -123,15 +123,15 @@ amiport_strtonum(const char *numstr, long long minval, long long maxval,
 	}
 
 	errno = 0;
-	val = strtol(numstr, &ep, 10);
+	val = strtoll(numstr, &ep, 10);
 	if (numstr == ep || *ep != '\0') {
 		if (errstrp != NULL)
 			*errstrp = "invalid";
 		return (0);
 	}
-	if (errno == ERANGE || val < (long)minval || val > (long)maxval) {
+	if (errno == ERANGE || val < minval || val > maxval) {
 		if (errstrp != NULL) {
-			if (val < (long)minval)
+			if (val < minval)
 				*errstrp = "too small";
 			else
 				*errstrp = "too large";
@@ -141,7 +141,7 @@ amiport_strtonum(const char *numstr, long long minval, long long maxval,
 
 	if (errstrp != NULL)
 		*errstrp = NULL;
-	return ((long long)val);
+	return (val);
 }
 
 /* Convenience macros for drop-in replacement */

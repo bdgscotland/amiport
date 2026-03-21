@@ -7,6 +7,7 @@ Programs ported to AmigaOS 3.x using the amiport pipeline.
 | [cal](ports/cal/) | 1.0 | Unix-style calendar display | CLI | OpenBSD cal v1.32 (BSD 3-Clause) | Built & tested | Submitted 2026-03-20 |
 | [cut](ports/cut/) | 1.0 | Extract fields/columns from text | CLI | OpenBSD cut v1.28 (BSD 3-Clause) | Built & tested | Submitted 2026-03-20 |
 | [diff](ports/diff/) | 1.0 | File comparison utility | CLI | OpenBSD diff v1.95 (ISC + BSD 3-Clause) | Built & tested | Not submitted |
+| [grep](ports/grep/) | 1.0 | Pattern search (regex/fixed string) | CLI | OpenBSD grep v1.68 (BSD 2-Clause) | Built & tested | Not submitted |
 | [sed](ports/sed/) | 1.0 | Stream editor (text transformation) | CLI | OpenBSD sed v1.47 (BSD 3-Clause) | Built & tested | Not submitted |
 
 ## Aminet Publication Tracking
@@ -16,6 +17,7 @@ Programs ported to AmigaOS 3.x using the amiport pipeline.
 | cal | 2026-03-20 | Pending review | 2026-03-20 |
 | cut | 2026-03-20 | Pending review | 2026-03-20 |
 | diff | — | — | — |
+| grep | — | — | — |
 | sed | — | — | — |
 
 Run `make check-aminet` to verify publication status.
@@ -29,6 +31,7 @@ Each port exercises different parts of the posix-shim library:
 | cal | `getopt`, `err/errx`, `strtonum` |
 | cut | `getopt`, `err/errx/warn`, `strtonum` |
 | diff | `getopt`, `err/errx/warn/warnc`, `stat`, `opendir/readdir/closedir`, `scandir/alphasort`, `fnmatch`, `tmpfile` |
+| grep | `getopt`, `err/errx/warn/warnc`, `strtonum`, `reallocarray`, `opendir/readdir/closedir`, `isatty`, `regex` (Tier 2 emu) |
 | sed | `getopt`, `err/errx/warn/errc`, `strtonum`, `strlcpy/strlcat`, `reallocarray`, `mkstemp`, `regex` (Tier 2 emu) |
 
 ## How to Build

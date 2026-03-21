@@ -136,6 +136,103 @@ amiport_mkstemp(char *tmpl)
 }
 
 /*
+ * getdelim — read a delimited line from stream
+ *
+ * For newline delimiter (the common case), uses fgets() which does
+ * buffered block reads internally — much faster than per-character
+ * fgetc() on a 7 MHz 68000. For other delimiters, falls back to
+ * fgetc() since fgets() only stops at newlines.
+ */
+long
+amiport_getdelim(char **lineptr, size_t *n, int delim, FILE *stream)
+{
+    size_t len;
+
+    if (lineptr == NULL || n == NULL || stream == NULL) {
+        errno = EINVAL;
+        return -1;
+    }
+
+    /* Ensure we have at least an initial buffer */
+    if (*lineptr == NULL || *n == 0) {
+        *n = 512;  /* one AmigaDOS disk block */
+        *lineptr = (char *)malloc(*n);
+        if (*lineptr == NULL) {
+            errno = ENOMEM;
+            return -1;
+        }
+    }
+
+    if (delim == '\n') {
+        /* Fast path: use fgets for newline-delimited reads */
+        if (fgets(*lineptr, (int)*n, stream) == NULL)
+            return -1;
+
+        len = strlen(*lineptr);
+
+        /* Handle lines longer than buffer: grow and continue */
+        while (len > 0 && (*lineptr)[len - 1] != '\n') {
+            char *newbuf;
+            size_t newsize = *n * 2;
+
+            if (feof(stream))
+                break;
+
+            newbuf = (char *)realloc(*lineptr, newsize);
+            if (newbuf == NULL) {
+                errno = ENOMEM;
+                return -1;
+            }
+            *lineptr = newbuf;
+            *n = newsize;
+
+            if (fgets(*lineptr + len, (int)(*n - len), stream) == NULL)
+                break;
+            len += strlen(*lineptr + len);
+        }
+    } else {
+        /* Slow path: per-character for non-newline delimiters */
+        int c;
+        len = 0;
+
+        while ((c = fgetc(stream)) != EOF) {
+            if (len + 2 > *n) {
+                char *newbuf;
+                size_t newsize = *n * 2;
+                newbuf = (char *)realloc(*lineptr, newsize);
+                if (newbuf == NULL) {
+                    errno = ENOMEM;
+                    return -1;
+                }
+                *lineptr = newbuf;
+                *n = newsize;
+            }
+            (*lineptr)[len++] = (char)c;
+            if (c == delim)
+                break;
+        }
+
+        if (len == 0)
+            return -1;
+
+        (*lineptr)[len] = '\0';
+    }
+
+    return (long)len;
+}
+
+/*
+ * getline — read a newline-delimited line from stream
+ *
+ * Convenience wrapper around getdelim with delimiter '\n'.
+ */
+long
+amiport_getline(char **lineptr, size_t *n, FILE *stream)
+{
+    return amiport_getdelim(lineptr, n, '\n', stream);
+}
+
+/*
  * pread — read at offset without changing file position
  */
 LONG
