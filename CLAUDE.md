@@ -46,23 +46,20 @@ The porting pipeline has 5 stages, each backed by a Claude skill:
 - Always include Amiga version string: `static const char *verstag = "$VER: progname X.Y (DD.MM.YYYY)";` — use the **upstream version** (e.g., `1.68` for OpenBSD rev 1.68, `5.4.7` for Lua), not a generic `1.0`. Use current date.
 - **Use Amiga exit codes**, not POSIX: `exit(0)` is fine (RETURN_OK), but `exit(1)` is wrong — use `exit(10)` for errors (RETURN_ERROR) and `exit(20)` for fatal errors (RETURN_FAIL). Amiga scripts use `IF WARN` (>=5), `IF ERROR` (>=10), `IF FAIL` (>=20) — exit code 1 is invisible to them.
 
-## Using the Pipeline — IMPORTANT
+## Using the Pipeline — CRITICAL (ENFORCED BY HOOKS)
 
-**Always use the skills and agents for porting work. Do not do their jobs manually.**
+**Agent dispatch is MANDATORY. A PreToolUse hook (`enforce-agents.sh`) blocks direct edits to `ported/*.c` files. You MUST use the pipeline agents — there is no manual path.**
 
-- To port a project: use `/port-project <path>` — it orchestrates the full pipeline
-- To analyze source: dispatch the `source-analyzer` agent or use `/analyze-source`
-- To transform source: dispatch the `code-transformer` agent or use `/transform-source`
-- To build: dispatch the `build-manager` agent or use `/build-amiga`
-- To test: dispatch the `test-runner` agent or use `/test-amiga`
-- To check Aminet for existing ports: dispatch the `aminet-researcher` agent
-- To audit external library dependencies: dispatch the `dependency-auditor` agent
-- To add a missing POSIX function to the shim: use `/extend-shim <function-name>`
-- To write ARexx scripts for AmigaOS: use `/write-arexx`
-- To debug a crashed port: dispatch the `debug-agent` or use `/debug-amiga`
-- To publish to Aminet: dispatch the `aminet-publisher` agent
+- **Port a project:** `/port-project <path>` — orchestrates the full pipeline with mandatory agent dispatch at each stage
+- **Analyze:** dispatch `source-analyzer` agent (runs stub value impact analysis)
+- **Transform:** dispatch `code-transformer` agent (hook blocks manual edits to ported/)
+- **Build:** dispatch `build-manager` agent (hook blocks direct gcc calls)
+- **Test:** dispatch `test-runner` agent
+- **Debug crashes:** dispatch `debug-agent` or use `/debug-amiga`
+- **Extend shim:** `/extend-shim <function-name>`
+- **Review:** `/review-amiga` (runs automated logic bug grep checks)
 
-The `/port-project` skill runs Stage 0 (Aminet research) through Stage 6 (packaging) automatically, dispatching the appropriate agents at each step. Use it as the entry point for all porting work.
+The `/port-project` skill has GATE checks — it will not proceed to the next stage until the current stage's agent has returned successfully.
 
 **Available agents:**
 | Agent | When to dispatch |
@@ -180,30 +177,17 @@ This avoids the need for manual interactive testing in the emulator. See ADR-014
 
 ## Key References
 
-- `docs/posix-tiers.md` — **Master POSIX tier classification** (Tier 1/2/3 for every function)
-- `docs/adr/008-tiered-posix-compatibility.md` — ADR for the tiered compatibility strategy
-- `docs/api-mapping.md` — POSIX-to-AmigaOS function mapping (points to analyze-source references)
-- `docs/architecture.md` — System architecture overview
-- `docs/porting-guide.md` — Step-by-step porting guide
-- `.claude/skills/transform-source/references/transformation-rules.md` — How to transform Tier 1 patterns
-- `.claude/skills/transform-source/references/redesign-patterns.md` — Tier 3 redesign pattern templates
-- `.claude/skills/analyze-source/references/posix-to-amiga-map.md` — Portability classification
-- `docs/references/bsd-isms.md` — BSD-specific functions and their shim status
-- `docs/references/newlib-availability.md` — What C library functions are in -noixemul runtime
-- `docs/references/console-ansi-mapping.md` — ncurses-to-ANSI escape mapping for console-shim
-- `docs/references/bsdsocket-mapping.md` — POSIX socket-to-bsdsocket.library mapping
-- `docs/adr/009-console-shim-for-ncurses.md` — ADR for console UI shim
-- `docs/adr/010-bsdsocket-shim-for-networking.md` — ADR for BSD socket shim
-- `docs/adr/011-beyond-cli-port-categories.md` — ADR for port category taxonomy
-- `docs/adr/014-fs-uae-automated-testing.md` — ADR for FS-UAE automated testing pipeline
-- `docs/references/arexx-reference.md` — ARexx language and API reference for AmigaOS scripting
-- `docs/adr/015-toolkit-quality-infrastructure.md` — ADR for CI, memory-checker split, hooks, check-docs
-- `docs/adr/016-autonomous-debug-agent.md` — ADR for Enforcer-based autonomous crash debugging
-- `docs/references/crash-patterns.md` — Persistent crash pattern knowledge base for the debug-agent
-- `docs/references/adcd/` — **Complete ADCD 2.1 in markdown** — prose, code examples, cross-references for all AmigaOS libraries
-- `docs/references/adcd/FUNCTIONS.md` — Function cross-reference across all ADCD manuals
-- `docs/references/adcd/TYPES.md` — Struct/typedef/enum index across all ADCD manuals
-- `docs/references/adcd/INCLUDES.json` — Include file → documentation chapter mapping
+**Critical (consult during every port):**
+- `docs/posix-tiers.md` — Master POSIX tier classification (Tier 1/2/3 for every function)
+- `docs/references/crash-patterns.md` — Crash pattern KB — check BEFORE fixing any bug
+- `docs/references/adcd/` — Complete ADCD 2.1 in markdown — HOW to use AmigaOS functions, not just signatures
+- `.claude/skills/transform-source/references/transformation-rules.md` — Tier 1 transformation rules
+
+**Architecture & guides:** `docs/architecture.md`, `docs/porting-guide.md`, `docs/api-mapping.md`
+
+**ADRs:** `docs/adr/008` (tiers), `009` (console), `010` (bsdsocket), `011` (categories), `014` (FS-UAE testing), `015` (CI/quality), `016` (debug agent)
+
+**Shim references:** `docs/references/bsd-isms.md`, `docs/references/newlib-availability.md`, `docs/references/adcd/FUNCTIONS.md`, `docs/references/adcd/TYPES.md`
 
 ## Port Categories (ADR-011)
 
@@ -258,6 +242,7 @@ The project enforces structural safety via hooks in `.claude/settings.json`:
 - **`block-original-edits.sh`** — Blocks Edit/Write to any path containing `/original/`. Upstream source is read-only.
 - **`block-root-files.sh`** — Blocks Edit/Write of non-config files in the project root. Prevents stray build/test artifacts.
 - **`block-direct-gcc.sh`** — Blocks direct `m68k-amigaos-gcc`/`ld`/`as` calls in Bash. Forces use of `make` or toolchain wrapper scripts.
+- **`enforce-agents.sh`** — **Blocks direct Edit/Write to `ported/*.c` files.** Forces use of code-transformer or debug-agent. This is the hard enforcement for mandatory agent dispatch.
 
 **Stop (completion verification):**
 - **`verify-before-stop.sh`** — Reminds Claude to verify work (run tests, check for stray files, update docs) before stopping.
