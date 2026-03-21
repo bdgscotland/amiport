@@ -9,6 +9,49 @@
 
 #include <errno.h>
 
+/*
+ * Weak errno storage — makes libamiport.a self-contained w.r.t. errno.
+ *
+ * PROBLEM: bebbo-gcc's collect2 places -lamiport BEFORE the libnix archive
+ * group (-( -lnix20 -lnixmain -lnix -lstubs -lamiga -lgcc -)). The linker
+ * processes -lamiport first, and when it does, the errno symbol that libnix
+ * provides is not yet available. The group does not re-scan -lamiport after
+ * resolving libnix, so errno references inside libamiport stay unresolved.
+ *
+ * FIX: provide errno-related symbols as weak definitions here. Weak symbols
+ * are satisfied immediately (so intra-archive references resolve at scan
+ * time), but are overridden by the strong definitions that libnix supplies
+ * later. The final binary always uses libnix's authoritative errno storage.
+ *
+ * Two libnix errno variants are handled:
+ *
+ *   Variant A — crosstools image (amigadev/crosstools:m68k-amigaos):
+ *     errno.h: #define errno (*__errno)
+ *     __errno is int * defined in libnix20.a
+ *     Fix: weak int * __errno pointing to local fallback storage.
+ *
+ *   Variant B — m68k-amigaos-gcc image (amigadev/m68k-amigaos-gcc):
+ *     errno.h: extern int errno  (direct global, __libnix__ mode)
+ *     errno is a common int defined in libnix.a (__errno.o)
+ *     Fix: weak int errno (common symbols merge; strong wins).
+ *
+ * Detection: if errno.h defines errno as a macro, Variant A is in use.
+ * Otherwise Variant B applies.
+ */
+#ifdef __libnix__
+
+#ifdef errno
+/* Variant A: errno is #define errno (*__errno) — need weak __errno ptr */
+static int __amiport_errno_fallback = 0;
+extern int * __errno;
+int * __attribute__((weak)) __errno = &__amiport_errno_fallback;
+#else
+/* Variant B: errno is extern int errno — emit weak common definition */
+int __attribute__((weak)) errno;
+#endif /* errno macro check */
+
+#endif /* __libnix__ */
+
 int amiport_errno_from_ioerr(long ioerr)
 {
     switch (ioerr) {
