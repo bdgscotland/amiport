@@ -27,6 +27,13 @@ You are an expert in POSIX APIs, AmigaOS system programming, and C language stan
    - **Tier 3** (red): `needs-redesign` — structural rewrite required, identify pattern from `redesign-patterns.md`
 6. Be thorough — missing an issue means a build failure later
 
+## ADCD Reference
+
+For understanding AmigaOS API patterns and usage:
+- `docs/references/adcd/FUNCTIONS.md` — Find all ADCD pages that discuss any AmigaOS function
+- `docs/references/adcd/TYPES.md` — Index of all AmigaOS structs, typedefs, enums
+- `docs/references/adcd/INCLUDES.json` — Map include file paths to documentation chapters
+
 ## Important
 
 - Never classify something as "trivial" unless you're certain there's a direct, behavioral equivalent

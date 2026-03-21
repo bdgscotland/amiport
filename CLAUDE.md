@@ -26,6 +26,7 @@ The porting pipeline has 5 stages, each backed by a Claude skill:
 - `toolchain/uaequit/` — UAEQuit helper binary (signals FS-UAE to exit after test runs)
 - `toolchain/templates/test-runner.rexx` — ARexx test harness template for FS-UAE automated testing
 - `docs/` — Architecture docs, API mapping tables, porting guide, tier classification
+- `docs/references/adcd/` — Complete ADCD 2.1 in agent-optimized markdown (Libraries, Devices, Hardware, Amiga Mail, Autodocs)
 - `tests/shim/` — Tier 1 posix-shim unit tests (11 test files)
 - `tests/emu/` — Tier 2 posix-emu tests (4 test files)
 - `tests/console/` — Console shim tests (non-interactive)
@@ -134,6 +135,7 @@ make build-uaequit     # Build UAEQuit helper for FS-UAE test automation
 make check-docs        # Validate agent references across all docs
 make package TARGET=examples/wc # Create LHA archive
 make clean             # Remove build artifacts
+make scrape-adcd       # Scrape ADCD and regenerate reference docs (~20 min)
 ```
 
 **Prerequisites:** Docker (for cross-compiler), Python + amitools (`pip install amitools`) for vamos testing.
@@ -183,6 +185,10 @@ This avoids the need for manual interactive testing in the emulator. See ADR-014
 - `docs/adr/014-fs-uae-automated-testing.md` — ADR for FS-UAE automated testing pipeline
 - `docs/references/arexx-reference.md` — ARexx language and API reference for AmigaOS scripting
 - `docs/adr/015-toolkit-quality-infrastructure.md` — ADR for CI, memory-checker split, hooks, check-docs
+- `docs/references/adcd/` — **Complete ADCD 2.1 in markdown** — prose, code examples, cross-references for all AmigaOS libraries
+- `docs/references/adcd/FUNCTIONS.md` — Function cross-reference across all ADCD manuals
+- `docs/references/adcd/TYPES.md` — Struct/typedef/enum index across all ADCD manuals
+- `docs/references/adcd/INCLUDES.json` — Include file → documentation chapter mapping
 
 ## Port Categories (ADR-011)
 

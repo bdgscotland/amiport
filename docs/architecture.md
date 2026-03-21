@@ -105,6 +105,17 @@ Docker containers provide reproducible cross-compilation environments:
 - `toolchain/scripts/` — Setup, detection, and compilation wrappers
 - `toolchain/configs/target-profiles/` — CPU-specific compiler flags
 
+### Reference Documentation
+
+| Resource | Location | Description |
+|----------|----------|-------------|
+| ADCD 2.1 (full) | `docs/references/adcd/` | Complete Amiga Developer CD in agent-optimized markdown |
+| Function index | `docs/references/adcd/FUNCTIONS.md` | Cross-reference: function → all ADCD pages discussing it |
+| Type index | `docs/references/adcd/TYPES.md` | All structs, typedefs, enums across ADCD manuals |
+| Include mapping | `docs/references/adcd/INCLUDES.json` | `#include` path → documentation chapter |
+| Code examples | `docs/references/adcd/examples/` | Extracted AmigaOS code examples by library |
+| Autodocs | `docs/references/autodocs/` | API function signatures (896 functions, 21 libraries) |
+
 ## Data Flow
 
 1. **Input**: Path to a C source tree
