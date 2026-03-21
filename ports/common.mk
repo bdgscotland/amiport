@@ -34,22 +34,12 @@ $(TARGET): $(SOURCES) $(SHIM_LIB)
 	$(CC) $(CFLAGS) -o $(TARGET) $(SOURCES) $(LDFLAGS)
 
 # Package for Aminet distribution (includes binary, readme, docs, and source)
+# Requires a hand-crafted <name>.readme — see ports/templates/readme.template
 # Uses Docker lha since macOS lhasa is extraction-only
 LHA_CMD = docker run --rm -v $(shell cd ../.. && pwd):/work -w /work/ports/$(TARGET) amigadev/crosstools:m68k-amigaos lha
-package: $(TARGET) $(TARGET).readme
+package: $(TARGET)
+	@test -s $(TARGET).readme || (echo "ERROR: $(TARGET).readme missing or empty — create from ports/templates/readme.template" && exit 1)
 	$(LHA_CMD) a $(TARGET)-$(VERSION).lha $(TARGET) $(TARGET).readme PORT.md original/ ported/
 
-# Generate Aminet readme from PORT.md metadata
-$(TARGET).readme: PORT.md
-	@echo "Short:    $(DESCRIPTION)" > $@
-	@echo "Uploader: amiport (AI-assisted)" >> $@
-	@echo "Author:   $(AUTHOR)" >> $@
-	@echo "Type:     $(AMINET_CAT)" >> $@
-	@echo "Architecture: m68k-amigaos >= 3.0" >> $@
-	@echo "Version:  $(VERSION)" >> $@
-	@echo "" >> $@
-	@echo "Ported to AmigaOS by amiport (AI-assisted porting toolkit)." >> $@
-	@echo "See PORT.md for transformation details." >> $@
-
 clean:
-	rm -f $(TARGET) $(TARGET).readme $(TARGET)-*.lha
+	rm -f $(TARGET) $(TARGET)-*.lha
