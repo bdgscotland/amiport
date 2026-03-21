@@ -56,7 +56,7 @@
 /* amiport: Amiga version string — __attribute__((used)) ensures the linker
  * retains this string for the AmigaOS Version command even with -O2.
  * Array form (not pointer) places the string in the data segment directly. */
-static const char verstag[] __attribute__((used)) = "$VER: sed 1.0 (20.03.2026)";
+static const char verstag[] __attribute__((used)) = "$VER: sed 1.47 (20.03.2026)";
 
 /* amiport: stack cookie — sed processes large files, especially with regex */
 long __stack = 65536;

@@ -47,7 +47,7 @@
 #include <exec/types.h>			/* amiport: Amiga types (LONG etc.) */
 
 /* amiport: Amiga version string */
-static const char *verstag = "$VER: cal 1.0 (20.03.2026)";
+static const char *verstag = "$VER: cal 1.32 (20.03.2026)";
 
 /* amiport: Stack size cookie — 32KB for ported software */
 LONG __stack = 32768;

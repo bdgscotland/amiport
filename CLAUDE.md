@@ -40,7 +40,7 @@ The porting pipeline has 5 stages, each backed by a Claude skill:
 - Use Amiga types (`LONG`, `ULONG`, `STRPTR`, `BPTR`, `APTR`) when interfacing with OS libraries
 - Use `amiport_*` shim wrappers from `lib/posix-shim/` for Tier 1 (direct mapping) rather than raw AmigaOS calls
 - Use `amiport_emu_*` wrappers from `lib/posix-emu/` for Tier 2 (emulation) with caveat comments
-- Always include Amiga version string: `static const char *verstag = "$VER: progname 1.0 (DD.MM.YYYY)";` (use current date)
+- Always include Amiga version string: `static const char *verstag = "$VER: progname X.Y (DD.MM.YYYY)";` — use the **upstream version** (e.g., `1.68` for OpenBSD rev 1.68, `5.4.7` for Lua), not a generic `1.0`. Use current date.
 - **Use Amiga exit codes**, not POSIX: `exit(0)` is fine (RETURN_OK), but `exit(1)` is wrong — use `exit(10)` for errors (RETURN_ERROR) and `exit(20)` for fatal errors (RETURN_FAIL). Amiga scripts use `IF WARN` (>=5), `IF ERROR` (>=10), `IF FAIL` (>=20) — exit code 1 is invisible to them.
 
 ## Using the Pipeline — IMPORTANT

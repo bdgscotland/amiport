@@ -46,7 +46,7 @@
 #endif
 
 /* amiport: Amiga version string */
-static const char *verstag = "$VER: diff 1.0 (20.03.2026)";
+static const char *verstag = "$VER: diff 1.95 (20.03.2026)";
 
 /* amiport: Stack size cookie — diff can recurse deeply with -r */
 LONG __stack = 65536;

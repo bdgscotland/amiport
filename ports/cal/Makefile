@@ -3,7 +3,7 @@ include ../common.mk
 
 TARGET      = cal
 SOURCES     = ported/cal.c
-VERSION     = 1.0
+VERSION     = 1.32
 DESCRIPTION = Unix-style calendar display
 AUTHOR      = Kim Letkeman, OpenBSD contributors
 

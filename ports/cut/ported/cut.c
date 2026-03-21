@@ -34,7 +34,7 @@
  */
 
 /* amiport: Amiga version string */
-static const char *verstag = "$VER: cut 1.0 (20.03.2026)";
+static const char *verstag = "$VER: cut 1.28 (20.03.2026)";
 
 /* amiport: Stack size cookie */
 long __stack = 32768;

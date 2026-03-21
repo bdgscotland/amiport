@@ -3,7 +3,7 @@ Type:         util/cli
 Architecture: m68k-amigaos >= 3.0
 Uploader:     duncan@bowring.us
 Author:       James Howard / Dag-Erling Smorgrav (ported by Duncan Bowring)
-Version:      1.0
+Version:      1.68
 
 grep — OpenBSD grep (pattern search) for AmigaOS
 

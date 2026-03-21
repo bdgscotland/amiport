@@ -3,7 +3,7 @@ include ../common.mk
 
 TARGET      = cut
 SOURCES     = ported/cut.c
-VERSION     = 1.0
+VERSION     = 1.28
 DESCRIPTION = OpenBSD cut - extract fields/columns from text
 AUTHOR      = University of California, Berkeley
 
