@@ -3,6 +3,7 @@
 import importlib
 import sys
 import os
+import tempfile
 
 # Allow importing from scripts/ directory — the filename uses a hyphen,
 # so we need importlib to load it as a module.
@@ -15,6 +16,11 @@ extract_links = _mod.extract_links
 extract_title = _mod.extract_title
 convert_html_to_md = _mod.convert_html_to_md
 resolve_links = _mod.resolve_links
+detect_functions = _mod.detect_functions
+generate_frontmatter = _mod.generate_frontmatter
+load_known_functions = _mod.load_known_functions
+build_func_to_library_map = _mod.build_func_to_library_map
+detect_libraries = _mod.detect_libraries
 
 
 SAMPLE_HTML = '''<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
@@ -205,3 +211,130 @@ class TestResolveLinks:
         md = "Use [AllocMem()](../Includes_and_Autodocs_2._guide/node0332.html) to allocate."
         result = resolve_links(md, node_map, "libraries")
         assert "[AllocMem()](autodocs-2.0/allocmem.md)" in result
+
+
+class TestDetectFunctions:
+    def test_matches_with_parens(self):
+        known = {"AllocMem", "FreeMem", "Open"}
+        result = detect_functions("Call AllocMem() to get memory", known)
+        assert result == {"AllocMem"}
+
+    def test_ignores_without_parens(self):
+        known = {"Open", "Close", "AllocMem"}
+        result = detect_functions("Open the window", known)
+        assert result == set()
+
+    def test_returns_unique_set(self):
+        known = {"AllocMem", "FreeMem"}
+        result = detect_functions(
+            "Call AllocMem() first, then AllocMem() again", known
+        )
+        assert result == {"AllocMem"}
+
+    def test_common_names_with_parens(self):
+        known = {"Open", "Close", "AllocMem"}
+        result = detect_functions("Call Open() then Close()", known)
+        assert result == {"Open", "Close"}
+
+
+class TestGenerateFrontmatter:
+    def test_basic(self):
+        fm = generate_frontmatter(
+            title="Memory Allocation",
+            manual="libraries",
+            chapter="exec",
+            section="memory",
+            functions=["AllocMem", "FreeMem"],
+            libraries=["exec.library"],
+        )
+        assert fm.startswith("---\n")
+        assert fm.endswith("---\n")
+        assert "title: Memory Allocation" in fm
+        assert "manual: libraries" in fm
+        assert "chapter: exec" in fm
+        assert "section: memory" in fm
+        assert "AllocMem" in fm
+        assert "FreeMem" in fm
+        assert "exec.library" in fm
+
+    def test_empty_functions(self):
+        fm = generate_frontmatter(
+            title="Introduction",
+            manual="libraries",
+            chapter="intro",
+            section="",
+            functions=[],
+            libraries=[],
+        )
+        assert fm.startswith("---\n")
+        assert fm.endswith("---\n")
+        assert "title: Introduction" in fm
+        assert "functions: []" in fm
+        assert "libraries: []" in fm
+
+
+class TestLoadKnownFunctions:
+    def test_loads_from_autodocs(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            # Create a fake autodoc file
+            content = """# exec.library — Autodoc Reference
+
+## Function Index
+
+- **AllocMem** (V36) — allocate memory
+- **FreeMem** — free memory
+- **AllocVec** (V36) — allocate memory and track size
+"""
+            with open(os.path.join(tmpdir, "exec.library.md"), "w") as f:
+                f.write(content)
+
+            # Create a README.md that should be skipped
+            with open(os.path.join(tmpdir, "README.md"), "w") as f:
+                f.write("# README\n\nThis is not an autodoc.\n")
+
+            result = load_known_functions(tmpdir)
+            assert "AllocMem" in result
+            assert "FreeMem" in result
+            assert "AllocVec" in result
+            assert len(result) == 3
+
+
+class TestBuildFuncToLibraryMap:
+    def test_maps_functions_to_libraries(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            content = """# exec.library — Autodoc Reference
+
+## Function Index
+
+- **AllocMem** (V36) — allocate memory
+- **FreeMem** — free memory
+"""
+            with open(os.path.join(tmpdir, "exec.library.md"), "w") as f:
+                f.write(content)
+
+            content2 = """# dos.library — Autodoc Reference
+
+## Function Index
+
+- **Open** — open a file
+- **Close** — close a file
+"""
+            with open(os.path.join(tmpdir, "dos.library.md"), "w") as f:
+                f.write(content2)
+
+            result = build_func_to_library_map(tmpdir)
+            assert result["AllocMem"] == "exec.library"
+            assert result["FreeMem"] == "exec.library"
+            assert result["Open"] == "dos.library"
+            assert result["Close"] == "dos.library"
+
+
+class TestDetectLibraries:
+    def test_maps_functions_to_libraries(self):
+        func_to_lib = {
+            "AllocMem": "exec.library",
+            "FreeMem": "exec.library",
+            "Open": "dos.library",
+        }
+        result = detect_libraries({"AllocMem", "Open"}, func_to_lib)
+        assert result == {"exec.library", "dos.library"}
