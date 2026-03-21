@@ -55,12 +55,34 @@ You are reviewing ported C code for AmigaOS-specific correctness and quality. Th
 - **Tier classification correct?** Tier 1 functions use `amiport_*`, Tier 2 use `amiport_emu_*`.
 - **fopen/fclose macro collision?** If the ported code implements its own file wrappers, check for the `amiport/stdio.h` macro collision (see CLAUDE.md known pitfalls).
 
-### 9. Logic Bug Patterns (silent wrong results)
-These won't crash — they produce **wrong output** that's harder to detect than a crash:
-- **st_dev/st_ino same-file detection**: `grep -n 'st_ino\|st_dev' ported/*.c` — if the code compares these fields to detect same-file (e.g., `files_differ()`, `same_file()`), verify it works with the shim's `fib_DiskKey`-based values. See crash-patterns.md #4.
-- **Case-sensitive filename comparisons**: `strcmp()` on filenames is wrong on AmigaOS (case-insensitive filesystem). Should use `strcasecmp()` or Amiga's `Stricmp()`.
-- **Hardlink/symlink assumptions**: Code checking `S_ISLNK()` or calling `lstat()`/`readlink()` will silently skip — flag for manual review.
-- **File descriptor assumptions**: Code assuming `STDIN_FILENO=0`, `STDOUT_FILENO=1`, `STDERR_FILENO=2` — valid on AmigaOS but flag if used for arithmetic.
+### 9. Logic Bug Patterns (automated checks)
+These produce **wrong output**, not crashes. You MUST run these grep commands on the ported source and report all matches found:
+
+**Mandatory automated checks — run ALL of these:**
+```bash
+# Same-file detection (crash-patterns.md #4)
+grep -rn 'st_ino\|st_dev' ported/*.c ported/*.h 2>/dev/null
+# Case-sensitive filename comparison
+grep -rn 'strcmp.*file\|strcmp.*path\|strcmp.*name' ported/*.c 2>/dev/null
+# Hardlink/symlink assumptions
+grep -rn 'S_ISLNK\|lstat\|readlink\|st_nlink' ported/*.c 2>/dev/null
+# Stub return values used in logic
+grep -rn 'getuid\|getgid\|getpid\|umask' ported/*.c 2>/dev/null
+# File descriptor arithmetic
+grep -rn 'STDIN_FILENO\|STDOUT_FILENO\|STDERR_FILENO' ported/*.c 2>/dev/null
+```
+
+**For each match found, apply this triage:**
+- **st_ino/st_dev**: Verify the code works with fib_DiskKey-based values (see crash-patterns.md #4). If used for same-file detection, flag as WARN.
+- **strcmp on filenames/paths**: Flag as WARN — AmigaOS is case-insensitive, should use `strcasecmp()` or Amiga's `Stricmp()`.
+- **S_ISLNK/lstat/readlink**: Flag as WARN — AmigaOS has no symlinks, this code path will never execute. Check if the fallback path is correct.
+- **st_nlink**: Flag as WARN if used for hardlink detection — may not be populated by the shim.
+- **getuid/getgid**: Flag as WARN if used in conditionals — always returns 0 on AmigaOS, so `if (getuid() == 0)` is always true.
+- **getpid**: Flag as INFO if used for uniqueness (e.g., temp filenames) — works but returns a fixed value on some configs.
+- **umask**: Flag as INFO — stubbed to no-op, file permissions are ignored on AmigaOS.
+- **STDIN/STDOUT/STDERR_FILENO**: Flag as INFO if used in arithmetic; flag as WARN if used to determine fd count or ranges.
+
+**If a grep returns no matches, report "No matches — OK" for that check.** Do not skip checks that return empty results; the absence of matches is useful information.
 
 ## Reference Documentation
 
@@ -91,5 +113,6 @@ When reviewing API usage correctness, consult:
 - Path handling: OK / WARN / FAIL
 - Library cleanup: OK / WARN / FAIL
 - Conventions: OK / WARN / FAIL
+- Logic bugs: OK / WARN / FAIL (from automated checks in §9)
 - Overall: READY / NEEDS WORK / NOT READY
 ```

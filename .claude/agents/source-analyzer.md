@@ -34,6 +34,54 @@ For understanding AmigaOS API patterns and usage:
 - `docs/references/adcd/TYPES.md` — Index of all AmigaOS structs, typedefs, enums
 - `docs/references/adcd/INCLUDES.json` — Map include file paths to documentation chapters
 
+## Stub Value Impact Analysis
+
+After classifying all POSIX calls (step 5 above), do a **second pass** to find code that depends on values returned by shimmed functions. Many shim functions return zero or stub values that compile fine but break program logic at runtime.
+
+### Methodology
+
+For each source file, search for the patterns below. For each hit, check whether the surrounding code **uses the value in a decision** (conditional, comparison, arithmetic). If it does, flag it.
+
+### stat struct fields
+
+Search pattern: `grep -n 'st_ino\|st_dev\|st_nlink\|st_uid\|st_gid\|st_blocks' <source>`
+
+| Field | Stub behavior | Breaks when used for |
+|-------|--------------|---------------------|
+| `st_ino` / `st_dev` | Populated from `fib_DiskKey` / `GetDeviceProc` — may differ from POSIX semantics | Same-file detection (diff, cmp, cp, tar). See `docs/references/crash-patterns.md #4` |
+| `st_nlink` | Always 1 on most Amiga filesystems | Hardlink detection, "file has multiple names" logic |
+| `st_uid` / `st_gid` | Always 0 (no multi-user on AmigaOS) | Ownership checks, permission display (ls -l), chown/chmod logic |
+| `st_blocks` | May be zero or inaccurate | Disk usage calculation (du), sparse file detection |
+
+### Return value stubs
+
+Search for calls to these functions and check if the return value is used in logic:
+
+| Function | Stub behavior | Breaks when |
+|----------|--------------|-------------|
+| `getuid()` / `getgid()` | Always return 0 (root-like) | Code checks `if (getuid() == 0)` — always true on Amiga, may enable root-only code paths |
+| `getpid()` | Returns a fixed value | Used for unique temp filenames — collisions if multiple instances run |
+| `umask()` | No-op, returns 0 | Code that sets/restores umask then checks resulting file permissions gets wrong results |
+
+### Format and behavior differences
+
+| Function / field | Difference | Impact |
+|-----------------|------------|--------|
+| `ctime()` / `strftime()` | Amiga locale handling differs from Unix | Date/time display may be wrong or missing locale-specific formatting |
+| `readdir()` `d_type` | May not be populated on all Amiga filesystems | Code using `d_type` to avoid extra `stat()` calls gets `DT_UNKNOWN`, may skip files |
+
+### Flagging format
+
+For each hit where program logic depends on the value, add to the report:
+
+> **STUB VALUE WARNING: `<field or function>` may be zero/stub on AmigaOS. Check if program logic depends on this value being real.**
+
+Include the source file, line number, and the code context showing how the value is used. Reference `docs/references/crash-patterns.md #4` for the st_dev/st_ino same-file detection pattern specifically.
+
+### Relationship to Logic Bug Patterns
+
+The Logic Bug Patterns section (below) lists **what** to look for. This section provides the **how** — systematic grep patterns and decision criteria for determining whether a stub value actually impacts program correctness.
+
 ## Important
 
 - Never classify something as "trivial" unless you're certain there's a direct, behavioral equivalent
