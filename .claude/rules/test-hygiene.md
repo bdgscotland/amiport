@@ -10,6 +10,10 @@
 
 4. **When dispatching agents** (build-manager, test-runner, etc.), explicitly instruct them: "Do not create any files outside `ports/<name>/`. Clean up all test artifacts when done."
 
+## Compiled Binaries — Keep Them
+
+5. **Compiled Amiga binaries SHOULD be committed.** The built `ports/<name>/<name>` binary is a distributable artifact — commit it alongside the source. Users cloning the repo get working binaries without needing the cross-compiler toolchain. Only exclude profiling artifacts (`gmon.out`) and native comparison binaries (`*_native`).
+
 ## Why This Matters
 
-Stray files in the project root are noise. They get accidentally committed, confuse `git status`, and make the workspace messy. This project has multiple agents operating concurrently — without this rule, every agent leaves debris behind.
+Stray files in the project root are noise. They get accidentally committed, confuse `git status`, and make the workspace messy. This project has multiple agents operating concurrently — without this rule, every agent leaves debris behind. But compiled Amiga binaries are the whole point of the project — they should be checked in.
