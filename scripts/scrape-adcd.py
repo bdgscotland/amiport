@@ -459,12 +459,343 @@ def do_crawl(args):
 # Pass 2: Enrich
 # --------------------------------------------------------------------------- #
 
+def load_known_functions(autodocs_dir: str) -> set:
+    """Scan autodoc .md files for function names.
+
+    Parses lines matching ``- **FunctionName** (V...)`` or ``- **FunctionName** —``.
+    Returns a set of function name strings.  Skips README.md.
+    """
+    functions = set()
+    autodocs_path = Path(autodocs_dir)
+    if not autodocs_path.is_dir():
+        return functions
+    for md_file in sorted(autodocs_path.glob("*.md")):
+        if md_file.name == "README.md":
+            continue
+        with open(md_file, "r", encoding="utf-8") as f:
+            for line in f:
+                m = re.match(r"^- \*\*(\w+)\*\*", line)
+                if m:
+                    functions.add(m.group(1))
+    return functions
+
+
+def build_func_to_library_map(autodocs_dir: str) -> dict:
+    """Build a mapping of function_name -> library_name from autodoc files.
+
+    The library name is derived from the filename (e.g., exec.library.md -> exec.library).
+    """
+    func_map = {}
+    autodocs_path = Path(autodocs_dir)
+    if not autodocs_path.is_dir():
+        return func_map
+    for md_file in sorted(autodocs_path.glob("*.md")):
+        if md_file.name == "README.md":
+            continue
+        lib_name = md_file.stem  # e.g., "exec.library"
+        with open(md_file, "r", encoding="utf-8") as f:
+            for line in f:
+                m = re.match(r"^- \*\*(\w+)\*\*", line)
+                if m:
+                    func_map[m.group(1)] = lib_name
+    return func_map
+
+
+def detect_functions(text: str, known_functions: set) -> set:
+    """Detect references to known AmigaOS functions in text.
+
+    A function is considered referenced if it appears as ``FuncName()`` in the text.
+    Returns a set of matched function names.
+    """
+    found = set()
+    for func in known_functions:
+        # Match FuncName() — word boundary before, literal parens after
+        if re.search(r'\b' + re.escape(func) + r'\(\)', text):
+            found.add(func)
+    return found
+
+
+def detect_libraries(functions: set, func_to_library: dict) -> set:
+    """Given a set of function names, return the set of library names they belong to."""
+    libs = set()
+    for func in functions:
+        if func in func_to_library:
+            libs.add(func_to_library[func])
+    return libs
+
+
+def generate_frontmatter(title: str, manual: str, chapter: str, section: str,
+                         functions: list, libraries: list) -> str:
+    """Generate YAML frontmatter block with --- delimiters.
+
+    Functions and libraries are formatted as bracket-lists.
+    """
+    func_list = ", ".join(sorted(functions)) if functions else ""
+    lib_list = ", ".join(sorted(libraries)) if libraries else ""
+    lines = [
+        "---",
+        f"title: {title}",
+        f"manual: {manual}",
+        f"chapter: {chapter}",
+        f"section: {section}",
+        f"functions: [{func_list}]",
+        f"libraries: [{lib_list}]",
+        "---",
+    ]
+    return "\n".join(lines) + "\n"
+
+
+def generate_see_also(functions: set, func_to_library: dict,
+                      enriched_file_depth: int = 2) -> str:
+    """Generate a 'See Also' section linking detected functions to autodoc entries.
+
+    enriched_file_depth is the number of directory levels from the enriched file
+    to the adcd root (e.g., docs/references/adcd/libraries/foo.md -> depth 1 from adcd root).
+    """
+    if not functions:
+        return ""
+
+    prefix = "../" * enriched_file_depth
+    lines = ["\n---\n", "## See Also\n"]
+    for func in sorted(functions):
+        lib = func_to_library.get(func, "unknown.library")
+        anchor = func.lower()
+        lines.append(f"- [{func} \u2014 {lib}]({prefix}autodocs/{lib}.md#{anchor})")
+    lines.append("")
+    return "\n".join(lines)
+
+
+def generate_index(output_dir: Path, all_files: list):
+    """Generate INDEX.md — alphabetical index of all titles and functions."""
+    index_path = output_dir / "INDEX.md"
+    lines = ["# ADCD Reference Index\n",
+             "Alphabetical index of all pages and detected functions.\n"]
+
+    # Sort by title
+    sorted_files = sorted(all_files, key=lambda x: x.get("title", "").lower())
+
+    lines.append("## Pages\n")
+    lines.append("| Title | Manual | Functions |")
+    lines.append("|-------|--------|-----------|")
+    for entry in sorted_files:
+        title = entry.get("title", "Untitled")
+        manual = entry.get("manual", "")
+        funcs = ", ".join(sorted(entry.get("functions", set())))
+        path = entry.get("path", "")
+        lines.append(f"| [{title}]({path}) | {manual} | {funcs} |")
+
+    lines.append("")
+    index_path.write_text("\n".join(lines), encoding="utf-8")
+    print(f"  Generated {index_path}")
+
+
+def generate_functions_xref(output_dir: Path, function_index: dict):
+    """Generate FUNCTIONS.md — for each known function, list all pages that mention it."""
+    xref_path = output_dir / "FUNCTIONS.md"
+    lines = ["# ADCD Function Cross-Reference\n",
+             "For each AmigaOS function, lists all ADCD pages that reference it.\n"]
+
+    for func in sorted(function_index.keys()):
+        pages = function_index[func]
+        lines.append(f"### {func}\n")
+        for page in sorted(pages, key=lambda p: p.get("title", "").lower()):
+            title = page.get("title", "Untitled")
+            path = page.get("path", "")
+            lines.append(f"- [{title}]({path})")
+        lines.append("")
+
+    xref_path.write_text("\n".join(lines), encoding="utf-8")
+    print(f"  Generated {xref_path}")
+
+
+def generate_attribution(output_dir: Path):
+    """Generate ATTRIBUTION.md with copyright notice."""
+    attr_path = output_dir / "ATTRIBUTION.md"
+    content = """# Attribution
+
+Source: Amiga Developer CD v2.1, hosted at amigadev.elowar.com.
+Original content (C) Commodore-Amiga / Amiga Inc.
+
+This material is reproduced for reference purposes in the amiport project.
+All rights remain with the original copyright holders.
+"""
+    attr_path.write_text(content, encoding="utf-8")
+    print(f"  Generated {attr_path}")
+
+
+def generate_readme(output_dir: Path, all_files: list):
+    """Generate README.md with contents table and quick links."""
+    readme_path = output_dir / "README.md"
+
+    # Count pages per manual
+    manual_counts = collections.Counter()
+    for entry in all_files:
+        manual_counts[entry.get("manual", "unknown")] += 1
+
+    lines = [
+        "# ADCD Reference Documentation\n",
+        "Scraped and enriched from the Amiga Developer CD v2.1.\n",
+        "## Contents\n",
+        "| Manual | Pages | Directory |",
+        "|--------|-------|-----------|",
+    ]
+
+    for slug, _, display_title in MANUALS:
+        count = manual_counts.get(slug, 0)
+        if count > 0:
+            lines.append(f"| {display_title} | {count} | [{slug}/]({slug}/) |")
+
+    lines.extend([
+        "",
+        "## Quick Links\n",
+        "- [INDEX.md](INDEX.md) — Alphabetical page index",
+        "- [FUNCTIONS.md](FUNCTIONS.md) — Function cross-reference",
+        "- [ATTRIBUTION.md](ATTRIBUTION.md) — Copyright and source info",
+        "",
+    ])
+
+    readme_path.write_text("\n".join(lines), encoding="utf-8")
+    print(f"  Generated {readme_path}")
+
+
 def do_enrich(args):
     """Pass 2: Add frontmatter, detect functions, resolve links, build indexes."""
-    # TODO: Implement YAML frontmatter injection, function signature detection,
-    #       cross-reference resolution, and index generation
-    print(f"enrich: output={args.output}")
-    print("TODO: Pass 2 not yet implemented")
+    output_dir = Path(args.output)
+    raw_dir = output_dir / "raw"
+
+    # Initialize tracking variables
+    all_files = []
+    function_index = {}
+    type_index = {}
+    all_examples = []
+
+    # Load node map from Pass 1
+    node_map_path = raw_dir / "node-map.json"
+    if not node_map_path.exists():
+        print(f"error: node-map.json not found at {node_map_path}", file=sys.stderr)
+        print("Run 'crawl' first to generate raw markdown.", file=sys.stderr)
+        sys.exit(1)
+
+    with open(node_map_path, "r", encoding="utf-8") as f:
+        node_map = json.load(f)
+
+    # Load known functions from autodocs
+    project_root = Path(__file__).resolve().parent.parent
+    autodocs_dir = project_root / "docs" / "references" / "autodocs"
+    known_functions = load_known_functions(str(autodocs_dir))
+    func_to_library = build_func_to_library_map(str(autodocs_dir))
+
+    print(f"Loaded {len(known_functions)} known functions from {len(set(func_to_library.values()))} libraries")
+
+    # Process each manual
+    total_enriched = 0
+    total_functions_found = 0
+
+    for manual_slug, guide_dir, display_title in MANUALS:
+        raw_manual_dir = raw_dir / manual_slug
+        if not raw_manual_dir.is_dir():
+            continue
+
+        enriched_manual_dir = output_dir / manual_slug
+        enriched_manual_dir.mkdir(parents=True, exist_ok=True)
+
+        print(f"\n{'='*60}")
+        print(f"Enriching: {display_title} ({manual_slug})")
+        print(f"{'='*60}")
+
+        md_files = sorted(raw_manual_dir.glob("*.md"))
+        for md_file in md_files:
+            # Read raw markdown
+            raw_text = md_file.read_text(encoding="utf-8")
+
+            # Extract title from first line (# Title)
+            title_match = re.match(r"^# (.+)$", raw_text, re.MULTILINE)
+            title = title_match.group(1) if title_match else md_file.stem
+
+            # Strip existing title line for re-assembly
+            if title_match:
+                content = raw_text[title_match.end():].lstrip("\n")
+            else:
+                content = raw_text
+
+            # Detect functions
+            detected_funcs = detect_functions(raw_text, known_functions)
+            detected_libs = detect_libraries(detected_funcs, func_to_library)
+
+            # Resolve internal links
+            content = resolve_links(content, node_map, manual_slug)
+
+            # Determine chapter/section from title or slug
+            chapter = manual_slug
+            section = md_file.stem
+
+            # Generate frontmatter
+            fm = generate_frontmatter(
+                title=title,
+                manual=manual_slug,
+                chapter=chapter,
+                section=section,
+                functions=sorted(detected_funcs),
+                libraries=sorted(detected_libs),
+            )
+
+            # Generate see also section
+            see_also = generate_see_also(detected_funcs, func_to_library,
+                                         enriched_file_depth=1)
+
+            # Attribution header
+            attribution = (
+                "> *Source: Amiga Developer CD v2.1. "
+                "(C) Commodore-Amiga / Amiga Inc.*\n\n"
+            )
+
+            # Assemble enriched file
+            enriched = fm + "\n" + f"# {title}\n\n" + attribution + content
+            if see_also:
+                enriched = enriched.rstrip("\n") + "\n" + see_also
+
+            # Write enriched file
+            enriched_path = enriched_manual_dir / md_file.name
+            enriched_path.write_text(enriched, encoding="utf-8")
+
+            # Track for indexes
+            rel_path = f"{manual_slug}/{md_file.name}"
+            file_entry = {
+                "title": title,
+                "manual": manual_slug,
+                "path": rel_path,
+                "functions": detected_funcs,
+                "libraries": detected_libs,
+            }
+            all_files.append(file_entry)
+
+            # Update function cross-reference index
+            for func in detected_funcs:
+                if func not in function_index:
+                    function_index[func] = []
+                function_index[func].append({
+                    "title": title,
+                    "path": rel_path,
+                })
+
+            total_enriched += 1
+            total_functions_found += len(detected_funcs)
+
+    # Generate index files
+    print(f"\n{'='*60}")
+    print("Generating index files...")
+    print(f"{'='*60}")
+
+    generate_index(output_dir, all_files)
+    generate_functions_xref(output_dir, function_index)
+    generate_attribution(output_dir)
+    generate_readme(output_dir, all_files)
+
+    print(f"\n{'='*60}")
+    print(f"ENRICH COMPLETE: {total_enriched} files enriched")
+    print(f"Functions detected: {total_functions_found} references to "
+          f"{len(function_index)} unique functions")
+    print(f"{'='*60}")
 
 
 # --------------------------------------------------------------------------- #
