@@ -44,11 +44,22 @@ We chose the **Startup-Sequence + UAEQuit** approach. The serial console approac
 
 ### Test case format (`test-fsemu-cases.txt`)
 
+Each test is a block of 3 lines. Two assertion modes are supported:
+
 ```
-# command | expected_exit | expected_output_contains
-WORK:grep -c "pattern" WORK:testdata/input.txt | 0 | 3
-WORK:grep "nonexistent" WORK:testdata/input.txt | 10 |
+TEST: description of test
+CMD: WORK:program args WORK:inputfile.txt
+EXPECT: expected first-line output (exact match)
+
+TEST: another test
+CMD: WORK:program -u WORK:input.txt
+EXPECT_CONTAINS: substring to find in output
 ```
+
+- `EXPECT:` — exact match of the first line of stdout
+- `EXPECT_CONTAINS:` — substring match (useful for multi-line output like diff)
+- Empty `EXPECT:` matches empty output (e.g., identical files produce no output)
+- Input files must be pre-created (no piping in ARexx ADDRESS COMMAND)
 
 ### Limitations
 

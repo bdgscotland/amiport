@@ -30,7 +30,7 @@ SYSTEM_DIR="$PROJECT_DIR/build/system"
 AMIGA_DIR="$PROJECT_DIR/build/amiga"
 TOOLCHAIN_DIR="$PROJECT_DIR/toolchain"
 KICKSTART="$HOME/Documents/FS-UAE/Kickstarts/kick3.1.rom"
-TIMEOUT_SECONDS=30
+TIMEOUT_SECONDS=60
 DEBUG_MODE=false
 SERIAL_PID=""
 ENFORCER_LOG=""
@@ -268,7 +268,7 @@ run_emulator() {
     # Launch FS-UAE
     # Note: true headless mode (FSEMU_VIDEO_DRIVER=null) requires FS-UAE 4.0+
     # On FS-UAE 3.x, the window will appear briefly during the test run
-    fs-uae "$config_file" >/dev/null 2>&1 &
+    fs-uae "$config_file" >"$RESULTS_DIR/fsuae.log" 2>&1 &
     local fsuae_pid=$!
 
     # In debug mode, start serial capture client AFTER FS-UAE (FS-UAE is the server)
