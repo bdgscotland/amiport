@@ -15,8 +15,8 @@ Programs ported to AmigaOS 3.x using the amiport pipeline.
 
 | Port | Submitted | Aminet URL | Last Checked |
 |------|-----------|-----------|-------------|
-| cal | 2026-03-20 | Pending review | 2026-03-20 |
-| cut | 2026-03-20 | Pending review | 2026-03-20 |
+| cal | 2026-03-20 | [util/cli/cal-1.0](https://aminet.net/package/util/cli/cal-1.0) | 2026-03-21 — Live, uploaded as 1.0 (now 1.32 locally) |
+| cut | 2026-03-20 | [util/cli/cut-1.0](https://aminet.net/package/util/cli/cut-1.0) | 2026-03-21 — Live, 29 downloads, uploaded as 1.0 (now 1.28 locally) |
 | diff | — | — | — |
 | grep | — | — | — |
 | sed | — | — | — |
