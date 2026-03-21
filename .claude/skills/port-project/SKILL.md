@@ -29,10 +29,15 @@ Create this structure at the start of the pipeline using the templates in `ports
 ### Stage 0: Research (before any work)
 Dispatch an `aminet-researcher` agent to check whether this tool already exists for AmigaOS 3.x. If a recent, functional port already exists, stop and tell the user — don't duplicate work. If an old or limited version exists, note this in PORT.md and proceed (our port will be the upgrade). This step is mandatory.
 
-### Stage 1: Analyze
-Dispatch a `source-analyzer` agent to analyze the source, or run the analysis inline for small projects (< 5 files).
+### Stage 1: Analyze — MANDATORY AGENT DISPATCH
 
-Review the portability report. If the verdict is **INFEASIBLE**, stop and explain why. For other verdicts, proceed.
+**YOU MUST dispatch the `source-analyzer` agent.** Do not analyze source manually. The agent runs stub value impact analysis, logic bug pattern detection, and tier classification that manual grep cannot replicate.
+
+```
+Agent(subagent_type="source-analyzer", prompt="Analyze <path> for Amiga portability...")
+```
+
+**GATE:** Do not proceed to Stage 2 until the source-analyzer agent has returned a portability report with a verdict and tier classification. If the agent returns INFEASIBLE, stop.
 
 The report classifies issues by tier (ADR-008) and port category (ADR-011):
 - **Tier 1** (green) — automated shim transforms, proceed without user input
@@ -58,17 +63,29 @@ Read `ports/templates/STRUCTURE.md` for the full directory layout specification.
 
 **All build/test artifacts must stay inside the port directory. Never create files in the project root.**
 
-### Stage 3: Transform
-Dispatch a `code-transformer` agent, or for small projects, apply transformations inline following the rules in `.claude/skills/transform-source/references/transformation-rules.md`. The code-transformer agent has access to the full ADCD 2.1 reference docs (`docs/references/adcd/`) for understanding HOW to use AmigaOS functions, not just their signatures.
+### Stage 3: Transform — MANDATORY AGENT DISPATCH
 
-Write transformed source to `ports/<name>/ported/`.
+**YOU MUST dispatch the `code-transformer` agent.** Do not manually edit ported source files. The agent applies transformation rules consistently, adds `/* amiport: */` comments, checks shim availability, and runs stub value impact analysis. A PreToolUse hook (`enforce-agents.sh`) will block direct edits to `ported/*.c` files.
 
-Before transforming, verify which `amiport_*` shim functions actually exist by checking headers in `lib/posix-shim/include/amiport/`. For Tier 2 functions, check `lib/posix-emu/include/amiport-emu/`. If a needed wrapper is missing, either add it to the appropriate library or stub the call.
+```
+Agent(subagent_type="code-transformer", prompt="Transform <port>/ported/ source files for AmigaOS...")
+```
 
-### Stage 4: Build
-Build with: `make build TARGET=ports/<name>`
+**GATE:** Do not proceed to Stage 4 until the code-transformer agent has returned and all ported source files exist in `ports/<name>/ported/`.
 
-If the build fails, iterate: read the errors, fix the transformed source, and rebuild. Maximum 5 iterations.
+Before dispatching, verify which `amiport_*` shim functions actually exist by checking headers in `lib/posix-shim/include/amiport/`. For Tier 2 functions, check `lib/posix-emu/include/amiport-emu/`. If a needed wrapper is missing, use `/extend-shim` to add it before dispatching the transformer.
+
+### Stage 4: Build — MANDATORY AGENT DISPATCH
+
+**YOU MUST dispatch the `build-manager` agent.** Do not run compiler commands directly. A PreToolUse hook (`block-direct-gcc.sh`) blocks direct `m68k-amigaos-gcc` calls.
+
+```
+Agent(subagent_type="build-manager", prompt="Build ports/<name> for AmigaOS...")
+```
+
+The build-manager iterates up to 5 times on compile errors. If it can't resolve a linker error for a missing shim function, it will recommend `/extend-shim`.
+
+**GATE:** Do not proceed to Stage 5 until a compiled binary exists at `ports/<name>/<name>`.
 
 ### Stage 5: Test
 For Category 1-2 (CLI/scripting): Test with `make test TARGET=ports/<name>` (vamos).
@@ -116,15 +133,22 @@ Then package with: `make -C ports/<name> TARGET=<name> package`
 
 This creates `<name>-<version>.lha` containing the binary, readme, and PORT.md — ready for Aminet upload.
 
-## Orchestration
+## Orchestration — Mandatory Agent Dispatch
 
-For larger projects, use the Agent tool to dispatch specialized agents in parallel where possible:
-- `source-analyzer` — for analysis (can run independently)
-- `code-transformer` — for transformation (depends on analysis)
-- `build-manager` — for compilation (depends on transformation)
-- `test-runner` — for testing (depends on build)
+**Every stage MUST dispatch its designated agent.** There is no "small project" exemption. The agents run stub value impact analysis, crash pattern detection, and transformation rule enforcement that inline work skips.
 
-For small projects (1-3 files), running everything inline is faster than agent dispatch overhead.
+A PreToolUse hook (`enforce-agents.sh`) blocks direct edits to `ported/*.c` files. A PreToolUse hook (`block-direct-gcc.sh`) blocks direct compiler calls.
+
+Sequential pipeline — each stage depends on the previous:
+1. `aminet-researcher` → check prior art (Stage 0)
+2. `source-analyzer` → portability analysis with stub value impact analysis (Stage 1)
+3. `code-transformer` → transformation with ADCD reference lookup (Stage 3)
+4. `build-manager` → compilation with error recovery (Stage 4)
+5. `test-runner` → vamos testing (Stage 5)
+6. `memory-checker` → mandatory memory safety (Stage 6b)
+7. `debug-agent` → if crashes detected during FS-UAE testing
+
+**Exception:** Stage 2 (directory setup) and Stage 7 (packaging) are mechanical and run inline.
 
 ## Error Recovery Between Stages
 
