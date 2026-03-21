@@ -64,6 +64,10 @@ LONG amiport_read(int fd, void *buf, LONG count);
 LONG amiport_write(int fd, const void *buf, LONG count);
 LONG amiport_lseek(int fd, LONG offset, int whence);
 
+/* File descriptor duplication */
+int  amiport_dup(int oldfd);
+int  amiport_dup2(int oldfd, int newfd);
+
 /* File operations */
 int  amiport_unlink(const char *path);
 int  amiport_rename(const char *oldpath, const char *newpath);

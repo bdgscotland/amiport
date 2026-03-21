@@ -70,14 +70,16 @@ The `/port-project` skill runs Stage 0 (Aminet research) through Stage 6 (packag
 | `code-transformer` | Stage 3 — source transformation |
 | `build-manager` | Stage 4 — cross-compilation and error fixing |
 | `test-runner` | Stage 5 — vamos testing |
-| `port-coordinator` | Full pipeline orchestration for complex ports |
+| `port-coordinator` | Dispatched by /port-project for complex multi-file ports requiring judgment calls. Not invoked directly. |
 | `dependency-auditor` | Before complex ports — audit external library dependencies |
-| `perf-optimizer` | **Mandatory** Stage 6b — memory safety and 68k optimization |
+| `memory-checker` | **Mandatory** Stage 6b — memory leak detection, double-free, allocation safety |
+| `perf-optimizer` | Optional Stage 6c — 68k instruction timing and loop optimization |
 | `aminet-publisher` | Publishing — curated, never automatic |
 
-**Post-port quality skills (both mandatory for every port):**
-- `/review-amiga <path>` — Amiga-specific code review (stack safety, BPTR handling, memory patterns, conventions)
-- `perf-optimizer` agent — memory leak detection and 68k optimization. **AmigaOS has no memory protection or GC.** Every malloc/realloc without a matching free leaks permanently until reboot. This agent is not optional.
+**Post-port quality gates:**
+- `/review-amiga <path>` — Amiga-specific code review (Stage 6a: stack safety, BPTR handling, conventions)
+- `memory-checker` agent — **Mandatory** (Stage 6b). Finds memory leaks, double-frees, unsafe realloc. **AmigaOS has no memory protection or GC.** Every malloc/realloc without a matching free leaks permanently until reboot.
+- `perf-optimizer` agent — Optional (Stage 6c). 68k performance tuning for performance-critical ports.
 
 ## Documentation Rules — IMPORTANT
 
@@ -129,6 +131,7 @@ make test-console      # Run console shim tests via vamos
 make test-net          # Run BSD socket shim tests via vamos
 make test-fsemu TARGET=ports/grep  # Test via FS-UAE with ARexx harness (Category 3-4)
 make build-uaequit     # Build UAEQuit helper for FS-UAE test automation
+make check-docs        # Validate agent references across all docs
 make package TARGET=examples/wc # Create LHA archive
 make clean             # Remove build artifacts
 ```
@@ -179,6 +182,7 @@ This avoids the need for manual interactive testing in the emulator. See ADR-014
 - `docs/adr/011-beyond-cli-port-categories.md` — ADR for port category taxonomy
 - `docs/adr/014-fs-uae-automated-testing.md` — ADR for FS-UAE automated testing pipeline
 - `docs/references/arexx-reference.md` — ARexx language and API reference for AmigaOS scripting
+- `docs/adr/015-toolkit-quality-infrastructure.md` — ADR for CI, memory-checker split, hooks, check-docs
 
 ## Port Categories (ADR-011)
 
@@ -221,6 +225,33 @@ AmigaOS has no `/tmp`. Use `T:` (which maps to `RAM:T/` by default). The `amipor
 
 ### Epoch offset
 AmigaOS epoch is 1978-01-01, Unix is 1970-01-01. The offset is 252460800 seconds (AMIGA_EPOCH_OFFSET). All time conversions must add this.
+
+## Safety Hooks
+
+The project enforces structural safety via native PreToolUse hooks in `.claude/settings.json`:
+
+- **`block-original-edits.sh`** — Blocks Edit/Write to any path containing `/original/`. Upstream source is read-only.
+- **`block-direct-gcc.sh`** — Blocks direct `m68k-amigaos-gcc`/`ld`/`as` calls in Bash. Forces use of `make` or toolchain wrapper scripts.
+
+Additionally, hookify rules block test file creation in the project root.
+
+## Git Hooks
+
+The repo uses `.githooks/` for git hooks (configured via `git config core.hooksPath .githooks`):
+
+- **pre-commit**: Runs `make check-docs` to validate agent references, checks for stray root files, and verifies port directory hygiene. Blocks commits that would introduce doc drift or violate hygiene rules.
+
+New clones should run: `git config core.hooksPath .githooks`
+
+## Continuous Integration
+
+GitHub Actions CI (`.github/workflows/ci.yml`) runs on every push to main:
+- Builds posix-shim and posix-emu libraries
+- Runs all shim and emulation tests via vamos
+- Validates doc consistency (`make check-docs`)
+- Builds and tests all example ports
+
+The toolchain Docker image is cached on GHCR (`ghcr.io/bdgscotland/amiport-toolchain:latest`).
 
 ## Shim Extension Workflow
 

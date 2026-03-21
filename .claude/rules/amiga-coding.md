@@ -1,3 +1,5 @@
+Paths: ports/**/*.c, ports/**/*.h, lib/**/*.c, lib/**/*.h, examples/**/*.c, examples/**/*.h
+
 # Amiga C Coding Standards
 
 These rules apply to ALL C code targeting AmigaOS in this project.

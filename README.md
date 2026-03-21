@@ -17,6 +17,7 @@ Source Code → Research → Analyze → Transform → Build → Test → Review
 ```bash
 git clone https://github.com/bdgscotland/amiport.git
 cd amiport
+git config core.hooksPath .githooks   # Enable pre-commit validation
 
 # Check prerequisites and set up toolchain
 make doctor             # Check what's installed
@@ -99,8 +100,9 @@ These exercise the shim library and validate the build/test pipeline:
 | `code-transformer` | Systematic source transformation |
 | `build-manager` | Compiler error diagnosis and fixing |
 | `test-runner` | Emulator test execution |
-| `port-coordinator` | Full pipeline orchestration |
-| `perf-optimizer` | 68k hardware performance optimization |
+| `port-coordinator` | Complex multi-file port orchestration (dispatched by /port-project) |
+| `memory-checker` | **Mandatory** memory leak detection and allocation safety |
+| `perf-optimizer` | Optional 68k hardware performance optimization |
 | `dependency-auditor` | Audit external library dependencies |
 | `aminet-publisher` | Prepare and publish ports to Aminet |
 
@@ -160,6 +162,9 @@ make install-emu        # Copy binaries to emulator directory
 make emu                # Launch FS-UAE
 make test-fsemu TARGET=...  # Automated FS-UAE test with ARexx harness
 make build-uaequit     # Build UAEQuit helper for FS-UAE automation
+
+# Validation
+make check-docs         # Validate agent references across all docs
 
 # Package & Info
 make package TARGET=... # Create LHA archive for Aminet

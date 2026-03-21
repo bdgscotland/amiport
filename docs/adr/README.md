@@ -22,6 +22,7 @@ ADRs capture significant technical and architectural decisions with their contex
 | [ADR-012](012-post-porting-quality-gates.md) | Post-porting quality gates | Accepted | 2026-03-20 |
 | [ADR-013](013-port-directory-hygiene.md) | Port directory hygiene | Accepted | 2026-03-20 |
 | [ADR-014](014-fs-uae-automated-testing.md) | FS-UAE automated testing pipeline | Accepted | 2026-03-21 |
+| [ADR-015](015-toolkit-quality-infrastructure.md) | Toolkit quality infrastructure (CI, memory-checker split, hooks, check-docs) | Accepted | 2026-03-21 |
 
 ## Template
 

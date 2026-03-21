@@ -494,6 +494,79 @@ Mark the location for human review and reference `redesign-patterns.md`:
 
 See `redesign-patterns.md` in this same directory for all available patterns.
 
+## 9. Exit Code Fixup — CRITICAL
+
+Every POSIX exit code must be remapped to Amiga conventions. Apply these systematically
+across ALL source files after all other transformations are complete.
+
+```c
+/* RULE: Replace POSIX exit codes with Amiga equivalents */
+
+/* exit() calls */
+// Before:
+exit(1);
+// After:
+exit(10); /* amiport: RETURN_ERROR — visible to Amiga IF ERROR scripts */
+
+// Before:
+exit(EXIT_FAILURE);
+// After:
+exit(10); /* amiport: RETURN_ERROR */
+
+// Before:
+exit(2);
+// After:
+exit(20); /* amiport: RETURN_FAIL — visible to Amiga IF FAIL scripts */
+
+/* err()/errx() calls — exit code is the first argument */
+// Before:
+err(1, "cannot open %s", filename);
+// After:
+err(10, "cannot open %s", filename); /* amiport: RETURN_ERROR */
+
+// Before:
+errx(1, "invalid argument");
+// After:
+errx(10, "invalid argument"); /* amiport: RETURN_ERROR */
+
+// Before:
+err(2, "fatal: %s", msg);
+// After:
+err(20, "fatal: %s", msg); /* amiport: RETURN_FAIL */
+
+// Before:
+errx(2, "fatal error");
+// After:
+errx(20, "fatal error"); /* amiport: RETURN_FAIL */
+
+/* warn()/warnx() — no exit code, no change needed */
+
+/* return from main() */
+// Before:
+return 1;
+// After:
+return 10; /* amiport: RETURN_ERROR */
+
+// Before:
+return 2;
+// After:
+return 20; /* amiport: RETURN_FAIL */
+```
+
+### Exit Code Mapping Table
+
+| POSIX | Amiga | Constant | Amiga Shell Test |
+|-------|-------|----------|-----------------|
+| 0 | 0 | RETURN_OK | (always passes) |
+| 1 | 10 | RETURN_ERROR | `IF ERROR` |
+| 2 | 20 | RETURN_FAIL | `IF FAIL` |
+| EXIT_SUCCESS | 0 | RETURN_OK | (always passes) |
+| EXIT_FAILURE | 10 | RETURN_ERROR | `IF ERROR` |
+
+**Special case:** Some programs use exit(1) for "no match found" (e.g., grep returns 1
+when no lines match). In these cases, use exit(5) (RETURN_WARN) so Amiga scripts can
+distinguish "no match" from "error": `IF WARN` catches exit(5), `IF ERROR` catches exit(10).
+
 ## Legacy: Blocking Patterns — What to Do
 
 When you encounter these, **do not silently remove them**. Stub with a clear message:

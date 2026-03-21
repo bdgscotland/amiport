@@ -76,7 +76,9 @@ Run `/review-amiga` on the ported source to check for Amiga-specific issues:
 - Path conventions (no hardcoded Unix paths)
 - AmigaOS conventions (version string, return codes)
 
-For performance-critical ports, dispatch the `perf-optimizer` agent to suggest 68k-specific optimizations.
+Then dispatch the `memory-checker` agent (**mandatory**) to find memory leaks, double-frees, and allocation safety issues. AmigaOS has no memory protection — every leak persists until reboot.
+
+For performance-critical ports, optionally dispatch the `perf-optimizer` agent to suggest 68k-specific optimizations.
 
 ### 6. Package
 

@@ -1,0 +1,32 @@
+#!/bin/bash
+# pre-commit hook for amiport
+# Validates documentation consistency and port directory hygiene before allowing commits.
+#
+# Install: git config core.hooksPath .githooks
+
+set -e
+
+echo "=== Pre-commit: checking documentation consistency ==="
+make check-docs
+
+echo "=== Pre-commit: checking for stray root files ==="
+# Check for test/build artifacts that shouldn't be in the project root
+STRAY=$(git diff --cached --name-only | grep -E '^(test_|gmon\.out|.*_native$|.*\.o$)' || true)
+if [ -n "$STRAY" ]; then
+    echo "BLOCKED: Stray files in project root:"
+    echo "$STRAY"
+    echo "All test/build artifacts must stay inside ports/<name>/."
+    exit 1
+fi
+
+echo "=== Pre-commit: checking port directory hygiene ==="
+# Verify no binaries in ported/ directories
+PORTED_BINS=$(git diff --cached --name-only | grep -E 'ported/[^.]+$' | grep -v '\.[ch]$' || true)
+if [ -n "$PORTED_BINS" ]; then
+    echo "WARNING: Non-source files staged in ported/ directories:"
+    echo "$PORTED_BINS"
+    echo "Only .c and .h files should be in ported/. Binaries go in the port root."
+    exit 1
+fi
+
+echo "=== Pre-commit: all checks passed ==="

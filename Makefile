@@ -9,7 +9,7 @@
 #   clean            Remove build artifacts
 #   fetch-ndk        Download AmigaOS NDK 3.2 R4
 
-.PHONY: setup-toolchain build-shim build-emu build-console build-net build test test-shim test-emu test-console test-net package clean fetch-ndk help doctor smoke-test compare list-ports build-ports install-emu setup-emu emu publish check-aminet build-uaequit test-fsemu
+.PHONY: setup-toolchain build-shim build-emu build-console build-net build test test-shim test-emu test-console test-net package clean fetch-ndk help doctor smoke-test compare list-ports build-ports install-emu setup-emu emu publish check-aminet build-uaequit test-fsemu check-docs
 
 help:
 	@echo "amiport — AI-powered Amiga porting toolkit"
@@ -40,6 +40,7 @@ help:
 	@echo "  publish          Prepare and upload a port to Aminet (TARGET=ports/cal)"
 	@echo "  install-emu      Copy built binaries to emulator directory"
 	@echo "  emu              Launch FS-UAE with built binaries mounted as WORK:"
+	@echo "  check-docs       Validate agent references across all docs"
 	@echo ""
 	@echo "Claude Code skills:"
 	@echo "  /analyze-source <path>   Analyze source for portability"
@@ -182,6 +183,26 @@ emu: install-emu
 		exit 1; \
 	fi
 	fs-uae toolchain/configs/amiport-test.fs-uae
+
+check-docs:
+	@echo "=== Checking doc consistency ==="
+	@AGENTS=$$(ls .claude/agents/*.md 2>/dev/null | xargs -I{} basename {} .md | sort); \
+	FAIL=0; \
+	for agent in $$AGENTS; do \
+		for doc in CLAUDE.md README.md docs/architecture.md; do \
+			if ! grep -q "$$agent" "$$doc" 2>/dev/null; then \
+				echo "MISSING: '$$agent' not found in $$doc"; \
+				FAIL=1; \
+			fi; \
+		done; \
+	done; \
+	if [ "$$FAIL" -eq 0 ]; then \
+		echo "All $$(echo "$$AGENTS" | wc -w | tr -d ' ') agents referenced in all docs."; \
+	else \
+		echo ""; \
+		echo "FAIL: Agent references missing. Update docs per .claude/rules/documentation.md"; \
+		exit 1; \
+	fi
 
 clean:
 	$(MAKE) -C lib/posix-shim clean

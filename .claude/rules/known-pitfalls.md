@@ -1,3 +1,5 @@
+Paths: ports/**/*.c, ports/**/*.h, lib/**/*.c, lib/**/*.h, examples/**/*.c, examples/**/*.h
+
 # Known Pitfalls — Hard-Won Lessons
 
 These are real bugs encountered in real ports. Check for them every time.
