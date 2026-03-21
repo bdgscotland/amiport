@@ -15,9 +15,10 @@ tests/shim/test_*
 !tests/shim/test_*.c
 !tests/shim/test_*.h
 
-# Port packaging artifacts
+# Port packaging artifacts and generated reports
 ports/*/*.lha
 ports/*/*.zip
+ports/*/TEST-REPORT.md
 
 # Stray binaries in ported source dirs (compiled binaries go in ports/<name>/<name> only)
 ports/*/ported/[a-z]*

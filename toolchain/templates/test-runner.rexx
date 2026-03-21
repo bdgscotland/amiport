@@ -30,20 +30,19 @@ IF ~OPEN('tf', testfile, 'R') THEN DO
     EXIT 20
 END
 
-/* Parse test cases */
-tests. = ''
+/* Parse test cases into simple indexed arrays */
 testcount = 0
 DO WHILE ~EOF('tf')
     line = READLN('tf')
     IF LEFT(line, 5) = 'TEST:' THEN DO
         testcount = testcount + 1
-        tests.testcount.desc = STRIP(SUBSTR(line, 6))
+        desc.testcount = STRIP(SUBSTR(line, 6))
     END
     ELSE IF LEFT(line, 4) = 'CMD:' THEN DO
-        tests.testcount.cmd = STRIP(SUBSTR(line, 5))
+        cmd.testcount = STRIP(SUBSTR(line, 5))
     END
     ELSE IF LEFT(line, 7) = 'EXPECT:' THEN DO
-        tests.testcount.expect = STRIP(SUBSTR(line, 8))
+        expect.testcount = STRIP(SUBSTR(line, 8))
     END
 END
 CALL CLOSE('tf')
@@ -59,13 +58,13 @@ CALL WRITELN('rf', '1..' || testcount)
 passed = 0
 failed = 0
 DO i = 1 TO testcount
-    desc = tests.i.desc
-    cmd = tests.i.cmd
-    expect = tests.i.expect
+    tdesc = desc.i
+    tcmd = cmd.i
+    texpect = expect.i
     outfile = 'T:test_out_' || i || '.txt'
 
     /* Run the command, redirect output to temp file */
-    ADDRESS COMMAND cmd '>' outfile
+    ADDRESS COMMAND tcmd '>' outfile
 
     /* Read actual output */
     actual = ''
@@ -75,13 +74,13 @@ DO i = 1 TO testcount
     END
 
     /* Compare */
-    IF STRIP(actual) = STRIP(expect) THEN DO
-        CALL WRITELN('rf', 'ok' i '-' desc)
+    IF STRIP(actual) = STRIP(texpect) THEN DO
+        CALL WRITELN('rf', 'ok' i '- ' || tdesc)
         passed = passed + 1
     END
     ELSE DO
-        CALL WRITELN('rf', 'not ok' i '-' desc)
-        CALL WRITELN('rf', '#   expected:' expect)
+        CALL WRITELN('rf', 'not ok' i '- ' || tdesc)
+        CALL WRITELN('rf', '#   expected:' texpect)
         CALL WRITELN('rf', '#   actual:  ' actual)
         failed = failed + 1
     END

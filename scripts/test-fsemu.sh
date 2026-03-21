@@ -280,6 +280,121 @@ parse_results() {
 }
 
 # ============================================================
+# Generate test report
+# ============================================================
+generate_report() {
+    local port_dir="$1"
+    local port_name
+    port_name=$(basename "$port_dir")
+    local report_file="$port_dir/TEST-REPORT.md"
+    local template="$TOOLCHAIN_DIR/templates/test-report.md.template"
+    local tap_file="$RESULTS_DIR/tap-output.txt"
+    local sentinel="$RESULTS_DIR/tests-complete"
+    local cases_file="$port_dir/test-fsemu-cases.txt"
+
+    if [ ! -f "$template" ]; then
+        echo -e "${YELLOW}No report template found — skipping report generation${NC}"
+        return 0
+    fi
+
+    # Gather data
+    local fsuae_version
+    fsuae_version=$(fs-uae --version 2>/dev/null || echo "unknown")
+    local binary_size="unknown"
+    if [ -f "$port_dir/$port_name" ]; then
+        binary_size=$(ls -lh "$port_dir/$port_name" | awk '{print $5}')
+    fi
+    local duration=$(($(date +%s) - START_TIME))
+    local date_str
+    date_str=$(date "+%Y-%m-%d %H:%M:%S")
+
+    # Determine result
+    local result_str="UNKNOWN"
+    local passed=0 failed=0 total=0
+    if [ -f "$tap_file" ]; then
+        total=$(grep -cE "^ok |^not ok" "$tap_file" 2>/dev/null) || total=0
+        passed=$(grep -c "^ok " "$tap_file" 2>/dev/null) || passed=0
+        failed=$(grep -c "^not ok" "$tap_file" 2>/dev/null) || failed=0
+        if [ "$failed" -gt 0 ]; then
+            result_str="**FAIL** — $passed/$total passed, $failed failed"
+        else
+            result_str="**PASS** — $passed/$total passed"
+        fi
+    else
+        result_str="**NO RESULTS** — ARexx harness did not produce output"
+    fi
+
+    # Build test table from TAP output
+    local test_table=""
+    local test_num=0
+    if [ -f "$tap_file" ]; then
+        while IFS= read -r line; do
+            case "$line" in
+                "ok "*)
+                    test_num=$((test_num + 1))
+                    local desc="${line#ok * - }"
+                    [ "$desc" = "$line" ] && desc="${line#ok *}"
+                    test_table="${test_table}| $test_num | $desc | PASS | |"$'\n'
+                    ;;
+                "not ok "*)
+                    test_num=$((test_num + 1))
+                    local desc="${line#not ok * - }"
+                    [ "$desc" = "$line" ] && desc="${line#not ok *}"
+                    test_table="${test_table}| $test_num | $desc | **FAIL** | |"$'\n'
+                    ;;
+                "#   expected:"*|"#   actual:"*)
+                    # Append detail to previous row
+                    test_table="${test_table}| | | | \`${line#\#   }\` |"$'\n'
+                    ;;
+            esac
+        done < "$tap_file"
+    fi
+
+    # Read raw inputs
+    local tap_output="(no results)"
+    [ -f "$tap_file" ] && tap_output=$(cat "$tap_file")
+
+    local test_cases_raw="(no test cases file)"
+    [ -f "$cases_file" ] && test_cases_raw=$(cat "$cases_file")
+
+    local sentinel_contents="(not created — tests may not have completed)"
+    [ -f "$sentinel" ] && sentinel_contents=$(cat "$sentinel")
+
+    local emu_log="(log not captured in this run)"
+
+    # Generate report from template
+    sed -e "s|__PORT_NAME__|$port_name|g" \
+        -e "s|__DATE__|$date_str|g" \
+        -e "s|__DURATION__|$duration|g" \
+        -e "s|__FSUAE_VERSION__|$fsuae_version|g" \
+        -e "s|__BINARY_SIZE__|$binary_size|g" \
+        -e "s|__RESULT__|$result_str|g" \
+        "$template" > "$report_file"
+
+    # Replace multi-line placeholders (sed can't do these easily)
+    python3 -c "
+import sys
+with open('$report_file', 'r') as f:
+    content = f.read()
+replacements = {
+    '__TAP_OUTPUT__': '''$(echo "$tap_output" | sed "s/'/'\\''/g")''',
+    '__TEST_CASES_RAW__': '''$(echo "$test_cases_raw" | sed "s/'/'\\''/g")''',
+    '__SENTINEL_CONTENTS__': '''$(echo "$sentinel_contents" | sed "s/'/'\\''/g")''',
+    '__EMU_LOG__': '''$(echo "$emu_log" | sed "s/'/'\\''/g")''',
+    '__TEST_TABLE__': '''$(echo "$test_table" | sed "s/'/'\\''/g")''',
+}
+for key, val in replacements.items():
+    content = content.replace(key, val)
+with open('$report_file', 'w') as f:
+    f.write(content)
+" 2>/dev/null || true
+
+    echo ""
+    echo -e "${GREEN}Test report saved to: $report_file${NC}"
+    echo ""
+}
+
+# ============================================================
 # Cleanup
 # ============================================================
 cleanup() {
@@ -342,6 +457,8 @@ main() {
 
     echo "=== FS-UAE Testing: $port_name ==="
 
+    START_TIME=$(date +%s)
+
     # Set up trap for cleanup
     trap cleanup EXIT
 
@@ -365,14 +482,19 @@ main() {
     # file exists, the tests DID complete successfully.
     if [ -f "$RESULTS_DIR/tests-complete" ]; then
         parse_results
-        exit $?
+        local test_exit=$?
+        generate_report "$port_dir"
+        exit $test_exit
     elif [ $emu_exit -ne 0 ]; then
         echo -e "${RED}FS-UAE testing failed (timeout or crash, no results)${NC}"
         parse_results 2>/dev/null || true
+        generate_report "$port_dir"
         exit 1
     else
         parse_results
-        exit $?
+        local test_exit=$?
+        generate_report "$port_dir"
+        exit $test_exit
     fi
 }
 
