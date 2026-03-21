@@ -9,7 +9,7 @@
 #   clean            Remove build artifacts
 #   fetch-ndk        Download AmigaOS NDK 3.2 R4
 
-.PHONY: setup-toolchain build-shim build-emu build-console build-net build test test-shim test-emu test-console test-net package clean fetch-ndk help doctor smoke-test compare list-ports build-ports install-emu setup-emu emu publish check-aminet
+.PHONY: setup-toolchain build-shim build-emu build-console build-net build test test-shim test-emu test-console test-net package clean fetch-ndk help doctor smoke-test compare list-ports build-ports install-emu setup-emu emu publish check-aminet build-uaequit test-fsemu
 
 help:
 	@echo "amiport — AI-powered Amiga porting toolkit"
@@ -34,6 +34,8 @@ help:
 	@echo "  compare          Compare native vs Amiga output (TARGET=examples/foo)"
 	@echo "  list-ports       List all ports and their status"
 	@echo "  build-ports      Build all ports"
+	@echo "  build-uaequit    Build UAEQuit (emulator shutdown tool)"
+	@echo "  test-fsemu       Run FS-UAE automated tests (TARGET=ports/grep)"
 	@echo "  setup-emu        Install FS-UAE and check for Kickstart ROM"
 	@echo "  publish          Prepare and upload a port to Aminet (TARGET=ports/cal)"
 	@echo "  install-emu      Copy built binaries to emulator directory"
@@ -163,6 +165,15 @@ setup-emu:
 
 install-emu:
 	@bash scripts/install-emu.sh
+
+build-uaequit:
+	$(MAKE) -C toolchain/uaequit
+
+test-fsemu: build-uaequit install-emu
+ifndef TARGET
+	$(error TARGET is required. Usage: make test-fsemu TARGET=ports/grep)
+endif
+	@bash scripts/test-fsemu.sh $(TARGET)
 
 emu: install-emu
 	@if ! command -v fs-uae >/dev/null 2>&1; then \

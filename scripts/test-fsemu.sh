@@ -1,0 +1,373 @@
+#!/bin/bash
+#
+# test-fsemu.sh — Automated FS-UAE testing for amiport ports
+#
+# Boots FS-UAE headless, runs an ARexx test harness inside AmigaOS,
+# captures TAP-format results via shared volume, reports pass/fail.
+#
+# Usage:
+#   scripts/test-fsemu.sh ports/grep        # Test a specific port
+#   scripts/test-fsemu.sh --all             # Test all ports with test-fsemu targets
+#   make test-fsemu TARGET=ports/grep       # Via Makefile
+#
+# Architecture (ADR-014):
+#   Host prepares a boot volume with test script + binaries
+#   FS-UAE boots headless, runs ARexx test harness, writes results
+#   UAEQuit shuts down emulator, host reads TAP results
+#
+# Prerequisites:
+#   - FS-UAE installed (brew install fs-uae)
+#   - Kickstart 3.1 ROM at ~/Documents/FS-UAE/Kickstarts/kick3.1.rom
+#   - Bootable system at build/system/
+#   - UAEQuit binary built (make build-uaequit)
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PROJECT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+SYSTEM_DIR="$PROJECT_DIR/build/system"
+AMIGA_DIR="$PROJECT_DIR/build/amiga"
+TOOLCHAIN_DIR="$PROJECT_DIR/toolchain"
+KICKSTART="$HOME/Documents/FS-UAE/Kickstarts/kick3.1.rom"
+TIMEOUT_SECONDS=60
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+NC='\033[0m' # No Color
+
+usage() {
+    echo "Usage: $0 <port-directory> [--timeout N]"
+    echo "       $0 --all [--timeout N]"
+    echo ""
+    echo "Options:"
+    echo "  --timeout N    Timeout in seconds (default: 60)"
+    echo "  --all          Test all ports that have test-fsemu targets"
+    exit 1
+}
+
+# ============================================================
+# Pre-flight checks
+# ============================================================
+preflight() {
+    local errors=0
+
+    if ! command -v fs-uae >/dev/null 2>&1; then
+        echo -e "${RED}ERROR: FS-UAE not installed. Install with: brew install fs-uae${NC}"
+        errors=$((errors + 1))
+    fi
+
+    if [ ! -f "$KICKSTART" ]; then
+        echo -e "${RED}ERROR: Kickstart ROM not found at $KICKSTART${NC}"
+        errors=$((errors + 1))
+    fi
+
+    if [ ! -d "$SYSTEM_DIR/S" ]; then
+        echo -e "${RED}ERROR: No bootable system at $SYSTEM_DIR${NC}"
+        echo "  Run: make setup-emu"
+        errors=$((errors + 1))
+    fi
+
+    if [ ! -f "$TOOLCHAIN_DIR/uaequit/UAEQuit" ]; then
+        echo -e "${YELLOW}Building UAEQuit...${NC}"
+        make -C "$TOOLCHAIN_DIR/uaequit" 2>&1 | tail -1
+        if [ ! -f "$TOOLCHAIN_DIR/uaequit/UAEQuit" ]; then
+            echo -e "${RED}ERROR: Failed to build UAEQuit${NC}"
+            errors=$((errors + 1))
+        fi
+    fi
+
+    if [ $errors -gt 0 ]; then
+        echo -e "${RED}Pre-flight failed with $errors error(s)${NC}"
+        exit 1
+    fi
+}
+
+# ============================================================
+# Generate test cases from port's Makefile test-fsemu target
+# ============================================================
+generate_test_cases() {
+    local port_dir="$1"
+    local port_name
+    port_name=$(basename "$port_dir")
+    local cases_file="$RESULTS_DIR/test-cases.txt"
+
+    # Check if port has a test-fsemu-cases file
+    if [ -f "$port_dir/test-fsemu-cases.txt" ]; then
+        cp "$port_dir/test-fsemu-cases.txt" "$cases_file"
+        return 0
+    fi
+
+    # Generate basic smoke test: run the program with --help or -V
+    # and verify it doesn't crash (exit code 0 or 5 or 10, not 20)
+    cat > "$cases_file" << EOF
+TEST: ${port_name} runs without crashing
+CMD: WORK:${port_name} -V
+EXPECT: grep version
+EOF
+
+    echo -e "${YELLOW}No test-fsemu-cases.txt found for $port_name — using smoke test${NC}"
+}
+
+# ============================================================
+# Build the temporary boot volume
+# ============================================================
+build_boot_volume() {
+    local port_dir="$1"
+    local port_name
+    port_name=$(basename "$port_dir")
+
+    # Create results directory (mounted as RESULTS: in FS-UAE)
+    RESULTS_DIR=$(mktemp -d "${TMPDIR:-/tmp}/amiport-fsemu-XXXXXX")
+
+    # Install binaries to build/amiga/ if not already there
+    bash "$PROJECT_DIR/scripts/install-emu.sh" 2>/dev/null
+
+    # Copy UAEQuit to the system C: directory
+    cp "$TOOLCHAIN_DIR/uaequit/UAEQuit" "$SYSTEM_DIR/C/UAEQuit" 2>/dev/null || true
+
+    # Copy ARexx test runner to build/amiga/ (mounted as WORK:)
+    cp "$TOOLCHAIN_DIR/templates/test-runner.rexx" "$AMIGA_DIR/test-runner.rexx"
+
+    # Generate test cases
+    generate_test_cases "$port_dir"
+    cp "$RESULTS_DIR/test-cases.txt" "$AMIGA_DIR/test-cases.txt"
+
+    # Copy any test data files (test-*.txt) from the port directory to WORK:
+    for datafile in "$port_dir"/test-*.txt; do
+        if [ -f "$datafile" ] && [ "$(basename "$datafile")" != "test-fsemu-cases.txt" ]; then
+            cp "$datafile" "$AMIGA_DIR/"
+        fi
+    done
+
+    # Create a User-Startup that runs the test harness
+    # (The main Startup-Sequence should already start RexxMast and then
+    #  execute User-Startup. We just need to add our test command.)
+    mkdir -p "$SYSTEM_DIR/S"
+
+    # Save existing User-Startup and append test runner
+    if [ -f "$SYSTEM_DIR/S/User-Startup" ]; then
+        cp "$SYSTEM_DIR/S/User-Startup" "$SYSTEM_DIR/S/User-Startup.bak"
+    fi
+
+    cat > "$SYSTEM_DIR/S/User-Startup" << 'AMIGA_SCRIPT'
+; amiport FS-UAE test runner
+; Auto-generated — will be restored after test run
+Wait 2
+rx WORK:test-runner.rexx
+AMIGA_SCRIPT
+}
+
+# ============================================================
+# Generate FS-UAE config for this test run
+# ============================================================
+generate_config() {
+    local config_file="$RESULTS_DIR/test-config.fs-uae"
+
+    cat > "$config_file" << EOF
+# FS-UAE config for automated testing (generated)
+amiga_model = A1200
+kickstart_file = $KICKSTART
+
+# System hard drive (bootable Workbench 3.1)
+hard_drive_0 = $SYSTEM_DIR
+hard_drive_0_label = System
+hard_drive_0_priority = 1
+
+# Work drive (built ports and test harness)
+hard_drive_1 = $AMIGA_DIR
+hard_drive_1_label = WORK
+
+# Results drive (test output written here)
+hard_drive_2 = $RESULTS_DIR
+hard_drive_2_label = RESULTS
+
+# Headless settings
+window_width = 720
+window_height = 568
+EOF
+
+    echo "$config_file"
+}
+
+# ============================================================
+# Run FS-UAE with watchdog
+# ============================================================
+run_emulator() {
+    local config_file="$1"
+    local start_time
+    start_time=$(date +%s)
+
+    echo -e "${YELLOW}Launching FS-UAE headless (timeout: ${TIMEOUT_SECONDS}s)...${NC}"
+
+    # Launch FS-UAE headless
+    FSEMU_VIDEO_DRIVER=null FSEMU_AUDIO_DRIVER=null \
+        fs-uae "$config_file" >/dev/null 2>&1 &
+    local fsuae_pid=$!
+
+    # Watchdog loop
+    while true; do
+        local elapsed=$(( $(date +%s) - start_time ))
+
+        # Check if FS-UAE exited (UAEQuit called)
+        if ! kill -0 "$fsuae_pid" 2>/dev/null; then
+            wait "$fsuae_pid" 2>/dev/null || true
+            echo "  FS-UAE exited after ${elapsed}s"
+            return 0
+        fi
+
+        # Check timeout
+        if [ "$elapsed" -ge "$TIMEOUT_SECONDS" ]; then
+            echo -e "${RED}  TIMEOUT: FS-UAE did not exit within ${TIMEOUT_SECONDS}s${NC}"
+            kill "$fsuae_pid" 2>/dev/null || true
+            wait "$fsuae_pid" 2>/dev/null || true
+            return 1
+        fi
+
+        # Check for sentinel file (tests completed)
+        if [ -f "$RESULTS_DIR/tests-complete" ]; then
+            # Give FS-UAE a moment to process UAEQuit
+            sleep 2
+            if ! kill -0 "$fsuae_pid" 2>/dev/null; then
+                wait "$fsuae_pid" 2>/dev/null || true
+                echo "  Tests completed and FS-UAE exited after ${elapsed}s"
+                return 0
+            fi
+        fi
+
+        sleep 1
+    done
+}
+
+# ============================================================
+# Parse TAP results
+# ============================================================
+parse_results() {
+    local tap_file="$RESULTS_DIR/tap-output.txt"
+
+    if [ ! -f "$tap_file" ]; then
+        echo -e "${RED}ERROR: No test results found (tap-output.txt missing)${NC}"
+        echo "  The ARexx test harness may not have run."
+        echo "  Check if RexxMast is started in S/Startup-Sequence."
+        return 1
+    fi
+
+    echo ""
+    echo "=== FS-UAE Test Results ==="
+    cat "$tap_file"
+    echo ""
+
+    # Parse pass/fail counts
+    local total passed failed
+    total=$(grep -cE "^ok |^not ok" "$tap_file" 2>/dev/null || echo "0")
+    passed=$(grep -c "^ok " "$tap_file" 2>/dev/null || echo "0")
+    failed=$(grep -c "^not ok" "$tap_file" 2>/dev/null || echo "0")
+
+    if [ "$failed" -gt 0 ]; then
+        echo -e "${RED}RESULT: $passed/$total passed, $failed FAILED${NC}"
+        return 1
+    else
+        echo -e "${GREEN}RESULT: $passed/$total passed${NC}"
+        return 0
+    fi
+}
+
+# ============================================================
+# Cleanup
+# ============================================================
+cleanup() {
+    # Restore original User-Startup
+    if [ -f "$SYSTEM_DIR/S/User-Startup.bak" ]; then
+        mv "$SYSTEM_DIR/S/User-Startup.bak" "$SYSTEM_DIR/S/User-Startup"
+    else
+        rm -f "$SYSTEM_DIR/S/User-Startup"
+    fi
+
+    # Clean up temp files from WORK:
+    rm -f "$AMIGA_DIR/test-runner.rexx" "$AMIGA_DIR/test-cases.txt"
+
+    # Clean up results dir
+    if [ -n "${RESULTS_DIR:-}" ] && [ -d "${RESULTS_DIR:-}" ]; then
+        rm -rf "$RESULTS_DIR"
+    fi
+}
+
+# ============================================================
+# Main
+# ============================================================
+main() {
+    local port_dir=""
+
+    # Parse arguments
+    while [ $# -gt 0 ]; do
+        case "$1" in
+            --timeout)
+                TIMEOUT_SECONDS="$2"
+                shift 2
+                ;;
+            --all)
+                echo "TODO: --all mode not yet implemented"
+                exit 1
+                ;;
+            -h|--help)
+                usage
+                ;;
+            *)
+                port_dir="$1"
+                shift
+                ;;
+        esac
+    done
+
+    if [ -z "$port_dir" ]; then
+        usage
+    fi
+
+    # Resolve port directory
+    port_dir="$PROJECT_DIR/$port_dir"
+    if [ ! -d "$port_dir" ]; then
+        echo -e "${RED}ERROR: Port directory not found: $port_dir${NC}"
+        exit 1
+    fi
+
+    local port_name
+    port_name=$(basename "$port_dir")
+
+    echo "=== FS-UAE Testing: $port_name ==="
+
+    # Set up trap for cleanup
+    trap cleanup EXIT
+
+    # Pre-flight checks
+    preflight
+
+    # Build boot volume
+    build_boot_volume "$port_dir"
+
+    # Generate config
+    local config_file
+    config_file=$(generate_config)
+
+    # Run emulator with watchdog
+    local emu_exit=0
+    run_emulator "$config_file" || emu_exit=$?
+
+    # Check if tests completed (sentinel file exists) regardless of
+    # how the emulator exited. UAEQuit may not work in headless mode,
+    # so the watchdog kills FS-UAE after timeout — but if the sentinel
+    # file exists, the tests DID complete successfully.
+    if [ -f "$RESULTS_DIR/tests-complete" ]; then
+        parse_results
+        exit $?
+    elif [ $emu_exit -ne 0 ]; then
+        echo -e "${RED}FS-UAE testing failed (timeout or crash, no results)${NC}"
+        parse_results 2>/dev/null || true
+        exit 1
+    else
+        parse_results
+        exit $?
+    fi
+}
+
+main "$@"
