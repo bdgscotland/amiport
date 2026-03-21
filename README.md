@@ -1,15 +1,31 @@
 # amiport
 
-AI-powered toolkit for porting Linux/POSIX C software to the Commodore Amiga. Uses Claude Code skills and agents to automate the analysis, transformation, cross-compilation, and testing pipeline.
+A porting platform for bringing modern software to the classic Amiga.
 
-## How It Works
+amiport combines POSIX compatibility libraries, AI-powered build agents, and a complete AmigaOS developer knowledge base to port Linux/POSIX C programs to AmigaOS 3.x — from source analysis through to tested, Aminet-ready binaries.
 
-```
-Source Code → Research → Analyze → Transform → Build → Test → Review → Package
-                │          │          │          │        │        │         │
-            check if    portability  POSIX→    cross-   vamos   Amiga-    LHA for
-            already on   report     Amiga    compile  emulator specific   Aminet
-            Aminet                                             review
+[![CI](https://github.com/bdgscotland/amiport/actions/workflows/ci.yml/badge.svg)](https://github.com/bdgscotland/amiport/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Aminet](https://img.shields.io/badge/Aminet-2_ports_live-blue)](https://aminet.net)
+
+## Ports
+
+| Port | Version | Category | Description | Status |
+|------|---------|----------|-------------|--------|
+| [cal](ports/cal/) | 1.32 | CLI | Unix calendar display (OpenBSD) | [Live on Aminet](https://aminet.net/package/util/cli/cal-1.0) |
+| [cut](ports/cut/) | 1.28 | CLI | Extract fields/columns from text (OpenBSD) | [Live on Aminet](https://aminet.net/package/util/cli/cut-1.0) |
+| [diff](ports/diff/) | 1.95 | CLI | File comparison utility (OpenBSD) | Known issues |
+| [grep](ports/grep/) | 1.68 | CLI | Pattern search — regex, fixed, recursive (OpenBSD) | Built & tested |
+| [sed](ports/sed/) | 1.47 | CLI | Stream editor — text transformation (OpenBSD) | Built & tested |
+| [lua](ports/lua/) | 5.4.7 | Scripting | Lua 5.4 scripting language (PUC-Rio) | Built & tested |
+
+Pre-built Amiga binaries are included in each port directory. See **[PORTS.md](PORTS.md)** for the full catalog.
+
+```bash
+make build TARGET=ports/grep        # Build a specific port
+make test TARGET=ports/grep         # Test in vamos emulator
+make list-ports                     # Show all ports and status
+make publish TARGET=ports/grep      # Package and upload to Aminet
 ```
 
 ## Quick Start
@@ -24,7 +40,7 @@ make doctor             # Check what's installed
 make setup-toolchain    # Pull cross-compiler Docker image
 
 # Validate everything works
-make smoke-test         # Full end-to-end: build shim → build examples → test in vamos
+make smoke-test         # Full end-to-end: build shim -> build examples -> test in vamos
 
 # Port a project (from within Claude Code)
 /port-project /path/to/source.c
@@ -32,173 +48,150 @@ make smoke-test         # Full end-to-end: build shim → build examples → tes
 
 **Prerequisites:** Docker, Python 3, pip (`pip install amitools` for vamos)
 
-## Ports
+## How It Works
 
-Ported programs live in `ports/` — each packages independently for [Aminet](https://aminet.net) upload. See **[PORTS.md](PORTS.md)** for the full catalog with versions, shim coverage, and Aminet status.
+### Compatibility Libraries
 
-| Port | Version | Category | Description | Status |
-|------|---------|----------|-------------|--------|
-| [cal](ports/cal/) | 1.32 | CLI | Unix calendar display (OpenBSD) | Built & tested |
-| [cut](ports/cut/) | 1.28 | CLI | Extract fields/columns from text (OpenBSD) | Built & tested |
-| [diff](ports/diff/) | 1.95 | CLI | File comparison utility (OpenBSD) | Built & tested |
-| [grep](ports/grep/) | 1.68 | CLI | Pattern search — regex, fixed string, recursive (OpenBSD) | Built & tested |
-| [sed](ports/sed/) | 1.47 | CLI | Stream editor — text transformation (OpenBSD) | Built & tested |
-| [lua](ports/lua/) | 5.4.7 | Scripting | Lua scripting language — first Lua 5.4 on any Amiga platform (PUC-Rio) | Built & tested |
+Most porting failures come from the POSIX gap — AmigaOS predates POSIX and provides none of its APIs natively. A typical Unix utility calls dozens of POSIX functions that simply do not exist on the Amiga. amiport bridges this with a three-tier compatibility model:
 
-```bash
-make list-ports                      # Show all ports and status
-make build TARGET=ports/cal          # Build a specific port
-make test TARGET=ports/cal           # Test in vamos emulator
-make publish TARGET=ports/cal        # Package and upload to Aminet
+- **Tier 1 — posix-shim:** Direct POSIX-to-AmigaOS wrappers for ~50 functions where the semantics map cleanly (`open`, `read`, `stat`, `opendir`, `getopt`, etc.). Drop-in replacements with no caveats.
+- **Tier 2 — posix-emu:** Approximate emulation for functions that have no direct Amiga equivalent but can be faked well enough for most use cases (`regex`, `pipe`, `select`, `mmap`). Each comes with documented limitations.
+- **Tier 3 — Redesign required:** Functions that cannot be emulated and require architectural changes to the ported program (`fork`/`exec`, `pthreads`, X11/GTK/Qt). The pipeline flags these during analysis so you know up front.
+
+| Library | Purpose | Link Flag |
+|---------|---------|-----------|
+| `lib/posix-shim/` | Tier 1: Direct POSIX-to-AmigaOS wrappers | `-lamiport` |
+| `lib/posix-emu/` | Tier 2: Approximate POSIX emulation | `-lamiport-emu` |
+| `lib/console-shim/` | Minimal ncurses API via console.device ANSI escapes | `-lamiport-console` |
+| `lib/bsdsocket-shim/` | BSD socket API via bsdsocket.library | `-lamiport-net` |
+
+See [docs/posix-tiers.md](docs/posix-tiers.md) for the complete function classification and [docs/architecture.md](docs/architecture.md) for the system design.
+
+### AI Pipeline
+
+The porting pipeline is 10 specialized AI agents, each with a defined role and constrained tools. Claude Code sits at the center, dispatching agents sequentially as each stage completes.
+
+```mermaid
+graph TD
+    CC["/port-project\n(Claude Code)"] --> A[aminet-researcher]
+    CC --> B[source-analyzer]
+    CC --> C[code-transformer]
+    CC --> D[build-manager]
+    CC --> E[test-runner]
+    CC --> F["memory-checker\n(mandatory)"]
+    CC --> G[perf-optimizer]
+    CC --> H[aminet-publisher]
+
+    A -->|"already exists?"| B
+    B -->|"portability report"| C
+    C -->|"transformed source"| D
+    D -->|"compiled binary"| E
+    E -->|"test results"| F
+    F -->|"clean bill"| G
+    G -->|"optimized"| H
 ```
 
-## Interactive Emulator Testing
+Safety hooks enforce discipline across the pipeline:
 
-Test ports on a full Amiga desktop using FS-UAE:
+- Upstream source in `original/` directories is read-only — agents cannot edit it
+- Direct compiler invocation is blocked — all builds go through `make` and the toolchain wrapper scripts
+- The memory-checker agent runs on every port, mandatory, no exceptions — AmigaOS has no memory protection and no garbage collector, so every leaked allocation persists until reboot
+
+| Agent | Role |
+|-------|------|
+| `aminet-researcher` | Check Aminet for existing ports before starting |
+| `source-analyzer` | Deep portability analysis and tier classification |
+| `code-transformer` | Systematic POSIX-to-Amiga source transformation |
+| `build-manager` | Cross-compilation, error diagnosis, shim extension |
+| `test-runner` | Emulator test execution and output validation |
+| `port-coordinator` | Multi-file port orchestration and judgment calls |
+| `memory-checker` | Memory leak detection, double-free, allocation safety |
+| `perf-optimizer` | 68k instruction timing and loop optimization |
+| `dependency-auditor` | External library dependency analysis |
+| `aminet-publisher` | Aminet packaging, readme generation, upload |
+
+Every architectural decision is recorded in ADRs and product decisions in PDRs — see [docs/adr/](docs/adr/) and [docs/pdr/](docs/pdr/).
+
+The pipeline is currently driven by `/port-project`, which dispatches agents sequentially as a human-in-the-loop workflow. Full agent-to-agent orchestration is planned. Individual stages are also available directly as `/analyze-source`, `/transform-source`, `/build-amiga`, `/test-amiga`, and `/review-amiga`.
+
+### Testing
+
+Two automated testing paths cover different port categories, so every port gets validated without manual intervention.
+
+**vamos** — fast, headless testing for CLI tools and scripting interpreters (Categories 1-2). A virtual AmigaOS runtime that runs in milliseconds with no emulator setup required.
+
+```bash
+make test TARGET=ports/grep         # Test a specific port
+make smoke-test                     # Full end-to-end validation
+```
+
+**FS-UAE** — automated testing via ARexx harness for console UI and network apps (Categories 3-4). Test cases run unattended with TAP output and UAEQuit for automatic emulator shutdown. See [ADR-014](docs/adr/014-fs-uae-automated-testing.md) for the design.
+
+```bash
+make test-fsemu TARGET=ports/less   # Automated FS-UAE test with ARexx harness
+```
+
+**Interactive testing** — for manual exploration on a full Amiga desktop:
 
 ```bash
 make setup-emu          # Install FS-UAE, check for Kickstart ROM
-make build-ports        # Build everything
 make install-emu        # Copy binaries to emulator directory
 make emu                # Launch FS-UAE — ports mounted as WORK:
 ```
 
-In the Amiga shell: `WORK:cal 3 2026`
+Requires [FS-UAE](https://fs-uae.net) and a Kickstart 3.1 ROM (~$10 from [amigaforever.com](https://www.amigaforever.com)).
 
-**Requires:** [FS-UAE](https://fs-uae.net), Kickstart 3.1 ROM (~$10 from [amigaforever.com](https://www.amigaforever.com))
+### AmigaOS Knowledge Base
 
-## Example Ports (Pipeline Validation)
+The project includes the complete Amiga Developer CD v2.1 — Commodore's official developer reference — converted to 3,600+ searchable markdown pages across five volumes:
 
-These exercise the shim library and validate the build/test pipeline:
+- **Libraries** — Exec, DOS, Intuition, Graphics, and every other system library
+- **Devices** — Console, Input, Timer, Audio, Serial, and more
+- **Hardware** — Custom chips, DMA, copper lists, blitter
+- **Amiga Mail** — Technical articles and programming guides
+- **Autodocs** — Parsed API function signatures for 896 functions across 21 libraries
 
-| Example | Complexity | Shim Functions Exercised |
-|---------|-----------|-------------------------|
-| `wc` | Trivial | None (stdio only) |
-| `head` | Moderate | `amiport_open`, `amiport_read`, `amiport_close`, `amiport_write`, `amiport_getopt` |
-| `mini-find` | Complex | `amiport_opendir`, `amiport_readdir`, `amiport_closedir`, `amiport_stat`, `amiport_getopt` |
+This is the reference material the AI agents reason with when making porting decisions — when the code-transformer needs to know how `dos.library/Lock()` works, or the build-manager needs to understand `exec/memory.h` structures, the answer is already in context.
 
-## Architecture
+The knowledge base is also independently useful as a modern, searchable version of the classic Commodore developer documentation.
 
-### Pipeline Skills
+Regenerate from source with `make scrape-adcd` (requires internet access, ~20 minutes).
 
-| Skill | Purpose |
-|-------|---------|
-| `/analyze-source` | Scan C code for portability issues |
-| `/transform-source` | Replace POSIX calls with Amiga/shim equivalents |
-| `/build-amiga` | Cross-compile using Docker toolchain |
-| `/test-amiga` | Test binaries in vamos emulator |
-| `/review-amiga` | Amiga-specific code review (stack, memory, BPTR, conventions) |
-| `/write-arexx` | Write ARexx scripts for AmigaOS |
-| `/port-project` | Orchestrate the full pipeline (including Aminet research) |
-
-### Specialized Agents
-
-| Agent | Role |
-|-------|------|
-| `aminet-researcher` | Check if a tool already exists for AmigaOS |
-| `source-analyzer` | Deep portability analysis |
-| `code-transformer` | Systematic source transformation |
-| `build-manager` | Compiler error diagnosis and fixing |
-| `test-runner` | Emulator test execution |
-| `port-coordinator` | Complex multi-file port orchestration (dispatched by /port-project) |
-| `memory-checker` | **Mandatory** memory leak detection and allocation safety |
-| `perf-optimizer` | Optional 68k hardware performance optimization |
-| `dependency-auditor` | Audit external library dependencies |
-| `aminet-publisher` | Prepare and publish ports to Aminet |
-
-### Port Categories (ADR-011)
-
-Not all ports are CLI tools. The pipeline supports five categories:
-
-| Category | Description | Libraries | Test Method |
-|----------|-------------|-----------|-------------|
-| 1. CLI tools | Pure POSIX utilities (wc, grep, sed) | posix-shim | vamos |
-| 2. Scripting interpreters | Lua, bc, awk | posix-shim | vamos |
-| 3. Console UI apps | less, vim, nano | posix-shim + console-shim | FS-UAE |
-| 4. Network apps | curl, wget, irc | posix-shim + bsdsocket-shim | FS-UAE + TCP/IP |
-| 5. GUI apps | (future) | Intuition/MUI | FS-UAE |
-
-### Libraries
-
-| Library | Purpose | Link Flag |
-|---------|---------|-----------|
-| `lib/posix-shim/` | Tier 1: Direct POSIX-to-AmigaOS wrappers (40+ functions) | `-lamiport` |
-| `lib/posix-emu/` | Tier 2: Approximate POSIX emulation (regex, mmap, pipe, select) | `-lamiport-emu` |
-| `lib/console-shim/` | Minimal ncurses API via Amiga console.device ANSI escapes | `-lamiport-console` |
-| `lib/bsdsocket-shim/` | BSD socket API via bsdsocket.library with auto lifecycle | `-lamiport-net` |
-
-**Not supported** (requires redesign): `fork`/`exec`, `pthreads`, GUI toolkits (X11, GTK, Qt)
-
-See [docs/architecture.md](docs/architecture.md) for full details.
-
-## All Make Targets
+## Make Targets
 
 ```bash
 # Setup
-make doctor             # Check prerequisites
-make setup-toolchain    # Pull/build cross-compiler
-make setup-emu          # Install FS-UAE emulator
-make fetch-ndk          # Download AmigaOS NDK
+make doctor                         # Check prerequisites
+make setup-toolchain                # Pull cross-compiler Docker image
+make fetch-ndk                      # Download AmigaOS NDK 3.2 R4
 
-# Build
-make build-shim         # Cross-compile POSIX shim library (Tier 1)
-make build-emu          # Cross-compile POSIX emulation library (Tier 2)
-make build-console      # Cross-compile console shim (ncurses)
-make build-net          # Cross-compile BSD socket shim
-make build TARGET=...   # Build a specific port or example
-make build-ports        # Build all ports
-
-# Test
-make test TARGET=...    # Test a build via vamos
-make test-shim          # Run POSIX shim unit tests
-make test-emu           # Run POSIX emulation tests
-make test-console       # Run console shim tests
-make test-net           # Run BSD socket shim tests
-make compare TARGET=... # Compare native vs Amiga output
-make smoke-test         # Full end-to-end validation
+# Build & Test
+make build-shim                     # Build POSIX shim library (Tier 1)
+make build-emu                      # Build POSIX emulation library (Tier 2)
+make build TARGET=ports/grep        # Build a specific port
+make test TARGET=ports/grep         # Test via vamos
+make smoke-test                     # Full end-to-end validation
+make check-docs                     # Validate doc consistency
 
 # Emulator
-make install-emu        # Copy binaries to emulator directory
-make emu                # Launch FS-UAE
-make test-fsemu TARGET=...  # Automated FS-UAE test with ARexx harness
-make build-uaequit     # Build UAEQuit helper for FS-UAE automation
-
-# Validation
-make check-docs         # Validate agent references across all docs
-
-# Package & Info
-make package TARGET=... # Create LHA archive for Aminet
-make list-ports         # Show all ports and status
-make clean              # Remove build artifacts
+make setup-emu                      # Install FS-UAE
+make install-emu                    # Copy binaries to emulator
+make emu                            # Launch FS-UAE
+make test-fsemu TARGET=...          # Automated FS-UAE test
 ```
 
-## Reference Documentation
-
-The project includes the complete **Amiga Developer CD v2.1** converted to searchable, cross-referenced markdown:
-
-| Resource | Description |
-|----------|-------------|
-| `docs/references/adcd/` | Complete ADCD 2.1 (~6,700 pages across 6 manuals) |
-| `docs/references/adcd/FUNCTIONS.md` | Function cross-reference (every function → all pages discussing it) |
-| `docs/references/adcd/TYPES.md` | Struct/typedef/enum index |
-| `docs/references/adcd/INCLUDES.json` | `#include` path → documentation chapter mapping |
-| `docs/references/adcd/examples/` | Extracted code examples by library |
-| `docs/references/autodocs/` | API function signatures (896 functions, 21 libraries) |
-
-Regenerate with `make scrape-adcd` (requires internet access, ~20 minutes).
+Run `make help` for the full list.
 
 ## Contributing
 
-Contributions welcome! Especially:
+Four ways to help:
 
-- Porting useful CLI tools (check Aminet first — use the `aminet-researcher` agent)
-- Expanding the POSIX shim
-- Testing on real Amiga hardware
-- Improving vamos compatibility
+- **Port something new** — pick a Unix utility and run it through the pipeline. Check Aminet first (use the `aminet-researcher` agent) to avoid duplicating work that already exists in the archive.
+- **Expand the POSIX shim** — add missing functions to `lib/posix-shim/` or `lib/posix-emu/`. The `/extend-shim` skill automates the full process: research, classify, implement, test.
+- **Test on real hardware** — vamos and FS-UAE catch most issues, but nothing replaces a real A1200 or A4000. Hardware test reports for any port are valuable.
+- **Improve the knowledge base** — better ADCD coverage, more cross-references, additional Autodoc parsing.
 
-## License
-
-MIT License. See [LICENSE](LICENSE).
+See [CLAUDE.md](CLAUDE.md) for the full contributor guide, coding conventions, and architectural decisions.
 
 ## Acknowledgments
 
@@ -208,3 +201,8 @@ MIT License. See [LICENSE](LICENSE).
 - [amitools/vamos](https://github.com/cnvogelg/amitools) — virtual AmigaOS runtime
 - [FS-UAE](https://fs-uae.net) — Amiga emulator for interactive testing
 - [Aminet](https://aminet.net) — The Amiga software archive
+- [Amiga Developer CD v2.1](https://wiki.amigaos.net/wiki/Amiga_Developer_Docs) — Commodore/Amiga developer documentation (converted to markdown)
+
+## License
+
+MIT License. See [LICENSE](LICENSE).
