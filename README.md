@@ -100,12 +100,13 @@ Safety hooks enforce discipline across the pipeline:
 | `port-coordinator` | Multi-file port orchestration and judgment calls |
 | `memory-checker` | Memory leak detection, double-free, allocation safety |
 | `perf-optimizer` | 68k instruction timing and loop optimization |
+| `debug-agent` | Autonomous Enforcer-based crash diagnosis and fix loop |
 | `dependency-auditor` | External library dependency analysis |
 | `aminet-publisher` | Aminet packaging, readme generation, upload |
 
 Every architectural decision is recorded in ADRs and product decisions in PDRs — see [docs/adr/](docs/adr/) and [docs/pdr/](docs/pdr/).
 
-The pipeline is currently driven by `/port-project`, which dispatches agents sequentially as a human-in-the-loop workflow. Full agent-to-agent orchestration is planned. Individual stages are also available directly as `/analyze-source`, `/transform-source`, `/build-amiga`, `/test-amiga`, and `/review-amiga`.
+The pipeline is currently driven by `/port-project`, which dispatches agents sequentially as a human-in-the-loop workflow. Full agent-to-agent orchestration is planned. Individual stages are also available directly as `/analyze-source`, `/transform-source`, `/build-amiga`, `/test-amiga`, `/review-amiga`, and `/debug-amiga`.
 
 ### Testing
 
@@ -164,6 +165,7 @@ make build-emu                      # Build POSIX emulation library (Tier 2)
 make build TARGET=ports/grep        # Build a specific port
 make test TARGET=ports/grep         # Test via vamos
 make smoke-test                     # Full end-to-end validation
+make setup-debug-tools              # Install Enforcer, Mungwall, SegTracker
 make check-docs                     # Validate doc consistency
 
 # Emulator

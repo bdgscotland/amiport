@@ -11,8 +11,8 @@
 # Cross-compiler (auto-detects Docker vs native)
 TOOLCHAIN_BIN = ../../toolchain/scripts
 CC = $(TOOLCHAIN_BIN)/m68k-amigaos-gcc
-CFLAGS = -O2 -noixemul -m68000 -Wall -I../../lib/posix-shim/include
-LDFLAGS = -L../../lib/posix-shim -lamiport
+CFLAGS = -O2 -noixemul -m68000 -Wall -I../../lib/posix-shim/include -gstabs
+LDFLAGS = -L../../lib/posix-shim -lamiport -Wl,-Map=$(TARGET).map
 
 SHIM_LIB = ../../lib/posix-shim/libamiport.a
 
@@ -37,9 +37,13 @@ $(TARGET): $(SOURCES) $(SHIM_LIB)
 # Requires a hand-crafted <name>.readme — see ports/templates/readme.template
 # Uses Docker lha since macOS lhasa is extraction-only
 LHA_CMD = docker run --rm -v $(shell cd ../.. && pwd):/work -w /work/ports/$(TARGET) amigadev/crosstools:m68k-amigaos lha
+STRIP = $(TOOLCHAIN_BIN)/m68k-amigaos-strip
+
 package: $(TARGET)
 	@test -s $(TARGET).readme || (echo "ERROR: $(TARGET).readme missing or empty — create from ports/templates/readme.template" && exit 1)
-	$(LHA_CMD) a $(TARGET)-$(VERSION).lha $(TARGET) $(TARGET).readme PORT.md original/ ported/
+	$(STRIP) --strip-debug -o $(TARGET).stripped $(TARGET)
+	$(LHA_CMD) a $(TARGET)-$(VERSION).lha $(TARGET).stripped $(TARGET).readme PORT.md original/ ported/
+	rm -f $(TARGET).stripped
 
 clean:
-	rm -f $(TARGET) $(TARGET)-*.lha
+	rm -f $(TARGET) $(TARGET)-*.lha $(TARGET).map

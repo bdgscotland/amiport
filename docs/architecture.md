@@ -38,6 +38,7 @@ Skills define **what** to do — the instructions, rules, and reference material
 | `build-amiga` | `.claude/skills/build-amiga/` | User runs `/build-amiga` or called by port-project |
 | `test-amiga` | `.claude/skills/test-amiga/` | User runs `/test-amiga` or called by port-project |
 | `review-amiga` | `.claude/skills/review-amiga/` | User runs `/review-amiga` or called by port-project |
+| `debug-amiga` | `.claude/skills/debug-amiga/` | User runs `/debug-amiga <path>` to debug a crashed port |
 | `port-project` | `.claude/skills/port-project/` | User runs `/port-project <path>` for full pipeline |
 
 ### Agents (Specialized Roles)
@@ -52,6 +53,7 @@ Agents define **who** does the work — model selection, tool access, persona, a
 - **memory-checker**: Uses Sonnet for memory safety analysis. **Mandatory** (Stage 6b). Read-only tools.
 - **perf-optimizer**: Uses Sonnet for 68k hardware performance optimization. Optional (Stage 6c). Read + analysis tools.
 - **port-coordinator**: Dispatched by /port-project for complex multi-file ports. Uses worktree isolation. Full tool access.
+- **debug-agent**: Uses Sonnet for autonomous crash debugging. Parses Enforcer hits, maps to source, classifies crashes, applies fixes, and iterates until clean (max 5 iterations). Bash + edit access.
 - **dependency-auditor**: Uses Sonnet for auditing external library dependencies. Research + read tools.
 - **aminet-publisher**: Uses Sonnet for Aminet package preparation and publishing. Curated, never automatic.
 

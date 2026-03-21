@@ -59,6 +59,7 @@ The porting pipeline has 5 stages, each backed by a Claude skill:
 - To audit external library dependencies: dispatch the `dependency-auditor` agent
 - To add a missing POSIX function to the shim: use `/extend-shim <function-name>`
 - To write ARexx scripts for AmigaOS: use `/write-arexx`
+- To debug a crashed port: dispatch the `debug-agent` or use `/debug-amiga`
 - To publish to Aminet: dispatch the `aminet-publisher` agent
 
 The `/port-project` skill runs Stage 0 (Aminet research) through Stage 6 (packaging) automatically, dispatching the appropriate agents at each step. Use it as the entry point for all porting work.
@@ -73,6 +74,7 @@ The `/port-project` skill runs Stage 0 (Aminet research) through Stage 6 (packag
 | `test-runner` | Stage 5 — vamos testing |
 | `port-coordinator` | Dispatched by /port-project for complex multi-file ports requiring judgment calls. Not invoked directly. |
 | `dependency-auditor` | Before complex ports — audit external library dependencies |
+| `debug-agent` | When a port crashes at runtime — autonomous Enforcer-based crash diagnosis and fix loop |
 | `memory-checker` | **Mandatory** Stage 6b — memory leak detection, double-free, allocation safety |
 | `perf-optimizer` | Optional Stage 6c — 68k instruction timing and loop optimization |
 | `aminet-publisher` | Publishing — curated, never automatic |
@@ -132,6 +134,7 @@ make test-console      # Run console shim tests via vamos
 make test-net          # Run BSD socket shim tests via vamos
 make test-fsemu TARGET=ports/grep  # Test via FS-UAE with ARexx harness (Category 3-4)
 make build-uaequit     # Build UAEQuit helper for FS-UAE test automation
+make setup-debug-tools # Install Enforcer, Mungwall, SegTracker for crash debugging
 make check-docs        # Validate agent references across all docs
 make package TARGET=examples/wc # Create LHA archive
 make clean             # Remove build artifacts
@@ -185,6 +188,8 @@ This avoids the need for manual interactive testing in the emulator. See ADR-014
 - `docs/adr/014-fs-uae-automated-testing.md` — ADR for FS-UAE automated testing pipeline
 - `docs/references/arexx-reference.md` — ARexx language and API reference for AmigaOS scripting
 - `docs/adr/015-toolkit-quality-infrastructure.md` — ADR for CI, memory-checker split, hooks, check-docs
+- `docs/adr/016-autonomous-debug-agent.md` — ADR for Enforcer-based autonomous crash debugging
+- `docs/references/crash-patterns.md` — Persistent crash pattern knowledge base for the debug-agent
 - `docs/references/adcd/` — **Complete ADCD 2.1 in markdown** — prose, code examples, cross-references for all AmigaOS libraries
 - `docs/references/adcd/FUNCTIONS.md` — Function cross-reference across all ADCD manuals
 - `docs/references/adcd/TYPES.md` — Struct/typedef/enum index across all ADCD manuals
