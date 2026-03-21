@@ -1,6 +1,6 @@
 /*
  * test_string_bsd.c — Tests for amiport BSD string functions
- *                     (strlcpy, strlcat, reallocarray)
+ *                     (strlcpy, strlcat, reallocarray, recallocarray)
  */
 
 #include "test_framework.h"
@@ -166,6 +166,78 @@ TEST(reallocarray_resize)
     free(arr);
 }
 
+/* --- recallocarray tests --- */
+
+TEST(recallocarray_basic)
+{
+    int *arr;
+
+    arr = (int *)amiport_recallocarray(NULL, 0, 10, sizeof(int));
+    ASSERT_NOT_NULL(arr);
+
+    /* New memory should be zeroed */
+    ASSERT_EQ(arr[0], 0);
+    ASSERT_EQ(arr[5], 0);
+    ASSERT_EQ(arr[9], 0);
+
+    free(arr);
+}
+
+TEST(recallocarray_grow_zeroes_new)
+{
+    int *arr;
+
+    arr = (int *)amiport_recallocarray(NULL, 0, 5, sizeof(int));
+    ASSERT_NOT_NULL(arr);
+    arr[0] = 10;
+    arr[1] = 20;
+    arr[2] = 30;
+    arr[3] = 40;
+    arr[4] = 50;
+
+    /* Grow from 5 to 10 elements — new elements should be zero */
+    arr = (int *)amiport_recallocarray(arr, 5, 10, sizeof(int));
+    ASSERT_NOT_NULL(arr);
+
+    /* Original data preserved */
+    ASSERT_EQ(arr[0], 10);
+    ASSERT_EQ(arr[4], 50);
+
+    /* New elements zeroed */
+    ASSERT_EQ(arr[5], 0);
+    ASSERT_EQ(arr[9], 0);
+
+    free(arr);
+}
+
+TEST(recallocarray_shrink)
+{
+    int *arr;
+
+    arr = (int *)amiport_recallocarray(NULL, 0, 10, sizeof(int));
+    ASSERT_NOT_NULL(arr);
+    arr[0] = 42;
+    arr[4] = 99;
+
+    /* Shrink from 10 to 5 */
+    arr = (int *)amiport_recallocarray(arr, 10, 5, sizeof(int));
+    ASSERT_NOT_NULL(arr);
+
+    /* Preserved data within new bounds */
+    ASSERT_EQ(arr[0], 42);
+    ASSERT_EQ(arr[4], 99);
+
+    free(arr);
+}
+
+TEST(recallocarray_overflow)
+{
+    void *p;
+
+    p = amiport_recallocarray(NULL, 0, (size_t)-1, (size_t)-1);
+    ASSERT_NULL(p);
+}
+
 int main(void)
 {
     (void)verstag;
@@ -186,6 +258,11 @@ int main(void)
     RUN_TEST(reallocarray_overflow);
     RUN_TEST(reallocarray_zero);
     RUN_TEST(reallocarray_resize);
+
+    RUN_TEST(recallocarray_basic);
+    RUN_TEST(recallocarray_grow_zeroes_new);
+    RUN_TEST(recallocarray_shrink);
+    RUN_TEST(recallocarray_overflow);
 
     return test_summary();
 }

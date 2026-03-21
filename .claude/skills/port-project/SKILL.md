@@ -118,7 +118,11 @@ Then run: `make test-fsemu TARGET=ports/<name>`
 - At least one test uses EXPECT_RC: 10 (error path tested)
 - At least one test uses EXPECT_RC: 5 or EXPECT_RC: 0 (success path tested)
 
-If tests fail, analyze the failure and fix. May require going back to the transform stage.
+If FS-UAE tests show a Guru Meditation (crash), **automatically dispatch the `debug-agent`** with the Enforcer log and binary. Do not ask the user — the debug agent handles crash diagnosis autonomously. After the debug agent fixes the crash, rebuild and retest.
+
+If FS-UAE is not available (Workbench not fully installed), note this in PORT.md and proceed — the test-fsemu-cases.txt must still be created so testing can run when infrastructure is ready.
+
+If tests fail (wrong output, not crash), analyze the failure and fix. May require going back to the transform stage.
 
 ### Stage 6: Review and Optimize (mandatory)
 

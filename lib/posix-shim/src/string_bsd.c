@@ -64,3 +64,36 @@ amiport_reallocarray(void *ptr, size_t nmemb, size_t size)
 
     return realloc(ptr, nmemb * size);
 }
+
+void *
+amiport_recallocarray(void *ptr, size_t oldnmemb, size_t nmemb, size_t size)
+{
+    size_t oldsize, newsize;
+    void *newptr;
+
+    /* Check for multiplication overflow on new size */
+    if (size != 0 && nmemb > (size_t)-1 / size) {
+        errno = ENOMEM;
+        return NULL;
+    }
+    newsize = nmemb * size;
+
+    /* Check for multiplication overflow on old size */
+    if (size != 0 && oldnmemb > (size_t)-1 / size) {
+        errno = ENOMEM;
+        return NULL;
+    }
+    oldsize = oldnmemb * size;
+
+    /* If shrinking or same size, just realloc */
+    if (newsize <= oldsize)
+        return realloc(ptr, newsize);
+
+    /* Growing: allocate new block, copy old data, zero the rest */
+    newptr = realloc(ptr, newsize);
+    if (newptr == NULL)
+        return NULL;
+
+    memset((char *)newptr + oldsize, 0, newsize - oldsize);
+    return newptr;
+}

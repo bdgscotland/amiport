@@ -193,7 +193,7 @@ SYS:System/RexxMast >NIL:
 Wait 2
 
 ; Run the test harness
-rx WORK:test-runner.rexx
+SYS:Rexxc/rx WORK:test-runner.rexx
 AMIGA_SCRIPT
     else
         cat > "$SYSTEM_DIR/S/User-Startup" << 'AMIGA_SCRIPT'
@@ -205,7 +205,7 @@ SYS:System/RexxMast >NIL:
 Wait 2
 
 ; Run the test harness
-rx WORK:test-runner.rexx
+SYS:Rexxc/rx WORK:test-runner.rexx
 AMIGA_SCRIPT
     fi
 }

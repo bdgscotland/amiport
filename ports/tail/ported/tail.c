@@ -43,8 +43,14 @@
 #include <amiport/err.h>
 #include <errno.h>
 #include <stdio.h>
-/* amiport: use shim fopen/fileno/fclose for fd table consistency with fstat */
-#include <amiport/stdio.h>
+/* amiport: debug-agent — removed #include <amiport/stdio.h>.
+ * The shim fopen/fileno/fclose overrides caused heap corruption (MungWall hit):
+ * amiport_fopen stores a sentinel BPTR (value 1) in the amiport fd_table, and mixing
+ * this sentinel with libnix's malloc/fdopen internals corrupts MungWall allocation
+ * sentinels. We use amiport_stat(fname) for file args (no fileno/fstat required),
+ * and IsInteractive(Input()) directly for the stdin pipe-detection path. */
+/* amiport: added proto/dos.h for IsInteractive() used in stdin pipe detection */
+#include <proto/dos.h>
 #include <stdlib.h>
 #include <string.h>
 /* amiport: replaced #include <unistd.h> with amiport wrapper */
@@ -196,33 +202,22 @@ main(int argc, char *argv[])
 		tf[0].fname = "stdin";
 		tf[0].fp = stdin;
 
-		if (fstat(fileno(stdin), &(tf[0].sb))) {
-			/* amiport: On AmigaOS (especially vamos), stdin fstat may fail.
-			 * Treat as non-fatal and assume stdin is not seekable (typical for pipes).
-			 * Set a minimal stat structure to continue processing.
-			 */
-			memset(&(tf[0].sb), 0, sizeof(tf[0].sb));
+		/* amiport: debug-agent — replaced fstat(fileno(stdin)) + lseek() with
+		 * IsInteractive(Input()). The original code used libnix fileno (returns
+		 * libnix's internal fd) with amiport_fstat (expects amiport fd) — mismatched
+		 * fd tables. Adding <amiport/stdio.h> to fix fileno caused amiport_fopen
+		 * sentinel-BPTR heap corruption. Simplest correct approach: AmigaDOS
+		 * IsInteractive() tells us if stdin is a console (interactive) vs pipe.
+		 * If interactive, stdin is not a pipe — follow mode (-f) can work.
+		 * If not interactive, disable follow mode (POSIX.2 requirement for pipes). */
+		memset(&(tf[0].sb), 0, sizeof(tf[0].sb));
+		if (IsInteractive(Input())) {
+			/* stdin is a console — treat as regular file for seek purposes */
 			tf[0].sb.st_mode = S_IFREG;
-			/* Don't exit; continue with the assumption stdin is not seekable */
-		}
-
-		/*
-		 * Determine if input is a pipe.  4.4BSD will set the SOCKET
-		 * bit in the st_mode field for pipes.  Fix this then.
-		 * amiport: Skip lseek on AmigaOS/vamos to avoid crashes on pipes.
-		 * Assume stdin is not seekable if fstat failed above.
-		 */
-		if (fstat(fileno(tf[0].fp), &(tf[0].sb)) == 0) {
-			/* fstat succeeded, try lseek to detect pipes */
-			if (lseek(fileno(tf[0].fp), (off_t)0, SEEK_CUR) == -1 &&
-			    errno == ESPIPE) {
-				errno = 0;
-				fflag = 0;		/* POSIX.2 requires this. */
-			}
 		} else {
-			/* fstat failed; assume stdin is a pipe (not seekable) */
-			fflag = 0;
-			errno = 0;
+			/* stdin is a pipe or redirected file — disable follow mode */
+			tf[0].sb.st_mode = S_IFREG;
+			fflag = 0;		/* POSIX.2 requires this for pipes. */
 		}
 
 		if (rflag)

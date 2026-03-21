@@ -65,6 +65,15 @@ long amiport_getdelim(char **lineptr, size_t *n, int delim, FILE *stream);
  */
 long amiport_getline(char **lineptr, size_t *n, FILE *stream);
 
+/*
+ * fpurge — discard buffered data from a stream (BSD extension)
+ *
+ * On AmigaOS, clib2/libnix do not expose fpurge(). This is a no-op
+ * stub — the read buffer is not actually discarded. The main use case
+ * (truncation detection in tail -f) handles this by reopening the file.
+ */
+#define amiport_fpurge(fp) ((void)(fp), 0)
+
 /* Convenience macros for drop-in replacement */
 #ifndef AMIPORT_NO_STDIO_EXT_MACROS
 #define vasprintf  amiport_vasprintf
@@ -74,6 +83,7 @@ long amiport_getline(char **lineptr, size_t *n, FILE *stream);
 #define pwrite     amiport_pwrite
 #define getdelim   amiport_getdelim
 #define getline    amiport_getline
+#define fpurge     amiport_fpurge
 #endif
 
 #endif /* AMIPORT_STDIO_EXT_H */

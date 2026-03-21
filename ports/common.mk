@@ -11,7 +11,7 @@
 # Cross-compiler (auto-detects Docker vs native)
 TOOLCHAIN_BIN = ../../toolchain/scripts
 CC = $(TOOLCHAIN_BIN)/m68k-amigaos-gcc
-CFLAGS = -O2 -noixemul -m68000 -Wall -I../../lib/posix-shim/include -gstabs
+CFLAGS = -O2 -noixemul -m68000 -Wall -I../../lib/posix-shim/include
 LDFLAGS = -L../../lib/posix-shim -lamiport -Wl,-Map=$(TARGET).map
 
 SHIM_LIB = ../../lib/posix-shim/libamiport.a

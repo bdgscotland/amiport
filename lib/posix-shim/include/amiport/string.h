@@ -40,11 +40,25 @@ size_t amiport_strlcat(char *dst, const char *src, size_t dst_size);
  */
 void *amiport_reallocarray(void *ptr, size_t nmemb, size_t size);
 
+/*
+ * recallocarray — overflow-checked array reallocation with
+ *                 zero-initialization of new elements (OpenBSD origin)
+ *
+ * Like reallocarray, but takes the old element count (oldnmemb) and
+ * zeros any newly allocated memory (bytes beyond oldnmemb * size).
+ * If ptr is NULL, oldnmemb must be 0. On failure returns NULL and
+ * the original allocation is unchanged. Sets errno = ENOMEM on
+ * overflow.
+ */
+void *amiport_recallocarray(void *ptr, size_t oldnmemb, size_t nmemb,
+    size_t size);
+
 /* Convenience macros for drop-in replacement */
 #ifndef AMIPORT_NO_STRING_MACROS
-#define strlcpy      amiport_strlcpy
-#define strlcat      amiport_strlcat
-#define reallocarray amiport_reallocarray
+#define strlcpy         amiport_strlcpy
+#define strlcat         amiport_strlcat
+#define reallocarray    amiport_reallocarray
+#define recallocarray   amiport_recallocarray
 #endif
 
 #endif /* AMIPORT_STRING_H */

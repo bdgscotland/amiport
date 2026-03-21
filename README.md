@@ -18,6 +18,7 @@ amiport combines POSIX compatibility libraries, AI-powered build agents, and a c
 | [grep](ports/grep/) | 1.68 | CLI | Pattern search — regex, fixed, recursive (OpenBSD) | Built & tested |
 | [sed](ports/sed/) | 1.47 | CLI | Stream editor — text transformation (OpenBSD) | Built & tested |
 | [lua](ports/lua/) | 5.4.7 | Scripting | Lua 5.4 scripting language (PUC-Rio) | Built & tested |
+| [tail](ports/tail/) | 1.24 | CLI | Display last part of a file with follow mode (OpenBSD) | Built & tested |
 
 Pre-built Amiga binaries are included in each port directory. See **[PORTS.md](PORTS.md)** for the full catalog.
 
@@ -184,7 +185,7 @@ Four ways to help:
 - **Port something new** — pick a Unix utility and run it through the pipeline. Check Aminet first (use the `aminet-researcher` agent) to avoid duplicating work that already exists in the archive.
 - **Expand the POSIX shim** — add missing functions to `lib/posix-shim/` or `lib/posix-emu/`. The `/extend-shim` skill automates the full process: research, classify, implement, test.
 - **Test on real hardware** — vamos and FS-UAE catch most issues, but nothing replaces a real A1200 or A4000. Hardware test reports for any port are valuable.
-- **Improve the knowledge base** — better ADCD coverage, more cross-references, additional Autodoc parsing.
+- **Improve the knowledge base** — better ADCD coverage, more cross-references, additional Autodoc parsing. See `docs/references/68k-hardware.md` for the 68k hardware reference used by the debug-agent.
 
 See [CLAUDE.md](CLAUDE.md) for the full contributor guide, coding conventions, and architectural decisions.
 

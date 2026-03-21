@@ -132,7 +132,7 @@ cleanup_patterns(void)
 			/* amiport: fg->pattern is separately allocated only
 			 * when iflag is set.  When !iflag it points into
 			 * pattern[i] and freeing it would double-free. */
-			if (iflag && fg_pattern[i].pattern != NULL)
+			if (iflag && fg_pattern[i].pattern != NULL && fg_pattern[i].pattern != (unsigned char *)0x1)
 				free(fg_pattern[i].pattern);
 		}
 		free(fg_pattern);
@@ -545,7 +545,7 @@ main(int argc, char *argv[])
 					 * r_pattern[i] was not successfully compiled so
 					 * mark fg_pattern[i].pattern non-NULL to prevent
 					 * regfree() on an uninitialised entry */
-					fg_pattern[i].pattern = (unsigned char *)"";
+					fg_pattern[i].pattern = (unsigned char *)0x1;  /* non-NULL non-freeable sentinel */
 					cleanup_patterns();
 					fprintf(stderr, "%s: %s\n", __progname, re_error);
 					exit(AMIGA_RETURN_ERROR);

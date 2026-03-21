@@ -94,13 +94,9 @@ GitHub Actions workflow deployed and running on every push to main. Builds all f
 
 ---
 
-### 68k Hardware Reference for Crash Debugging
+### ~~68k Hardware Reference for Crash Debugging~~ — DONE
 
-**What:** Create `docs/references/68k-hardware.md` covering the Amiga memory map (Chip RAM, Fast RAM, ROM, custom registers, CIA), 68000 vs 68020 addressing modes (24-bit wrapping), register conventions, stack behavior (movem.l, link/unlk), and common crash signatures.
-
-**Why:** When debugging vamos/Enforcer crashes, agents see raw 68k register dumps (PC, SP, D0-D7, A0-A7) and need to reason about hardware-level behavior. The diff port crash was misdiagnosed because 24-bit address wrapping wasn't understood. An Amiga hardware expert reference would accelerate crash diagnosis significantly.
-
-**Details:** Link from the debug-agent's instructions. Include a quick-reference table mapping crash signatures to likely causes (NULL deref vs stack overflow vs 24-bit wrap vs alignment fault). Cover trap frames for understanding Guru Meditation codes.
+Created `docs/references/68k-hardware.md` with 8 sections: crash signature quick reference (action-first), Amiga memory map, 68000 vs 68020 addressing (24-bit wrapping), register conventions, stack behavior, trap frames & Guru codes, vamos vs real hardware differences, and instruction reference (stub for Layer 2 GDB). Hardware address patterns merged into debug-agent's Crash Classification section. Linked from CLAUDE.md Key References.
 
 ---
 

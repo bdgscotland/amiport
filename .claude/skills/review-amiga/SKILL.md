@@ -70,6 +70,8 @@ grep -rn 'S_ISLNK\|lstat\|readlink\|st_nlink' ported/*.c 2>/dev/null
 grep -rn 'getuid\|getgid\|getpid\|umask' ported/*.c 2>/dev/null
 # File descriptor arithmetic
 grep -rn 'STDIN_FILENO\|STDOUT_FILENO\|STDERR_FILENO' ported/*.c 2>/dev/null
+# Long-running loops without Ctrl-C check
+grep -rn 'while.*1\|for.*;;' ported/*.c 2>/dev/null
 ```
 
 **For each match found, apply this triage:**
@@ -81,6 +83,7 @@ grep -rn 'STDIN_FILENO\|STDOUT_FILENO\|STDERR_FILENO' ported/*.c 2>/dev/null
 - **getpid**: Flag as INFO if used for uniqueness (e.g., temp filenames) — works but returns a fixed value on some configs.
 - **umask**: Flag as INFO — stubbed to no-op, file permissions are ignored on AmigaOS.
 - **STDIN/STDOUT/STDERR_FILENO**: Flag as INFO if used in arithmetic; flag as WARN if used to determine fd count or ranges.
+- **while(1)/for(;;)**: Flag as CRITICAL if the loop body does NOT contain `amiport_check_break()` or `SetSignal(...SIGBREAKF_CTRL_C...)`. On AmigaOS there is no OS-level SIGINT — without an explicit check, the user cannot interrupt the program. Fix by adding `#include <amiport/signal.h>` and `if (amiport_check_break()) return;` inside the loop.
 
 **If a grep returns no matches, report "No matches — OK" for that check.** Do not skip checks that return empty results; the absence of matches is useful information.
 

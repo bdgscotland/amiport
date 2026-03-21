@@ -1,0 +1,25 @@
+# FS-UAE config for Workbench 3.1 installation
+amiga_model = A1200
+
+kickstart_file = /Users/duncan/Documents/FS-UAE/Kickstarts/kick3.1.rom
+
+# Install floppy in DF0:
+floppy_drive_0 = /Users/duncan/Downloads/AmigaWorkbench31/Workbench31 - install31.adf
+
+# Disk swapping via F12 menu
+floppy_image_0 = /Users/duncan/Downloads/AmigaWorkbench31/Workbench31 - install31.adf
+floppy_image_1 = /Users/duncan/Downloads/AmigaWorkbench31/Workbench31 - wbench31.adf
+floppy_image_2 = /Users/duncan/Downloads/AmigaWorkbench31/Workbench31 - extras31.adf
+floppy_image_3 = /Users/duncan/Downloads/AmigaWorkbench31/Workbench31 - locale31.adf
+floppy_image_4 = /Users/duncan/Downloads/AmigaWorkbench31/Workbench31 - fonts31.adf
+floppy_image_5 = /Users/duncan/Downloads/AmigaWorkbench31/Workbench31 - storage31.adf
+
+# Target hard drive (50MB blank HDF)
+hard_drive_0 = /Users/duncan/Developer/amiport/build/system.hdf
+
+# Max speed
+accuracy = -1
+cpu_speed = max
+
+window_width = 720
+window_height = 568

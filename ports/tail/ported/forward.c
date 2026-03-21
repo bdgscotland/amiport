@@ -202,22 +202,57 @@ forward(struct tailfile *tf, int nfiles, enum STYLE style, off_t origoff)
 	if (!fflag)
 		return;
 
-	while (1) {
-		/* poll every ~1 second (50 ticks at 50Hz) */
-		Delay(50);
-		/* amiport: check for Ctrl-C break signal */
-		if (amiport_check_break()) {
-			(void)fflush(stdout);
-			return;
-		}
-		for (i = 0; i < nfiles; i++) {
-			clearerr(tf[i].fp);
-			tfprint(tf[i].fp);
-			if (ferror(tf[i].fp)) {
-				ierr(tf[i].fname);
+	{
+		int last_displayed = -1;
+		long curpos, endpos;
+		int ch, has_data;
+
+		while (1) {
+			/* poll every ~1 second (50 ticks at 50Hz) */
+			Delay(50);
+			/* amiport: check for Ctrl-C break signal */
+			if (amiport_check_break()) {
+				(void)fflush(stdout);
+				return;
 			}
+			for (i = 0; i < nfiles; i++) {
+				clearerr(tf[i].fp);
+
+				/* amiport: detect file truncation — if current position
+				 * is past the new file size, the file was truncated.
+				 * Rewind to the beginning like upstream kqueue handler. */
+				curpos = ftell(tf[i].fp);
+				if (curpos > 0) {
+					fseek(tf[i].fp, 0L, SEEK_END);
+					endpos = ftell(tf[i].fp);
+					if (endpos < curpos) {
+						fseek(tf[i].fp, 0L, SEEK_SET);
+					} else {
+						fseek(tf[i].fp, curpos, SEEK_SET);
+					}
+				}
+
+				/* amiport: print filename header for multi-file follow */
+				if (nfiles > 1) {
+					has_data = 0;
+					ch = fgetc(tf[i].fp);
+					if (ch != EOF) {
+						has_data = 1;
+						ungetc(ch, tf[i].fp);
+					}
+					if (has_data && i != last_displayed) {
+						printf("\n==> %s <==\n", tf[i].fname);
+						last_displayed = i;
+					}
+				}
+
+				tfprint(tf[i].fp);
+				if (ferror(tf[i].fp)) {
+					ierr(tf[i].fname);
+				}
+			}
+			(void)fflush(stdout);
 		}
-		(void)fflush(stdout);
 	}
 #endif /* __AMIGA__ */
 }

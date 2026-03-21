@@ -90,10 +90,19 @@ static int amiport_fill_stat(const char *path, struct amiport_stat *sb)
         if (Examine(lock, &fib)) {
             /* amiport: st_ino from fib_DiskKey — unique per file on volume */
             sb->st_ino = (unsigned long)fib.fib_DiskKey;
-            /* amiport: st_dev — no easy way to get a device number, use 1
-             * (non-zero so same-device comparisons between two real files work
-             * when both are on the same volume, which is the common case) */
-            sb->st_dev = 1;
+            /* amiport: st_dev — derive from volume node of the lock.
+             * This distinguishes files on different volumes so same-file
+             * detection (st_dev == st_dev && st_ino == st_ino) works
+             * correctly across volumes. */
+            {
+                struct DevProc *dp = GetDeviceProc((CONST_STRPTR)path, NULL);
+                if (dp) {
+                    sb->st_dev = (unsigned long)dp->dvp_Port;
+                    FreeDeviceProc(dp);
+                } else {
+                    sb->st_dev = 1; /* fallback */
+                }
+            }
             /* amiport: st_mtime — convert AmigaOS DateStamp to Unix time.
              * AmigaOS epoch is 1978-01-01; offset from Unix epoch is 252460800s */
             sb->st_mtime = (long)fib.fib_Date.ds_Days * 86400L

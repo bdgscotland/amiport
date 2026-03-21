@@ -1,6 +1,6 @@
-TEST: Harness echo test
-CMD: echo "harness works"
-EXPECT: harness works
+TEST: Version string present
+CMD: version WORK:tail
+EXPECT_CONTAINS: tail 1.24
 
 TEST: Default last 10 lines
 CMD: WORK:tail WORK:test-tail-input.txt
@@ -22,6 +22,18 @@ TEST: Multiple files shows header
 CMD: WORK:tail -n 1 WORK:test-tail-input.txt WORK:test-tail-input2.txt
 EXPECT_CONTAINS: ==> WORK:test-tail-input.txt <==
 
-TEST: Version string
-CMD: version WORK:tail
-EXPECT_CONTAINS: tail 1.24
+TEST: Last 1 line of second file
+CMD: WORK:tail -n 1 WORK:test-tail-input2.txt
+EXPECT: gamma
+
+TEST: Nonexistent file returns error
+CMD: WORK:tail WORK:nonexistent_file.txt
+EXPECT_RC: 10
+
+TEST: Success return code
+CMD: WORK:tail -n 1 WORK:test-tail-input.txt
+EXPECT_RC: 0
+
+TEST: Empty file produces no output
+CMD: WORK:tail WORK:test-tail-empty.txt
+EXPECT:

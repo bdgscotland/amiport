@@ -10,6 +10,7 @@ Programs ported to AmigaOS 3.x using the amiport pipeline.
 | [grep](ports/grep/) | 1.68 | Pattern search (regex/fixed string) | CLI | OpenBSD grep v1.68 (BSD 2-Clause) | Built & tested | Not submitted |
 | [sed](ports/sed/) | 1.47 | Stream editor (text transformation) | CLI | OpenBSD sed v1.47 (BSD 3-Clause) | Built & tested | Not submitted |
 | [lua](ports/lua/) | 5.4.7 | Lua scripting language | Scripting | PUC-Rio Lua 5.4.7 (MIT) | Built & tested | Not submitted |
+| [tail](ports/tail/) | 1.24 | Display last part of a file | CLI | OpenBSD tail v1.24 (BSD 3-Clause) | Built & tested | Not submitted |
 
 ## Aminet Publication Tracking
 
@@ -21,6 +22,7 @@ Programs ported to AmigaOS 3.x using the amiport pipeline.
 | grep | — | — | — |
 | sed | — | — | — |
 | lua | — | — | — |
+| tail | — | — | — |
 
 Run `make check-aminet` to verify publication status.
 
@@ -36,6 +38,7 @@ Each port exercises different parts of the posix-shim library:
 | grep | `getopt`, `err/errx/warn/warnc`, `strtonum`, `reallocarray`, `opendir/readdir/closedir`, `isatty`, `regex` (Tier 2 emu) |
 | sed | `getopt`, `err/errx/warn/errc`, `strtonum`, `strlcpy/strlcat`, `reallocarray`, `mkstemp`, `regex` (Tier 2 emu) |
 | lua | `tmpfile` |
+| tail | `getopt`, `err/errx/warn/warnx`, `stat/fstat`, `lseek`, `write`, `strlcpy`, `reallocarray`, `recallocarray`, `fpurge`, `check_break` |
 
 ## How to Build
 
