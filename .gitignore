@@ -74,3 +74,6 @@ __pycache__/
 .venv/
 venv/
 gmon.out
+
+# ADCD scraper intermediate files (regenerable)
+docs/references/adcd/raw/
