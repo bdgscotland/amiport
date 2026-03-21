@@ -15,8 +15,8 @@ struct amiport_stat {
     LONG  st_size;      /* File size in bytes */
     ULONG st_mtime;     /* Modification time (Unix timestamp approx) */
     int   st_isdir;     /* Non-zero if directory */
-    ULONG st_dev;       /* Device ID (always 0 on AmigaOS) */
-    ULONG st_ino;       /* Inode number (always 0 on AmigaOS) */
+    ULONG st_dev;       /* Device ID (from volume lock) */
+    ULONG st_ino;       /* Inode number (from fib_DiskKey — unique per file on a volume) */
 };
 
 /* POSIX compatibility alias */

@@ -55,6 +55,13 @@ You are reviewing ported C code for AmigaOS-specific correctness and quality. Th
 - **Tier classification correct?** Tier 1 functions use `amiport_*`, Tier 2 use `amiport_emu_*`.
 - **fopen/fclose macro collision?** If the ported code implements its own file wrappers, check for the `amiport/stdio.h` macro collision (see CLAUDE.md known pitfalls).
 
+### 9. Logic Bug Patterns (silent wrong results)
+These won't crash — they produce **wrong output** that's harder to detect than a crash:
+- **st_dev/st_ino same-file detection**: `grep -n 'st_ino\|st_dev' ported/*.c` — if the code compares these fields to detect same-file (e.g., `files_differ()`, `same_file()`), verify it works with the shim's `fib_DiskKey`-based values. See crash-patterns.md #4.
+- **Case-sensitive filename comparisons**: `strcmp()` on filenames is wrong on AmigaOS (case-insensitive filesystem). Should use `strcasecmp()` or Amiga's `Stricmp()`.
+- **Hardlink/symlink assumptions**: Code checking `S_ISLNK()` or calling `lstat()`/`readlink()` will silently skip — flag for manual review.
+- **File descriptor assumptions**: Code assuming `STDIN_FILENO=0`, `STDOUT_FILENO=1`, `STDERR_FILENO=2` — valid on AmigaOS but flag if used for arithmetic.
+
 ## Reference Documentation
 
 When reviewing API usage correctness, consult:
