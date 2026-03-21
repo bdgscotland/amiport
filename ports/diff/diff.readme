@@ -2,7 +2,7 @@ Short:        File comparison utility for AmigaOS
 Type:         util/cli
 Architecture: m68k-amigaos >= 3.0
 Uploader:     duncan@bowring.us
-Author:       University of California, Berkeley (ported by Duncan Bowring)
+Author:       Todd C. Miller, OpenBSD contributors (ported by Duncan Bowring)
 Version:      1.95
 
 diff — File comparison utility for AmigaOS
