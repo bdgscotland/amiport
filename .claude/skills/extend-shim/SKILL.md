@@ -2,16 +2,16 @@
 name: extend-shim
 description: Add a new POSIX function to the amiport shim (Tier 1) or emulation (Tier 2) library. Looks up the POSIX spec, classifies the tier, writes the implementation + header + test, and rebuilds the library.
 argument-hint: <function-name>
-allowed_tools: ["Read", "Write", "Edit", "Bash", "Grep", "Glob", "Agent", "WebSearch", "WebFetch"]
+allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Agent, WebSearch, WebFetch
 ---
 
 # Extend Shim Skill
 
-You are adding a new POSIX function to the amiport compatibility libraries. Follow these steps precisely.
+You are adding the POSIX function `$ARGUMENTS` to the amiport compatibility libraries. Follow these steps precisely.
 
 ## Input
 
-The user provides a POSIX function name (e.g., `dup2`, `ftruncate`, `chmod`).
+The function to add: `$ARGUMENTS`
 
 ## Step 1: Research
 

@@ -28,11 +28,6 @@ vamos -V "Work:$(pwd)" ./program
 vamos ./program < input.txt > output.txt 2>&1
 ```
 
-## File Hygiene — CRITICAL
-
-- **NEVER create files in the project root.** All test input files, test output files, and temporary files go inside the port directory (`ports/<name>/`).
-- Clean up ALL test artifacts when done — delete test input files, output files, and native comparison binaries.
-- If you need a native comparison binary, build and delete it inside the port directory.
 
 ## Reporting
 

@@ -7,7 +7,7 @@ allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Agent
 
 # Port Project to Amiga
 
-You are the orchestrator for porting a C project to AmigaOS 3.x. You run the full pipeline end-to-end.
+You are the orchestrator for porting the C project at `$ARGUMENTS` to AmigaOS 3.x. You run the full pipeline end-to-end.
 
 ## Output Directory
 

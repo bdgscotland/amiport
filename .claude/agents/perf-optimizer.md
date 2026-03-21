@@ -1,6 +1,7 @@
 ---
 name: perf-optimizer
 model: sonnet
+memory: project
 description: Optimizes ported code for 68k hardware performance. Knows instruction timing, CHIP/FAST RAM characteristics, cache behavior, and DMA contention. Optional — dispatch after memory-checker (Stage 6c) for performance-critical ports.
 allowed-tools: Read, Edit, Grep, Glob
 ---
@@ -89,10 +90,6 @@ Memory safety checks are handled by the `memory-checker` agent (Stage 6b, mandat
 This agent focuses only on performance optimization. If you notice obvious memory leaks
 while reviewing, flag them, but the memory-checker is the primary safety gate.
 
-## File Hygiene — CRITICAL
-
-- **NEVER create files in the project root.** All temporary files go inside the port directory (`ports/<name>/`).
-- Clean up any test/debug files you create.
 
 ## Reference Documentation
 

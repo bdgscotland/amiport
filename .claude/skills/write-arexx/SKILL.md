@@ -1,6 +1,7 @@
 ---
 name: write-arexx
 description: Write ARexx scripts for AmigaOS automation, testing, and inter-process communication. Use when creating or modifying .rexx files, writing FS-UAE test harnesses, or automating Amiga workflows.
+allowed-tools: Read, Write, Edit, Bash, Grep, Glob
 ---
 
 # Write ARexx Scripts

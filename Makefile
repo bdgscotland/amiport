@@ -9,7 +9,7 @@
 #   clean            Remove build artifacts
 #   fetch-ndk        Download AmigaOS NDK 3.2 R4
 
-.PHONY: setup setup-toolchain setup-debug-tools build-shim build-emu build-console build-net build test test-shim test-emu test-console test-net package clean fetch-ndk help doctor smoke-test compare list-ports build-ports install-emu setup-emu emu publish check-aminet build-uaequit test-fsemu check-docs scrape-adcd
+.PHONY: setup setup-toolchain setup-debug-tools build-shim build-emu build-console build-net build test test-shim test-emu test-console test-net package clean fetch-ndk help doctor smoke-test compare list-ports build-ports install-emu setup-emu emu publish check-aminet build-uaequit test-fsemu check-docs check-agents scrape-adcd
 
 help:
 	@echo "amiport — AI-powered Amiga porting toolkit"
@@ -43,6 +43,7 @@ help:
 	@echo "  install-emu      Copy built binaries to emulator directory"
 	@echo "  emu              Launch FS-UAE with built binaries mounted as WORK:"
 	@echo "  check-docs       Validate agent references across all docs"
+	@echo "  check-agents     Validate agent/skill frontmatter fields"
 	@echo "  scrape-adcd      Scrape ADCD and generate reference docs"
 	@echo ""
 	@echo "Claude Code skills:"
@@ -215,6 +216,37 @@ check-docs:
 	else \
 		echo ""; \
 		echo "FAIL: Agent references missing. Update docs per .claude/rules/documentation.md"; \
+		exit 1; \
+	fi
+
+check-agents:
+	@echo "=== Checking agent/skill frontmatter ==="
+	@FAIL=0; \
+	for f in .claude/agents/*.md; do \
+		name=$$(basename "$$f" .md); \
+		if ! head -20 "$$f" | grep -q '^name:'; then \
+			echo "MISSING: '$$name' agent has no 'name' field"; FAIL=1; \
+		fi; \
+		if ! head -20 "$$f" | grep -q '^description:'; then \
+			echo "MISSING: '$$name' agent has no 'description' field"; FAIL=1; \
+		fi; \
+		if head -20 "$$f" | grep -q 'allowed_tools'; then \
+			echo "ERROR: '$$name' agent uses 'allowed_tools' (underscore) — should be 'allowed-tools' (hyphen)"; FAIL=1; \
+		fi; \
+	done; \
+	for d in .claude/skills/*/; do \
+		skill=$$(basename "$$d"); \
+		f="$$d/SKILL.md"; \
+		if [ ! -f "$$f" ]; then continue; fi; \
+		if head -20 "$$f" | grep -q 'allowed_tools'; then \
+			echo "ERROR: '$$skill' skill uses 'allowed_tools' (underscore) — should be 'allowed-tools' (hyphen)"; FAIL=1; \
+		fi; \
+	done; \
+	if [ "$$FAIL" -eq 0 ]; then \
+		echo "All agents and skills have valid frontmatter."; \
+	else \
+		echo ""; \
+		echo "FAIL: Agent/skill frontmatter issues found. Fix the errors above."; \
 		exit 1; \
 	fi
 

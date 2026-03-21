@@ -113,11 +113,6 @@ These three patterns cover the majority of crashes in ported code:
 **Cause:** Amiga default stack is 4KB. Deep recursion or large local arrays overflow it. The `long __stack` cookie may be missing or too small.
 **Fix:** Increase `long __stack = 65536;` (or higher). Convert deep recursion to iteration. Move large arrays from stack to heap.
 
-## File Hygiene
-
-- **NEVER create files in the project root.** All debug artifacts, test files, and temporary files go inside the port directory (`ports/<name>/`).
-- Clean up any temporary files when done.
-- Only edit files in `ports/<name>/ported/` — never touch `ports/<name>/original/`.
 
 ## Escalation
 

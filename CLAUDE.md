@@ -143,6 +143,7 @@ make test-fsemu TARGET=ports/grep  # Test via FS-UAE with ARexx harness (Categor
 make build-uaequit     # Build UAEQuit helper for FS-UAE test automation
 make setup-debug-tools # Install Enforcer, Mungwall, SegTracker for crash debugging
 make check-docs        # Validate agent references across all docs
+make check-agents      # Validate agent/skill frontmatter fields
 make package TARGET=examples/wc # Create LHA archive
 make clean             # Remove build artifacts
 make scrape-adcd       # Scrape ADCD and regenerate reference docs (~20 min)
