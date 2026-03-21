@@ -198,6 +198,64 @@ END
 - Use `/` as directory separator within volumes
 - No `.` or `..` — use `/` alone for parent directory
 
+## Known Limitations / Gotchas
+
+### 1. No Shell Piping in ADDRESS COMMAND
+
+`ADDRESS COMMAND 'echo "hello" | grep hello'` does **NOT** work. AmigaDOS pipe handling through ARexx's ADDRESS COMMAND is unreliable. Instead, write input to a temp file first, then run the command with the file as input.
+
+```rexx
+/* BAD — pipe will not work */
+ADDRESS COMMAND 'echo "a:b:c" | cut -d: -f2 >T:out'
+
+/* GOOD — use a temp file */
+IF OPEN('tf', 'T:input.txt', 'W') THEN DO
+    CALL WRITELN('tf', 'a:b:c')
+    CALL CLOSE('tf')
+END
+ADDRESS COMMAND 'cut -d: -f2 T:input.txt >T:out'
+```
+
+### 2. No Command Chaining with && or ;
+
+AmigaDOS does not support `&&` for conditional chaining. The `;` separator may work in some shells but not through ARexx's ADDRESS COMMAND. Run commands as separate ADDRESS COMMAND calls instead.
+
+```rexx
+/* BAD — chaining will not work */
+ADDRESS COMMAND 'echo >T:f.txt "hi" && cut -c1-2 T:f.txt'
+
+/* GOOD — separate calls */
+ADDRESS COMMAND 'echo >T:f.txt "hi"'
+ADDRESS COMMAND 'cut -c1-2 T:f.txt >T:out'
+```
+
+### 3. Default FAILAT Is 10
+
+Commands returning RC >= 10 trigger ARexx's ERROR condition by default. Programs like `diff` return RC=5 (RETURN_WARN) when files differ, which is fine. But if a command returns RC=10 (RETURN_ERROR), ARexx will jump to the ERROR: label (or abort). Use `OPTIONS FAILAT 21` at the top of test harnesses to prevent this.
+
+```rexx
+/* At the top of every test harness */
+OPTIONS FAILAT 21
+```
+
+### 4. Output Capture with Non-Zero RC
+
+When using `ADDRESS COMMAND cmd '>' outfile`, some ARexx implementations may not write the output file when the command returns non-zero. Use `OPTIONS FAILAT 21` to ensure output is always captured regardless of the command's return code.
+
+### 5. Test Cases Should Use Pre-Created Input Files
+
+For FS-UAE test cases (`test-fsemu-cases.txt`), write test input data to separate files (e.g., `test-grep-input.txt`) that get copied to `WORK:` by the test infrastructure. Do not try to create files on-the-fly in the CMD field.
+
+```
+# BAD — trying to create input inline
+TEST: grep finds match
+CMD: echo "hello world" | WORK:grep hello
+
+# GOOD — use a pre-created input file
+TEST: grep finds match
+CMD: WORK:grep hello WORK:test-grep-input.txt
+```
+
 ## Common Gotchas Checklist
 
 Before finishing any ARexx script, verify:
