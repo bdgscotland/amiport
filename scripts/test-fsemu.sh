@@ -29,7 +29,7 @@ SYSTEM_DIR="$PROJECT_DIR/build/system"
 AMIGA_DIR="$PROJECT_DIR/build/amiga"
 TOOLCHAIN_DIR="$PROJECT_DIR/toolchain"
 KICKSTART="$HOME/Documents/FS-UAE/Kickstarts/kick3.1.rom"
-TIMEOUT_SECONDS=60
+TIMEOUT_SECONDS=30
 
 # Colors for output
 RED='\033[0;31m'
@@ -154,7 +154,12 @@ build_boot_volume() {
     cat > "$SYSTEM_DIR/S/User-Startup" << 'AMIGA_SCRIPT'
 ; amiport FS-UAE test runner
 ; Auto-generated — will be restored after test run
+
+; Start RexxMast if not already running (required for ARexx scripts)
+SYS:System/RexxMast >NIL:
 Wait 2
+
+; Run the test harness
 rx WORK:test-runner.rexx
 AMIGA_SCRIPT
 }
@@ -201,9 +206,10 @@ run_emulator() {
 
     echo -e "${YELLOW}Launching FS-UAE headless (timeout: ${TIMEOUT_SECONDS}s)...${NC}"
 
-    # Launch FS-UAE headless
-    FSEMU_VIDEO_DRIVER=null FSEMU_AUDIO_DRIVER=null \
-        fs-uae "$config_file" >/dev/null 2>&1 &
+    # Launch FS-UAE
+    # Note: true headless mode (FSEMU_VIDEO_DRIVER=null) requires FS-UAE 4.0+
+    # On FS-UAE 3.x, the window will appear briefly during the test run
+    fs-uae "$config_file" >/dev/null 2>&1 &
     local fsuae_pid=$!
 
     # Watchdog loop
@@ -260,9 +266,9 @@ parse_results() {
 
     # Parse pass/fail counts
     local total passed failed
-    total=$(grep -cE "^ok |^not ok" "$tap_file" 2>/dev/null || echo "0")
-    passed=$(grep -c "^ok " "$tap_file" 2>/dev/null || echo "0")
-    failed=$(grep -c "^not ok" "$tap_file" 2>/dev/null || echo "0")
+    total=$(grep -cE "^ok |^not ok" "$tap_file" 2>/dev/null) || total=0
+    passed=$(grep -c "^ok " "$tap_file" 2>/dev/null) || passed=0
+    failed=$(grep -c "^not ok" "$tap_file" 2>/dev/null) || failed=0
 
     if [ "$failed" -gt 0 ]; then
         echo -e "${RED}RESULT: $passed/$total passed, $failed FAILED${NC}"
