@@ -3,6 +3,7 @@ Type:         util/cli
 Architecture: m68k-amigaos >= 3.0
 Uploader:     duncan@bowring.us
 Author:       University of California, Berkeley (ported by Duncan Bowring)
+Replaces:     util/cli/cut-1.0.lha
 Version:      1.28
 
 cut — Extract fields/columns from text for AmigaOS
