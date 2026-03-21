@@ -101,7 +101,24 @@
 */
 #if !defined(lua_tmpnam)	/* { */
 
-#if defined(LUA_USE_POSIX)	/* { */
+#if defined(__AMIGA__)		/* { */
+
+/* amiport: AmigaOS has no /tmp. os.tmpname() generates a unique name
+** under T: (which maps to RAM:T/ by default). We use a simple counter
+** combined with a unique run-time address to reduce collision risk.
+** The name is returned to the Lua script; the file is NOT created here —
+** that is the caller's responsibility (matching POSIX tmpnam semantics).
+** The script must remove the file when done. */
+#define LUA_TMPNAMBUFSIZE	64
+static int lua_tmpnam_counter = 0;
+#define lua_tmpnam(b,e) { \
+        lua_tmpnam_counter++; \
+        sprintf((b), "T:lua_%04x_%d", \
+          (unsigned)((size_t)(b) & 0xFFFF), \
+          lua_tmpnam_counter); \
+        (e) = 0; }
+
+#elif defined(LUA_USE_POSIX)	/* }{ */
 
 #include <unistd.h>
 

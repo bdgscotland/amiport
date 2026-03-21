@@ -820,16 +820,8 @@
 #undef LUA_CPATH_DEFAULT
 #define LUA_CPATH_DEFAULT ""   /* no dynamic C modules on classic Amiga */
 
-/* Temp file support — AmigaOS has no /tmp, use T: (RAM:T/) */
-#include <unistd.h>           /* close() for lua_tmpnam */
-#include <amiport/stdio_ext.h>
-#undef lua_tmpnam
-#define LUA_TMPNAMBUFSIZE   32
-#define lua_tmpnam(b,e) { \
-    strcpy(b, "T:lua_XXXXXX"); \
-    e = amiport_mkstemp(b); \
-    if (e != -1) { close(e); e = 0; } \
-    else e = 1; }
+/* Temp file support: lua_tmpnam is defined in loslib.c for Amiga,
+   using T: assign. amiport_tmpfile() is used by liolib.c for io.tmpfile(). */
 
 #endif /* __AMIGA__ */
 

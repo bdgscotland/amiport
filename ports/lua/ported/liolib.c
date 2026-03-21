@@ -535,28 +535,44 @@ static int read_line (lua_State *L, FILE *f, int chop) {
   luaL_buffinit(L, &b);
   do {  /* may need to read several chunks to get whole line */
     char *buff = luaL_prepbuffer(&b);  /* preallocate buffer space */
+    char *nl;
     /* amiport: use fgets instead of per-character getc — dramatically reduces
        function-call overhead on 68000 where each getc() costs ~20+ cycles.
        fgets reads the whole chunk in one library call, using the stdio buffer
-       efficiently.  We then scan backward once to detect EOF/newline state. */
+       efficiently.
+       Size note: fgets reads at most LUAL_BUFFERSIZE-1 bytes and always
+       NUL-terminates, so the readable region is buff[0..LUAL_BUFFERSIZE-2].
+       We use memchr (not strlen) to find the newline so that binary data
+       containing embedded NUL bytes before the newline is handled correctly —
+       strlen would stop at the first NUL and undercount the bytes read. */
     if (fgets(buff, LUAL_BUFFERSIZE, f) == NULL) {
       /* EOF or error with nothing read */
       break;
     }
+    /* Search for '\n' in the region fgets could have filled.
+       fgets stops at newline (keeping it), buffer limit, or EOF, and always
+       NUL-terminates.  The maximum useful region is LUAL_BUFFERSIZE-1 bytes.
+       Using memchr rather than strchr avoids stopping at embedded NULs. */
+    nl = (char *)memchr(buff, '\n', LUAL_BUFFERSIZE - 1);
+    if (nl != NULL) {
+      /* found a newline — line complete */
+      size_t l = (size_t)(nl - buff);  /* bytes before the newline */
+      c = '\n';
+      luaL_addsize(&b, l);  /* exclude newline from buffer for now */
+      break;
+    }
     else {
+      /* no newline: either buffer filled (line continues) or EOF */
+      /* compute actual byte count using memchr for the NUL terminator —
+         but fgets guarantees exactly one NUL at position [bytes_read], so
+         we use strlen here only to find the NUL terminator position.
+         In text mode (our case) embedded NULs in input are not expected
+         (AmigaOS text files), and the line-read semantic is text-mode. */
       size_t l = strlen(buff);
-      /* determine whether the chunk ended at newline or buffer limit */
-      if (l > 0 && buff[l - 1] == '\n') {
-        c = '\n';
-        luaL_addsize(&b, l - 1);  /* exclude newline from buffer for now */
-        break;
-      }
-      else {
-        c = (feof(f) ? EOF : buff[l - 1]);
-        luaL_addsize(&b, l);
-        /* if feof, exit the loop; otherwise continue (line > LUAL_BUFFERSIZE) */
-        if (feof(f)) break;
-      }
+      c = (feof(f) ? EOF : (l > 0 ? (unsigned char)buff[l - 1] : EOF));
+      luaL_addsize(&b, l);
+      if (feof(f)) break;
+      /* line exceeds LUAL_BUFFERSIZE-1: loop to read next chunk */
     }
   } while (1);  /* loop until we hit newline or EOF */
   if (!chop && c == '\n')  /* want a newline and have one? */
