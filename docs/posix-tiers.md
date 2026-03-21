@@ -57,6 +57,7 @@ One wrapper per function. Semantics match POSIX for all common use cases. The tr
 |`strlcpy()`    |`amiport_strlcpy()`     |Pure C implementation       |BSD safe string copy                                             |
 |`strlcat()`    |`amiport_strlcat()`     |Pure C implementation       |BSD safe string concatenation                                    |
 |`reallocarray()`|`amiport_reallocarray()`|`realloc()` with overflow check|OpenBSD safe array reallocation                               |
+|`recallocarray()`|`amiport_recallocarray()`|`realloc()` + `memset` delta|OpenBSD safe array reallocation with zero-init of new elements|
 |`asprintf()`   |`amiport_asprintf()`    |`vsnprintf()`+`malloc()`    |Dynamic string formatting                                        |
 |`vasprintf()`  |`amiport_vasprintf()`   |`vsnprintf()`+`malloc()`    |va_list variant of asprintf                                      |
 |`mkstemp()`    |`amiport_mkstemp()`     |`Open()` with unique name   |Uses task address + counter for uniqueness                       |
@@ -64,6 +65,7 @@ One wrapper per function. Semantics match POSIX for all common use cases. The tr
 |`pwrite()`     |`amiport_pwrite()`      |`Seek()`+`Write()`+`Seek()` |Non-atomic positional write                                      |
 |`getline()`    |`amiport_getline()`     |`fgets()`+`realloc()`       |GNU extension; fgets-based for 68k perf                          |
 |`getdelim()`   |`amiport_getdelim()`    |`fgets()`/`fgetc()`+`realloc()`|Read until delimiter; fast path for '\n'                      |
+|`fpurge()`     |`amiport_fpurge()`      |No-op macro                 |BSD stdio discard; no clib2 equivalent. Safe as no-op.           |
 |`dup()`        |`amiport_dup()`         |fd_table sharing + scan-on-close|Finds lowest free fd; shared BPTR not closed until last user  |
 |`dup2()`       |`amiport_dup2()`        |fd_table sharing + scan-on-close|Closes target fd first if open; oldfd==newfd is no-op         |
 

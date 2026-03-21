@@ -102,21 +102,41 @@ DO i = 1 TO testcount
     /* Run the command, redirect output to temp file.
      * Use a shell script via Execute with FailAt 21 to ensure
      * stdout is captured even when commands return non-zero RC
-     * (e.g., diff returns RC=5 when files differ). */
+     * (e.g., diff returns RC=5 when files differ).
+     * The command's actual RC is written to a temp file because
+     * Execute's RC only reflects whether Execute itself succeeded
+     * (FailAt 21 suppresses the command's RC from propagating). */
     scriptfile = 'T:test_cmd_' || i
+    rcfile = 'T:test_rc_' || i
     IF OPEN('scr', scriptfile, 'W') THEN DO
         CALL WRITELN('scr', 'FailAt 21')
         CALL WRITELN('scr', tcmd '>' outfile)
+        CALL WRITELN('scr', 'Echo >' || rcfile || ' $RC')
         CALL CLOSE('scr')
     END
     ADDRESS COMMAND 'Execute' scriptfile
-    cmdrc = RC
-    ADDRESS COMMAND 'Delete >NIL:' scriptfile
 
-    /* Read actual output */
+    /* Read the actual command return code from the RC file */
+    cmdrc = 0
+    IF OPEN('rcf', rcfile, 'R') THEN DO
+        rcline = READLN('rcf')
+        CALL CLOSE('rcf')
+        IF DATATYPE(STRIP(rcline), 'W') THEN cmdrc = STRIP(rcline)
+    END
+    ADDRESS COMMAND 'Delete >NIL:' scriptfile
+    ADDRESS COMMAND 'Delete >NIL:' rcfile
+
+    /* Read actual output — read ALL lines so EXPECT_CONTAINS works on
+     * multi-line output (e.g., unified diff with @@ markers on later lines) */
     actual = ''
     IF OPEN('of', outfile, 'R') THEN DO
-        actual = READLN('of')
+        DO WHILE ~EOF('of')
+            line = READLN('of')
+            IF actual = '' THEN
+                actual = line
+            ELSE
+                actual = actual || '0a'x || line
+        END
         CALL CLOSE('of')
     END
 
@@ -128,10 +148,13 @@ DO i = 1 TO testcount
     /* Check output match */
     match = 0
     IF tmode = 'CONTAINS' THEN DO
-        IF POS(STRIP(texpect), STRIP(actual)) > 0 THEN match = 1
+        /* Substring search across full multi-line output */
+        IF POS(STRIP(texpect), actual) > 0 THEN match = 1
     END
     ELSE DO
-        IF STRIP(actual) = STRIP(texpect) THEN match = 1
+        /* Exact match: compare against first line only (backward compat) */
+        PARSE VAR actual firstline '0a'x .
+        IF STRIP(firstline) = STRIP(texpect) THEN match = 1
     END
 
     /* Check exit code if EXPECT_RC: was specified */

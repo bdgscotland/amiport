@@ -370,6 +370,10 @@ int amiport_fstat(int fd, struct amiport_stat *buf)
     ok = ExamineFH(fd_table[fd], &fib);
     if (!ok) {
         amiport_map_errno();
+        /* vamos may return failure with IoErr()==0; treat as I/O error */
+        if (errno == 0) {
+            errno = EIO;
+        }
         return -1;
     }
 

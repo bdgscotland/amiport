@@ -182,6 +182,7 @@ This avoids the need for manual interactive testing in the emulator. See ADR-014
 **Critical (consult during every port):**
 - `docs/posix-tiers.md` — Master POSIX tier classification (Tier 1/2/3 for every function)
 - `docs/references/crash-patterns.md` — Crash pattern KB — check BEFORE fixing any bug
+- `docs/references/68k-hardware.md` — 68k hardware reference — memory map, addressing modes, crash signatures, vamos differences
 - `docs/references/adcd/` — Complete ADCD 2.1 in markdown — HOW to use AmigaOS functions, not just signatures
 - `docs/test-coverage-standard.md` — **Mandatory** test coverage requirements (no happy-path-only testing)
 - `.claude/skills/transform-source/references/transformation-rules.md` — Tier 1 transformation rules

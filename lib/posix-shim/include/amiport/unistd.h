@@ -103,4 +103,46 @@ char *amiport_strtok_r(char *str, const char *delim, char **saveptr);
 #include <stdio.h>
 FILE *amiport_tmpfile(void);
 
+/*
+ * AMIPORT_STRICT — Tier 3 function guards
+ *
+ * When AMIPORT_STRICT is defined, calls to known Tier 3 functions
+ * produce link-time errors with readable symbol names instead of
+ * cryptic "undefined reference" messages.
+ *
+ * Example error: undefined reference to `AMIPORT_TIER3_fork_requires_redesign'
+ */
+#ifdef AMIPORT_STRICT
+
+/* Process model — no equivalent on AmigaOS */
+extern int AMIPORT_TIER3_fork_requires_redesign(void);
+extern int AMIPORT_TIER3_execve_requires_redesign(void);
+extern int AMIPORT_TIER3_execvp_requires_redesign(void);
+extern int AMIPORT_TIER3_execlp_requires_redesign(void);
+extern int AMIPORT_TIER3_waitpid_requires_redesign(void);
+extern int AMIPORT_TIER3_wait_requires_redesign(void);
+
+#define fork()         AMIPORT_TIER3_fork_requires_redesign()
+#define execve(...)    AMIPORT_TIER3_execve_requires_redesign()
+#define execvp(...)    AMIPORT_TIER3_execvp_requires_redesign()
+#define execlp(...)    AMIPORT_TIER3_execlp_requires_redesign()
+#define waitpid(...)   AMIPORT_TIER3_waitpid_requires_redesign()
+#define wait(...)      AMIPORT_TIER3_wait_requires_redesign()
+
+/* Threads — no equivalent on classic AmigaOS */
+extern int AMIPORT_TIER3_pthread_create_requires_redesign(void);
+extern int AMIPORT_TIER3_pthread_join_requires_redesign(void);
+
+#define pthread_create(...)  AMIPORT_TIER3_pthread_create_requires_redesign()
+#define pthread_join(...)    AMIPORT_TIER3_pthread_join_requires_redesign()
+
+/* Signals — no inter-process signaling */
+extern int AMIPORT_TIER3_kill_requires_redesign(void);
+extern int AMIPORT_TIER3_sigaction_requires_redesign(void);
+
+#define kill(...)       AMIPORT_TIER3_kill_requires_redesign()
+#define sigaction(...)  AMIPORT_TIER3_sigaction_requires_redesign()
+
+#endif /* AMIPORT_STRICT */
+
 #endif /* AMIPORT_UNISTD_H */

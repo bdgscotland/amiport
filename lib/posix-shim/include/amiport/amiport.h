@@ -21,4 +21,11 @@
 #include <amiport/string.h>
 #include <amiport/stdio_ext.h>
 
+/* Include Tier 2 emulation headers when requested.
+ * Define AMIPORT_INCLUDE_EMU before including this header to get
+ * select, mmap, pipe, alarm, and regex emulation. */
+#ifdef AMIPORT_INCLUDE_EMU
+#include <amiport-emu/amiport-emu.h>
+#endif
+
 #endif /* AMIPORT_H */

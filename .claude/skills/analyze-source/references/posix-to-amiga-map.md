@@ -105,6 +105,8 @@ or amiport shim wrappers. Used by the `analyze-source` and `transform-source` sk
 | `strlcpy()` | — | `amiport_strlcpy()` | needs-shim | BSD safe string copy |
 | `strlcat()` | — | `amiport_strlcat()` | needs-shim | BSD safe string concatenation |
 | `reallocarray()` | — | `amiport_reallocarray()` | needs-shim | OpenBSD overflow-checked realloc |
+| `recallocarray()` | — | `amiport_recallocarray()` | needs-shim | OpenBSD overflow-checked realloc + zero-init |
+| `fpurge()` | — | `amiport_fpurge()` | needs-shim | No-op macro; BSD stdio discard has no clib2 equiv |
 | `asprintf()` | — | `amiport_asprintf()` | needs-shim | Dynamic string formatting |
 | `vasprintf()` | — | `amiport_vasprintf()` | needs-shim | va_list variant |
 | `mkstemp()` | — | `amiport_mkstemp()` | needs-shim | Secure temp file via T: assign |
