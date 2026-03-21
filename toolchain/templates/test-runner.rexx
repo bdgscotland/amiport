@@ -10,12 +10,13 @@
  *   not ok 2 - description
  *
  * Test case file format (test-cases.txt):
- *   Each test is 3 lines:
+ *   Each test is a block starting with TEST: and containing:
  *     TEST: description
  *     CMD: command to run
  *     EXPECT: expected output (exact first-line match)
- *   Or use EXPECT_CONTAINS: for substring matching:
- *     EXPECT_CONTAINS: substring to find in output
+ *   Optional assertion lines (can combine with EXPECT:):
+ *     EXPECT_CONTAINS: substring to find in output (instead of EXPECT:)
+ *     EXPECT_RC: expected Amiga return code (0, 5, 10, or 20)
  *
  * Usage: rx WORK:test-runner.rexx
  */
@@ -56,6 +57,9 @@ DO WHILE ~EOF('tf')
         WHEN LEFT(line, 16) = 'EXPECT_CONTAINS:' THEN DO
             expect.testcount = STRIP(SUBSTR(line, 17))
             expect_mode.testcount = 'CONTAINS'
+        END
+        WHEN LEFT(line, 10) = 'EXPECT_RC:' THEN DO
+            expect_rc.testcount = STRIP(SUBSTR(line, 11))
         END
         WHEN LEFT(line, 7) = 'EXPECT:' THEN DO
             expect.testcount = STRIP(SUBSTR(line, 8))
@@ -116,10 +120,12 @@ DO i = 1 TO testcount
         CALL CLOSE('of')
     END
 
-    /* Compare — supports exact match (EXPECT:) and substring match (EXPECT_CONTAINS:) */
-    tmode = 'EXACT'
-    IF SYMBOL('expect_mode.i') = 'VAR' THEN tmode = expect_mode.i
+    /* Compare — supports exact match (EXPECT:), substring (EXPECT_CONTAINS:),
+     * and exit code assertion (EXPECT_RC:). */
+    tmode = expect_mode.i
+    IF tmode = 'EXPECT_MODE.' || i THEN tmode = 'EXACT'
 
+    /* Check output match */
     match = 0
     IF tmode = 'CONTAINS' THEN DO
         IF POS(STRIP(texpect), STRIP(actual)) > 0 THEN match = 1
@@ -128,17 +134,29 @@ DO i = 1 TO testcount
         IF STRIP(actual) = STRIP(texpect) THEN match = 1
     END
 
-    IF match = 1 THEN DO
+    /* Check exit code if EXPECT_RC: was specified */
+    rc_ok = 1
+    trc = expect_rc.i
+    IF trc \= 'EXPECT_RC.' || i THEN DO
+        /* EXPECT_RC was set — verify the command's return code */
+        IF cmdrc \= trc THEN rc_ok = 0
+    END
+
+    IF match = 1 & rc_ok = 1 THEN DO
         CALL WRITELN('rf', 'ok' i '- ' || tdesc)
         passed = passed + 1
     END
     ELSE DO
         CALL WRITELN('rf', 'not ok' i '- ' || tdesc)
-        IF tmode = 'CONTAINS' THEN
-            CALL WRITELN('rf', '#   expected to contain:' texpect)
-        ELSE
-            CALL WRITELN('rf', '#   expected:' texpect)
-        CALL WRITELN('rf', '#   actual:  ' actual)
+        IF match = 0 THEN DO
+            IF tmode = 'CONTAINS' THEN
+                CALL WRITELN('rf', '#   expected to contain:' texpect)
+            ELSE
+                CALL WRITELN('rf', '#   expected:' texpect)
+            CALL WRITELN('rf', '#   actual:  ' actual)
+        END
+        IF rc_ok = 0 THEN
+            CALL WRITELN('rf', '#   expected RC:' trc '  actual RC:' cmdrc)
         failed = failed + 1
     END
 
