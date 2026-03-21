@@ -9,7 +9,7 @@
 #   clean            Remove build artifacts
 #   fetch-ndk        Download AmigaOS NDK 3.2 R4
 
-.PHONY: setup-toolchain build-shim build-emu build-console build-net build test test-shim test-emu test-console test-net package clean fetch-ndk help doctor smoke-test compare list-ports build-ports install-emu setup-emu emu publish check-aminet build-uaequit test-fsemu check-docs
+.PHONY: setup-toolchain build-shim build-emu build-console build-net build test test-shim test-emu test-console test-net package clean fetch-ndk help doctor smoke-test compare list-ports build-ports install-emu setup-emu emu publish check-aminet build-uaequit test-fsemu check-docs scrape-adcd
 
 help:
 	@echo "amiport — AI-powered Amiga porting toolkit"
@@ -41,6 +41,7 @@ help:
 	@echo "  install-emu      Copy built binaries to emulator directory"
 	@echo "  emu              Launch FS-UAE with built binaries mounted as WORK:"
 	@echo "  check-docs       Validate agent references across all docs"
+	@echo "  scrape-adcd      Scrape ADCD and generate reference docs"
 	@echo ""
 	@echo "Claude Code skills:"
 	@echo "  /analyze-source <path>   Analyze source for portability"
@@ -183,6 +184,9 @@ emu: install-emu
 		exit 1; \
 	fi
 	fs-uae toolchain/configs/amiport-test.fs-uae
+
+scrape-adcd:
+	python3 scripts/scrape-adcd.py all --output docs/references/adcd/
 
 check-docs:
 	@echo "=== Checking doc consistency ==="
