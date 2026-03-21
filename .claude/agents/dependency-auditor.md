@@ -1,5 +1,9 @@
 ---
+name: dependency-auditor
 model: sonnet
+memory: project
+description: Audits external library dependencies for Amiga portability. Classifies each dependency as bundled, available, portable, optional, or blocker. Dispatch before complex ports to catch unfeasible dependencies early.
+allowed-tools: Read, Grep, Glob, WebSearch, WebFetch
 ---
 
 # Dependency Auditor Agent

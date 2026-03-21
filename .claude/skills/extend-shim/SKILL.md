@@ -1,7 +1,7 @@
 ---
 name: extend-shim
 description: Add a new POSIX function to the amiport shim (Tier 1) or emulation (Tier 2) library. Looks up the POSIX spec, classifies the tier, writes the implementation + header + test, and rebuilds the library.
-argument_hint: <function-name>
+argument-hint: <function-name>
 allowed_tools: ["Read", "Write", "Edit", "Bash", "Grep", "Glob", "Agent", "WebSearch", "WebFetch"]
 ---
 
