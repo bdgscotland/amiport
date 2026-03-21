@@ -124,3 +124,9 @@ Reviewed with `/review-amiga`. Score: **READY**.
 - Path handling: OK (T: for temp, no Unix paths)
 - Conventions: OK (exit codes, version string, stack cookie)
 - No critical issues.
+
+## Memory Safety (Stage 6b)
+
+Audited by `memory-checker` agent (2026-03-21). Verdict: **CLEAN**.
+
+No critical memory safety issues. All allocations either properly freed or acceptable as process-lifetime allocations (regex_t patterns, transtab, appends array). No double-frees, no use-after-free, no buffer overflows. File handle lifecycle correct (cfclose called before exit). Realloc patterns use intermediate pointers where needed.

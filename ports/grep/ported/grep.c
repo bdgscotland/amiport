@@ -106,6 +106,48 @@ struct patfile {
 };
 SLIST_HEAD(, patfile)		 patfilelh;
 
+/* amiport: memory leak fix — free all pattern allocations before exit.
+ * AmigaOS has no memory protection; leaked memory stays gone until reboot.
+ * r_pattern[i] was compiled iff !Fflag && fg_pattern[i].pattern == NULL
+ * (fastcomp() sets fg->pattern = NULL on the regex fall-back path).
+ * fg_pattern[i].pattern is separately allocated only when iflag is set;
+ * when !iflag it aliases pattern[i] and must NOT be freed separately. */
+static void
+cleanup_patterns(void)
+{
+	int i;
+
+	if (r_pattern != NULL) {
+		for (i = 0; i < patterns; i++) {
+			/* amiport: only call regfree() for compiled entries */
+			if (!Fflag && fg_pattern != NULL &&
+			    fg_pattern[i].pattern == NULL)
+				regfree(&r_pattern[i]);
+		}
+		free(r_pattern);
+		r_pattern = NULL;
+	}
+	if (fg_pattern != NULL) {
+		for (i = 0; i < patterns; i++) {
+			/* amiport: fg->pattern is separately allocated only
+			 * when iflag is set.  When !iflag it points into
+			 * pattern[i] and freeing it would double-free. */
+			if (iflag && fg_pattern[i].pattern != NULL)
+				free(fg_pattern[i].pattern);
+		}
+		free(fg_pattern);
+		fg_pattern = NULL;
+	}
+	if (pattern != NULL) {
+		for (i = 0; i < patterns; i++)
+			free(pattern[i]);
+		free(pattern);
+		pattern = NULL;
+	}
+	/* amiport: free the global line buffer allocated by getline() in file.c */
+	grep_free_lnbuf();
+}
+
 static void
 usage(void)
 {
@@ -117,6 +159,8 @@ usage(void)
 	    "\t[--label=name] [--line-buffered] [--null] [pattern]"
 	    " [file ...]\n",
 	    __progname);
+	/* amiport: memory leak fix — cleanup before exit */
+	cleanup_patterns();
 	/* amiport: exit(2) -> exit(AMIGA_RETURN_ERROR) */
 	exit(AMIGA_RETURN_ERROR);
 }
@@ -343,6 +387,8 @@ main(int argc, char *argv[])
 			break;
 		case 'V':
 			fprintf(stderr, "grep version %u.%u\n", VER_MAJ, VER_MIN);
+			/* amiport: memory leak fix — cleanup_patterns() handles NULL arrays */
+			cleanup_patterns();
 			exit(0);
 			break;
 		/* amiport: removed case 'Z' (no gzip support) */
@@ -438,6 +484,9 @@ main(int argc, char *argv[])
 			break;
 		case HELP_OPT:
 		default:
+			/* amiport: memory leak fix — free expr before usage() exits */
+			free(expr);
+			expr = NULL;
 			usage();
 		}
 		lastc = c;
@@ -492,7 +541,14 @@ main(int argc, char *argv[])
 				if (c != 0) {
 					regerror(c, &r_pattern[i], re_error,
 					    RE_ERROR_BUF);
-					errx(AMIGA_RETURN_ERROR, "%s", re_error);
+					/* amiport: memory leak fix — cleanup before exit;
+					 * r_pattern[i] was not successfully compiled so
+					 * mark fg_pattern[i].pattern non-NULL to prevent
+					 * regfree() on an uninitialised entry */
+					fg_pattern[i].pattern = (unsigned char *)"";
+					cleanup_patterns();
+					fprintf(stderr, "%s: %s\n", __progname, re_error);
+					exit(AMIGA_RETURN_ERROR);
 				}
 			}
 		}
@@ -509,6 +565,8 @@ main(int argc, char *argv[])
 		 * Original: exit(!procfile(NULL)) — exit(0) match, exit(1) no match
 		 * Amiga: exit(0) match, exit(5) no match, exit(10) error */
 		c = procfile(NULL);
+		/* amiport: memory leak fix — cleanup before all exit paths */
+		cleanup_patterns();
 		if (c)
 			exit(AMIGA_RETURN_OK);
 		else if (file_err)
@@ -526,6 +584,8 @@ main(int argc, char *argv[])
 	/* amiport: Amiga exit codes — 0=OK, 5=WARN (no match), 10=ERROR
 	 * Original: exit(c ? (file_err ? (qflag ? 0 : 2) : 0) : (file_err ? 2 : 1))
 	 * Mapping: 0->0 (OK), 1->5 (WARN/no match), 2->10 (ERROR) */
+	/* amiport: memory leak fix — cleanup before all exit paths */
+	cleanup_patterns();
 	if (c) {
 		if (file_err && !qflag)
 			exit(AMIGA_RETURN_ERROR);

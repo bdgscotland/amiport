@@ -74,12 +74,47 @@ void set_argstr(char **, char **);
  * For sizes, diffreg.c will use fseek/ftell after fopen. */
 static int amiport_fill_stat(const char *path, struct amiport_stat *sb)
 {
+    BPTR lock;
+    struct FileInfoBlock fib;
     FILE *fp;
     long size;
 
     memset(sb, 0, sizeof(*sb));
 
-    /* Try to open as file — if it works, it's a regular file */
+    /* Use Lock/Examine for all metadata — this is the authoritative path.
+     * amiport: populates st_ino, st_dev, and st_mtime so same-file detection
+     * and timestamp comparisons work correctly. */
+    lock = Lock((CONST_STRPTR)path, SHARED_LOCK);
+    if (lock) {
+        memset(&fib, 0, sizeof(fib));
+        if (Examine(lock, &fib)) {
+            /* amiport: st_ino from fib_DiskKey — unique per file on volume */
+            sb->st_ino = (unsigned long)fib.fib_DiskKey;
+            /* amiport: st_dev — no easy way to get a device number, use 1
+             * (non-zero so same-device comparisons between two real files work
+             * when both are on the same volume, which is the common case) */
+            sb->st_dev = 1;
+            /* amiport: st_mtime — convert AmigaOS DateStamp to Unix time.
+             * AmigaOS epoch is 1978-01-01; offset from Unix epoch is 252460800s */
+            sb->st_mtime = (long)fib.fib_Date.ds_Days * 86400L
+                         + (long)fib.fib_Date.ds_Minute * 60L
+                         + (long)fib.fib_Date.ds_Tick / 50L
+                         + 252460800L;
+            if (fib.fib_DirEntryType > 0) {
+                sb->st_mode = AMIPORT_S_IFDIR | 0755;
+                sb->st_isdir = 1;
+            } else {
+                sb->st_mode = AMIPORT_S_IFREG | 0644;
+                sb->st_size = fib.fib_Size;
+            }
+        }
+        UnLock(lock);
+        return 0;
+    }
+
+    /* Lock failed — last resort: try fopen() to detect a readable regular
+     * file (e.g. on a filesystem where Lock() is unreliable under vamos).
+     * st_ino/st_dev/st_mtime will be zero in this path. */
     fp = fopen(path, "rb");
     if (fp != NULL) {
         fseek(fp, 0L, SEEK_END);
@@ -91,27 +126,6 @@ static int amiport_fill_stat(const char *path, struct amiport_stat *sb)
         return 0;
     }
 
-    /* fopen failed — could be a directory or nonexistent.
-     * Try the AmigaDOS approach as fallback */
-    {
-        BPTR lock = Lock((CONST_STRPTR)path, SHARED_LOCK);
-        if (lock) {
-            struct FileInfoBlock fib;
-            memset(&fib, 0, sizeof(fib));
-            if (Examine(lock, &fib)) {
-                if (fib.fib_DirEntryType > 0) {
-                    sb->st_mode = AMIPORT_S_IFDIR | 0755;
-                    sb->st_isdir = 1;
-                } else {
-                    sb->st_mode = AMIPORT_S_IFREG | 0644;
-                    sb->st_size = fib.fib_Size;
-                }
-            }
-            UnLock(lock);
-            return 0;
-        }
-    }
-
     /* Nothing worked */
     errno = ENOENT;
     return -1;
@@ -121,6 +135,7 @@ int
 main(int argc, char **argv)
 {
 	char *ep, **oargv;
+	char *spliced0, *spliced1; /* amiport: track splice() allocations for free() */
 	long  l;
 	int   ch, dflags, lastch, gotstdin, prevoptind, newarg;
 
@@ -256,11 +271,11 @@ main(int argc, char **argv)
 
 #ifndef __AMIGA__ /* amiport: removed pledge/unveil — OpenBSD-specific sandboxing */
 	if (unveil("/tmp", "rwc") == -1)
-		err(2, "unveil /tmp");
+		err(10, "unveil /tmp");
 	if (unveil("/", "r") == -1)
-		err(2, "unveil /");
+		err(10, "unveil /");
 	if (pledge("stdio rpath wpath cpath", NULL) == -1)
-		err(2, "pledge");
+		err(10, "pledge");
 #endif
 
 	/*
@@ -278,9 +293,9 @@ main(int argc, char **argv)
 				     REG_NEWLINE | REG_EXTENDED)) != 0) {
 			regerror(error, &ignore_re, buf, sizeof(buf));
 			if (*ignore_pats != '\0')
-				errx(2, "%s: %s", ignore_pats, buf);
+				errx(10, "%s: %s", ignore_pats, buf);
 			else
-				errx(2, "%s", buf);
+				errx(10, "%s", buf);
 		}
 	}
 #endif
@@ -290,36 +305,55 @@ main(int argc, char **argv)
 		stb1.st_mode = AMIPORT_S_IFREG | 0644;
 		gotstdin = 1;
 	} else if (amiport_fill_stat(argv[0], &stb1) != 0)
-		err(2, "%s", argv[0]);
+		err(10, "%s", argv[0]);
 	if (strcmp(argv[1], "-") == 0) {
 		/* amiport: fstat(STDIN_FILENO) replaced — treat stdin as regular file */
 		memset(&stb2, 0, sizeof(stb2));
 		stb2.st_mode = AMIPORT_S_IFREG | 0644;
 		gotstdin = 1;
 	} else if (amiport_fill_stat(argv[1], &stb2) != 0)
-		err(2, "%s", argv[1]);
+		err(10, "%s", argv[1]);
 	if (gotstdin && (S_ISDIR(stb1.st_mode) || S_ISDIR(stb2.st_mode)))
-		errx(2, "can't compare - to a directory");
+		errx(10, "can't compare - to a directory");
 	set_argstr(oargv, argv);
 	if (S_ISDIR(stb1.st_mode) && S_ISDIR(stb2.st_mode)) {
 		if (diff_format == D_IFDEF)
-			errx(2, "-D option not supported with directories");
+			errx(10, "-D option not supported with directories");
 		diffdir(argv[0], argv[1], dflags);
 	} else {
+		spliced0 = NULL;
+		spliced1 = NULL;
 		if (S_ISDIR(stb1.st_mode)) {
-			argv[0] = splice(argv[0], argv[1]);
+			/* amiport: save splice() result for free() — splice() allocates */
+			spliced0 = splice(argv[0], argv[1]);
+			argv[0] = spliced0;
 			if (amiport_fill_stat(argv[0], &stb1) == -1) /* amiport: replaced stat() */
-				err(2, "%s", argv[0]);
+				err(10, "%s", argv[0]); /* amiport: exit(2) -> exit(10) RETURN_ERROR */
 		}
 		if (S_ISDIR(stb2.st_mode)) {
-			argv[1] = splice(argv[1], argv[0]);
+			/* amiport: save splice() result for free() — splice() allocates */
+			spliced1 = splice(argv[1], argv[0]);
+			argv[1] = spliced1;
 			if (amiport_fill_stat(argv[1], &stb2) == -1) /* amiport: replaced stat() */
-				err(2, "%s", argv[1]);
+				err(10, "%s", argv[1]); /* amiport: exit(2) -> exit(10) RETURN_ERROR */
 		}
 		print_status(diffreg(argv[0], argv[1], dflags), argv[0], argv[1],
 		    "");
+		/* amiport: free splice()-allocated strings before exit */
+		if (spliced0 != NULL)
+			free(spliced0);
+		if (spliced1 != NULL)
+			free(spliced1);
 	}
-	exit(status);
+	/* amiport: remap POSIX exit codes to Amiga exit codes.
+	 * status==0: RETURN_OK, status==1: files differ -> RETURN_WARN(5),
+	 * status>=2: error -> RETURN_ERROR(10). */
+	if (status == 0)
+		exit(0);
+	else if (status == 1)
+		exit(5);
+	else
+		exit(10);
 }
 
 void
@@ -359,7 +393,7 @@ read_excludes_file(char *file)
 	if (strcmp(file, "-") == 0)
 		fp = stdin;
 	else if ((fp = fopen(file, "r")) == NULL)
-		err(2, "%s", file);
+		err(10, "%s", file);
 	while (fgets(buf, sizeof(buf), fp) != NULL) { /* amiport: replaced fgetln() with fgets() */
 		len = strlen(buf);
 		if (len > 0 && buf[len - 1] == '\n')
@@ -460,5 +494,5 @@ usage(void)
 	    "       diff [-abdiNPprsTtw] [-c | -e | -f | -n | -q | -u] [-I pattern]\n"
 	    "            [-L label] [-S name] [-X file] [-x pattern] dir1 dir2\n");
 
-	exit(2);
+	exit(10); /* amiport: exit(2) -> exit(10) RETURN_ERROR */
 }
