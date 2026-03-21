@@ -240,3 +240,17 @@ test:
 - **Detection grep:** `struct FileInfoBlock [a-z]` — any stack-allocated FIB in shim code.
 - **Port:** tail (OpenBSD v1.24) — crash on first file argument (`WORK:tail WORK:test-tail-input.txt`)
 - **Date:** 2026-03-21
+
+---
+
+### #9: libnix exit() hangs on AmigaOS console
+
+- **Symptom:** Program produces correct output but never returns to the shell prompt. Process hangs indefinitely after last output line. Ctrl-C does not break. Not an Enforcer hit — no illegal memory access, just a deadlock.
+- **Alert/Error:** None — no Guru Meditation, no Enforcer hits. The process simply never exits.
+- **Trigger:** Calling `exit()` in `main()` after stdio output to an AmigaOS console window. Occurs on real hardware and FS-UAE, but NOT in vamos (vamos has its own exit handling).
+- **Root cause:** libnix's `exit()` calls atexit handlers that attempt to flush and close all stdio streams. When stdout is connected to an AmigaDOS console (CON: or RAW:), the `fclose(stdout)` or internal stdio cleanup blocks waiting for the console handler to acknowledge. This is a libnix bug — the console handler may not respond to the close request if the process is already shutting down.
+- **Fix applied:** Replace `exit(rval)` with `_exit(rval)` at the final exit point in `main()`. Add `fflush(stdout)` immediately before `_exit()` to ensure buffered output is written. `_exit()` bypasses atexit handlers and goes straight to `_exit()` → `Exit()` in AmigaDOS, which works correctly.
+- **Detection grep:** `exit(rval)` or `exit(0)` at the end of `main()` — replace with `fflush(stdout); _exit(rval);`
+- **Caveat:** Only use `_exit()` at the final exit point in `main()` after explicit cleanup (free, fclose). Do NOT use `_exit()` in error paths where `err()`/`errx()` are called — those still use `exit()` internally and the cleanup matters less for error exits (the program is dying anyway).
+- **Port:** tail (OpenBSD v1.24) — hung after displaying output on FS-UAE console
+- **Date:** 2026-03-21
