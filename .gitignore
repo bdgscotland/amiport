@@ -15,9 +15,17 @@ tests/shim/test_*
 !tests/shim/test_*.c
 !tests/shim/test_*.h
 
-# Port packaging artifacts (archives only — readmes are committed)
+# Port packaging artifacts
 ports/*/*.lha
 ports/*/*.zip
+
+# Stray binaries in ported source dirs (compiled binaries go in ports/<name>/<name> only)
+ports/*/ported/[a-z]*
+!ports/*/ported/*.c
+!ports/*/ported/*.h
+
+# Aminet-generated readmes with version numbers (keep only <name>.readme)
+ports/*/*-*.readme
 
 # Test binaries (emu, console, net)
 tests/emu/test_*

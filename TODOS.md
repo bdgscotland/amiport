@@ -20,9 +20,25 @@
 
 **Why:** Pipes are used in many Unix programs for inter-process communication. Even simple programs use `popen()`/`pclose()` for running subcommands.
 
-**Details:** AmigaOS 2.0+ has PIPE: device which can be opened as a regular file. A basic implementation would open "PIPE:amiport_NNN" for read and write ends. However, AmigaOS PIPE: is not exactly POSIX pipes — it's a named pipe device, not anonymous. Behavior differences around blocking, buffering, and EOF detection make this complex to get right. Most CLI tools being ported (wc, grep, cat, etc.) don't use pipes internally — the shell handles piping between programs. Lower priority than dup/dup2.
+**Details:** AmigaOS 2.0+ has PIPE: device which can be opened as a regular file. A basic implementation would open "PIPE:amiport_NNN" for read and write ends. However, AmigaOS PIPE: is not exactly POSIX pipes — it's a named pipe device, not anonymous. Behavior differences around blocking, buffering, and EOF detection make this complex to get right. Most CLI tools being ported don't use pipes internally — the shell handles piping between programs. Lower priority than dup/dup2.
 
 **Depends on:** Would benefit from dup/dup2 for full pipe+redirect support.
+
+---
+
+### Amiga wildcard/glob expansion shim
+
+**What:** `amiport_glob_args()` to expand `#?` and `*` patterns in argv at program startup.
+
+**Why:** Amiga shells don't glob-expand like Unix. Programs ported from Unix expect the shell to expand wildcards, but AmigaOS passes them literally. Support both Amiga (`#?`, `~`, `(a|b)`) and Unix (`*`, `?`, `[a-z]`) patterns.
+
+---
+
+### Amiga path translation shim
+
+**What:** `amiport_path_translate()` for `/tmp` → `T:`, `/dev/null` → `NIL:`, `~/` → `HOME:`.
+
+**Why:** Common Unix path patterns break ports. An automatic translation layer at fopen/open time would fix this transparently.
 
 ---
 
@@ -32,10 +48,44 @@
 
 **What:** GitHub Actions workflow that runs `make smoke-test` on push to main.
 
-**Why:** The smoke test currently only runs locally. CI catches regressions automatically and proves the full pipeline (toolchain setup → shim build → example build → vamos test) works from a clean environment.
+**Why:** CI catches regressions automatically and proves the full pipeline works from a clean environment.
 
-**Details:** Main complexity is running the bebbo-gcc Docker image inside GitHub Actions (Docker-in-Docker). May need a self-hosted runner or a pre-built Docker image cached in GHCR. The workflow should: install vamos via pip, pull/build the cross-compiler Docker image, then run `make smoke-test`. Estimated ~30 min with CC.
-
-**Priority:** P2 — ship after the golden thread (smoke test + examples) is complete.
+**Details:** Main complexity is running the bebbo-gcc Docker image inside GitHub Actions (Docker-in-Docker). May need a self-hosted runner or a pre-built Docker image cached in GHCR.
 
 **Depends on:** `make smoke-test` and `make doctor` existing and working.
+
+---
+
+### Verify newlib-availability.md
+
+**What:** Audit `docs/references/newlib-availability.md` against current bebbo-gcc libnix.
+
+**Why:** bebbo has been cross-porting functions between libnix and newlib; our reference may be stale.
+
+---
+
+## Port Targets
+
+### Category 1 (CLI) — Next Candidates
+
+| Tool | Aminet Status | Complexity | Notes |
+|------|--------------|------------|-------|
+| sort | v1.0 (1993) | Easy | Pure computation, locale stubs |
+| tr | missing | Trivial | Character translation |
+| uniq | missing | Trivial | Line comparison |
+| tail | missing | Easy | File I/O + seek |
+| tee | missing | Trivial | stdin → file + stdout |
+| xargs | missing | Easy | Needs glob shim |
+| basename/dirname | missing | Trivial | String manipulation |
+
+### Category 2 (Scripting) — Lua 5.4
+
+See ADR-011. Needs dlopen stubs and path remapping for `require()`.
+
+### Category 3 (Console UI) — less
+
+Console-shim library complete (ADR-009). `less` is the first target. Needs window size detection via Intuition.
+
+### Category 4 (Network) — wget-lite
+
+BSD socket shim complete (ADR-010). Needs a simple HTTP client to validate.
