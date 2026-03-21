@@ -1,0 +1,39 @@
+TEST: Version string
+CMD: WORK:lua -v
+EXPECT: Lua 5.4.7  Copyright (C) 1994-2024 Lua.org, PUC-Rio
+
+TEST: Arithmetic expression
+CMD: WORK:lua -e "print(2+3)"
+EXPECT: 5
+
+TEST: String operations
+CMD: WORK:lua -e "print(string.upper('hello amiga'))"
+EXPECT: HELLO AMIGA
+
+TEST: Integer floor division (5.4 feature)
+CMD: WORK:lua -e "print(7 // 2)"
+EXPECT: 3
+
+TEST: Bitwise operators (5.4 feature)
+CMD: WORK:lua -e "print(0xFF & 0x0F)"
+EXPECT: 15
+
+TEST: Math library
+CMD: WORK:lua -e "print(math.sqrt(144))"
+EXPECT: 12.0
+
+TEST: File I/O roundtrip
+CMD: WORK:lua -e "local f=io.open('T:lua_test.txt','w') f:write('hello amiga') f:close() f=io.open('T:lua_test.txt','r') print(f:read('*a')) f:close() os.remove('T:lua_test.txt')"
+EXPECT: hello amiga
+
+TEST: os.tmpname returns T: path
+CMD: WORK:lua -e "print(os.tmpname():sub(1,2))"
+EXPECT: T:
+
+TEST: Fibonacci recursion
+CMD: WORK:lua -e "function fib(n) if n<2 then return n end return fib(n-1)+fib(n-2) end print(fib(20))"
+EXPECT: 6765
+
+TEST: 32-bit integer boundary
+CMD: WORK:lua -e "print(math.maxinteger)"
+EXPECT: 2147483647

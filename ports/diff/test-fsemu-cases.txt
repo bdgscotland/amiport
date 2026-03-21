@@ -1,0 +1,3 @@
+TEST: Identical files produce no output (exit 0)
+CMD: WORK:diff WORK:test-diff-same.txt WORK:test-diff-same.txt
+EXPECT:

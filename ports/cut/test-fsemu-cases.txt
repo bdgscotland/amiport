@@ -1,0 +1,7 @@
+TEST: Extract field 2 colon-delimited
+CMD: WORK:cut -d: -f2 WORK:test-cut-input.txt
+EXPECT: b
+
+TEST: Extract characters 1-3
+CMD: WORK:cut -c1-3 WORK:test-cut-input.txt
+EXPECT: a:b
