@@ -1,0 +1,29 @@
+Short:        Unix-style calendar display for AmigaOS
+Type:         util/cli
+Architecture: m68k-amigaos >= 3.0
+Uploader:     duncan@bowring.us
+Author:       University of California, Berkeley (ported by Duncan Bowring)
+Version:      1.0
+
+cal — Unix-style calendar display for AmigaOS
+
+Original author: University of California, Berkeley
+Ported by Duncan Bowring using amiport (AI-assisted porting toolkit).
+Project: https://github.com/bdgscotland/amiport
+
+Cross-compiled with m68k-amigaos-gcc for AmigaOS 3.x (68000+).
+Tested in vamos emulator.
+
+Usage:
+  cal                  Display current month
+  cal 2026             Display full year 2026
+  cal 3 2026           Display March 2026
+  cal -j               Julian day numbers
+  cal -y               Full year display
+
+Exit codes (Amiga-native):
+  0  = success (RETURN_OK)
+  10 = error (RETURN_ERROR)
+
+Includes full source code (original POSIX and ported Amiga versions)
+and PORT.md documenting every transformation applied.
