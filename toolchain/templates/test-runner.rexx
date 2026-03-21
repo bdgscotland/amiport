@@ -18,6 +18,11 @@
  * Usage: rx WORK:test-runner.rexx
  */
 
+/* Allow commands to return non-zero RC without triggering ARexx ERROR.
+ * Amiga return codes: RETURN_OK=0, RETURN_WARN=5, RETURN_ERROR=10, RETURN_FAIL=20.
+ * Only truly catastrophic failures (RC >= 21) should trigger ERROR. */
+OPTIONS FAILAT 21
+
 /* Read test cases */
 testfile = 'WORK:test-cases.txt'
 resultfile = 'RESULTS:tap-output.txt'
@@ -63,8 +68,19 @@ DO i = 1 TO testcount
     texpect = expect.i
     outfile = 'T:test_out_' || i || '.txt'
 
-    /* Run the command, redirect output to temp file */
-    ADDRESS COMMAND tcmd '>' outfile
+    /* Run the command, redirect output to temp file.
+     * Use a shell script via Execute with FailAt 21 to ensure
+     * stdout is captured even when commands return non-zero RC
+     * (e.g., diff returns RC=5 when files differ). */
+    scriptfile = 'T:test_cmd_' || i
+    IF OPEN('scr', scriptfile, 'W') THEN DO
+        CALL WRITELN('scr', 'FailAt 21')
+        CALL WRITELN('scr', tcmd '>' outfile)
+        CALL CLOSE('scr')
+    END
+    ADDRESS COMMAND 'Execute' scriptfile
+    cmdrc = RC
+    ADDRESS COMMAND 'Delete >NIL:' scriptfile
 
     /* Read actual output */
     actual = ''

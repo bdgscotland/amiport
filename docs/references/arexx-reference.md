@@ -996,13 +996,54 @@ END
 ADDRESS COMMAND 'delete T:dirlist QUIET'
 ```
 
+### Common Pitfalls with Shell Commands
+
+#### No Shell Piping in ADDRESS COMMAND
+
+`ADDRESS COMMAND 'echo "hello" | grep hello'` does **NOT** work. AmigaDOS pipe handling through ARexx's ADDRESS COMMAND is unreliable. Instead, write input to a temp file first, then run the command with the file as input:
+
+```rexx
+/* BAD — pipe will not work */
+ADDRESS COMMAND 'echo "a:b:c" | cut -d: -f2 >T:out'
+
+/* GOOD — use a temp file */
+IF OPEN('tf', 'T:input.txt', 'W') THEN DO
+    CALL WRITELN('tf', 'a:b:c')
+    CALL CLOSE('tf')
+END
+ADDRESS COMMAND 'cut -d: -f2 T:input.txt >T:out'
+```
+
+#### No Command Chaining with && or ;
+
+AmigaDOS does not support `&&` for conditional chaining. The `;` separator may work in some shells but not through ARexx's ADDRESS COMMAND. Run commands as separate ADDRESS COMMAND calls:
+
+```rexx
+/* BAD — chaining will not work */
+ADDRESS COMMAND 'echo >T:f.txt "hi" && cut -c1-2 T:f.txt'
+
+/* GOOD — separate calls */
+ADDRESS COMMAND 'echo >T:f.txt "hi"'
+ADDRESS COMMAND 'cut -c1-2 T:f.txt >T:out'
+```
+
+#### Output Capture with Non-Zero RC
+
+When using `ADDRESS COMMAND cmd '>' outfile`, some ARexx implementations may not write the output file when the command returns non-zero RC. Use `OPTIONS FAILAT 21` to ensure output is always captured regardless of the command's return code.
+
+#### Test Inputs Should Be Pre-Created Files
+
+For FS-UAE test cases (`test-fsemu-cases.txt`), write test input data to separate files (e.g., `test-grep-input.txt`) that get copied to `WORK:` by the test infrastructure. Do not try to create files on-the-fly in the CMD field or via piping.
+
 ### FAILAT (Error Threshold)
 
 ```rexx
 /* Set minimum RC that triggers an error condition */
 OPTIONS FAILAT 20         /* Only RC >= 20 triggers ERROR */
 
-/* Default FAILAT is 10 */
+/* Default FAILAT is 10 -- commands returning RC >= 10 trigger ERROR */
+/* Use FAILAT 21 in test harnesses to capture output from all commands */
+OPTIONS FAILAT 21
 ```
 
 ### PRAGMA (System Environment)
@@ -1494,6 +1535,18 @@ SAY 'It''s fine'          /* It's fine */
 ```
 
 Unquoted tokens that are not keywords or valid numbers are treated as variable references.
+
+### 14. No Shell Piping in ADDRESS COMMAND
+
+AmigaDOS pipe handling through ARexx's ADDRESS COMMAND is unreliable. `ADDRESS COMMAND 'echo "hello" | grep hello'` does NOT work. Write input to a temp file first, then run the command with the file as input. See [Section 14: Common Pitfalls with Shell Commands](#common-pitfalls-with-shell-commands) for details and examples.
+
+### 15. No Command Chaining with && or ;
+
+AmigaDOS does not support `&&` for conditional chaining through ADDRESS COMMAND. The `;` separator may work in some shells but not through ARexx. Run commands as separate ADDRESS COMMAND calls instead.
+
+### 16. Default FAILAT Is 10
+
+Commands returning RC >= 10 trigger ARexx's ERROR condition by default. Use `OPTIONS FAILAT 21` at the top of test harnesses to prevent premature abort and ensure output files are always written. See [Section 14: FAILAT](#failat-error-threshold).
 
 ---
 
