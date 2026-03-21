@@ -511,10 +511,21 @@ See `redesign-patterns.md` in this same directory for all available patterns.
 Every POSIX exit code must be remapped to Amiga conventions. Apply these systematically
 across ALL source files after all other transformations are complete.
 
+**IMPORTANT:** The final `exit()` call in `main()` MUST use `_exit()` instead of `exit()`.
+libnix's `exit()` atexit handlers hang on real AmigaOS when stdio is connected to a
+console. Always do explicit cleanup + `fflush(stdout)` + `_exit(rval)`.
+
 ```c
 /* RULE: Replace POSIX exit codes with Amiga equivalents */
 
-/* exit() calls */
+/* Final exit in main() — use _exit() to avoid libnix atexit hang */
+// Before:
+exit(rval);
+// After:
+fflush(stdout);          /* amiport: explicit flush — libnix exit() hangs on AmigaOS console */
+_exit(rval);             /* amiport: _exit() bypasses atexit handlers that hang on AmigaOS */
+
+/* Other exit() calls (error paths, usage) — keep as exit() for cleanup */
 // Before:
 exit(1);
 // After:

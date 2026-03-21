@@ -236,7 +236,7 @@ main(int argc, char *argv[])
 	free(tf);
 	/* amiport: libnix may not flush stdio on exit â explicit flush needed */
 	fflush(stdout);
-	exit(rval);
+	_exit(rval);
 }
 
 /*
