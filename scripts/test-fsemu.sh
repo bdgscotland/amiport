@@ -459,23 +459,28 @@ generate_report() {
         -e "s|__RESULT__|$result_str|g" \
         "$template" > "$report_file"
 
-    # Replace multi-line placeholders (sed can't do these easily)
+    # Replace multi-line placeholders via temp files (safe for arbitrary content)
+    printf '%s\n' "$tap_output" > "$RESULTS_DIR/.tap_output"
+    printf '%s\n' "$test_cases_raw" > "$RESULTS_DIR/.test_cases_raw"
+    printf '%s\n' "$sentinel_contents" > "$RESULTS_DIR/.sentinel_contents"
+    printf '%s\n' "$emu_log" > "$RESULTS_DIR/.emu_log"
+    printf '%s\n' "$test_table" > "$RESULTS_DIR/.test_table"
+
     python3 -c "
-import sys
-with open('$report_file', 'r') as f:
+import sys, os
+d = sys.argv[1]
+with open(sys.argv[2], 'r') as f:
     content = f.read()
-replacements = {
-    '__TAP_OUTPUT__': '''$(echo "$tap_output" | sed "s/'/'\\''/g")''',
-    '__TEST_CASES_RAW__': '''$(echo "$test_cases_raw" | sed "s/'/'\\''/g")''',
-    '__SENTINEL_CONTENTS__': '''$(echo "$sentinel_contents" | sed "s/'/'\\''/g")''',
-    '__EMU_LOG__': '''$(echo "$emu_log" | sed "s/'/'\\''/g")''',
-    '__TEST_TABLE__': '''$(echo "$test_table" | sed "s/'/'\\''/g")''',
-}
-for key, val in replacements.items():
-    content = content.replace(key, val)
-with open('$report_file', 'w') as f:
+for key, fname in [('__TAP_OUTPUT__', '.tap_output'), ('__TEST_CASES_RAW__', '.test_cases_raw'),
+                    ('__SENTINEL_CONTENTS__', '.sentinel_contents'), ('__EMU_LOG__', '.emu_log'),
+                    ('__TEST_TABLE__', '.test_table')]:
+    path = os.path.join(d, fname)
+    if os.path.exists(path):
+        with open(path) as vf:
+            content = content.replace(key, vf.read().rstrip())
+with open(sys.argv[2], 'w') as f:
     f.write(content)
-" 2>/dev/null || true
+" "$RESULTS_DIR" "$report_file"
 
     echo ""
     echo -e "${GREEN}Test report saved to: $report_file${NC}"

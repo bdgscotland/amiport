@@ -95,8 +95,9 @@ Categories 3-4 use an automated FS-UAE testing pipeline instead of manual intera
                      launches harness     FS-UAE to exit
 ```
 
-- **vamos** path: fast, headless, no GUI — used for Categories 1-2
-- **FS-UAE** path: full AmigaOS boot, ARexx harness executes test cases, TAP output captured via shared RESULTS: volume, UAEQuit terminates the emulator — used for Categories 3-4
+- **vamos** path: fast, headless, no GUI — used for Categories 1-2. All ports tested in CI via `make test-ports`.
+- **FS-UAE** path: full AmigaOS boot, ARexx harness executes test cases, TAP output captured via shared RESULTS: volume, UAEQuit terminates the emulator — used for all categories pre-publication.
+- **Test assertions**: `EXPECT:` for exact first-line match, `EXPECT_CONTAINS:` for substring match (useful for multi-line command output like diff).
 
 ### Toolchain
 

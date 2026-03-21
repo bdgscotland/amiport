@@ -4,8 +4,8 @@ EXPECT:
 
 TEST: Different files produce normal diff output
 CMD: WORK:diff WORK:test-diff-a.txt WORK:test-diff-b.txt
-EXPECT: grep 1c1
+EXPECT: 1c1
 
 TEST: Unified diff format works
 CMD: WORK:diff -u WORK:test-diff-a.txt WORK:test-diff-b.txt
-EXPECT: grep @@
+EXPECT_CONTAINS: @@

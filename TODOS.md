@@ -8,15 +8,19 @@ Implemented with parallel `fd_closeable[]` array and scan-on-close for shared BP
 
 ---
 
-### Add `amiport_pipe()` for basic pipe emulation
+### ~~Add `amiport_pipe()` for basic pipe emulation~~ — DONE
 
-**What:** Implement minimal `pipe()` using AmigaDOS PIPE: device (available on AmigaOS 2.0+).
+Implemented as Tier 2 emulation (`amiport_emu_pipe()`) using AmigaDOS PIPE: device with unique channel names via task address + counter. Test suite in `tests/emu/test_pipe.c`. Documented caveats: named (not anonymous) pipes, different blocking/buffering, no SIGPIPE, less reliable EOF detection.
 
-**Why:** Pipes are used in many Unix programs for inter-process communication. Even simple programs use `popen()`/`pclose()` for running subcommands.
+---
 
-**Details:** AmigaOS 2.0+ has PIPE: device which can be opened as a regular file. A basic implementation would open "PIPE:amiport_NNN" for read and write ends. However, AmigaOS PIPE: is not exactly POSIX pipes — it's a named pipe device, not anonymous. Behavior differences around blocking, buffering, and EOF detection make this complex to get right. Most CLI tools being ported don't use pipes internally — the shell handles piping between programs. Lower priority than dup/dup2.
+### Amiga path translation shim
 
-**Depends on:** Would benefit from dup/dup2 for full pipe+redirect support.
+**What:** `amiport_path_translate()` for `/tmp` → `T:`, `/dev/null` → `NIL:`, `~/` → `HOME:`.
+
+**Why:** Common Unix path patterns break ports. An automatic translation layer at fopen/open time would fix this transparently. Could be hooked into `amiport_open()` and `amiport_fopen()` so every port benefits without source changes.
+
+**Priority:** High — silently fixes a whole class of bugs across all ports.
 
 ---
 
@@ -26,13 +30,7 @@ Implemented with parallel `fd_closeable[]` array and scan-on-close for shared BP
 
 **Why:** Amiga shells don't glob-expand like Unix. Programs ported from Unix expect the shell to expand wildcards, but AmigaOS passes them literally. Support both Amiga (`#?`, `~`, `(a|b)`) and Unix (`*`, `?`, `[a-z]`) patterns.
 
----
-
-### Amiga path translation shim
-
-**What:** `amiport_path_translate()` for `/tmp` → `T:`, `/dev/null` → `NIL:`, `~/` → `HOME:`.
-
-**Why:** Common Unix path patterns break ports. An automatic translation layer at fopen/open time would fix this transparently.
+**Priority:** Medium — most ports work without it since users can quote/expand manually. Becomes important for xargs and find-like tools.
 
 ---
 
@@ -70,25 +68,19 @@ Superseded by the autonomous debug agent design (ADR-016). The serial→TCP mech
 
 ## Infrastructure
 
-### Add CI/CD with GitHub Actions — IN PROGRESS
+### ~~Add CI/CD with GitHub Actions~~ — DONE
 
-**What:** GitHub Actions workflow that runs `make smoke-test` on push to main.
-
-**Why:** CI catches regressions automatically and proves the full pipeline works from a clean environment.
-
-**Details:** Main complexity is running the bebbo-gcc Docker image inside GitHub Actions (Docker-in-Docker). Using GHCR for pre-built Docker image caching. Self-bootstrapping (first run builds image, subsequent runs pull cache).
-
-**Depends on:** `make smoke-test` and `make doctor` existing and working.
+GitHub Actions workflow deployed and running on every push to main. Builds all four shim libraries (posix-shim, posix-emu, console-shim, bsdsocket-shim), runs all tests, validates doc consistency and agent frontmatter, builds and tests all example ports AND all production ports via `make test-ports`. Production port tests gate CI (no continue-on-error).
 
 ---
 
 ### Agent Cost/Token Tracking
 
-**What:** Track which agents consume the most tokens during `/port-project` runs.
+**What:** Track which agents consume the most time during `/port-project` runs.
 
 **Why:** With 10 agents potentially dispatching during a single port, there's no visibility into cost distribution. Knowing which stages are expensive informs model selection decisions.
 
-**Details:** Could be a lightweight logging mechanism in the port-project skill that records agent name, model, and approximate token count per dispatch. Output to PORT.md or a separate analytics file.
+**Details:** Claude Code doesn't expose token counts to scripts, so track wall-clock time per agent dispatch instead. Log agent name, model, and duration to PORT.md. Could use timestamps around Agent tool calls in the port-project skill.
 
 **Depends on:** Nothing — can be implemented independently.
 
@@ -102,23 +94,72 @@ Superseded by the autonomous debug agent design (ADR-016). The serial→TCP mech
 
 ---
 
+## Reference Documentation Improvements
+
+### TOPICS.md — Semantic task-to-ADCD page mapping
+
+**What:** Curated mapping of ~30-50 common porting tasks (memory allocation, file I/O, window management, message ports, device I/O, library management, input handling, timer operations, etc.) to relevant ADCD pages.
+
+**Why:** Gives agents "semantic search" for free — no database needed. Currently an agent wanting to know "how do I allocate memory on AmigaOS?" has to know the right filename. A topics index lets them look up the *task* and find all relevant pages.
+
+**Details:** Hand-curated, not auto-generated. Each topic maps to 2-5 ADCD pages with a one-line rationale for why each page is relevant. Lives at `docs/references/adcd/TOPICS.md`.
+
+---
+
+### LIBRARIES.md — Reverse lookup from library name to ADCD pages
+
+**What:** Reverse index from library/device name (e.g., `timer.device`, `exec.library`, `dos.library`) to all ADCD pages that document it.
+
+**Why:** Currently agents have to parse `manifest.json` to find "all timer.device docs." A flat lookup table is faster and grep-friendly.
+
+**Details:** Auto-generatable from `manifest.json` paths in one pass — low effort. One table per library/device with page title and path. Lives at `docs/references/adcd/LIBRARIES.md`.
+
+---
+
+### Manifest summaries — One-line descriptions in manifest.json (P3)
+
+**What:** Add a `description` field to each entry in `docs/references/adcd/manifest.json` with a one-line summary of what the page covers.
+
+**Why:** Agents can grep manifest.json for topics without reading every file. Currently the manifest has paths and titles but no content summary, forcing agents to open files speculatively.
+
+**Details:** ~6,700 entries to process — large batch job. TOPICS.md (curated, ~50 entries) likely provides 80% of the value at 1% of the effort. Consider deferring until TOPICS.md proves insufficient.
+
+---
+
+### Agent prompt-level ADCD consultation (P2)
+
+**What:** Update the `code-transformer` agent to consult `INCLUDES.json` for targeted ADCD chapter reads during transformation decisions.
+
+**Why:** The code-transformer currently applies mechanical transformation rules. With ADCD access, it could make better decisions about *how* to use AmigaOS APIs — not just which function to call, but which flags, error handling patterns, and idioms are correct.
+
+**Details:** Low priority (P2) — the current transformation rules work well for most cases. This would improve quality for complex transformations involving device I/O, message ports, or Intuition. Depends on TOPICS.md and LIBRARIES.md existing first.
+
+---
+
 ## Port Targets
+
+### Completed Ports
+
+| Port | Category | Version | Aminet |
+|------|----------|---------|--------|
+| cal | 1 (CLI) | 1.32 | Submitted |
+| cut | 1 (CLI) | 1.28 | Submitted |
+| diff | 1 (CLI) | 1.95 | Packaged |
+| grep | 1 (CLI) | 1.68 | Packaged |
+| sed | 1 (CLI) | 1.47 | Packaged |
+| lua | 2 (Scripting) | 5.4.7 | Packaged |
 
 ### Category 1 (CLI) — Next Candidates
 
 | Tool | Aminet Status | Complexity | Notes |
 |------|--------------|------------|-------|
-| sort | v1.0 (1993) | Easy | Pure computation, locale stubs |
 | tr | missing | Trivial | Character translation |
 | uniq | missing | Trivial | Line comparison |
-| tail | missing | Easy | File I/O + seek |
 | tee | missing | Trivial | stdin → file + stdout |
-| xargs | missing | Easy | Needs glob shim |
 | basename/dirname | missing | Trivial | String manipulation |
-
-### Category 2 (Scripting) — Lua 5.4
-
-See ADR-011. Needs dlopen stubs and path remapping for `require()`.
+| tail | missing | Easy | File I/O + seek |
+| sort | v1.0 (1993) | Easy | Pure computation, locale stubs — outdated version on Aminet |
+| xargs | missing | Easy | Benefits from glob shim |
 
 ### Category 3 (Console UI) — less
 
