@@ -24,7 +24,8 @@ TESTS = test_file_io \
         test_time \
         test_misc \
         test_string_bsd \
-        test_stdio_ext
+        test_stdio_ext \
+        test_dup
 
 .PHONY: all build run clean
 

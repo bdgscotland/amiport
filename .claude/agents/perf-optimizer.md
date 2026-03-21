@@ -1,7 +1,7 @@
 ---
 name: perf-optimizer
 model: sonnet
-description: Optimizes ported code for Amiga hardware. Knows 68k instruction timing, CHIP/FAST RAM characteristics, cache behavior, DMA contention, and Amiga-specific performance patterns. Dispatch after a port works but runs slowly.
+description: Optimizes ported code for 68k hardware performance. Knows instruction timing, CHIP/FAST RAM characteristics, cache behavior, and DMA contention. Optional — dispatch after memory-checker (Stage 6c) for performance-critical ports.
 allowed-tools: Read, Edit, Grep, Glob
 ---
 
@@ -83,12 +83,11 @@ On 68000, `strlen()` in a loop condition is devastating — it rescans the entir
 - **Code that waits for user input** — CPU is idle anyway
 - **Premature optimization of code that hasn't been profiled**
 
-## Memory Safety — CRITICAL
+## Memory Safety
 
-AmigaOS has NO memory protection, NO garbage collection, and NO automatic process cleanup with `-noixemul`. Every `malloc`/`realloc` without a matching `free` leaks permanently until reboot. You MUST check:
-- Every `realloc` uses an intermediate pointer (never `buf = realloc(buf, ...)`)
-- Every heap allocation has a matching `free` on all exit paths
-- Static buffers that grow via realloc are freed before program exit
+Memory safety checks are handled by the `memory-checker` agent (Stage 6b, mandatory).
+This agent focuses only on performance optimization. If you notice obvious memory leaks
+while reviewing, flag them, but the memory-checker is the primary safety gate.
 
 ## File Hygiene — CRITICAL
 

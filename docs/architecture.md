@@ -10,8 +10,10 @@
 │  source      │    │  source      │    │  amiga       │    │  amiga     │    │  amiga    │    │  skill)   │
 └─────────────┘    └──────────────┘    └─────────────┘    └────────────┘    └───────────┘    └───────────┘
        │                  │                   │                  │                 │
-  source-analyzer   code-transformer    build-manager       test-runner     perf-optimizer
-    (agent)            (agent)            (agent)            (agent)          (agent)
+  source-analyzer   code-transformer    build-manager       test-runner     memory-checker
+    (agent)            (agent)            (agent)            (agent)       (mandatory, 6b)
+                                                                          perf-optimizer
+                                                                         (optional, 6c)
 
                          ▲                   ▲
                          │                   │
@@ -42,12 +44,16 @@ Skills define **what** to do — the instructions, rules, and reference material
 
 Agents define **who** does the work — model selection, tool access, persona, and memory.
 
+- **aminet-researcher**: Uses Sonnet for web research. Checks if a tool already exists on Aminet before porting.
 - **source-analyzer**: Uses Sonnet for fast, thorough code scanning. Read-only tools.
-- **code-transformer**: Uses parent model for high-quality code edits. Full edit access.
+- **code-transformer**: Uses Sonnet for systematic source transformation. Full edit access.
 - **build-manager**: Uses Sonnet for iterative build-fix cycles. Bash + edit access.
 - **test-runner**: Uses Haiku for lightweight test execution. Bash + read only.
-- **perf-optimizer**: Uses parent model for 68k hardware performance optimization. Read + analysis tools.
-- **port-coordinator**: Uses parent model for orchestration decisions. Full tool access.
+- **memory-checker**: Uses Sonnet for memory safety analysis. **Mandatory** (Stage 6b). Read-only tools.
+- **perf-optimizer**: Uses Sonnet for 68k hardware performance optimization. Optional (Stage 6c). Read + analysis tools.
+- **port-coordinator**: Dispatched by /port-project for complex multi-file ports. Uses worktree isolation. Full tool access.
+- **dependency-auditor**: Uses Sonnet for auditing external library dependencies. Research + read tools.
+- **aminet-publisher**: Uses Sonnet for Aminet package preparation and publishing. Curated, never automatic.
 
 ### Libraries
 

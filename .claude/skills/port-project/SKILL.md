@@ -83,14 +83,29 @@ If tests fail, analyze the failure and fix. May require going back to the transf
 
 **6a. Code review:** Run `/review-amiga` on the ported source. This checks for Amiga-specific issues that the transform and build stages don't catch: stack safety, BPTR cleanup on error paths, memory patterns, and AmigaOS conventions.
 
-**6b. Performance and memory optimization:** Dispatch the `perf-optimizer` agent. This is **mandatory for every port**, not optional. AmigaOS has no memory protection, no garbage collection, and no process memory cleanup on exit with `-noixemul`. Every `malloc`/`realloc` that isn't explicitly `free`'d leaks permanently until reboot. The perf-optimizer checks for:
+**6b. Memory safety check (mandatory):** Dispatch the `memory-checker` agent. This is **mandatory for every port**. AmigaOS has no memory protection, no garbage collection, and no process memory cleanup on exit with `-noixemul`. Every `malloc`/`realloc` that isn't explicitly `free`'d leaks permanently until reboot. The memory-checker finds:
 - Memory leaks on all exit paths (including error paths)
 - realloc failure patterns that lose the original pointer
 - Static buffers that grow but are never freed
+- Double-free and use-after-free risks
+- File handle and Lock() leaks
+
+Fix all memory safety issues before proceeding.
+
+**6c. Performance optimization (optional):** For performance-critical ports, dispatch the `perf-optimizer` agent. This checks for:
 - Hot loop optimization for 68000 (7 MHz, no cache, no pipeline)
 - I/O patterns (per-character vs buffered)
+- Integer operation costs (multiply/divide avoidance)
+- Memory access patterns (sequential vs random, alignment)
 
-If the perf-optimizer makes changes, **rebuild (Stage 4) and retest (Stage 5)** before proceeding.
+If 6b or 6c makes changes, **rebuild (Stage 4) and retest (Stage 5)** before proceeding.
+
+**6d. Knowledge capture:** Review `PORT.md` for novel transformation patterns, pitfalls, or workarounds discovered during this port that aren't yet in the canonical references. For each novel finding:
+1. Check if the pattern exists in `transformation-rules.md`, `known-pitfalls.md`, or `posix-tiers.md`
+2. If novel, present it to the user and ask whether to update the canonical reference
+3. Update the reference file if approved
+
+This step ensures lessons learned flow back into the toolkit for future ports.
 
 Fix any CRITICAL issues before packaging. WARN issues should be documented in PORT.md.
 

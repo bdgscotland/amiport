@@ -24,6 +24,7 @@
 
 static BPTR fd_table[AMIPORT_MAX_FDS];
 static int  fd_used[AMIPORT_MAX_FDS];
+static int  fd_closeable[AMIPORT_MAX_FDS]; /* amiport: whether Close() should be called on this fd */
 static int  fd_initialized = 0;
 
 /* FILE* to fd mapping (for fileno() support) */
@@ -40,15 +41,18 @@ static void init_fd_table(void)
     for (i = 0; i < AMIPORT_MAX_FDS; i++) {
         fd_table[i] = 0;
         fd_used[i] = 0;
+        fd_closeable[i] = 0;
     }
 
-    /* Reserve fd 0, 1, 2 for stdin, stdout, stderr */
+    /* Reserve fd 0, 1, 2 for stdin, stdout, stderr.
+     * These are not closeable — they belong to the shell. */
     fd_table[0] = Input();
     fd_table[1] = Output();
     fd_table[2] = Output(); /* stderr = stdout on Amiga */
     fd_used[0] = 1;
     fd_used[1] = 1;
     fd_used[2] = 1;
+    /* fd_closeable[0..2] remain 0 — never Close() these */
 
     fd_initialized = 1;
 }
@@ -62,6 +66,7 @@ static int alloc_fd(BPTR fh)
         if (!fd_used[i]) {
             fd_table[i] = fh;
             fd_used[i] = 1;
+            fd_closeable[i] = 1;
             return i;
         }
     }
@@ -139,14 +144,89 @@ int amiport_close(int fd)
         return -1;
     }
 
-    /* Don't close stdin/stdout/stderr */
-    if (fd > 2) {
-        Close(fd_table[fd]);
+    /* amiport: Only call Close() if this fd is closeable AND no other fd
+     * shares the same BPTR. This supports dup/dup2 — closing one duplicate
+     * must not close the underlying file handle while others still use it. */
+    if (fd_closeable[fd]) {
+        BPTR fh = fd_table[fd];
+        int shared = 0;
+        int i;
+        for (i = 0; i < AMIPORT_MAX_FDS; i++) {
+            if (i != fd && fd_used[i] && fd_table[i] == fh) {
+                shared = 1;
+                break;
+            }
+        }
+        if (!shared) {
+            Close(fh);
+        }
     }
 
     fd_table[fd] = 0;
     fd_used[fd] = 0;
+    fd_closeable[fd] = 0;
     return 0;
+}
+
+/* amiport: dup() — duplicate a file descriptor */
+int amiport_dup(int oldfd)
+{
+    int i;
+
+    init_fd_table();
+
+    if (oldfd < 0 || oldfd >= AMIPORT_MAX_FDS || !fd_used[oldfd]) {
+        errno = EBADF;
+        return -1;
+    }
+
+    /* Find the lowest free fd starting from 3 (0-2 are reserved) */
+    for (i = 3; i < AMIPORT_MAX_FDS; i++) {
+        if (!fd_used[i]) {
+            fd_table[i] = fd_table[oldfd];
+            fd_used[i] = 1;
+            fd_closeable[i] = fd_closeable[oldfd];
+            return i;
+        }
+    }
+
+    errno = EMFILE;
+    return -1;
+}
+
+/* amiport: dup2() — duplicate a file descriptor to a specific fd number */
+int amiport_dup2(int oldfd, int newfd)
+{
+    init_fd_table();
+
+    /* Validate oldfd */
+    if (oldfd < 0 || oldfd >= AMIPORT_MAX_FDS || !fd_used[oldfd]) {
+        errno = EBADF;
+        return -1;
+    }
+
+    /* Validate newfd range */
+    if (newfd < 0 || newfd >= AMIPORT_MAX_FDS) {
+        errno = EBADF;
+        return -1;
+    }
+
+    /* If oldfd == newfd, just return newfd (POSIX spec) */
+    if (oldfd == newfd) {
+        return newfd;
+    }
+
+    /* If newfd is currently open, close it first */
+    if (fd_used[newfd]) {
+        amiport_close(newfd);
+    }
+
+    /* Copy the BPTR and flags from oldfd to newfd */
+    fd_table[newfd] = fd_table[oldfd];
+    fd_used[newfd] = 1;
+    fd_closeable[newfd] = fd_closeable[oldfd];
+
+    return newfd;
 }
 
 LONG amiport_read(int fd, void *buf, LONG count)

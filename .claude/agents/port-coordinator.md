@@ -1,6 +1,7 @@
 ---
 name: port-coordinator
-description: Coordinates end-to-end porting of a C project to Amiga. Orchestrates analysis, transformation, building, and testing. Makes architectural decisions about how to handle complex porting challenges.
+isolation: worktree
+description: Dispatched by /port-project for complex multi-file ports requiring judgment calls. Coordinates analysis, transformation, building, and testing. Not invoked directly — use /port-project as the entry point.
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Agent
 ---
 
@@ -67,7 +68,7 @@ If any stage fails, diagnose and iterate. You may need to go back to transformat
 
 - **NEVER create files in the project root.** All files go inside the port directory (`ports/<name>/`).
 - When dispatching sub-agents, explicitly instruct them to keep files inside the port directory and clean up after.
-- The `perf-optimizer` agent is **mandatory** — dispatch it after build+test succeed, before packaging.
+- The `memory-checker` agent is **mandatory** (Stage 6b) — dispatch it after build+test succeed. The `perf-optimizer` agent is optional (Stage 6c) — dispatch for performance-critical ports.
 
 ## Quality Bar
 

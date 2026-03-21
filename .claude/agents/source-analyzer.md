@@ -1,6 +1,7 @@
 ---
 name: source-analyzer
 model: sonnet
+memory: project
 description: Analyzes C source code for Amiga portability issues. Produces detailed reports classifying every POSIX dependency by severity. Use when examining unfamiliar C code for porting potential.
 allowed-tools: Read, Grep, Glob, Bash
 ---

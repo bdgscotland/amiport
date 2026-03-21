@@ -1,5 +1,7 @@
 ---
 name: code-transformer
+model: sonnet
+memory: project
 description: Transforms C source code for Amiga compatibility. Applies systematic, rule-based replacements using the posix-shim library. Methodical and minimal — changes only what's necessary.
 allowed-tools: Read, Write, Edit, Grep, Glob
 ---

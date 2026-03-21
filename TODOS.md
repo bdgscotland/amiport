@@ -2,15 +2,9 @@
 
 ## Shim Library Enhancements
 
-### Add `amiport_dup()` and `amiport_dup2()`
+### ~~Add `amiport_dup()` and `amiport_dup2()`~~ — DONE
 
-**What:** Implement file descriptor duplication using the existing fd_table.
-
-**Why:** `dup2()` is used in many C programs for I/O redirection (e.g., redirecting stderr to a file). Without it, any program that does I/O redirection is unportable.
-
-**Details:** The fd_table in `file_io.c` maps int→BPTR. Adding dup requires a reference count per BPTR to avoid double-Close when two fds share the same file handle. Estimated ~50 lines of implementation + tests.
-
-**Depends on:** Should be tested with the vamos-based test suite.
+Implemented with parallel `fd_closeable[]` array and scan-on-close for shared BPTRs. 258-line test suite in `tests/shim/test_dup.c`. Moved from "Planned" to Tier 1 in `docs/posix-tiers.md`.
 
 ---
 
@@ -58,15 +52,27 @@
 
 ## Infrastructure
 
-### Add CI/CD with GitHub Actions
+### Add CI/CD with GitHub Actions — IN PROGRESS
 
 **What:** GitHub Actions workflow that runs `make smoke-test` on push to main.
 
 **Why:** CI catches regressions automatically and proves the full pipeline works from a clean environment.
 
-**Details:** Main complexity is running the bebbo-gcc Docker image inside GitHub Actions (Docker-in-Docker). May need a self-hosted runner or a pre-built Docker image cached in GHCR.
+**Details:** Main complexity is running the bebbo-gcc Docker image inside GitHub Actions (Docker-in-Docker). Using GHCR for pre-built Docker image caching. Self-bootstrapping (first run builds image, subsequent runs pull cache).
 
 **Depends on:** `make smoke-test` and `make doctor` existing and working.
+
+---
+
+### Agent Cost/Token Tracking
+
+**What:** Track which agents consume the most tokens during `/port-project` runs.
+
+**Why:** With 10 agents potentially dispatching during a single port, there's no visibility into cost distribution. Knowing which stages are expensive informs model selection decisions.
+
+**Details:** Could be a lightweight logging mechanism in the port-project skill that records agent name, model, and approximate token count per dispatch. Output to PORT.md or a separate analytics file.
+
+**Depends on:** Nothing — can be implemented independently.
 
 ---
 
