@@ -43,6 +43,11 @@
             "type": "command",
             "command": "bash scripts/hooks/block-root-files.sh",
             "statusMessage": "Checking file location..."
+          },
+          {
+            "type": "command",
+            "command": "bash scripts/hooks/enforce-agents.sh",
+            "statusMessage": "Checking agent usage..."
           }
         ]
       },
