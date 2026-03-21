@@ -24,6 +24,7 @@ Usage:
 
 import argparse
 import collections
+import datetime
 import html
 import json
 import os
@@ -832,6 +833,41 @@ def generate_includes_json(output_dir: Path, node_map: dict):
     print(f"  Generated {includes_path}")
 
 
+def generate_manifest(output_dir: Path, all_files: list, function_index: dict,
+                      type_index: dict, example_count: int):
+    """Generate manifest.json for programmatic ADCD doc access.
+
+    Creates a deterministic JSON manifest listing every enriched markdown file
+    with its metadata, suitable for agent lookups.
+    """
+    files_entries = []
+    for entry in sorted(all_files, key=lambda e: e["path"]):
+        files_entries.append({
+            "path": entry["path"],
+            "title": entry["title"],
+            "manual": entry["manual"],
+            "functions": sorted(entry.get("functions", set())),
+            "types": sorted(entry.get("types", set())) if "types" in entry else [],
+            "libraries": sorted(entry.get("libraries", set())),
+        })
+
+    manifest = {
+        "version": "1.0",
+        "source": "Amiga Developer CD v2.1",
+        "generated": datetime.datetime.utcnow().isoformat() + "Z",
+        "total_files": len(all_files),
+        "total_functions": len(function_index),
+        "total_types": len(type_index),
+        "total_examples": example_count,
+        "files": files_entries,
+    }
+
+    manifest_path = output_dir / "manifest.json"
+    with open(manifest_path, "w", encoding="utf-8") as f:
+        json.dump(manifest, f, indent=2, sort_keys=False)
+    print(f"  Generated {manifest_path}")
+
+
 def do_enrich(args):
     """Pass 2: Add frontmatter, detect functions, resolve links, build indexes."""
     output_dir = Path(args.output)
@@ -954,6 +990,7 @@ def do_enrich(args):
 
             # Detect types
             types_found = detect_types(raw_text)
+            file_entry["types"] = types_found
             for type_name in types_found:
                 if type_name not in type_index:
                     type_index[type_name] = []
@@ -1012,6 +1049,10 @@ def do_enrich(args):
         example_count += 1
     if example_count:
         print(f"  Examples: {example_count} code examples extracted")
+
+    # Generate manifest.json for programmatic access
+    generate_manifest(output_dir, all_files, function_index, type_index,
+                      example_count)
 
     print(f"\n{'='*60}")
     print(f"ENRICH COMPLETE: {total_enriched} files enriched")
