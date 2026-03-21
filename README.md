@@ -73,22 +73,15 @@ The porting pipeline is 10 specialized AI agents, each with a defined role and c
 
 ```mermaid
 graph TD
-    CC["/port-project\n(Claude Code)"] --> A[aminet-researcher]
-    CC --> B[source-analyzer]
-    CC --> C[code-transformer]
-    CC --> D[build-manager]
-    CC --> E[test-runner]
-    CC --> F["memory-checker\n(mandatory)"]
-    CC --> G[perf-optimizer]
-    CC --> H[aminet-publisher]
-
-    A -->|"already exists?"| B
-    B -->|"portability report"| C
-    C -->|"transformed source"| D
-    D -->|"compiled binary"| E
-    E -->|"test results"| F
-    F -->|"clean bill"| G
-    G -->|"optimized"| H
+    CC["/port-project\n(Claude Code)"]
+    CC --> A[aminet-researcher]
+    A --> B[source-analyzer]
+    B --> C[code-transformer]
+    C --> D[build-manager]
+    D --> E[test-runner]
+    E --> F["memory-checker (mandatory)"]
+    F --> G[perf-optimizer]
+    G --> H[aminet-publisher]
 ```
 
 Safety hooks enforce discipline across the pipeline:
