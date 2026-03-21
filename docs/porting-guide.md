@@ -57,7 +57,15 @@ Cross-compiles the ported source using the Docker toolchain. Handles:
 /test-amiga
 ```
 
-Runs the compiled binary in vamos and verifies output.
+Runs the compiled binary in vamos and verifies output. This works for Category 1-2 ports (CLI tools, scripting interpreters).
+
+For Category 3-4 ports (console UI, network), also run automated FS-UAE testing:
+
+```bash
+make test-fsemu TARGET=ports/<name>
+```
+
+This boots FS-UAE, runs an ARexx test harness inside AmigaOS, and produces a `TEST-REPORT.md` with TAP-format results. Test cases are defined in `test-fsemu-cases.txt` inside the port directory. The emulator exits automatically when tests complete (via UAEQuit) or a watchdog timeout fires. See ADR-014 for details.
 
 ### 5. Review (recommended)
 

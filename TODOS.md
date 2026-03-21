@@ -42,6 +42,20 @@
 
 ---
 
+## FS-UAE Testing
+
+### FS-UAE serial console debug mode
+
+**What:** When FS-UAE tests fail, re-run with `--debug` to get a live TCP connection to an Amiga shell inside the emulator.
+
+**Why:** Interactive debugging of test failures without leaving the terminal. FS-UAE can expose the serial port as TCP via `serial_port = tcp://127.0.0.1:1234/wait`.
+
+**Details:** Requires setting up the AUX: DOSDriver on the Amiga side and running `newshell AUX:` to get a shell over serial. Output parsing is fragile (ANSI escapes, prompts mixed with output). Lower priority than the automated pipeline.
+
+**Depends on:** FS-UAE automated testing pipeline (completed).
+
+---
+
 ## Infrastructure
 
 ### Add CI/CD with GitHub Actions

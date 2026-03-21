@@ -20,6 +20,8 @@ ADRs capture significant technical and architectural decisions with their contex
 | [ADR-010](010-bsdsocket-shim-for-networking.md) | BSD socket shim for network app porting | Accepted | 2026-03-20 |
 | [ADR-011](011-beyond-cli-port-categories.md) | Beyond CLI — expanding port target categories | Accepted | 2026-03-20 |
 | [ADR-012](012-post-porting-quality-gates.md) | Post-porting quality gates | Accepted | 2026-03-20 |
+| [ADR-013](013-port-directory-hygiene.md) | Port directory hygiene | Accepted | 2026-03-20 |
+| [ADR-014](014-fs-uae-automated-testing.md) | FS-UAE automated testing pipeline | Accepted | 2026-03-21 |
 
 ## Template
 
