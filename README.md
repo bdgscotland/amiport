@@ -33,7 +33,7 @@ make publish TARGET=ports/grep      # Package and upload to Aminet
 ```bash
 git clone https://github.com/bdgscotland/amiport.git
 cd amiport
-git config core.hooksPath .githooks   # Enable pre-commit validation
+make setup              # REQUIRED — configures git hooks for pre-commit validation
 
 # Check prerequisites and set up toolchain
 make doctor             # Check what's installed

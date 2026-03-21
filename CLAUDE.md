@@ -116,10 +116,20 @@ The `/port-project` skill runs Stage 0 (Aminet research) through Stage 6 (packag
 - Use `#ifdef __AMIGA__` blocks when the code should remain cross-platform
 - Target **AmigaOS 3.x on 68020+** as the default. Use `#ifdef` for other OS versions.
 
+## First-Time Setup — MANDATORY
+
+**Run this immediately after cloning.** It configures git hooks that enforce documentation consistency and port directory hygiene. Without this, commits will not be validated.
+
+```bash
+make setup             # Configure git hooks (REQUIRED — run first)
+make setup-toolchain   # Install cross-compiler Docker image
+```
+
 ## Build Instructions
 
 ```bash
 make help              # Show all available targets
+make setup             # Configure git hooks (run after cloning)
 make setup-toolchain   # Install/pull cross-compiler (Docker)
 make fetch-ndk         # Download AmigaOS NDK 3.2 R4
 make build-shim        # Build the POSIX shim library (Tier 1)
@@ -239,20 +249,31 @@ AmigaOS epoch is 1978-01-01, Unix is 1970-01-01. The offset is 252460800 seconds
 
 ## Safety Hooks
 
-The project enforces structural safety via native PreToolUse hooks in `.claude/settings.json`:
+The project enforces structural safety via hooks in `.claude/settings.json`:
 
+**PreToolUse (block before execution):**
 - **`block-original-edits.sh`** — Blocks Edit/Write to any path containing `/original/`. Upstream source is read-only.
+- **`block-root-files.sh`** — Blocks Edit/Write of non-config files in the project root. Prevents stray build/test artifacts.
 - **`block-direct-gcc.sh`** — Blocks direct `m68k-amigaos-gcc`/`ld`/`as` calls in Bash. Forces use of `make` or toolchain wrapper scripts.
+
+**Stop (completion verification):**
+- **`verify-before-stop.sh`** — Reminds Claude to verify work (run tests, check for stray files, update docs) before stopping.
+
+**PreCompact (context preservation):**
+- **`save-port-context.sh`** — On auto-compaction, injects active port names into context so Claude retains awareness of in-progress work.
+
+**SessionStart (environment checks):**
+- **`check-toolchain.sh`** — Warns if Docker, vamos, lha, or jq are missing at session start.
 
 Additionally, hookify rules block test file creation in the project root.
 
 ## Git Hooks
 
-The repo uses `.githooks/` for git hooks (configured via `git config core.hooksPath .githooks`):
+The repo uses `.githooks/` for git hooks, configured by `make setup` (which runs `git config core.hooksPath .githooks`):
 
 - **pre-commit**: Runs `make check-docs` to validate agent references, checks for stray root files, and verifies port directory hygiene. Blocks commits that would introduce doc drift or violate hygiene rules.
 
-New clones should run: `git config core.hooksPath .githooks`
+**`make setup` is mandatory after cloning.** Without it, pre-commit validation is skipped.
 
 ## Continuous Integration
 

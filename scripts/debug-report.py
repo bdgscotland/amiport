@@ -87,7 +87,8 @@ RE_HIT_LINE = re.compile(
 )
 
 RE_ALERT_LINE = re.compile(
-    r"^Alert\s+!!\s+Alert\s+([0-9A-Fa-f]+)$"
+    r"^Alert\s+!!\s+Alert\s+([0-9A-Fa-f]+)"
+    r"(?:\s+TCB:\s+([0-9A-Fa-f]+)\s+USP:\s+([0-9A-Fa-f]+))?$"
 )
 
 # Datestamp: DD-Mon-YY  HH:MM:SS
@@ -95,10 +96,11 @@ RE_DATESTAMP = re.compile(
     r"^\d{2}-[A-Z][a-z]{2}-\d{2}\s+\d{2}:\d{2}:\d{2}$"
 )
 
-# USP: XXXXXXXX SR: XXXX SW: XXXX  (flags)  TCB: XXXXXXXX
+# USP: XXXXXXXX SR: XXXX SW: XXXX  (U0)(-)(-) or (flags)  TCB: XXXXXXXX
+# Real Enforcer uses three separate paren groups: (U0)(-)(-)
 RE_STATUS = re.compile(
     r"^USP:\s+([0-9A-Fa-f]+)\s+SR:\s+([0-9A-Fa-f]+)\s+SW:\s+([0-9A-Fa-f]+)"
-    r"\s+\(([^)]*)\)\s+TCB:\s+([0-9A-Fa-f]+)$"
+    r"\s+(\([^)]*\)(?:\([^)]*\))*)\s+TCB:\s+([0-9A-Fa-f]+)$"
 )
 
 # Data: D0 D1 D2 D3 D4 D5 D6 D7
@@ -132,7 +134,11 @@ RE_NAME = re.compile(
 
 
 def parse_flags(flags_str):
-    """Parse Enforcer flag string like 'U0' into a dict."""
+    """Parse Enforcer flag string into a dict.
+
+    Handles both single-group '(UF)' and multi-group '(U0)(F)(-)' formats.
+    The raw string may include outer parens: '(U0)(-)(-)'
+    """
     flags_str = flags_str.strip()
     return {
         "user_mode": "U" in flags_str,
@@ -172,7 +178,7 @@ def parse_enforcer_log(filepath):
                 "address": None,
                 "data": None,
                 "pc": None,
-                "usp": None,
+                "usp": "0x{}".format(m.group(3).upper()) if m.group(3) else None,
                 "sr": None,
                 "flags": {"user_mode": False, "forbid": False, "disable": False},
                 "registers": {},
