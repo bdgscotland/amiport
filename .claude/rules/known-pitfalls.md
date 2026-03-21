@@ -30,6 +30,18 @@ int len = vsnprintf(probe, sizeof(probe), fmt, ap);
 ```
 This commonly appears when replacing `vasprintf()`/`asprintf()`. Use `amiport_asprintf()` instead. See crash-patterns.md #5.
 
+## Long-Running Loops Need Ctrl-C Check
+
+Any `while (1)` or `for (;;)` loop that runs indefinitely (e.g., `tail -f` polling, event loops, recursive directory walks) MUST call `amiport_check_break()` from `<amiport/signal.h>`. Without this, the user cannot interrupt the program — there is no OS-level SIGINT delivery on AmigaOS. **Fix:**
+```c
+#include <amiport/signal.h>
+/* ... inside the loop: */
+if (amiport_check_break()) {
+    (void)fflush(stdout);
+    return;
+}
+```
+
 ## Exit Path Cleanup
 
 AmigaOS has no automatic process memory cleanup with `-noixemul`. Every `exit()` call must free all allocated memory. When porting programs with global allocations (pattern arrays, compiled regex, line buffers), add a cleanup function called before every `exit()`. See grep port for the `cleanup_patterns()` pattern.

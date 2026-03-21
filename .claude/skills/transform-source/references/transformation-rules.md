@@ -609,3 +609,38 @@ When you encounter these, **do not silently remove them**. Stub with a clear mes
 #define munmap(...)  (0)
 #endif
 ```
+
+## 11. Long-Running Loops — Ctrl-C Break Check
+
+Any loop that runs indefinitely or for an extended period MUST include a Ctrl-C
+break check using `amiport_check_break()` from `<amiport/signal.h>`. Without this,
+the user cannot interrupt the program except by closing the shell window.
+
+Common patterns that need break checks:
+- `tail -f` follow loops (polling with `Delay()`)
+- `grep -r` recursive directory walks
+- Event loops in interactive programs
+- Any `while (1)` or `for (;;)` that doesn't have a natural termination
+
+```c
+/* RULE: Add Ctrl-C break check to long-running loops */
+
+#include <amiport/signal.h>
+
+// Before (infinite polling loop with no break):
+while (1) {
+    Delay(50);
+    do_work();
+}
+
+// After:
+while (1) {
+    Delay(50);
+    /* amiport: check for Ctrl-C break signal */
+    if (amiport_check_break()) {
+        (void)fflush(stdout);
+        return;
+    }
+    do_work();
+}
+```
