@@ -18,7 +18,7 @@ jobs:
           python-version: '3.11'
 
       - name: Install amitools (vamos)
-        run: pip install amitools
+        run: pip install amitools machine68k
 
       - name: Pull cross-compiler Docker image
         run: |
