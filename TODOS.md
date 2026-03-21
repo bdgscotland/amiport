@@ -38,15 +38,33 @@ Implemented with parallel `fd_closeable[]` array and scan-on-close for shared BP
 
 ## FS-UAE Testing
 
-### FS-UAE serial console debug mode
+### ~~FS-UAE serial console debug mode~~ — SUPERSEDED
 
-**What:** When FS-UAE tests fail, re-run with `--debug` to get a live TCP connection to an Amiga shell inside the emulator.
+Superseded by the autonomous debug agent design (ADR-016). The serial→TCP mechanism is now used for automated Enforcer crash capture via `test-fsemu.sh --debug`, which is strictly more capable than the interactive shell approach originally proposed here.
 
-**Why:** Interactive debugging of test failures without leaving the terminal. FS-UAE can expose the serial port as TCP via `serial_port = tcp://127.0.0.1:1234/wait`.
+---
 
-**Details:** Requires setting up the AUX: DOSDriver on the Amiga side and running `newshell AUX:` to get a shell over serial. Output parsing is fragile (ANSI escapes, prompts mixed with output). Lower priority than the automated pipeline.
+### Verify bgdbserver TCP routing through FS-UAE
 
-**Depends on:** FS-UAE automated testing pipeline (completed).
+**What:** Run bgdbserver inside FS-UAE listening on a TCP port, verify `telnet localhost <port>` connects from the host.
+
+**Why:** This is the blocking verification gate for Layer 2 (GDB debugging) of the autonomous debug agent. Research confirmed FS-UAE bsdsocket uses real host sockets, so this *should* work — but needs empirical verification with bgdbserver specifically.
+
+**Details:** Test with `bsdsocket_library = 1` in FS-UAE config. If it fails, the alternative is `astub` (a serial-based GDB stub), not "bgdbserver over serial" — bgdbserver is TCP-only. Requires ~15 min of manual testing.
+
+**Depends on:** Debug tools downloaded via `make setup-debug-tools`.
+
+---
+
+### Build m68k-amigaos-gdb in Docker toolchain image
+
+**What:** Add `m68k-amigaos-gdb` to the bebbo-gcc Docker image build. Currently not built by default — requires a separate build step with a newer bison version than macOS ships.
+
+**Why:** Layer 2 (GDB debugging) needs `m68k-amigaos-gdb` on the host to connect to bgdbserver. Without it, even if bgdbserver TCP works, GDB sessions aren't possible.
+
+**Details:** May require adding bison to the Docker image's build dependencies. Also useful for developers wanting to debug Amiga code manually outside the agent pipeline.
+
+**Depends on:** bgdbserver TCP verification (above TODO).
 
 ---
 
