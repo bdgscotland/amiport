@@ -10,6 +10,8 @@
 
 #include <exec/types.h>
 #include <stdarg.h>
+#include <stddef.h>   /* size_t */
+#include <stdio.h>    /* FILE */
 
 /*
  * vasprintf/asprintf — dynamic string formatting
@@ -40,6 +42,29 @@ int amiport_mkstemp(char *tmpl);
 LONG amiport_pread(int fd, void *buf, LONG count, LONG offset);
 LONG amiport_pwrite(int fd, const void *buf, LONG count, LONG offset);
 
+/*
+ * getdelim — read a delimited line from stream
+ *
+ * Reads until the delimiter character is found, EOF, or error.
+ * Dynamically grows *lineptr as needed (caller must free).
+ * Returns number of characters read including delimiter, or -1 on
+ * EOF/error with no data read.
+ *
+ * Performance: uses fgets() for newline-delimited reads (the common
+ * case) to avoid per-character fgetc() overhead on 68k.  Falls back
+ * to fgetc() for non-newline delimiters.
+ */
+long amiport_getdelim(char **lineptr, size_t *n, int delim, FILE *stream);
+
+/*
+ * getline — read a newline-delimited line from stream
+ *
+ * Equivalent to getdelim(lineptr, n, '\n', stream).
+ * Returns number of characters read including '\n', or -1 on
+ * EOF/error with no data read.
+ */
+long amiport_getline(char **lineptr, size_t *n, FILE *stream);
+
 /* Convenience macros for drop-in replacement */
 #ifndef AMIPORT_NO_STDIO_EXT_MACROS
 #define vasprintf  amiport_vasprintf
@@ -47,6 +72,8 @@ LONG amiport_pwrite(int fd, const void *buf, LONG count, LONG offset);
 #define mkstemp    amiport_mkstemp
 #define pread      amiport_pread
 #define pwrite     amiport_pwrite
+#define getdelim   amiport_getdelim
+#define getline    amiport_getline
 #endif
 
 #endif /* AMIPORT_STDIO_EXT_H */

@@ -165,6 +165,137 @@ TEST(pwrite_basic)
     amiport_unlink("T:test_pwrite.tmp");
 }
 
+/* --- getline tests --- */
+
+TEST(getline_basic)
+{
+    FILE *f;
+    char *line = NULL;
+    size_t n = 0;
+    long ret;
+
+    /* Create test file */
+    f = fopen("T:test_getline.tmp", "w");
+    ASSERT_NOT_NULL(f);
+    fprintf(f, "hello world\n");
+    fprintf(f, "second line\n");
+    fclose(f);
+
+    /* Read first line */
+    f = fopen("T:test_getline.tmp", "r");
+    ASSERT_NOT_NULL(f);
+
+    ret = amiport_getline(&line, &n, f);
+    ASSERT(ret > 0);
+    ASSERT_NOT_NULL(line);
+    ASSERT_STR_EQ(line, "hello world\n");
+    ASSERT_EQ(ret, 12);
+
+    /* Read second line */
+    ret = amiport_getline(&line, &n, f);
+    ASSERT(ret > 0);
+    ASSERT_STR_EQ(line, "second line\n");
+
+    /* Read at EOF */
+    ret = amiport_getline(&line, &n, f);
+    ASSERT_EQ(ret, -1);
+
+    free(line);
+    fclose(f);
+    remove("T:test_getline.tmp");
+}
+
+TEST(getline_no_trailing_newline)
+{
+    FILE *f;
+    char *line = NULL;
+    size_t n = 0;
+    long ret;
+
+    f = fopen("T:test_getline2.tmp", "w");
+    ASSERT_NOT_NULL(f);
+    fprintf(f, "no newline at end");
+    fclose(f);
+
+    f = fopen("T:test_getline2.tmp", "r");
+    ASSERT_NOT_NULL(f);
+
+    ret = amiport_getline(&line, &n, f);
+    ASSERT(ret > 0);
+    ASSERT_STR_EQ(line, "no newline at end");
+    ASSERT_EQ(ret, 17);
+
+    free(line);
+    fclose(f);
+    remove("T:test_getline2.tmp");
+}
+
+TEST(getline_reuses_buffer)
+{
+    FILE *f;
+    char *line = NULL;
+    size_t n = 0;
+    long ret;
+
+    f = fopen("T:test_getline3.tmp", "w");
+    ASSERT_NOT_NULL(f);
+    fprintf(f, "short\n");
+    fprintf(f, "longer line here\n");
+    fclose(f);
+
+    f = fopen("T:test_getline3.tmp", "r");
+    ASSERT_NOT_NULL(f);
+
+    ret = amiport_getline(&line, &n, f);
+    ASSERT(ret > 0);
+    ASSERT(n >= 6);
+
+    /* Second call should reuse the buffer */
+    ret = amiport_getline(&line, &n, f);
+    ASSERT(ret > 0);
+    ASSERT_STR_EQ(line, "longer line here\n");
+
+    free(line);
+    fclose(f);
+    remove("T:test_getline3.tmp");
+}
+
+TEST(getdelim_custom_delimiter)
+{
+    FILE *f;
+    char *line = NULL;
+    size_t n = 0;
+    long ret;
+
+    f = fopen("T:test_getdelim.tmp", "w");
+    ASSERT_NOT_NULL(f);
+    fprintf(f, "field1:field2:field3");
+    fclose(f);
+
+    f = fopen("T:test_getdelim.tmp", "r");
+    ASSERT_NOT_NULL(f);
+
+    ret = amiport_getdelim(&line, &n, ':', f);
+    ASSERT(ret > 0);
+    ASSERT_STR_EQ(line, "field1:");
+    ASSERT_EQ(ret, 7);
+
+    ret = amiport_getdelim(&line, &n, ':', f);
+    ASSERT(ret > 0);
+    ASSERT_STR_EQ(line, "field2:");
+
+    free(line);
+    fclose(f);
+    remove("T:test_getdelim.tmp");
+}
+
+TEST(getline_null_args)
+{
+    long ret;
+    ret = amiport_getline(NULL, NULL, NULL);
+    ASSERT_EQ(ret, -1);
+}
+
 int main(void)
 {
     (void)verstag;
@@ -180,6 +311,12 @@ int main(void)
 
     RUN_TEST(pread_basic);
     RUN_TEST(pwrite_basic);
+
+    RUN_TEST(getline_basic);
+    RUN_TEST(getline_no_trailing_newline);
+    RUN_TEST(getline_reuses_buffer);
+    RUN_TEST(getdelim_custom_delimiter);
+    RUN_TEST(getline_null_args);
 
     return test_summary();
 }

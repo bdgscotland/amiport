@@ -62,57 +62,8 @@ typedef int regoff_t;
 #define REG_STARTEND 0x1000
 #endif
 
-/* amiport: getline() — GNU extension, not in libnix.
- * Simple implementation using fgets() + realloc(). */
-static ssize_t
-amiport_getline(char **lineptr, size_t *n, FILE *stream)
-{
-    char *buf;
-    size_t size, len;
-    int c;
-
-    if (lineptr == NULL || n == NULL || stream == NULL) {
-        return -1;
-    }
-
-    if (*lineptr == NULL || *n == 0) {
-        *n = 128;
-        *lineptr = malloc(*n);
-        if (*lineptr == NULL)
-            return -1;
-    }
-
-    buf = *lineptr;
-    size = *n;
-    len = 0;
-
-    while ((c = fgetc(stream)) != EOF) {
-        if (len + 2 > size) {
-            char *newbuf;
-            size *= 2;
-            /* perf: save old pointer — realloc failure must not leak it */
-            newbuf = realloc(buf, size);
-            if (newbuf == NULL)
-                return -1;
-            buf = newbuf;
-            *lineptr = buf;
-            *n = size;
-        }
-        buf[len++] = (char)c;
-        if (c == '\n')
-            break;
-    }
-
-    if (len == 0)
-        return -1;
-
-    buf[len] = '\0';
-    return (ssize_t)len;
-}
-
-#ifndef AMIPORT_NO_GETLINE_MACRO
-#define getline amiport_getline
-#endif
+/* amiport: getline() now provided by amiport/stdio_ext.h (promoted from inline) */
+#include <amiport/stdio_ext.h>
 
 /* amiport: fdopen() — not in libnix.
  * Stub that returns NULL; in-place editing (-i) will fail gracefully.

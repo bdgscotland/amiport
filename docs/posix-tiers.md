@@ -62,6 +62,8 @@ One wrapper per function. Semantics match POSIX for all common use cases. The tr
 |`mkstemp()`    |`amiport_mkstemp()`     |`Open()` with unique name   |Uses task address + counter for uniqueness                       |
 |`pread()`      |`amiport_pread()`       |`Seek()`+`Read()`+`Seek()`  |Non-atomic positional read                                       |
 |`pwrite()`     |`amiport_pwrite()`      |`Seek()`+`Write()`+`Seek()` |Non-atomic positional write                                      |
+|`getline()`    |`amiport_getline()`     |`fgets()`+`realloc()`       |GNU extension; fgets-based for 68k perf                          |
+|`getdelim()`   |`amiport_getdelim()`    |`fgets()`/`fgetc()`+`realloc()`|Read until delimiter; fast path for '\n'                      |
 
 ### Planned Tier 1 additions
 

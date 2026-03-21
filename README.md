@@ -40,6 +40,7 @@ Ported programs live in `ports/` — each packages independently for [Aminet](ht
 | [cal](ports/cal/) | Unix calendar display (OpenBSD) | Built & tested |
 | [cut](ports/cut/) | Extract fields/columns from text (OpenBSD) | Built & tested |
 | [diff](ports/diff/) | File comparison utility (OpenBSD) | Built & tested |
+| [grep](ports/grep/) | Pattern search — regex, fixed string, recursive (OpenBSD) | Built & tested |
 | [sed](ports/sed/) | Stream editor — text transformation (OpenBSD) | Built & tested |
 
 ```bash
