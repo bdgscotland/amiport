@@ -609,7 +609,7 @@ main() {
 
         # Parse Enforcer hits
         local hits_json="$port_dir/enforcer-hits.json"
-        if python3 "$SCRIPT_DIR/debug-report.py" parse "$ENFORCER_LOG" > "$hits_json" 2>/dev/null; then
+        if python3 "$SCRIPT_DIR/debug-report.py" parse "$ENFORCER_LOG" --app "$port_name" > "$hits_json" 2>/dev/null; then
             enforcer_hits=$(python3 -c "import json,sys; d=json.load(open('$hits_json')); print(d['summary']['total_hits'])" 2>/dev/null || echo "0")
 
             if [ "$enforcer_hits" -gt 0 ]; then
