@@ -33,7 +33,7 @@
 #include "grep.h"
 
 /* amiport: Amiga version string (required for AmigaOS programs) */
-static const char *verstag = "$VER: grep 1.0 (20.03.2026)";
+static const char *verstag = "$VER: grep 1.68 (20.03.2026)";
 
 /* amiport: stack cookie — grep needs more than default 4KB stack */
 long __stack = 32768;

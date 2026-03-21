@@ -3,7 +3,7 @@ include ../common.mk
 
 TARGET      = sed
 SOURCES     = ported/main.c ported/compile.c ported/misc.c ported/process.c
-VERSION     = 1.0
+VERSION     = 1.47
 DESCRIPTION = OpenBSD stream editor (sed) for AmigaOS
 AUTHOR      = Diomidis Spinellis / University of California, Berkeley
 

@@ -19,6 +19,7 @@ Every port lives in `ports/<toolname>/` with:
 - **Prefer shim/emu wrappers** over inline AmigaDOS rewrites
 - **Document every transformation** with `/* amiport: ... */` comments
 - **Preserve original source** in `original/` — never modify it
+- **Use upstream version numbers** — VERSION in Makefile, $VER string, and .readme must use the upstream project's version (e.g., `1.68` for OpenBSD grep rev 1.68, `5.4.7` for Lua 5.4.7), not a generic `1.0`
 
 ## Before Starting a Port
 

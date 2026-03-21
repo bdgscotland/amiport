@@ -3,7 +3,7 @@ include ../common.mk
 
 TARGET      = grep
 SOURCES     = ported/grep.c ported/util.c ported/file.c ported/queue.c ported/binary.c
-VERSION     = 1.0
+VERSION     = 1.68
 DESCRIPTION = OpenBSD grep (pattern search) for AmigaOS
 AUTHOR      = James Howard / Dag-Erling Smorgrav
 

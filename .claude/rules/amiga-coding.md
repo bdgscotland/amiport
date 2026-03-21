@@ -27,10 +27,11 @@ POSIX `exit(1)` is **invisible** to Amiga shells. Amiga scripts test with `IF WA
 
 ## Version String
 
-Every program must include:
+Every program must include a version string using the **upstream version** (not a generic `1.0`):
 ```c
-static const char *verstag = "$VER: progname 1.0 (DD.MM.YYYY)";
+static const char *verstag = "$VER: progname X.Y (DD.MM.YYYY)";
 ```
+Use the upstream project's version number (e.g., `1.68` for OpenBSD grep rev 1.68, `5.4.7` for Lua). The VERSION in the Makefile, the $VER string, and the .readme must all match.
 
 ## Stack Size
 
