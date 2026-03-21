@@ -35,7 +35,7 @@ Each port exercises different parts of the posix-shim library:
 | diff | `getopt`, `err/errx/warn/warnc`, `stat`, `opendir/readdir/closedir`, `scandir/alphasort`, `fnmatch`, `tmpfile` |
 | grep | `getopt`, `err/errx/warn/warnc`, `strtonum`, `reallocarray`, `opendir/readdir/closedir`, `isatty`, `regex` (Tier 2 emu) |
 | sed | `getopt`, `err/errx/warn/errc`, `strtonum`, `strlcpy/strlcat`, `reallocarray`, `mkstemp`, `regex` (Tier 2 emu) |
-| lua | `mkstemp`, `tmpfile` |
+| lua | `tmpfile` |
 
 ## How to Build
 

@@ -34,7 +34,8 @@ Verdict: **MODERATE** — 55 of 61 source files need zero changes. All issues ar
 |-------|------|------------|
 | `long long` default integer type | Config | Defined `LUA_USE_C89` → selects `long`/`double` |
 | POSIX path defaults (`/usr/local/...`) | Config | Overridden to `PROGDIR:lua/` |
-| `tmpnam()` / `tmpfile()` | Tier 1 | Routed to `amiport_mkstemp("T:lua_XXXXXX")` / `amiport_tmpfile()` |
+| `tmpnam()` | Redesign | Custom `lua_tmpnam` in loslib.c generates `T:lua_XXXX_N` names |
+| `tmpfile()` | Tier 1 | Routed to `amiport_tmpfile()` (uses `T:`) |
 | `signal(SIGINT, ...)` | Tier 1 | Uses libnix `signal()` — works without shim |
 | `dlopen()` / `dlsym()` | N/A | Dead code — `LUA_USE_DLOPEN` not defined |
 | `popen()` / `pclose()` | N/A | Dead code — falls through to Lua's built-in error stub |
@@ -48,9 +49,10 @@ Verdict: **MODERATE** — 55 of 61 source files need zero changes. All issues ar
 | File | Original | Transformed | Comment |
 |------|----------|-------------|---------|
 | `luaconf.h:44` | `/* #define LUA_USE_C89 */` | `#define LUA_USE_C89` (under `__AMIGA__`) | Cascades: disables POSIX, selects C89 numbers |
-| `luaconf.h:807-834` | POSIX paths, no Amiga config | Amiga path/tmpnam config block | `PROGDIR:`, `T:lua_XXXXXX` |
+| `luaconf.h:807-820` | POSIX paths, no Amiga config | Amiga path config block | `PROGDIR:` paths, no C modules |
 | `lua.c:17-20` | (none) | `$VER` string, `__stack = 65536` | AmigaOS version/stack |
 | `lua.c:693` | `return EXIT_FAILURE` | `return 10` | RETURN_ERROR |
+| `loslib.c:104-119` | ISO C `tmpnam()` | Custom `lua_tmpnam` for `__AMIGA__` | Generates `T:lua_XXXX_N` names |
 | `loslib.c:397` | `EXIT_FAILURE` | `10` | RETURN_ERROR for `os.exit(false)` |
 | `liolib.c:19-22` | (none) | `#include <amiport/unistd.h>` | For `amiport_tmpfile()` |
 | `liolib.c:309` | `tmpfile()` | `amiport_tmpfile()` | Uses `T:` on AmigaOS |
@@ -59,8 +61,7 @@ Verdict: **MODERATE** — 55 of 61 source files need zero changes. All issues ar
 
 ## Shim Functions Exercised
 
-- `amiport_mkstemp()` — temp file creation using `T:` assign
-- `amiport_tmpfile()` — anonymous temp file using `T:` assign
+- `amiport_tmpfile()` — anonymous temp file using `T:` assign (for `io.tmpfile()`)
 
 ## Build Configuration
 
@@ -70,7 +71,7 @@ Verdict: **MODERATE** — 55 of 61 source files need zero changes. All issues ar
 | Target | m68k-amigaos, 68000+ |
 | CFLAGS | `-O2 -noixemul -m68000 -Wall` |
 | Libraries | `-lamiport` (posix-shim), `-lm` |
-| Binary size | ~256KB |
+| Binary size | ~258KB |
 | Stack | 65536 bytes (via `__stack` cookie) |
 
 ## Test Results
@@ -91,6 +92,29 @@ Tested via vamos (Category 2 — scripting interpreter).
 | Integer div | `lua -e "print(7 // 2)"` | `3` | PASS |
 | File script | `lua test_hello.lua` | `Hello from Lua on Amiga!` | PASS |
 
+### Deep Test Suite (16 categories, all PASS)
+
+| Category | Tests |
+|----------|-------|
+| Integer arithmetic | 32-bit boundaries, overflow wrapping, floor division |
+| Float precision | math.type, trig functions, float/int distinction |
+| String operations | Patterns, captures, gsub, format, 100KB strings |
+| Tables | 10K entries, sort, concat, move, pack/unpack |
+| Coroutines | Create, resume, yield, status, value passing |
+| Closures/upvalues | Independent counters, upvalue isolation |
+| Error handling | pcall, xpcall, table errors, tracebacks |
+| Metatables | __index, __add, __tostring, OOP patterns |
+| GC/weak tables | Weak ref collection, __gc finalizers |
+| File I/O | Write/read roundtrip, io.lines, read modes, 2000-char lines |
+| Bitwise (5.4) | AND, OR, NOT, XOR, shifts |
+| To-be-closed (5.4) | `<close>` scope finalizers |
+| UTF-8 library | Character vs byte length |
+| Dynamic code | load(), syntax error detection, environments |
+| Stress | fib(25), deep recursion, large tables |
+| Varargs | select, ipairs, multiple returns |
+| os.tmpname | Returns T: path, unique names, file create/remove |
+| io.tmpfile | Write/seek/read roundtrip via amiport_tmpfile |
+
 ## Known Limitations
 
 - **`io.popen()` not supported** — Returns a Lua error: "'popen' not supported". This is a graceful degradation, not a crash.
@@ -102,7 +126,8 @@ Tested via vamos (Category 2 — scripting interpreter).
 
 ## Performance Optimizations
 
-- **`read_line` in liolib.c** — Replaced per-character `getc()` loop with `fgets()` for line reading. On a 7 MHz 68000, each `getc()` call costs ~20+ cycles in function-call overhead; `fgets` collapses this to one library call per buffer chunk. Affects `io.lines()`, `file:read("*l")`, and stdin line reading.
+- **`read_line` in liolib.c** — Replaced per-character `getc()` loop with `fgets()` for line reading. On a 7 MHz 68000, each `getc()` call costs ~20+ cycles in function-call overhead; `fgets` collapses this to one library call per buffer chunk. Uses `memchr()` instead of `strlen()` for NUL-safe newline detection. Affects `io.lines()`, `file:read("*l")`, and stdin line reading.
+- **`os.tmpname()` in loslib.c** — Custom Amiga implementation generates unique names under `T:` (RAM:T/) instead of libnix `tmpnam()` which generates broken `/tmp/` paths.
 
 ## Review
 
@@ -119,4 +144,4 @@ Reviewed with `/review-amiga`. Score: **READY**.
 Notes:
 - Hash seed (`luai_makeseed`) is deterministic on AmigaOS due to no ASLR — acceptable for a scripting language.
 - `isatty()` always returns true (ISO C fallback) — interactive mode assumed when no args given.
-- Perf-optimizer found no memory leaks on any exit path.
+- Perf-optimizer (two passes) found no memory leaks on any exit path. Fixed `os.tmpname()` broken path and `read_line` NUL-byte regression.
