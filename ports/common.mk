@@ -41,9 +41,10 @@ STRIP = $(TOOLCHAIN_BIN)/m68k-amigaos-strip
 
 package: $(TARGET)
 	@test -s $(TARGET).readme || (echo "ERROR: $(TARGET).readme missing or empty — create from ports/templates/readme.template" && exit 1)
-	$(STRIP) --strip-debug -o $(TARGET).stripped $(TARGET)
-	$(LHA_CMD) a $(TARGET)-$(VERSION).lha $(TARGET).stripped $(TARGET).readme PORT.md original/ ported/
-	rm -f $(TARGET).stripped
+	@mkdir -p .pkg
+	$(STRIP) --strip-debug -o .pkg/$(TARGET) $(TARGET)
+	$(LHA_CMD) a $(TARGET)-$(VERSION).lha .pkg/$(TARGET) $(TARGET).readme PORT.md original/ ported/
+	@rm -rf .pkg
 
 clean:
 	rm -f $(TARGET) $(TARGET)-*.lha $(TARGET).map
