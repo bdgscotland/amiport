@@ -1,0 +1,11 @@
+TEST: Display March 2026
+CMD: WORK:cal 3 2026
+EXPECT: March 2026
+
+TEST: Display full year
+CMD: WORK:cal -y 2026
+EXPECT: 2026
+
+TEST: Julian day numbers
+CMD: WORK:cal -j 3 2026
+EXPECT: March 2026

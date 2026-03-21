@@ -1,0 +1,15 @@
+TEST: Basic pattern match
+CMD: WORK:grep hello WORK:test-grep-input.txt
+EXPECT: hello world
+
+TEST: Case-insensitive match
+CMD: WORK:grep -i hello WORK:test-grep-input.txt
+EXPECT: hello world
+
+TEST: Fixed string match
+CMD: WORK:grep -F "a.b" WORK:test-grep-input.txt
+EXPECT: a.b
+
+TEST: Extended regex
+CMD: WORK:grep -E "ca[rt]" WORK:test-grep-input.txt
+EXPECT: cat

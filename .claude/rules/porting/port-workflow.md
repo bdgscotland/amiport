@@ -30,5 +30,7 @@ Every port lives in `ports/<toolname>/` with:
 ## After Completing a Port
 
 1. Run `/review-amiga` for Amiga-specific code review
-2. Update `PORTS.md` with the new port entry
-3. Update `README.md` ports table
+2. Dispatch `perf-optimizer` agent (mandatory — AmigaOS has no memory protection)
+3. Run `make test-fsemu TARGET=ports/<name>` — FS-UAE testing is **mandatory for ALL categories**, not just Category 3-4. Create `test-fsemu-cases.txt` with test cases using pre-created input files (no piping — ARexx `ADDRESS COMMAND` doesn't support it)
+4. Update `PORTS.md` with the new port entry
+5. Update `README.md` ports table

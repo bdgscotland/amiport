@@ -1,0 +1,11 @@
+TEST: Basic substitution
+CMD: WORK:sed "s/world/amiga/" WORK:test-sed-input.txt
+EXPECT: hello amiga
+
+TEST: Print specific line
+CMD: WORK:sed -n "2p" WORK:test-sed-input.txt
+EXPECT: aaa bbb aaa
+
+TEST: Delete matching lines
+CMD: WORK:sed "/bbb/d" WORK:test-sed-input.txt
+EXPECT: hello world
