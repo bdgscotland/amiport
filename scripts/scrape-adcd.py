@@ -69,6 +69,49 @@ TITLE_PREFIXES = [
 # Characters that indicate a line is code rather than ASCII art
 CODE_CHARS = set("=(){};")
 
+# Common Amiga type names for type detection (~50 types)
+KNOWN_AMIGA_TYPES = {
+    # Exec
+    "Task", "Process", "MsgPort", "Message", "Node", "List", "MinList",
+    "MinNode", "Library", "Device", "IORequest", "IOStdReq", "Interrupt",
+    "MemHeader", "SignalSemaphore", "Resident",
+    # DOS
+    "FileInfoBlock", "FileHandle", "FileLock", "InfoData", "DateStamp",
+    "AnchorPath", "RDArgs", "DosPacket", "DosList",
+    # Intuition
+    "Window", "Screen", "IntuiMessage", "Gadget", "PropInfo", "StringInfo",
+    "Image", "Border", "IntuiText", "Menu", "MenuItem", "Requester",
+    "NewScreen", "NewWindow", "EasyStruct",
+    # Graphics
+    "RastPort", "BitMap", "ViewPort", "View", "ColorMap", "Layer",
+    "TextFont", "TextAttr", "TmpRas", "AreaInfo", "SimpleSprite",
+    # Other
+    "TagItem", "Hook", "ClockData", "NewGadget", "NewMenu",
+    "FileRequester", "FontRequester", "DiskObject", "AppWindow", "IFFHandle",
+}
+
+# Mapping of library slugs to Amiga include paths
+LIB_TO_INCLUDE = {
+    "exec": "proto/exec.h",
+    "dos": "proto/dos.h",
+    "intuition": "proto/intuition.h",
+    "graphics": "proto/graphics.h",
+    "utility": "proto/utility.h",
+    "gadtools": "proto/gadtools.h",
+    "asl": "proto/asl.h",
+    "commodities": "proto/commodities.h",
+    "console": "devices/console.h",
+    "diskfont": "proto/diskfont.h",
+    "icon": "proto/icon.h",
+    "iffparse": "proto/iffparse.h",
+    "input": "devices/input.h",
+    "keymap": "proto/keymap.h",
+    "layers": "proto/layers.h",
+    "locale": "proto/locale.h",
+    "timer": "devices/timer.h",
+    "workbench": "proto/wb.h",
+}
+
 
 # --------------------------------------------------------------------------- #
 # Utility functions
@@ -524,6 +567,83 @@ def detect_libraries(functions: set, func_to_library: dict) -> set:
     return libs
 
 
+def detect_types(text: str) -> set:
+    """Detect references to known Amiga types in text.
+
+    Matches:
+    - ``struct TypeName`` patterns (PascalCase struct names)
+    - Standalone matches against KNOWN_AMIGA_TYPES (must be PascalCase / exact match)
+
+    Returns a set of type name strings.
+    """
+    found = set()
+    # Match "struct TypeName" where TypeName starts with uppercase
+    for m in re.finditer(r'\bstruct\s+([A-Z][A-Za-z0-9]+)\b', text):
+        found.add(m.group(1))
+    # Match known types as standalone words (must appear with exact case)
+    for type_name in KNOWN_AMIGA_TYPES:
+        if re.search(r'\b' + re.escape(type_name) + r'\b', text):
+            found.add(type_name)
+    return found
+
+
+def extract_code_examples(text: str, library: str, section_slug: str,
+                          source_path: str) -> list:
+    """Find indented code blocks (4+ spaces) that look like real C code.
+
+    Requirements for extraction:
+    - Block must be 5+ non-blank lines
+    - Must contain at least one function call pattern: ``FuncName(``
+    - Must contain at least one code marker: #include, {, return, ;
+
+    Returns list of dicts: {code, library, section, source}.
+    """
+    lines = text.split("\n")
+    examples = []
+    i = 0
+    code_markers = {"#include", "{", "return", ";"}
+
+    while i < len(lines):
+        line = lines[i]
+        # Check if line is indented (4+ spaces) and non-blank
+        if re.match(r"    ", line) and line.strip():
+            block_lines = []
+            while i < len(lines) and (re.match(r"    ", lines[i]) or not lines[i].strip()):
+                block_lines.append(lines[i])
+                i += 1
+            # Remove trailing blank lines
+            while block_lines and not block_lines[-1].strip():
+                block_lines.pop()
+
+            # Count non-blank lines
+            non_blank = [bl for bl in block_lines if bl.strip()]
+            if len(non_blank) < 5:
+                continue
+
+            block_text = "\n".join(block_lines)
+
+            # Check for function call pattern: SomeName(
+            has_func_call = bool(re.search(r'[A-Za-z_]\w*\s*\(', block_text))
+            if not has_func_call:
+                continue
+
+            # Check for code markers
+            has_marker = any(marker in block_text for marker in code_markers)
+            if not has_marker:
+                continue
+
+            examples.append({
+                "code": block_text,
+                "library": library,
+                "section": section_slug,
+                "source": source_path,
+            })
+        else:
+            i += 1
+
+    return examples
+
+
 def generate_frontmatter(title: str, manual: str, chapter: str, section: str,
                          functions: list, libraries: list) -> str:
     """Generate YAML frontmatter block with --- delimiters.
@@ -658,6 +778,60 @@ def generate_readme(output_dir: Path, all_files: list):
     print(f"  Generated {readme_path}")
 
 
+def generate_types_index(output_dir: Path, type_index: dict):
+    """Generate TYPES.md — for each type, list all pages where it appears."""
+    types_path = output_dir / "TYPES.md"
+    lines = ["# ADCD Type Cross-Reference\n",
+             "For each Amiga type, lists all ADCD pages that reference it.\n"]
+
+    for type_name in sorted(type_index.keys()):
+        pages = type_index[type_name]
+        lines.append(f"### {type_name}\n")
+        for path, title in sorted(pages, key=lambda p: p[1].lower()):
+            lines.append(f"- [{title}]({path})")
+        lines.append("")
+
+    types_path.write_text("\n".join(lines), encoding="utf-8")
+    print(f"  Generated {types_path}")
+
+
+def generate_includes_json(output_dir: Path, node_map: dict):
+    """Generate INCLUDES.json mapping Amiga include paths to ADCD chapters.
+
+    Uses LIB_TO_INCLUDE to map library slugs to include file paths.
+    Searches node_map titles for library name matches.
+    """
+    includes = {}
+
+    for lib_slug, include_path in sorted(LIB_TO_INCLUDE.items()):
+        # Search node_map for chapters mentioning this library
+        chapters = []
+        lib_name = f"{lib_slug}.library"
+
+        for node_key, node_info in node_map.items():
+            title = node_info.get("title", "").lower()
+            # Match the library slug in the title
+            if lib_slug.lower() in title:
+                chapters.append({
+                    "title": node_info.get("title", ""),
+                    "path": node_info.get("path", ""),
+                })
+
+        # Determine autodoc path
+        autodoc_path = f"autodocs/{lib_name}.md"
+
+        includes[include_path] = {
+            "library": lib_name,
+            "chapters": chapters,
+            "autodoc": autodoc_path,
+        }
+
+    includes_path = output_dir / "INCLUDES.json"
+    with open(includes_path, "w", encoding="utf-8") as f:
+        json.dump(includes, f, indent=2, sort_keys=True)
+    print(f"  Generated {includes_path}")
+
+
 def do_enrich(args):
     """Pass 2: Add frontmatter, detect functions, resolve links, build indexes."""
     output_dir = Path(args.output)
@@ -778,6 +952,18 @@ def do_enrich(args):
                     "path": rel_path,
                 })
 
+            # Detect types
+            types_found = detect_types(raw_text)
+            for type_name in types_found:
+                if type_name not in type_index:
+                    type_index[type_name] = []
+                type_index[type_name].append((rel_path, title))
+
+            # Extract code examples
+            slug = md_file.stem
+            examples = extract_code_examples(raw_text, manual_slug, slug, rel_path)
+            all_examples.extend(examples)
+
             total_enriched += 1
             total_functions_found += len(detected_funcs)
 
@@ -791,10 +977,50 @@ def do_enrich(args):
     generate_attribution(output_dir)
     generate_readme(output_dir, all_files)
 
+    # Generate TYPES.md
+    generate_types_index(output_dir, type_index)
+
+    # Generate INCLUDES.json
+    generate_includes_json(output_dir, node_map)
+
+    # Write extracted examples
+    examples_dir = output_dir / "examples"
+    example_count = 0
+    used_example_names = {}
+    for ex in all_examples:
+        lib_dir = examples_dir / ex["library"]
+        lib_dir.mkdir(parents=True, exist_ok=True)
+        base_name = slugify_title(ex["section"])
+        filename = base_name + ".c"
+        # Handle collisions per library
+        key = f"{ex['library']}/{filename}"
+        if key in used_example_names:
+            used_example_names[key] += 1
+            filename = f"{base_name}-{used_example_names[key]}.c"
+        else:
+            used_example_names[key] = 1
+        filepath = lib_dir / filename
+        header = (
+            f'/* Source: ADCD 2.1\n'
+            f' * Section: {ex["section"]}\n'
+            f' * Library: {ex["library"]}\n'
+            f' * ADCD reference: {ex["source"]}\n'
+            f' */\n\n'
+        )
+        with open(filepath, 'w') as f:
+            f.write(header + ex["code"] + '\n')
+        example_count += 1
+    if example_count:
+        print(f"  Examples: {example_count} code examples extracted")
+
     print(f"\n{'='*60}")
     print(f"ENRICH COMPLETE: {total_enriched} files enriched")
     print(f"Functions detected: {total_functions_found} references to "
           f"{len(function_index)} unique functions")
+    if type_index:
+        print(f"Types detected: {len(type_index)} unique types")
+    if example_count:
+        print(f"Code examples: {example_count} extracted")
     print(f"{'='*60}")
 
 

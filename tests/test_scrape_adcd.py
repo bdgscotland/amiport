@@ -21,6 +21,9 @@ generate_frontmatter = _mod.generate_frontmatter
 load_known_functions = _mod.load_known_functions
 build_func_to_library_map = _mod.build_func_to_library_map
 detect_libraries = _mod.detect_libraries
+detect_types = _mod.detect_types
+extract_code_examples = _mod.extract_code_examples
+KNOWN_AMIGA_TYPES = _mod.KNOWN_AMIGA_TYPES
 
 
 SAMPLE_HTML = '''<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
@@ -338,3 +341,66 @@ class TestDetectLibraries:
         }
         result = detect_libraries({"AllocMem", "Open"}, func_to_lib)
         assert result == {"exec.library", "dos.library"}
+
+
+class TestDetectTypes:
+    def test_struct_keyword(self):
+        result = detect_types("Pass a struct FileInfoBlock to Examine()")
+        assert "FileInfoBlock" in result
+
+    def test_known_type(self):
+        result = detect_types("Pass the Window pointer to CloseWindow()")
+        assert "Window" in result
+
+    def test_ignores_lowercase(self):
+        result = detect_types("the window was open")
+        assert "Window" not in result
+
+    def test_multiple_types(self):
+        result = detect_types("Open a Screen and get the RastPort from it")
+        assert "Screen" in result
+        assert "RastPort" in result
+
+
+class TestExtractCodeExamples:
+    def test_detects_code_block(self):
+        text = """Some intro text.
+
+    #include <proto/exec.h>
+    struct MsgPort *port;
+    port = CreateMsgPort();
+    if (port != NULL) {
+        DeleteMsgPort(port);
+    }
+
+More text after."""
+        result = extract_code_examples(text, "libraries", "exec-intro", "libraries/exec-intro.md")
+        assert len(result) == 1
+        assert "#include" in result[0]["code"]
+        assert result[0]["library"] == "libraries"
+        assert result[0]["section"] == "exec-intro"
+        assert result[0]["source"] == "libraries/exec-intro.md"
+
+    def test_skips_short_blocks(self):
+        text = """Some text.
+
+    int x = 1;
+    int y = 2;
+    int z = 3;
+
+More text."""
+        result = extract_code_examples(text, "libraries", "short", "libraries/short.md")
+        assert len(result) == 0
+
+    def test_skips_non_code(self):
+        text = """Some text.
+
+    This is just indented prose that
+    happens to be indented with four
+    spaces but does not contain any
+    actual code markers or function
+    calls or anything like that at all
+
+More text."""
+        result = extract_code_examples(text, "libraries", "prose", "libraries/prose.md")
+        assert len(result) == 0
