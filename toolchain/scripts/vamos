@@ -1,22 +1,36 @@
 #!/bin/bash
-# Wrapper for vamos - converts old-style calls to new format
-# Old: vamos -C "" ./program args
-# New: vamos -- ./program args
+# Wrapper for vamos - converts old-style calls to new format and
+# works around vamos's 8KB default stack (vamos ignores __stack cookies).
+#
+# Default stack: 128KB (sufficient for most ported programs).
+# Override with: vamos -s <KB> ./program
+# See crash-patterns.md #7 for details.
 
-# Remove -C "" if present
+# Remove -C "" if present, detect if user passed -s
 args=()
 skip_next=0
+has_stack=0
 
 for arg in "$@"; do
   if [ $skip_next -eq 1 ]; then
     skip_next=0
+    args+=("$arg")
     continue
   fi
   if [ "$arg" = "-C" ]; then
     skip_next=1
     continue
   fi
+  if [ "$arg" = "-s" ]; then
+    has_stack=1
+  fi
   args+=("$arg")
 done
 
-/Users/duncan/.pyenv/shims/vamos -- "${args[@]}"
+# If no -s flag was passed, default to 128KB stack
+# vamos ignores __stack cookies in binaries — its default is only 8KB
+if [ $has_stack -eq 0 ]; then
+  /Users/duncan/.pyenv/shims/vamos -s 128 -- "${args[@]}"
+else
+  /Users/duncan/.pyenv/shims/vamos -- "${args[@]}"
+fi
