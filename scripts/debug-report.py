@@ -313,6 +313,60 @@ def parse_enforcer_log(filepath):
     }
 
 
+def filter_app_hits(result, app_name):
+    """Filter Enforcer hits to only those involving a specific application.
+
+    A hit is relevant if:
+    - Its SegTracker resolution names the app (e.g., "WORK:diff")
+    - Its CLI name matches the app
+    - Its task name matches the app
+
+    ROM/system hits (from interrupt handlers, Kickstart, etc.) are excluded
+    unless the app appears in their SegTracker or stack trace references.
+
+    Enforcer has no built-in filtering — this post-processing step is the
+    standard practice per Amiga developer documentation.
+    """
+    app_lower = app_name.lower()
+    filtered = []
+
+    for hit in result["hits"]:
+        # Check SegTracker name
+        seg = hit.get("segtracker")
+        if seg and app_lower in seg.get("name", "").lower():
+            filtered.append(hit)
+            continue
+
+        # Check CLI/task name
+        cli = (hit.get("cli_name") or "").lower()
+        task = (hit.get("task_name") or "").lower()
+        if app_lower in cli or app_lower in task:
+            filtered.append(hit)
+            continue
+
+    # Rebuild summary for filtered hits
+    crash_types = []
+    unique_pcs = set()
+    for hit in filtered:
+        if hit.get("pc"):
+            unique_pcs.add(hit["pc"])
+        if hit["type"] == "Alert":
+            crash_types.append("Alert {}".format(hit.get("alert_code", "unknown")))
+        elif hit.get("address"):
+            addr_int = int(hit["address"], 16)
+            crash_types.append(classify_crash(addr_int, hit["type"]))
+
+    return {
+        "hits": filtered,
+        "summary": {
+            "total_hits": len(filtered),
+            "unique_locations": len(unique_pcs),
+            "crash_types": list(dict.fromkeys(crash_types)),
+        },
+        "filtered_from": result["summary"]["total_hits"],
+    }
+
+
 def cmd_parse(args):
     """Handle the 'parse' subcommand."""
     if not os.path.isfile(args.enforcer_log):
@@ -320,6 +374,11 @@ def cmd_parse(args):
         sys.exit(1)
 
     result = parse_enforcer_log(args.enforcer_log)
+
+    # Filter to application hits if --app specified
+    if hasattr(args, "app") and args.app:
+        result = filter_app_hits(result, args.app)
+
     json.dump(result, sys.stdout, indent=2)
     print()  # trailing newline
 
@@ -559,6 +618,11 @@ def main():
     parse_parser.add_argument(
         "enforcer_log",
         help="Path to Enforcer log file",
+    )
+    parse_parser.add_argument(
+        "--app",
+        help="Filter to hits involving this application (e.g., 'diff'). "
+             "Excludes ROM/system hits that aren't related to the app.",
     )
     parse_parser.set_defaults(func=cmd_parse)
 
