@@ -95,6 +95,19 @@ LONG  amiport_getpid(void);
 /* isatty equivalent */
 int amiport_isatty(int fd);
 
+/* setlocale stub — always returns "C" (no real locale support on classic AmigaOS) */
+char *amiport_setlocale(int category, const char *locale);
+#ifndef AMIPORT_NO_LOCALE_MACROS
+#ifndef LC_ALL
+#define LC_ALL      0
+#define LC_COLLATE  1
+#define LC_CTYPE    2
+#define LC_NUMERIC  4
+#define LC_TIME     5
+#endif
+#define setlocale   amiport_setlocale
+#endif
+
 /* Thread-safe strtok (not provided by all Amiga C runtimes) */
 char *amiport_strtok_r(char *str, const char *delim, char **saveptr);
 

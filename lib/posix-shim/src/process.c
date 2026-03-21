@@ -181,3 +181,19 @@ FILE *amiport_tmpfile(void)
 
     return fp;
 }
+
+/*
+ * setlocale — stub returning "C" locale
+ *
+ * amiport: AmigaOS has locale.library but classic -noixemul libnix
+ * does not provide setlocale(). Most ported programs call
+ * setlocale(LC_ALL, "") at startup for locale-aware sorting/collation.
+ * This stub returns "C" for all categories, which is the POSIX default.
+ */
+char *
+amiport_setlocale(int category, const char *locale)
+{
+    (void)category;
+    (void)locale;
+    return "C";
+}

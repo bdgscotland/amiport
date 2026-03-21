@@ -25,6 +25,7 @@ extern int amiport_file_count;
 
 /* Exported functions */
 FILE *amiport_fopen(const char *path, const char *mode);
+FILE *amiport_fdopen(int fd, const char *mode);
 int amiport_fclose(FILE *fp);
 
 static inline int
@@ -42,8 +43,9 @@ amiport_fileno(FILE *fp)
 
 #ifndef AMIPORT_NO_STDIO_MACROS
 #define fileno(fp)  amiport_fileno(fp)
-#define fopen(p, m) amiport_fopen(p, m)
-#define fclose(fp)  amiport_fclose(fp)
+#define fopen(p, m)   amiport_fopen(p, m)
+#define fdopen(fd, m) amiport_fdopen(fd, m)
+#define fclose(fp)    amiport_fclose(fp)
 #endif
 
 #endif /* AMIPORT_STDIO_H */
