@@ -38,11 +38,16 @@ amiport_vasprintf(char **strp, const char *fmt, va_list ap)
     }
 
     /* First pass: determine required length.
-     * C89 does not guarantee vsnprintf returns the needed length,
-     * but bebbo-gcc's newlib does. Use a small stack buffer to probe. */
-    va_copy(ap_copy, ap);
-    len = vsnprintf(NULL, 0, fmt, ap_copy);
-    va_end(ap_copy);
+     * libnix vsnprintf does NOT support NULL destination — passing NULL
+     * causes an invalid memory access crash on 68000. Use a probe buffer
+     * instead. 1024 bytes covers the vast majority of format strings;
+     * if the result is truncated we reformat into a correctly-sized buffer. */
+    {
+        char probe[1024];
+        va_copy(ap_copy, ap);
+        len = vsnprintf(probe, sizeof(probe), fmt, ap_copy);
+        va_end(ap_copy);
+    }
 
     if (len < 0) {
         *strp = NULL;

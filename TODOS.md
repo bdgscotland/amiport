@@ -94,6 +94,38 @@ GitHub Actions workflow deployed and running on every push to main. Builds all f
 
 ---
 
+### 68k Hardware Reference for Crash Debugging
+
+**What:** Create `docs/references/68k-hardware.md` covering the Amiga memory map (Chip RAM, Fast RAM, ROM, custom registers, CIA), 68000 vs 68020 addressing modes (24-bit wrapping), register conventions, stack behavior (movem.l, link/unlk), and common crash signatures.
+
+**Why:** When debugging vamos/Enforcer crashes, agents see raw 68k register dumps (PC, SP, D0-D7, A0-A7) and need to reason about hardware-level behavior. The diff port crash was misdiagnosed because 24-bit address wrapping wasn't understood. An Amiga hardware expert reference would accelerate crash diagnosis significantly.
+
+**Details:** Link from the debug-agent's instructions. Include a quick-reference table mapping crash signatures to likely causes (NULL deref vs stack overflow vs 24-bit wrap vs alignment fault). Cover trap frames for understanding Guru Meditation codes.
+
+---
+
+### libnix Limitations Reference
+
+**What:** Create `docs/references/libnix-limitations.md` documenting known gaps and quirks in bebbo-gcc's libnix C runtime.
+
+**Why:** The vsnprintf(NULL, 0, ...) crash happened because the code-transformer generated C99 code that libnix doesn't support. Without a limitations reference, each port independently discovers the same pitfalls.
+
+**Details:** Known issues to document: vsnprintf NULL destination, missing vasprintf/asprintf, locale stubs, signal behavior, thread safety (none), errno behavior, missing POSIX functions. Cross-reference with `newlib-availability.md`. Add to code-transformer and build-manager agent instructions as mandatory reading.
+
+**Depends on:** Audit of current `docs/references/newlib-availability.md` for staleness.
+
+---
+
+### diff Port vamos Crash Investigation
+
+**What:** Debug the diff port's vamos crash (InvalidMemoryAccessError at PC=0x004c1e, stack overflow/addressing issue).
+
+**Why:** diff crashes on vamos when processing files — pre-existing issue, not caused by recent changes. The crash is in the err()/strerror() call path. Stack is allocated at high addresses that vamos can't access (likely 24-bit address wrapping or vamos memory validator bug).
+
+**Details:** The binary works fine for `--help` output but crashes when processing actual files. Binary from main branch also crashes. Need to investigate whether this is a vamos limitation (Category 3+ port that needs FS-UAE) or a fixable memory layout issue. Try compiling with `-mcpu=68020` or adjusting linker script to place stack in lower memory.
+
+---
+
 ## Reference Documentation Improvements
 
 ### TOPICS.md — Semantic task-to-ADCD page mapping
