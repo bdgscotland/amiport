@@ -172,6 +172,21 @@ make list-ports         # Show all ports and status
 make clean              # Remove build artifacts
 ```
 
+## Reference Documentation
+
+The project includes the complete **Amiga Developer CD v2.1** converted to searchable, cross-referenced markdown:
+
+| Resource | Description |
+|----------|-------------|
+| `docs/references/adcd/` | Complete ADCD 2.1 (~6,700 pages across 6 manuals) |
+| `docs/references/adcd/FUNCTIONS.md` | Function cross-reference (every function → all pages discussing it) |
+| `docs/references/adcd/TYPES.md` | Struct/typedef/enum index |
+| `docs/references/adcd/INCLUDES.json` | `#include` path → documentation chapter mapping |
+| `docs/references/adcd/examples/` | Extracted code examples by library |
+| `docs/references/autodocs/` | API function signatures (896 functions, 21 libraries) |
+
+Regenerate with `make scrape-adcd` (requires internet access, ~20 minutes).
+
 ## Contributing
 
 Contributions welcome! Especially:

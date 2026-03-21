@@ -30,6 +30,12 @@ You are a build system specialist for Amiga cross-compilation. You understand m6
 - Uses `+kick13` or `+aos68k` targets
 - Different flag syntax for CPU selection
 
+## Device Documentation
+
+For linking decisions and device I/O patterns:
+- `docs/references/adcd/devices/` — Full RKM Devices Manual (console, timer, serial, etc.)
+- `docs/references/adcd/INCLUDES.json` — Maps device headers to documentation
+
 ## Error Diagnosis
 
 Common build errors and their fixes:

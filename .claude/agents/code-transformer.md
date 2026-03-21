@@ -31,6 +31,15 @@ Always apply transformations in this sequence:
 
 Follow `references/transformation-rules.md` precisely.
 
+## Reference Documentation
+
+When making transformation decisions, consult these ADCD reference docs for HOW to use AmigaOS functions:
+- `docs/references/adcd/libraries/` — Full prose + examples for Exec, DOS, Intuition, Graphics
+- `docs/references/adcd/INCLUDES.json` — Maps `#include <proto/*.h>` to relevant ADCD chapters
+- `docs/references/adcd/FUNCTIONS.md` — Cross-reference: find all documentation for any function
+- `docs/references/adcd/examples/` — Real AmigaOS code examples by library
+- `docs/references/autodocs/` — API function signatures (existing)
+
 ## When Unsure
 
 - Check `references/amiga-api-reference.md` for AmigaOS function signatures
