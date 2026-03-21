@@ -182,3 +182,47 @@ grep -n 'vsnprintf(NULL\|snprintf(NULL' ported/*.c
 **Programs Known to Be Affected:** Any program that uses `vasprintf()` or `asprintf()` — these are replaced during transformation and the replacement code must avoid the NULL pattern.
 
 **Example Port:** diff (OpenBSD v1.95) — `xmalloc.c:xasprintf()`
+
+---
+
+## 6. amiport_fopen Sentinel BPTR Heap Corruption (MungWall)
+
+- **Enforcer signature:** MungWall detects a corrupted allocation sentinel. Stack trace shows `malloc` / `fdopen` / `lseek` from libnix on top, with tail's code in the mid-stack. `Hunk 0002 Offset <bss+N>` in the MungWall report pointing at the amiport fd_table BSS. Guru Meditation #80000004 (Illegal Instruction) or #80000008 (Address Error) follows.
+- **Root cause:** `amiport_fopen` (triggered by `#include <amiport/stdio.h>` + `#define fopen amiport_fopen`) calls the real libnix `fopen`, then allocates a **fake fd table slot** with sentinel BPTR value `(BPTR)1` (physical address 4). Mixing this sentinel into the fd_table BSS next to libnix's malloc arena causes MungWall to flag corrupted allocation sentinels when libnix's own `fdopen`/`malloc` next scans its heap structures. The crash is a heap integrity violation, not a direct NULL dereference.
+- **Fix applied:** Remove `#include <amiport/stdio.h>` from files that use `amiport_stat(fname, ...)` instead of `fstat(fileno(fp), ...)`. The `amiport/stdio.h` shim was added to fix a fileno fd-table mismatch, but that mismatch is better avoided by using filename-based stat. For stdin pipe detection, replace `fstat(fileno(stdin)) + lseek()` with `IsInteractive(Input())` from `<proto/dos.h>`.
+- **Port:** tail (OpenBSD v1.24)
+- **Date:** 2026-03-21
+
+## 7. vamos Stack Overflow — __stack Cookie Ignored
+
+**Enforcer Signature:** `InvalidMemoryAccessError` with SP in the `0xffff0000` range (e.g., `SP=ffff0060`). Write addresses descend by 2 bytes (`ff005e, ff005c, ...ff0044`). The crash address in 24-bit mode appears as `0x00ff00xx` (wrap of `0xffff00xx`).
+
+**Hit Type:** `WRITE` at descending addresses. Often crashes inside `err()`/`strerror()` or another deep call chain, but the crash location is a symptom — the stack was exhausted long before.
+
+**Root Cause:** vamos has a hardcoded 8KB default stack (`amitools/vamos/cfg/proc.py: "stack": 8`). It does NOT read the `__stack` cookie from the binary's DATA segment. Any program declaring `__stack > 8192` that actually uses more than 8KB will silently overflow the stack, corrupt heap/BSS memory, and eventually wrap the 32-bit SP through zero into the `0xffff0000` range where no memory is mapped.
+
+The overflow is silent because vamos maps all 1MB of RAM (`0x001000`–`0x100000`) as writable — the stack can corrupt heap and binary data without triggering an access error until SP wraps past `0x00000000`.
+
+**Detection:** Check for the characteristic SP range `0xffff00xx` and descending write addresses. Also check if the binary declares `__stack`:
+```
+m68k-amigaos-objdump -t <binary> | grep __stack
+```
+
+**Fix Template (vamos wrapper):**
+```bash
+# Pass -s <KB> to vamos for programs needing large stacks
+vamos -s 128 -- ./program args    # 128KB stack
+
+# The toolchain/scripts/vamos wrapper defaults to 128KB automatically
+```
+
+**Fix Template (Makefile test target):**
+For programs needing more than 128KB (e.g., diff with its recursive LCS algorithm):
+```makefile
+test:
+	../../toolchain/scripts/vamos -s 192 -- ./$(TARGET) ...
+```
+
+**Programs Known to Be Affected:** Any port with `__stack > 8192` — especially recursive programs (diff, find), programs with large local arrays, and programs with deep call chains.
+
+**Example Port:** diff (OpenBSD v1.95) — needed 96KB minimum, 192KB recommended.

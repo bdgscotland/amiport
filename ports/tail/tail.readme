@@ -1,0 +1,36 @@
+Short:        Display the last part of a file
+Type:         util/cli
+Architecture: m68k-amigaos >= 3.0
+Uploader:     duncan@bowring.us
+Author:       Edward Sze-Tyan Wang / UC Berkeley (ported by Duncan Bowring)
+Version:      1.24
+
+tail — Display the last part of a file
+
+Original author: Edward Sze-Tyan Wang / UC Berkeley
+Ported from OpenBSD usr.bin/tail v1.24 (2022-12-04).
+Ported by Duncan Bowring using amiport (AI-assisted porting toolkit).
+Project: https://github.com/bdgscotland/amiport
+
+Cross-compiled with m68k-amigaos-gcc for AmigaOS 3.x (68000+).
+Tested in vamos emulator.
+
+Usage:
+  tail [-f | -r] [-b number | -c number | -n number | -number] [file ...]
+
+Examples:
+  tail logfile              Show last 10 lines of logfile
+  tail -n 20 logfile        Show last 20 lines
+  tail -c 100 logfile       Show last 100 bytes
+  tail -n +5 logfile        Show from line 5 onward
+  tail -r logfile           Show file in reverse line order
+  tail -f logfile           Follow file for new content (polls every 1s)
+  tail file1 file2          Show last 10 lines of each file with headers
+
+Notes:
+  - The -f (follow) mode uses a 1-second polling interval via Delay().
+    Press Ctrl-C to stop following.
+  - No ixemul.library required (-noixemul build).
+
+Includes full source code (original POSIX and ported Amiga versions)
+and PORT.md documenting every transformation applied.

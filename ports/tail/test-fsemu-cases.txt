@@ -1,0 +1,27 @@
+TEST: Harness echo test
+CMD: echo "harness works"
+EXPECT: harness works
+
+TEST: Default last 10 lines
+CMD: WORK:tail WORK:test-tail-input.txt
+EXPECT: line 11
+
+TEST: Last 5 lines
+CMD: WORK:tail -n 5 WORK:test-tail-input.txt
+EXPECT: line 16
+
+TEST: From line 15 onward
+CMD: WORK:tail -n +15 WORK:test-tail-input.txt
+EXPECT: line 15
+
+TEST: Reverse mode
+CMD: WORK:tail -r WORK:test-tail-input.txt
+EXPECT: line 20
+
+TEST: Multiple files shows header
+CMD: WORK:tail -n 1 WORK:test-tail-input.txt WORK:test-tail-input2.txt
+EXPECT_CONTAINS: ==> WORK:test-tail-input.txt <==
+
+TEST: Version string
+CMD: version WORK:tail
+EXPECT_CONTAINS: tail 1.24

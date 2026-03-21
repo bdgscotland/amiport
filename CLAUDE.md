@@ -234,6 +234,9 @@ AmigaOS has no `/tmp`. Use `T:` (which maps to `RAM:T/` by default). The `amipor
 ### st_dev/st_ino same-file detection
 Many POSIX programs compare `st_dev` and `st_ino` to detect if two paths point to the same file (e.g., `diff`'s `files_differ()`, `cp`'s hardlink detection). The stat shim now populates these from `fib_DiskKey` (st_ino) and `GetDeviceProc` (st_dev). **Check:** When porting programs that compare files, `grep` for `st_ino` or `st_dev` in the source and verify the comparison logic works with real values. See crash-patterns.md #4.
 
+### vamos ignores __stack cookies
+vamos defaults to 8KB stack and does NOT read `__stack` from the binary. Programs needing more than 8KB silently overflow into heap, then wrap SP through zero and crash in the `0xffff0000` range. The `toolchain/scripts/vamos` wrapper defaults to 128KB. For programs needing more (diff, find), pass `-s 192` explicitly. See crash-patterns.md #7.
+
 ### vsnprintf(NULL, 0, ...) crash
 libnix's `vsnprintf` does NOT support `NULL` as the destination buffer (a C99 extension). Calling `vsnprintf(NULL, 0, fmt, ap)` to measure buffer size will crash on the 68000. **Fix:** Use a probe buffer: `char probe[1024]; int len = vsnprintf(probe, sizeof(probe), fmt, ap);` — vsnprintf returns the total chars that WOULD be written, even if truncated. This commonly appears when replacing `vasprintf()`/`asprintf()`. See crash-patterns.md #5.
 
