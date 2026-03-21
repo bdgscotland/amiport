@@ -59,7 +59,7 @@ Read `ports/templates/STRUCTURE.md` for the full directory layout specification.
 **All build/test artifacts must stay inside the port directory. Never create files in the project root.**
 
 ### Stage 3: Transform
-Dispatch a `code-transformer` agent, or for small projects, apply transformations inline following the rules in `.claude/skills/transform-source/references/transformation-rules.md`.
+Dispatch a `code-transformer` agent, or for small projects, apply transformations inline following the rules in `.claude/skills/transform-source/references/transformation-rules.md`. The code-transformer agent has access to the full ADCD 2.1 reference docs (`docs/references/adcd/`) for understanding HOW to use AmigaOS functions, not just their signatures.
 
 Write transformed source to `ports/<name>/ported/`.
 

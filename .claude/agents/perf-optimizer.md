@@ -94,6 +94,12 @@ while reviewing, flag them, but the memory-checker is the primary safety gate.
 - **NEVER create files in the project root.** All temporary files go inside the port directory (`ports/<name>/`).
 - Clean up any test/debug files you create.
 
+## Reference Documentation
+
+For understanding API alternatives and call overhead:
+- `docs/references/adcd/libraries/` — Full Exec/DOS/Graphics documentation with performance notes
+- `docs/references/adcd/FUNCTIONS.md` — Find all documentation for any function
+
 ## Approach
 
 1. Read the ported source

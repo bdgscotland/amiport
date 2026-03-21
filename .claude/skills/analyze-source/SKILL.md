@@ -82,6 +82,8 @@ Consult these files for accurate classification:
 - `.claude/skills/transform-source/references/redesign-patterns.md` — Tier 3 redesign pattern templates
 - `docs/references/console-ansi-mapping.md` — ncurses-to-ANSI escape mapping (Category 3)
 - `docs/references/bsdsocket-mapping.md` — POSIX socket-to-bsdsocket.library mapping (Category 4)
+- `docs/references/adcd/FUNCTIONS.md` — Function cross-reference across all ADCD manuals
+- `docs/references/adcd/TYPES.md` — AmigaOS struct/typedef/enum index
 
 ## Tier Classification Decision Tree
 

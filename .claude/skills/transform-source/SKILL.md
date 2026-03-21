@@ -100,6 +100,9 @@ Check `lib/console-shim/include/amiport-console/` and `lib/bsdsocket-shim/includ
 - `.claude/skills/transform-source/references/amiga-api-reference.md` — AmigaOS API quick reference
 - `.claude/skills/transform-source/references/redesign-patterns.md` — Tier 3 redesign pattern templates
 - `docs/posix-tiers.md` — Master tier classification with all functions and emulation details
+- `docs/references/adcd/FUNCTIONS.md` — Cross-reference for HOW to use AmigaOS functions (prose + examples)
+- `docs/references/adcd/INCLUDES.json` — Maps include paths to relevant ADCD documentation chapters
+- `docs/references/adcd/examples/` — Real AmigaOS code examples by library
 
 ## Include Path
 

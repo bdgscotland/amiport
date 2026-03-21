@@ -21,6 +21,7 @@ The user provides a POSIX function name (e.g., `dup2`, `ftruncate`, `chmod`).
    - If already classified, use that tier
    - If not classified, use the decision tree in `docs/posix-tiers.md` to determine the tier
 4. **Check AmigaOS equivalents** — consult `docs/references/autodocs/` and the `posix-to-amiga-map.md` reference
+5. **Read prose documentation** — consult `docs/references/adcd/FUNCTIONS.md` for understanding function behavior and usage patterns
 
 ## Step 2: Classify
 

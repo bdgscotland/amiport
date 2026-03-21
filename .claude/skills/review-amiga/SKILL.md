@@ -55,6 +55,13 @@ You are reviewing ported C code for AmigaOS-specific correctness and quality. Th
 - **Tier classification correct?** Tier 1 functions use `amiport_*`, Tier 2 use `amiport_emu_*`.
 - **fopen/fclose macro collision?** If the ported code implements its own file wrappers, check for the `amiport/stdio.h` macro collision (see CLAUDE.md known pitfalls).
 
+## Reference Documentation
+
+When reviewing API usage correctness, consult:
+- `docs/references/adcd/FUNCTIONS.md` — Cross-reference for how functions are documented across all ADCD manuals
+- `docs/references/adcd/TYPES.md` — Struct field documentation and usage patterns
+- `docs/references/adcd/examples/` — Canonical code examples from Commodore's own documentation
+
 ## Output Format
 
 ```
