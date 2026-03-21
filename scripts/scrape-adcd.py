@@ -23,6 +23,7 @@ Usage:
 """
 
 import argparse
+import collections
 import html
 import json
 import os
@@ -53,6 +54,20 @@ MANUALS = [
 USER_AGENT = "amiport-scraper/1.0 (Amiga porting toolkit; +https://github.com/amiport)"
 
 REQUEST_DELAY = 1.0  # seconds between HTTP requests (be polite)
+
+# Prefixes to strip from <title> tags
+TITLE_PREFIXES = [
+    "Amiga(R) RKM Libraries: ",
+    "Amiga\u00ae RKM Libraries: ",
+    "Amiga(R) RKM Devices: ",
+    "Amiga\u00ae RKM Devices: ",
+    "Amiga Hardware Reference Manual: ",
+    "Amiga Mail Vol.2 Guide: ",
+    "Amiga ROM Kernel Reference Manual: ",
+]
+
+# Characters that indicate a line is code rather than ASCII art
+CODE_CHARS = set("=(){};")
 
 
 # --------------------------------------------------------------------------- #
@@ -110,15 +125,334 @@ def convert_entities(text: str) -> str:
 
 
 # --------------------------------------------------------------------------- #
-# Pass 1: Crawl
+# Pass 1: Content extraction and conversion
 # --------------------------------------------------------------------------- #
+
+def fetch_page(url: str) -> Optional[str]:
+    """Fetch an HTML page via HTTP GET. Returns HTML string or None on failure.
+
+    Uses latin-1 decoding (common for old HTML). Retries once on timeout.
+    """
+    req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
+    for attempt in range(2):
+        try:
+            with urllib.request.urlopen(req, timeout=30) as resp:
+                return resp.read().decode("latin-1")
+        except (urllib.error.URLError, OSError) as e:
+            if attempt == 0:
+                print(f"  warning: fetch failed for {url}, retrying... ({e})",
+                      file=sys.stderr)
+                time.sleep(1)
+            else:
+                print(f"  error: fetch failed for {url}: {e}", file=sys.stderr)
+                return None
+    return None
+
+
+def extract_body(html_text: str) -> str:
+    """Extract the main content body from an AG2HTML page.
+
+    Looks for content between BODY=START and BODY=END markers.
+    Falls back to <pre> content if markers are absent.
+    Strips <a name="..."> anchors and <img> navigation tags.
+    """
+    # Try BODY markers first
+    m = re.search(
+        r"<!--\s*AG2HTML:\s*BODY=START\s*-->(.*?)<!--\s*AG2HTML:\s*BODY=END\s*-->",
+        html_text, re.DOTALL
+    )
+    if m:
+        body = m.group(1)
+    else:
+        # Fallback: extract <pre> content
+        m = re.search(r"<pre[^>]*>(.*?)</pre>", html_text, re.DOTALL | re.IGNORECASE)
+        if m:
+            body = m.group(1)
+        else:
+            body = html_text
+
+    # Strip <a name="..."> anchors (self-closing or with </a>)
+    body = re.sub(r'<a\s+name="[^"]*"\s*>\s*</a>', '', body, flags=re.IGNORECASE)
+    body = re.sub(r'<a\s+name="[^"]*"\s*/?>', '', body, flags=re.IGNORECASE)
+
+    # Strip <img> navigation tags
+    body = re.sub(r'<img\s+[^>]*>', '', body, flags=re.IGNORECASE)
+
+    return body
+
+
+def extract_links(html_text: str) -> list:
+    """Extract href links from <a> tags, filtering to node/guide links.
+
+    Returns a list of relative URL strings. Skips anchor-only (#) links
+    and <a name="..."> tags.
+    """
+    links = []
+    for m in re.finditer(r'<a\s+href="([^"]*)"', html_text, re.IGNORECASE):
+        href = m.group(1)
+        # Skip anchor-only links
+        if href.startswith("#"):
+            continue
+        # Only include links that look like node or guide pages
+        if "node" in href or "_guide" in href:
+            links.append(href)
+    return links
+
+
+def extract_title(html_text: str) -> str:
+    """Extract and clean the page title from a <title> tag.
+
+    Strips common ADCD prefixes and converts HTML entities.
+    """
+    m = re.search(r"<title>(.*?)</title>", html_text, re.IGNORECASE | re.DOTALL)
+    if not m:
+        return "Untitled"
+    title = m.group(1).strip()
+    title = convert_entities(title)
+    # Strip known prefixes
+    for prefix in TITLE_PREFIXES:
+        if title.startswith(prefix):
+            title = title[len(prefix):]
+            break
+    return title.strip()
+
+
+def convert_html_to_md(body: str) -> str:
+    """Convert extracted HTML body to markdown.
+
+    - Converts <a href="url">text</a> to [text](url)
+    - Strips remaining HTML tags
+    - Converts HTML entities
+    - Detects indented code blocks (4+ leading spaces with code characters)
+      and wraps them in fenced ```c blocks
+    - Preserves indented ASCII art (no code characters) as-is
+    """
+    # Convert <a href="...">text</a> to markdown links
+    body = re.sub(
+        r'<a\s+href="([^"]*)"[^>]*>(.*?)</a>',
+        r'[\2](\1)',
+        body,
+        flags=re.IGNORECASE | re.DOTALL
+    )
+
+    # Strip remaining HTML tags
+    body = re.sub(r'<[^>]+>', '', body)
+
+    # Convert HTML entities
+    body = convert_entities(body)
+
+    # Detect and wrap indented code blocks
+    lines = body.split("\n")
+    result = []
+    i = 0
+    while i < len(lines):
+        line = lines[i]
+        # Check if this line is indented (4+ spaces)
+        if re.match(r"    ", line) and line.strip():
+            # Collect the entire indented block
+            block_lines = []
+            while i < len(lines) and (re.match(r"    ", lines[i]) or not lines[i].strip()):
+                block_lines.append(lines[i])
+                i += 1
+            # Remove trailing blank lines from block
+            while block_lines and not block_lines[-1].strip():
+                result.append(block_lines.pop())
+
+            if not block_lines:
+                continue
+
+            # Check if block contains code characters
+            block_text = "".join(block_lines)
+            has_code = any(c in block_text for c in CODE_CHARS)
+
+            if has_code:
+                result.append("```c")
+                for bl in block_lines:
+                    result.append(bl)
+                result.append("```")
+            else:
+                result.extend(block_lines)
+        else:
+            result.append(line)
+            i += 1
+
+    return "\n".join(result)
+
+
+def resolve_links(md_text: str, node_map: dict, current_manual: str) -> str:
+    """Replace node URLs in markdown links with resolved markdown paths.
+
+    Looks up each ../Guide/nodeXXXX.html reference in node_map.
+    Known nodes get their path substituted; unknown nodes are left as-is.
+    """
+    def _replace(m):
+        text = m.group(1)
+        url = m.group(2)
+        # Extract the guide_dir/nodeXXXX part from ../guide_dir/nodeXXXX.html
+        match = re.match(r"\.\./([^/]+/node[0-9A-Fa-f]+)\.html", url)
+        if not match:
+            return m.group(0)
+        key = match.group(1)
+        if key in node_map:
+            return f"[{text}]({node_map[key]['path']})"
+        return m.group(0)
+
+    return re.sub(r'\[([^\]]*)\]\(([^)]*)\)', _replace, md_text)
+
+
+def crawl_manual(toc_url, guide_dir, manual_slug, manual_dir, node_map,
+                 used_slugs, limit=None, dry_run=False):
+    """BFS crawl a single manual starting from its TOC page.
+
+    For each page: fetch, extract title/body, convert to markdown,
+    slugify filename, write to manual_dir, add to node_map.
+    Only follows links within the same manual's guide_dir.
+    Rate-limits with REQUEST_DELAY between fetches.
+
+    Returns (pages_count, warnings_count).
+    """
+    pages = 0
+    warnings = 0
+    visited = set()
+    queue = collections.deque()
+
+    # Seed with TOC URL
+    queue.append(toc_url)
+
+    while queue:
+        if limit is not None and pages >= limit:
+            break
+
+        url = queue.popleft()
+
+        # Normalize URL to get the node key
+        # URL looks like: http://base/read/ADCD_2.1/Guide_dir/nodeXXXX.html
+        # We want: Guide_dir/nodeXXXX (without .html)
+        parts = url.rsplit("/", 2)
+        if len(parts) >= 2:
+            node_file = parts[-1]  # nodeXXXX.html
+            node_key = f"{guide_dir}/{node_file.replace('.html', '')}"
+        else:
+            node_key = url
+
+        if node_key in visited:
+            continue
+        visited.add(node_key)
+
+        if dry_run:
+            print(f"  [dry-run] {url}")
+            pages += 1
+            continue
+
+        # Fetch
+        html_text = fetch_page(url)
+        if html_text is None:
+            warnings += 1
+            continue
+
+        # Rate limit
+        time.sleep(REQUEST_DELAY)
+
+        # Extract title
+        title = extract_title(html_text)
+
+        # Extract body
+        body = extract_body(html_text)
+        if "AG2HTML: BODY=START" not in html_text:
+            print(f"  warning: no BODY markers in {url}", file=sys.stderr)
+            warnings += 1
+
+        # Convert to markdown
+        md_content = convert_html_to_md(body)
+
+        # Generate slug for filename
+        slug = slugify_title(title, used_slugs)
+        filename = f"{slug}.md"
+        filepath = manual_dir / filename
+
+        # Write markdown file
+        filepath.write_text(f"# {title}\n\n{md_content}\n", encoding="utf-8")
+
+        # Record in node map
+        node_map[node_key] = {
+            "manual": manual_slug,
+            "path": f"{manual_slug}/{filename}",
+            "title": title,
+            "slug": slug,
+        }
+
+        pages += 1
+        print(f"  [{pages}] {slug} <- {node_file if 'node_file' in dir() else url}")
+
+        # Extract and queue links within the same manual
+        for link in extract_links(html_text):
+            # Resolve relative link against current URL
+            # Links look like: ../Guide_dir/nodeXXXX.html
+            link_match = re.match(r"\.\./([^/]+)/([^/]+\.html)", link)
+            if link_match:
+                link_guide = link_match.group(1)
+                link_file = link_match.group(2)
+                link_key = f"{link_guide}/{link_file.replace('.html', '')}"
+
+                # Record cross-manual links but don't follow them
+                if link_guide != guide_dir:
+                    continue
+
+                if link_key not in visited:
+                    full_url = f"{BASE_URL}/read/ADCD_2.1/{link_guide}/{link_file}"
+                    queue.append(full_url)
+
+    return pages, warnings
+
 
 def do_crawl(args):
     """Pass 1: Fetch HTML pages and convert to raw markdown."""
-    # TODO: Implement HTML fetching, content extraction, and markdown conversion
-    print(f"crawl: output={args.output}, manual={getattr(args, 'manual', None)}, "
-          f"limit={getattr(args, 'limit', None)}, dry_run={getattr(args, 'dry_run', False)}")
-    print("TODO: Pass 1 not yet implemented")
+    output_dir = Path(args.output)
+    raw_dir = output_dir / "raw"
+    manual_filter = getattr(args, "manual", None)
+    limit = getattr(args, "limit", None)
+    dry_run = getattr(args, "dry_run", False)
+
+    # Global node map: "Guide_dir/nodeXXXX" -> {manual, path, title, slug}
+    node_map = {}
+    used_slugs = set()
+    total_pages = 0
+    total_warnings = 0
+
+    # Filter manuals if --manual is set
+    manuals_to_crawl = MANUALS
+    if manual_filter:
+        manuals_to_crawl = [m for m in MANUALS if m[0] == manual_filter]
+
+    for manual_slug, guide_dir, display_title in manuals_to_crawl:
+        print(f"\n{'='*60}")
+        print(f"Crawling: {display_title} ({manual_slug})")
+        print(f"{'='*60}")
+
+        manual_dir = raw_dir / manual_slug
+        manual_dir.mkdir(parents=True, exist_ok=True)
+
+        # TOC is typically node0003.html but we start from the guide index
+        toc_url = f"{BASE_URL}/read/ADCD_2.1/{guide_dir}/node0003.html"
+
+        pages, warns = crawl_manual(
+            toc_url, guide_dir, manual_slug, manual_dir,
+            node_map, used_slugs, limit=limit, dry_run=dry_run
+        )
+        total_pages += pages
+        total_warnings += warns
+        print(f"  => {pages} pages, {warns} warnings")
+
+    # Write global node map
+    node_map_path = raw_dir / "node-map.json"
+    raw_dir.mkdir(parents=True, exist_ok=True)
+    with open(node_map_path, "w", encoding="utf-8") as f:
+        json.dump(node_map, f, indent=2, sort_keys=True)
+
+    print(f"\n{'='*60}")
+    print(f"CRAWL COMPLETE: {total_pages} pages, {total_warnings} warnings")
+    print(f"Node map: {node_map_path} ({len(node_map)} entries)")
+    print(f"{'='*60}")
 
 
 # --------------------------------------------------------------------------- #
