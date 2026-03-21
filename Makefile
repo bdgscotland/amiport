@@ -9,7 +9,7 @@
 #   clean            Remove build artifacts
 #   fetch-ndk        Download AmigaOS NDK 3.2 R4
 
-.PHONY: setup setup-toolchain setup-debug-tools build-shim build-emu build-console build-net build test test-shim test-emu test-console test-net package clean fetch-ndk help doctor smoke-test compare list-ports build-ports install-emu setup-emu emu publish check-aminet build-uaequit test-fsemu check-docs check-agents scrape-adcd
+.PHONY: setup setup-toolchain setup-debug-tools build-shim build-emu build-console build-net build test test-shim test-emu test-console test-net test-ports package clean fetch-ndk help doctor smoke-test compare list-ports build-ports install-emu setup-emu emu publish check-aminet build-uaequit test-fsemu check-docs check-agents scrape-adcd
 
 help:
 	@echo "amiport — AI-powered Amiga porting toolkit"
@@ -36,6 +36,7 @@ help:
 	@echo "  compare          Compare native vs Amiga output (TARGET=examples/foo)"
 	@echo "  list-ports       List all ports and their status"
 	@echo "  build-ports      Build all ports"
+	@echo "  test-ports       Test all ports via vamos"
 	@echo "  build-uaequit    Build UAEQuit (emulator shutdown tool)"
 	@echo "  test-fsemu       Run FS-UAE automated tests (TARGET=ports/grep)"
 	@echo "  setup-emu        Install FS-UAE and check for Kickstart ROM"
@@ -159,11 +160,19 @@ list-ports:
 check-aminet:
 	@bash scripts/check-aminet.sh
 
-build-ports: build-shim
+build-ports: build-shim build-emu
 	@for dir in ports/*/; do \
 		if [ -f "$$dir/Makefile" ]; then \
 			echo "Building $$(basename $$dir)..."; \
 			$(MAKE) -C "$$dir" TARGET=$$(basename "$$dir") || exit 1; \
+		fi; \
+	done
+
+test-ports: build-shim build-emu
+	@for dir in ports/*/; do \
+		if [ -f "$$dir/Makefile" ]; then \
+			echo "Testing $$(basename $$dir)..."; \
+			$(MAKE) test TARGET="$$dir" || exit 1; \
 		fi; \
 	done
 

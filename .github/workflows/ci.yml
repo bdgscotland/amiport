@@ -47,6 +47,19 @@ jobs:
       - name: Check agent/skill frontmatter
         run: make check-agents
 
+      - name: Build console shim library
+        run: make build-console
+
+      - name: Build BSD socket shim library
+        run: make build-net
+
+      - name: Run console shim tests
+        run: make test-console
+
+      - name: Run BSD socket shim tests
+        continue-on-error: true  # bsdsocket.library not available in vamos
+        run: make test-net
+
       - name: Build example ports
         run: |
           make build TARGET=examples/wc
@@ -58,3 +71,9 @@ jobs:
           make test TARGET=examples/wc
           make test TARGET=examples/head
           make test TARGET=examples/mini-find
+
+      - name: Build production ports
+        run: make build-ports
+
+      - name: Test production ports (vamos)
+        run: make test-ports

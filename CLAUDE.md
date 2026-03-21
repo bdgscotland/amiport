@@ -139,6 +139,7 @@ make test-shim         # Run POSIX shim library tests via vamos
 make test-emu          # Run POSIX emulation library tests via vamos
 make test-console      # Run console shim tests via vamos
 make test-net          # Run BSD socket shim tests via vamos
+make test-ports        # Test all production ports via vamos
 make test-fsemu TARGET=ports/grep  # Test via FS-UAE with ARexx harness (Category 3-4)
 make build-uaequit     # Build UAEQuit helper for FS-UAE test automation
 make setup-debug-tools # Install Enforcer, Mungwall, SegTracker for crash debugging
@@ -267,10 +268,11 @@ The repo uses `.githooks/` for git hooks, configured by `make setup` (which runs
 ## Continuous Integration
 
 GitHub Actions CI (`.github/workflows/ci.yml`) runs on every push to main:
-- Builds posix-shim and posix-emu libraries
-- Runs all shim and emulation tests via vamos
-- Validates doc consistency (`make check-docs`)
+- Builds posix-shim, posix-emu, console-shim, and bsdsocket-shim libraries
+- Runs all shim, emulation, console, and network tests via vamos
+- Validates doc consistency (`make check-docs`) and agent frontmatter (`make check-agents`)
 - Builds and tests all example ports
+- Builds and tests all production ports (`make build-ports`, `make test-ports`)
 
 The toolchain Docker image is cached on GHCR (`ghcr.io/bdgscotland/amiport-toolchain:latest`).
 

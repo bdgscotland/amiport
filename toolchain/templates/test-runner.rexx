@@ -13,7 +13,9 @@
  *   Each test is 3 lines:
  *     TEST: description
  *     CMD: command to run
- *     EXPECT: expected output (single line)
+ *     EXPECT: expected output (exact first-line match)
+ *   Or use EXPECT_CONTAINS: for substring matching:
+ *     EXPECT_CONTAINS: substring to find in output
  *
  * Usage: rx WORK:test-runner.rexx
  */
@@ -35,19 +37,30 @@ IF ~OPEN('tf', testfile, 'R') THEN DO
     EXIT 20
 END
 
-/* Parse test cases into simple indexed arrays */
+/* Parse test cases into simple indexed arrays.
+ * Uses SELECT/WHEN for robust parsing and strips CR characters
+ * to handle macOS line endings on AmigaOS. */
 testcount = 0
 DO WHILE ~EOF('tf')
     line = READLN('tf')
-    IF LEFT(line, 5) = 'TEST:' THEN DO
-        testcount = testcount + 1
-        desc.testcount = STRIP(SUBSTR(line, 6))
-    END
-    ELSE IF LEFT(line, 4) = 'CMD:' THEN DO
-        cmd.testcount = STRIP(SUBSTR(line, 5))
-    END
-    ELSE IF LEFT(line, 7) = 'EXPECT:' THEN DO
-        expect.testcount = STRIP(SUBSTR(line, 8))
+    line = STRIP(line, 'T', '0D'x)  /* Strip CR if present (macOS -> AmigaOS) */
+    SELECT
+        WHEN LEFT(line, 5) = 'TEST:' THEN DO
+            testcount = testcount + 1
+            desc.testcount = STRIP(SUBSTR(line, 6))
+            expect_mode.testcount = 'EXACT'
+        END
+        WHEN LEFT(line, 4) = 'CMD:' THEN DO
+            cmd.testcount = STRIP(SUBSTR(line, 5))
+        END
+        WHEN LEFT(line, 16) = 'EXPECT_CONTAINS:' THEN DO
+            expect.testcount = STRIP(SUBSTR(line, 17))
+            expect_mode.testcount = 'CONTAINS'
+        END
+        WHEN LEFT(line, 7) = 'EXPECT:' THEN DO
+            expect.testcount = STRIP(SUBSTR(line, 8))
+        END
+        OTHERWISE NOP
     END
 END
 CALL CLOSE('tf')
@@ -64,9 +77,16 @@ passed = 0
 failed = 0
 DO i = 1 TO testcount
     tdesc = desc.i
-    tcmd = cmd.i
     texpect = expect.i
     outfile = 'T:test_out_' || i || '.txt'
+
+    /* Defensive check: skip test if CMD was never defined */
+    IF SYMBOL('cmd.i') \= 'VAR' THEN DO
+        CALL WRITELN('rf', 'not ok' i '- ' || tdesc || ' (no CMD defined)')
+        failed = failed + 1
+        ITERATE
+    END
+    tcmd = cmd.i
 
     /* Run the command, redirect output to temp file.
      * Use a shell script via Execute with FailAt 21 to ensure
@@ -89,14 +109,28 @@ DO i = 1 TO testcount
         CALL CLOSE('of')
     END
 
-    /* Compare */
-    IF STRIP(actual) = STRIP(texpect) THEN DO
+    /* Compare — supports exact match (EXPECT:) and substring match (EXPECT_CONTAINS:) */
+    tmode = 'EXACT'
+    IF SYMBOL('expect_mode.i') = 'VAR' THEN tmode = expect_mode.i
+
+    match = 0
+    IF tmode = 'CONTAINS' THEN DO
+        IF POS(STRIP(texpect), STRIP(actual)) > 0 THEN match = 1
+    END
+    ELSE DO
+        IF STRIP(actual) = STRIP(texpect) THEN match = 1
+    END
+
+    IF match = 1 THEN DO
         CALL WRITELN('rf', 'ok' i '- ' || tdesc)
         passed = passed + 1
     END
     ELSE DO
         CALL WRITELN('rf', 'not ok' i '- ' || tdesc)
-        CALL WRITELN('rf', '#   expected:' texpect)
+        IF tmode = 'CONTAINS' THEN
+            CALL WRITELN('rf', '#   expected to contain:' texpect)
+        ELSE
+            CALL WRITELN('rf', '#   expected:' texpect)
         CALL WRITELN('rf', '#   actual:  ' actual)
         failed = failed + 1
     END
