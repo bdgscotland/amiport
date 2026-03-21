@@ -88,11 +88,35 @@ The build-manager iterates up to 5 times on compile errors. If it can't resolve 
 **GATE:** Do not proceed to Stage 5 until a compiled binary exists at `ports/<name>/<name>`.
 
 ### Stage 5: Test
-For Category 1-2 (CLI/scripting): Test with `make test TARGET=ports/<name>` (vamos).
 
-For Category 3 (Console UI): vamos can run basic smoke tests (start, print version, exit). Interactive testing requires FS-UAE — note this in PORT.md.
+**5a. vamos testing (quick smoke test):**
+For Category 1-2 (CLI/scripting): Test with `make test TARGET=ports/<name>` (vamos) for basic I/O verification using piped stdin.
 
-For Category 4 (Network): vamos cannot test networking. Build verification only, with a note that full testing requires FS-UAE with a TCP/IP stack (AmiTCP or Roadshow).
+For Category 3 (Console UI): vamos can run basic smoke tests (start, print version, exit). Interactive testing requires FS-UAE.
+
+For Category 4 (Network): vamos cannot test networking. Build verification only.
+
+**5b. FS-UAE testing (MANDATORY for ALL categories):**
+Every port MUST have FS-UAE testing with comprehensive coverage per `docs/test-coverage-standard.md`. Create `test-fsemu-cases.txt` in the port directory with test cases covering ALL FIVE required categories:
+
+1. **Functional tests** — one test per documented flag/option
+2. **Error path tests** — nonexistent files, bad arguments, malformed input (EXPECT_RC: 10)
+3. **Exit code tests** — every distinct return code (0, 5, 10) verified with EXPECT_RC:
+4. **Edge case tests** — empty files, special characters, long lines, boundary values
+5. **Amiga-specific tests** — path handling, T: temp files, epoch (if applicable)
+
+**Minimum test counts:** CLI tools: 8+, Scripting: 10+, Console UI: 8+, Network: 8+.
+
+Create test input files as `test-<name>-*.txt` in the port directory (include an empty file for edge case testing). Use `EXPECT_RC:` on every test case.
+
+Assertion modes: `EXPECT:` (exact first-line), `EXPECT_CONTAINS:` (substring), `EXPECT_RC:` (exit code).
+
+Then run: `make test-fsemu TARGET=ports/<name>`
+
+**GATE:** Do not proceed to Stage 6 unless:
+- test-fsemu-cases.txt has >= minimum test count for the port category
+- At least one test uses EXPECT_RC: 10 (error path tested)
+- At least one test uses EXPECT_RC: 5 or EXPECT_RC: 0 (success path tested)
 
 If tests fail, analyze the failure and fix. May require going back to the transform stage.
 

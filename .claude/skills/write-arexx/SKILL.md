@@ -160,9 +160,22 @@ The standard test case format for `test-fsemu-cases.txt`:
 
 ```
 TEST: description of test
-CMD: WORK:program args
-EXPECT: expected single-line output
+CMD: WORK:program args WORK:inputfile.txt
+EXPECT: expected first-line output (exact match)
+EXPECT_RC: 0
+
+TEST: error path test
+CMD: WORK:program --bad-flag
+EXPECT_CONTAINS: error substring
+EXPECT_RC: 10
 ```
+
+**Assertion modes:**
+- `EXPECT:` — exact match of first line of stdout
+- `EXPECT_CONTAINS:` — substring match (for multi-line output)
+- `EXPECT_RC:` — expected Amiga return code (0=OK, 5=WARN, 10=ERROR, 20=FAIL)
+
+See `docs/test-coverage-standard.md` for mandatory coverage requirements (no happy-path-only testing).
 
 ### Standard Test Runner Structure
 
