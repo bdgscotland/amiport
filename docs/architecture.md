@@ -66,11 +66,29 @@ Key design principle: **one wrapper per POSIX function**, so transformations are
 
 | Category | Libraries Needed | Test Strategy |
 |----------|-----------------|---------------|
-| 1. CLI tools | posix-shim [+ posix-emu] | vamos |
-| 2. Scripting interpreters | posix-shim + minor stubs | vamos |
-| 3. Console UI apps | posix-shim + console-shim | FS-UAE |
-| 4. Network apps | posix-shim + bsdsocket-shim | FS-UAE + TCP/IP |
+| 1. CLI tools | posix-shim [+ posix-emu] | vamos (headless, fast) |
+| 2. Scripting interpreters | posix-shim + minor stubs | vamos (headless, fast) |
+| 3. Console UI apps | posix-shim + console-shim | FS-UAE + ARexx harness (`make test-fsemu`) |
+| 4. Network apps | posix-shim + bsdsocket-shim | FS-UAE + ARexx harness + TCP/IP |
 | 5. GUI apps (future) | Intuition/MUI | FS-UAE |
+
+#### FS-UAE Automated Testing (ADR-014)
+
+Categories 3-4 use an automated FS-UAE testing pipeline instead of manual interactive testing:
+
+```
+┌──────────────┐    ┌──────────────┐    ┌──────────────┐    ┌──────────────┐
+│  test-fsemu  │───▶│   FS-UAE     │───▶│ ARexx test   │───▶│ TEST-REPORT  │
+│  (host)      │    │  (boots      │    │ harness      │    │ .md (TAP     │
+│              │    │   AmigaOS)   │    │ (runs cases) │    │  results)    │
+└──────────────┘    └──────────────┘    └──────────────┘    └──────────────┘
+                          │                    │
+                     Startup-Sequence     UAEQuit signals
+                     launches harness     FS-UAE to exit
+```
+
+- **vamos** path: fast, headless, no GUI — used for Categories 1-2
+- **FS-UAE** path: full AmigaOS boot, ARexx harness executes test cases, TAP output captured via shared RESULTS: volume, UAEQuit terminates the emulator — used for Categories 3-4
 
 ### Toolchain
 

@@ -87,6 +87,7 @@ These exercise the shim library and validate the build/test pipeline:
 | `/build-amiga` | Cross-compile using Docker toolchain |
 | `/test-amiga` | Test binaries in vamos emulator |
 | `/review-amiga` | Amiga-specific code review (stack, memory, BPTR, conventions) |
+| `/write-arexx` | Write ARexx scripts for AmigaOS |
 | `/port-project` | Orchestrate the full pipeline (including Aminet research) |
 
 ### Specialized Agents
@@ -157,6 +158,8 @@ make smoke-test         # Full end-to-end validation
 # Emulator
 make install-emu        # Copy binaries to emulator directory
 make emu                # Launch FS-UAE
+make test-fsemu TARGET=...  # Automated FS-UAE test with ARexx harness
+make build-uaequit     # Build UAEQuit helper for FS-UAE automation
 
 # Package & Info
 make package TARGET=... # Create LHA archive for Aminet

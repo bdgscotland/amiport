@@ -64,12 +64,13 @@ One wrapper per function. Semantics match POSIX for all common use cases. The tr
 |`pwrite()`     |`amiport_pwrite()`      |`Seek()`+`Write()`+`Seek()` |Non-atomic positional write                                      |
 |`getline()`    |`amiport_getline()`     |`fgets()`+`realloc()`       |GNU extension; fgets-based for 68k perf                          |
 |`getdelim()`   |`amiport_getdelim()`    |`fgets()`/`fgetc()`+`realloc()`|Read until delimiter; fast path for '\n'                      |
+|`dup()`        |`amiport_dup()`         |fd_table sharing + scan-on-close|Finds lowest free fd; shared BPTR not closed until last user  |
+|`dup2()`       |`amiport_dup2()`        |fd_table sharing + scan-on-close|Closes target fd first if open; oldfd==newfd is no-op         |
 
 ### Planned Tier 1 additions
 
 |POSIX function    |Implementation approach      |Priority                                           |
 |------------------|-----------------------------|---------------------------------------------------|
-|`dup()` / `dup2()`|fd_table ref-counting        |High — needed for I/O redirection                  |
 |`chmod()`         |No-op with comment           |Low — Amiga has protection bits but different model|
 |`rmdir()`         |`DeleteFile()`               |Low — same as unlink on Amiga                      |
 |`readlink()`      |`ReadLink()` (OS 2.0+)       |Low — soft links rare on classic Amiga             |

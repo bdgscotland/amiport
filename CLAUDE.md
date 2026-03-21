@@ -23,6 +23,8 @@ The porting pipeline has 5 stages, each backed by a Claude skill:
 - `lib/console-shim/` — Minimal ncurses API mapped to Amiga console.device ANSI escapes (ADR-009)
 - `lib/bsdsocket-shim/` — BSD socket API via bsdsocket.library with auto lifecycle (ADR-010)
 - `toolchain/` — Cross-compiler Docker images, build scripts, target profiles
+- `toolchain/uaequit/` — UAEQuit helper binary (signals FS-UAE to exit after test runs)
+- `toolchain/templates/test-runner.rexx` — ARexx test harness template for FS-UAE automated testing
 - `docs/` — Architecture docs, API mapping tables, porting guide, tier classification
 - `tests/shim/` — Tier 1 posix-shim unit tests (11 test files)
 - `tests/emu/` — Tier 2 posix-emu tests (4 test files)
@@ -55,6 +57,7 @@ The porting pipeline has 5 stages, each backed by a Claude skill:
 - To check Aminet for existing ports: dispatch the `aminet-researcher` agent
 - To audit external library dependencies: dispatch the `dependency-auditor` agent
 - To add a missing POSIX function to the shim: use `/extend-shim <function-name>`
+- To write ARexx scripts for AmigaOS: use `/write-arexx`
 - To publish to Aminet: dispatch the `aminet-publisher` agent
 
 The `/port-project` skill runs Stage 0 (Aminet research) through Stage 6 (packaging) automatically, dispatching the appropriate agents at each step. Use it as the entry point for all porting work.
@@ -124,6 +127,8 @@ make test-shim         # Run POSIX shim library tests via vamos
 make test-emu          # Run POSIX emulation library tests via vamos
 make test-console      # Run console shim tests via vamos
 make test-net          # Run BSD socket shim tests via vamos
+make test-fsemu TARGET=ports/grep  # Test via FS-UAE with ARexx harness (Category 3-4)
+make build-uaequit     # Build UAEQuit helper for FS-UAE test automation
 make package TARGET=examples/wc # Create LHA archive
 make clean             # Remove build artifacts
 ```
@@ -143,6 +148,18 @@ Use **vamos** (from amitools) for CLI program testing (Categories 1-2) — it pr
 
 For console UI apps (Category 3), network apps (Category 4), GUI programs, or hardware-dependent code, use **FS-UAE** with a configured AmigaOS 3.x installation. Network apps additionally require a TCP/IP stack (AmiTCP or Roadshow) configured in the emulator.
 
+### Automated FS-UAE Testing
+
+Category 3-4 ports can be tested automatically using `make test-fsemu TARGET=ports/<name>`. This:
+
+1. Boots FS-UAE with a custom Startup-Sequence that runs the port's ARexx test harness
+2. The ARexx harness (based on `toolchain/templates/test-runner.rexx`) executes test cases defined in `test-fsemu-cases.txt`
+3. Results are written in TAP format to a shared RESULTS: volume
+4. UAEQuit signals FS-UAE to exit when tests complete (or a watchdog timeout fires)
+5. A `TEST-REPORT.md` is generated from the TAP output
+
+This avoids the need for manual interactive testing in the emulator. See ADR-014 for design details.
+
 ## Key References
 
 - `docs/posix-tiers.md` — **Master POSIX tier classification** (Tier 1/2/3 for every function)
@@ -160,6 +177,8 @@ For console UI apps (Category 3), network apps (Category 4), GUI programs, or ha
 - `docs/adr/009-console-shim-for-ncurses.md` — ADR for console UI shim
 - `docs/adr/010-bsdsocket-shim-for-networking.md` — ADR for BSD socket shim
 - `docs/adr/011-beyond-cli-port-categories.md` — ADR for port category taxonomy
+- `docs/adr/014-fs-uae-automated-testing.md` — ADR for FS-UAE automated testing pipeline
+- `docs/references/arexx-reference.md` — ARexx language and API reference for AmigaOS scripting
 
 ## Port Categories (ADR-011)
 
