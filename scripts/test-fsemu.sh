@@ -26,6 +26,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+SYSTEM_HDF="$PROJECT_DIR/build/system.hdf"
 SYSTEM_DIR="$PROJECT_DIR/build/system"
 AMIGA_DIR="$PROJECT_DIR/build/amiga"
 TOOLCHAIN_DIR="$PROJECT_DIR/toolchain"
@@ -68,8 +69,8 @@ preflight() {
         errors=$((errors + 1))
     fi
 
-    if [ ! -d "$SYSTEM_DIR/S" ]; then
-        echo -e "${RED}ERROR: No bootable system at $SYSTEM_DIR${NC}"
+    if [ ! -f "$SYSTEM_HDF" ] && [ ! -d "$SYSTEM_DIR/S" ]; then
+        echo -e "${RED}ERROR: No bootable system — need build/system.hdf or build/system/S/${NC}"
         echo "  Run: make setup-emu"
         errors=$((errors + 1))
     fi
@@ -143,8 +144,8 @@ build_boot_volume() {
     # Install binaries to build/amiga/ if not already there
     bash "$PROJECT_DIR/scripts/install-emu.sh" 2>/dev/null
 
-    # Copy UAEQuit to the system C: directory
-    cp "$TOOLCHAIN_DIR/uaequit/UAEQuit" "$SYSTEM_DIR/C/UAEQuit" 2>/dev/null || true
+    # Copy UAEQuit to WORK: (always available regardless of system type)
+    cp "$TOOLCHAIN_DIR/uaequit/UAEQuit" "$AMIGA_DIR/UAEQuit" 2>/dev/null || true
 
     # Copy ARexx test runner to build/amiga/ (mounted as WORK:)
     cp "$TOOLCHAIN_DIR/templates/test-runner.rexx" "$AMIGA_DIR/test-runner.rexx"
@@ -160,53 +161,57 @@ build_boot_volume() {
         fi
     done
 
-    # Create a User-Startup that runs the test harness
-    # (The main Startup-Sequence should already start RexxMast and then
-    #  execute User-Startup. We just need to add our test command.)
-    mkdir -p "$SYSTEM_DIR/S"
-
-    # Save existing User-Startup and append test runner
-    if [ -f "$SYSTEM_DIR/S/User-Startup" ]; then
-        cp "$SYSTEM_DIR/S/User-Startup" "$SYSTEM_DIR/S/User-Startup.bak"
+    # Write User-Startup into the system
+    # For HDF: inject via xdftool; for directory: write directly
+    if [ -f "$SYSTEM_HDF" ]; then
+        # Back up existing User-Startup from HDF
+        xdftool "$SYSTEM_HDF" read S/User-Startup > "$RESULTS_DIR/User-Startup.bak" 2>/dev/null || true
+    else
+        mkdir -p "$SYSTEM_DIR/S"
+        if [ -f "$SYSTEM_DIR/S/User-Startup" ]; then
+            cp "$SYSTEM_DIR/S/User-Startup" "$SYSTEM_DIR/S/User-Startup.bak"
+        fi
     fi
 
+    # Build the User-Startup script content
+    local startup_file="$RESULTS_DIR/User-Startup"
+
     if [ "$DEBUG_MODE" = true ]; then
-        # Copy debug tools to system C: directory
+        # Copy debug tools to WORK: for HDF mode
         local debug_tools_dir="$TOOLCHAIN_DIR/debug-tools"
         for tool in Enforcer MungWall SegTracker; do
-            cp "$debug_tools_dir/$tool" "$SYSTEM_DIR/C/$tool" 2>/dev/null || true
+            cp "$debug_tools_dir/$tool" "$AMIGA_DIR/$tool" 2>/dev/null || true
         done
 
-        # User-Startup with debug tools + test harness
-        cat > "$SYSTEM_DIR/S/User-Startup" << 'AMIGA_SCRIPT'
+        cat > "$startup_file" << 'AMIGA_SCRIPT'
 ; amiport FS-UAE test runner (DEBUG MODE)
-; Auto-generated — will be restored after test run
-
-; Load debug tools — SegTracker must start before Enforcer (STACKCHECK needs it)
-Run >NIL: SegTracker
-Run >NIL: MungWall
-Run >NIL: Enforcer STACKLINES=4 STACKCHECK DATESTAMP
+Run >NIL: WORK:SegTracker
+Run >NIL: WORK:MungWall
+Run >NIL: WORK:Enforcer STACKLINES=4 STACKCHECK DATESTAMP
 Wait 2
-
-; Start RexxMast if not already running (required for ARexx scripts)
 SYS:System/RexxMast >NIL:
 Wait 2
-
-; Run the test harness
 SYS:Rexxc/rx WORK:test-runner.rexx
 AMIGA_SCRIPT
     else
-        cat > "$SYSTEM_DIR/S/User-Startup" << 'AMIGA_SCRIPT'
+        cat > "$startup_file" << 'AMIGA_SCRIPT'
 ; amiport FS-UAE test runner
-; Auto-generated — will be restored after test run
-
-; Start RexxMast if not already running (required for ARexx scripts)
 SYS:System/RexxMast >NIL:
 Wait 2
-
-; Run the test harness
 SYS:Rexxc/rx WORK:test-runner.rexx
 AMIGA_SCRIPT
+    fi
+
+    # Install User-Startup into the system
+    if [ -f "$SYSTEM_HDF" ]; then
+        # HDF mode: inject via xdftool
+        # xdftool write fails with "Name already exists" if the file is present —
+        # delete first to ensure a clean write regardless of prior test state.
+        xdftool "$SYSTEM_HDF" delete S/User-Startup 2>/dev/null || true
+        xdftool "$SYSTEM_HDF" write "$startup_file" S/User-Startup 2>/dev/null
+    else
+        # Directory mode: write directly
+        cp "$startup_file" "$SYSTEM_DIR/S/User-Startup"
     fi
 }
 
@@ -216,12 +221,36 @@ AMIGA_SCRIPT
 generate_config() {
     local config_file="$RESULTS_DIR/test-config.fs-uae"
 
-    cat > "$config_file" << EOF
+    if [ -f "$SYSTEM_HDF" ]; then
+        # Use HDF image (preferred — proper Workbench install)
+        cat > "$config_file" << EOF
 # FS-UAE config for automated testing (generated)
 amiga_model = A1200
 kickstart_file = $KICKSTART
 
-# System hard drive (bootable Workbench 3.1)
+# System hard drive (bootable Workbench 3.1 HDF)
+hard_drive_0 = $SYSTEM_HDF
+
+# Work drive (built ports and test harness)
+hard_drive_1 = $AMIGA_DIR
+hard_drive_1_label = WORK
+
+# Results drive (test output written here)
+hard_drive_2 = $RESULTS_DIR
+hard_drive_2_label = RESULTS
+
+# Headless settings
+window_width = 720
+window_height = 568
+EOF
+    else
+        # Fallback: directory mount
+        cat > "$config_file" << EOF
+# FS-UAE config for automated testing (generated)
+amiga_model = A1200
+kickstart_file = $KICKSTART
+
+# System hard drive (bootable Workbench 3.1 directory)
 hard_drive_0 = $SYSTEM_DIR
 hard_drive_0_label = System
 hard_drive_0_priority = 1
@@ -238,6 +267,7 @@ hard_drive_2_label = RESULTS
 window_width = 720
 window_height = 568
 EOF
+    fi
 
     # Debug mode: add 68030 CPU, serial→TCP, JIT off, bsdsocket
     # FS-UAE LISTENS on SERIAL_PORT (server), serial-capture.py CONNECTS to it (client)
@@ -498,7 +528,17 @@ cleanup() {
     fi
 
     # Restore original User-Startup
-    if [ -f "$SYSTEM_DIR/S/User-Startup.bak" ]; then
+    if [ -f "$SYSTEM_HDF" ]; then
+        # HDF mode: restore via xdftool
+        # Delete before write — xdftool write fails with "Name already exists" if the
+        # file is present (e.g., after a failed/interrupted previous run).
+        if [ -n "${RESULTS_DIR:-}" ] && [ -f "$RESULTS_DIR/User-Startup.bak" ]; then
+            xdftool "$SYSTEM_HDF" delete S/User-Startup 2>/dev/null || true
+            xdftool "$SYSTEM_HDF" write "$RESULTS_DIR/User-Startup.bak" S/User-Startup 2>/dev/null || true
+        else
+            xdftool "$SYSTEM_HDF" delete S/User-Startup 2>/dev/null || true
+        fi
+    elif [ -f "$SYSTEM_DIR/S/User-Startup.bak" ]; then
         mv "$SYSTEM_DIR/S/User-Startup.bak" "$SYSTEM_DIR/S/User-Startup"
     else
         rm -f "$SYSTEM_DIR/S/User-Startup"
