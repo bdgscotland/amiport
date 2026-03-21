@@ -33,9 +33,11 @@ all: $(TARGET)
 $(TARGET): $(SOURCES) $(SHIM_LIB)
 	$(CC) $(CFLAGS) -o $(TARGET) $(SOURCES) $(LDFLAGS)
 
-# Package for Aminet distribution
+# Package for Aminet distribution (includes binary, readme, docs, and source)
+# Uses Docker lha since macOS lhasa is extraction-only
+LHA_CMD = docker run --rm -v $(shell cd ../.. && pwd):/work -w /work/ports/$(TARGET) amigadev/crosstools:m68k-amigaos lha
 package: $(TARGET) $(TARGET).readme
-	lha a $(TARGET)-$(VERSION).lha $(TARGET) $(TARGET).readme PORT.md
+	$(LHA_CMD) a $(TARGET)-$(VERSION).lha $(TARGET) $(TARGET).readme PORT.md original/ ported/
 
 # Generate Aminet readme from PORT.md metadata
 $(TARGET).readme: PORT.md

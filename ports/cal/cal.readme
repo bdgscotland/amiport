@@ -3,6 +3,7 @@ Type:         util/cli
 Architecture: m68k-amigaos >= 3.0
 Uploader:     duncan@bowring.us
 Author:       University of California, Berkeley (ported by Duncan Bowring)
+Replaces:     util/cli/cal-1.0.lha
 Version:      1.32
 
 cal — Unix-style calendar display for AmigaOS

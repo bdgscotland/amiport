@@ -1,10 +1,9 @@
 #!/bin/bash
 #
-# check-aminet.sh — Check if our ports appear on Aminet
+# check-aminet.sh — Check if our ports appear on Aminet and track downloads
 #
-# Searches aminet.net for each port by checking the .readme file
-# for our uploader identity (from .env). This distinguishes our
-# uploads from other packages with the same name.
+# Searches aminet.net for each port by checking the package page.
+# Reports publication status and download counts.
 
 set -euo pipefail
 
@@ -16,47 +15,62 @@ if [ -f "$PROJECT_DIR/.env" ]; then
     . "$PROJECT_DIR/.env"
 fi
 
-SEARCH_TERM="${AMINET_NAME:-amiport}"
+SEARCH_TERM="${AMINET_NAME:-Duncan Bowring}"
 
 echo "=== Checking Aminet for amiport publications ==="
 echo "    (searching for: \"$SEARCH_TERM\")"
 echo ""
 
+total_downloads=0
+published=0
+not_published=0
+
 for dir in "$PROJECT_DIR"/ports/*/; do
     name=$(basename "$dir")
     [ -f "$dir/Makefile" ] || continue
 
+    # Get version and category from Makefile
+    version=$(grep "^VERSION" "$dir/Makefile" 2>/dev/null | head -1 | sed 's/^VERSION[[:space:]]*=[[:space:]]*//' || echo "1.0")
+    aminet_cat=$(grep "^AMINET_CAT" "$dir/Makefile" 2>/dev/null | head -1 | sed 's/^AMINET_CAT[[:space:]]*=[[:space:]]*//' || echo "util/cli")
+
     printf "  %-15s " "$name"
 
-    # Check if the specific readme exists on Aminet
-    # Aminet readmes are at: aminet.net/package/util/cli/cal-1.0
-    # Try to fetch the readme and look for our identity
-    readme_url="https://aminet.net/util/cli/${name}.readme"
-    readme_content=$(curl -s -L "$readme_url" 2>/dev/null || echo "")
+    # Try versioned package name first, then plain name
+    found=false
+    for pkg_name in "${name}-${version}" "${name}"; do
+        for cat in "$aminet_cat" "util/cli" "dev/lang" "util/misc"; do
+            page_url="https://aminet.net/package/${cat}/${pkg_name}"
+            page_content=$(curl -s -L --max-time 10 "$page_url" 2>/dev/null || echo "")
 
-    if echo "$readme_content" | grep -qi "$SEARCH_TERM" 2>/dev/null; then
-        echo "PUBLISHED (ours)"
-        # Extract the package page URL
-        echo "              https://aminet.net/package/util/cli/${name}"
-    elif echo "$readme_content" | grep -qi "Short:" 2>/dev/null; then
-        # A readme exists but it's not ours
-        echo "EXISTS (not ours — different uploader)"
-    else
-        # Try searching with version suffix
-        version=$(grep "^VERSION" "$dir/Makefile" 2>/dev/null | head -1 | sed 's/^VERSION[[:space:]]*=[[:space:]]*//' || echo "1.0")
-        readme_url2="https://aminet.net/util/cli/${name}-${version}.readme"
-        readme_content2=$(curl -s -L "$readme_url2" 2>/dev/null || echo "")
+            if echo "$page_content" | grep -qi "$SEARCH_TERM" 2>/dev/null; then
+                # Extract download count
+                downloads=$(echo "$page_content" | grep -oP 'Downloads:\s*\K[0-9]+' 2>/dev/null || echo "?")
+                if [ "$downloads" = "?" ]; then
+                    # Try alternate pattern
+                    downloads=$(echo "$page_content" | grep -oE '[0-9]+ downloads' 2>/dev/null | grep -oE '[0-9]+' || echo "?")
+                fi
 
-        if echo "$readme_content2" | grep -qi "$SEARCH_TERM" 2>/dev/null; then
-            echo "PUBLISHED (ours)"
-            echo "              https://aminet.net/package/util/cli/${name}-${version}"
-        elif echo "$readme_content2" | grep -qi "Short:" 2>/dev/null; then
-            echo "EXISTS (not ours)"
-        else
-            echo "NOT ON AMINET"
-        fi
+                echo "LIVE  ${cat}/${pkg_name}  (${downloads} downloads)"
+                if [ "$downloads" != "?" ]; then
+                    total_downloads=$((total_downloads + downloads))
+                fi
+                published=$((published + 1))
+                found=true
+                break 2
+            fi
+        done
+    done
+
+    if [ "$found" = false ]; then
+        echo "NOT ON AMINET"
+        not_published=$((not_published + 1))
     fi
 done
 
+echo ""
+echo "=== Summary ==="
+echo "  Published:     $published"
+echo "  Not published: $not_published"
+echo "  Total downloads: $total_downloads"
 echo ""
 echo "Note: New uploads take up to 24 hours to appear after moderator review."

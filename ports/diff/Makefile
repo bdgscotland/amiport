@@ -6,7 +6,7 @@ SOURCES     = ported/diff.c ported/diffreg.c ported/diffdir.c ported/xmalloc.c
 VERSION     = 1.95
 DESCRIPTION = File comparison utility (OpenBSD diff port)
 AUTHOR      = Todd C. Miller, OpenBSD contributors
-AMINET_CAT  = util/misc
+AMINET_CAT  = util/cli
 
 .PHONY: all clean test package compare
 
