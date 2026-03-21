@@ -333,9 +333,21 @@ p = reallocarray(p, n, sizeof(*p));
 p = amiport_reallocarray(p, n, sizeof(*p)); /* amiport: replaced reallocarray() */
 
 // Before:
+p = recallocarray(p, oldcount, newcount, sizeof(*p));
+// After:
+p = amiport_recallocarray(p, oldcount, newcount, sizeof(*p)); /* amiport: replaced recallocarray() */
+
+// Before:
 asprintf(&str, "hello %s", name);
 // After:
 amiport_asprintf(&str, "hello %s", name); /* amiport: replaced asprintf() */
+
+/* CRITICAL: Never use vsnprintf(NULL, 0, ...) to measure buffer size.
+ * libnix does NOT support NULL destination — crashes on 68000.
+ * Use a probe buffer instead:
+ *   char probe[1024];
+ *   int len = vsnprintf(probe, sizeof(probe), fmt, ap);
+ * See crash-patterns.md #5. */
 
 // Before:
 fd = mkstemp(template);

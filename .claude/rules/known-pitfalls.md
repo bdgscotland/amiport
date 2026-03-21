@@ -20,3 +20,16 @@ OpenBSD code almost always calls `pledge()` and `unveil()`. Stub as macros:
 #define unveil(p, f) (0)
 ```
 Never shim as functions.
+
+## vsnprintf(NULL, 0, ...) Crash
+
+libnix's `vsnprintf` does NOT support `NULL` as the destination buffer (C99 extension). Calling `vsnprintf(NULL, 0, fmt, ap)` to measure buffer size crashes on 68000 — libnix writes to address zero. **Fix:** Use a probe buffer:
+```c
+char probe[1024];
+int len = vsnprintf(probe, sizeof(probe), fmt, ap);
+```
+This commonly appears when replacing `vasprintf()`/`asprintf()`. Use `amiport_asprintf()` instead. See crash-patterns.md #5.
+
+## Exit Path Cleanup
+
+AmigaOS has no automatic process memory cleanup with `-noixemul`. Every `exit()` call must free all allocated memory. When porting programs with global allocations (pattern arrays, compiled regex, line buffers), add a cleanup function called before every `exit()`. See grep port for the `cleanup_patterns()` pattern.

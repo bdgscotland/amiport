@@ -139,3 +139,15 @@ grep_close(file_t *f)
 		fclose(f->f);
 	free(f);
 }
+
+/* amiport: memory leak fix — expose lnbuf for cleanup on exit.
+ * lnbuf is allocated by getline() and grown as needed; it persists for
+ * the lifetime of the program.  grep_free_lnbuf() must be called before
+ * every exit() so AmigaOS does not leak the buffer until reboot. */
+void
+grep_free_lnbuf(void)
+{
+	free(lnbuf);
+	lnbuf = NULL;
+	lnbufsize = 0;
+}

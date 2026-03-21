@@ -145,3 +145,9 @@ Notes:
 - Hash seed (`luai_makeseed`) is deterministic on AmigaOS due to no ASLR — acceptable for a scripting language.
 - `isatty()` always returns true (ISO C fallback) — interactive mode assumed when no args given.
 - Perf-optimizer (two passes) found no memory leaks on any exit path. Fixed `os.tmpname()` broken path and `read_line` NUL-byte regression.
+
+## Memory Safety (Stage 6b)
+
+Audited by `memory-checker` agent (2026-03-21). Verdict: **CLEAN**.
+
+Lua's default allocator (`l_alloc` in lauxlib.c) uses bare `realloc()` which loses the pointer on failure — however, this is correct per Lua's allocator contract: the VM retains the original pointer and retries after GC. `lua_close()` is always called on all exit paths (main/pmain), freeing all Lua state. File handles properly balanced. No AmigaOS-specific memory issues.

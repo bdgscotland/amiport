@@ -150,3 +150,35 @@ No per-port fix needed if using the current shim. For legacy ports built before 
 **Programs Known to Be Affected:** Any program with `files_differ()`, `same_file()`, or similar logic: diff, cmp, cp, rsync, tar.
 
 **Example Port:** diff (OpenBSD v1.95) — `diffreg.c:449`
+
+## 5. vsnprintf(NULL, 0, ...) Crash
+
+**Enforcer Signature:** `LONG-WRITE` to address `0x00000000` or very low address. Crash occurs inside `vsnprintf` or `vsprintf`.
+
+**Symptom:** Program crashes immediately on startup or first string formatting operation. The crash happens inside a `vsnprintf(NULL, 0, fmt, ap)` call used to measure the required buffer size.
+
+**Root Cause:** C99 specifies that `vsnprintf(NULL, 0, fmt, ap)` is valid and returns the number of characters that would have been written. However, libnix's `vsnprintf` does NOT support NULL as the destination buffer — it unconditionally writes to the pointer, causing a NULL dereference on the 68000.
+
+This pattern commonly appears when replacing `vasprintf()` (which doesn't exist in libnix) with a two-pass vsnprintf approach. The code-transformer or developer writes `vsnprintf(NULL, 0, ...)` as the "measure" pass, not realizing libnix doesn't support it.
+
+**Fix Template (use probe buffer):**
+```c
+/* WRONG — crashes on libnix: */
+int len = vsnprintf(NULL, 0, fmt, ap);
+
+/* CORRECT — use a probe buffer: */
+char probe[1024];
+int len = vsnprintf(probe, sizeof(probe), fmt, ap);
+/* vsnprintf returns total chars that WOULD be written, even if truncated */
+```
+
+The 1024-byte probe buffer is sufficient because `vsnprintf` returns the full required length regardless of truncation. The subsequent allocation and second `vsnprintf` call will use the correct size.
+
+**Detection:** Search for `vsnprintf(NULL` or `snprintf(NULL` in ported source:
+```
+grep -n 'vsnprintf(NULL\|snprintf(NULL' ported/*.c
+```
+
+**Programs Known to Be Affected:** Any program that uses `vasprintf()` or `asprintf()` — these are replaced during transformation and the replacement code must avoid the NULL pattern.
+
+**Example Port:** diff (OpenBSD v1.95) — `xmalloc.c:xasprintf()`

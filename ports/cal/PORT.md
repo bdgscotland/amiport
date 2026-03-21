@@ -63,6 +63,16 @@ make -C ports/cal package      # Create LHA for Aminet
 
 **7/7 tests passed.**
 
+## Review
+
+Reviewed with `/review-amiga` (2026-03-21). Score: **READY**. No critical issues. Stack safety (32KB), exit codes (Amiga), version string (upstream 1.32), memory handling (zero dynamic allocations — all stack-based), BPTR handling (N/A), library cleanup (N/A), transformation comments (complete).
+
+## Memory Safety (Stage 6b)
+
+Audited by `memory-checker` agent (2026-03-21). Verdict: **CLEAN**.
+
+Zero dynamic memory allocations — the entire program uses stack-allocated arrays and compile-time constants. No malloc/calloc/realloc/strdup calls. No file handles opened. No cleanup required on any exit path.
+
 ## Known Limitations
 - No highlight of current day (would require ANSI terminal codes, which work on most Amiga terminals but not tested)
 - Year range 1-9999 (same as original)

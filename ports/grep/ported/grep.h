@@ -117,6 +117,8 @@ file_t		*grep_open(char *path);
 int		 grep_bin_file(file_t *f);
 char		*grep_fgetln(file_t *f, size_t *l);
 void		 grep_close(file_t *f);
+/* amiport: memory leak fix — free static lnbuf before exit */
+void		 grep_free_lnbuf(void);
 
 /* binary.c */
 int		 bin_file(FILE * f);

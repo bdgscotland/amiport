@@ -86,3 +86,9 @@ Tested via vamos. All tests pass.
 ## Amiga Review
 
 Reviewed with `/review-amiga`. Score: **READY**. No critical issues. Stack, memory, paths, library cleanup, and conventions all pass.
+
+## Memory Safety (Stage 6b)
+
+Audited by `memory-checker` agent (2026-03-21). Verdict: **CLEAN**.
+
+All 2 dynamic allocations (realloc calls) properly freed. File handles balanced. Realloc uses intermediate pointers (safe pattern). Global `cut_line` buffer explicitly freed before exit on all paths. No leaks, no double-frees, no use-after-free.

@@ -22,16 +22,19 @@
 
 #include "xmalloc.h"
 
+/* amiport: all err()/errx() calls use exit code 10 (RETURN_ERROR) — POSIX exit(2)
+ * is invisible to AmigaOS shell IF WARN/IF ERROR checks. */
+
 void *
 xmalloc(size_t size)
 {
 	void *ptr;
 
 	if (size == 0)
-		errx(2, "xmalloc: zero size");
+		errx(10, "xmalloc: zero size");
 	ptr = malloc(size);
 	if (ptr == NULL)
-		err(2, "xmalloc: allocating %lu bytes", (unsigned long)size); /* amiport: %zu -> %lu */
+		err(10, "xmalloc: allocating %lu bytes", (unsigned long)size); /* amiport: %zu -> %lu */
 	return ptr;
 }
 
@@ -42,7 +45,7 @@ xcalloc(size_t nmemb, size_t size)
 
 	ptr = calloc(nmemb, size);
 	if (ptr == NULL)
-		err(2, "xcalloc: allocating %lu * %lu bytes",
+		err(10, "xcalloc: allocating %lu * %lu bytes",
 		    (unsigned long)nmemb, (unsigned long)size); /* amiport: %zu -> %lu */
 	return ptr;
 }
@@ -54,11 +57,11 @@ xreallocarray(void *ptr, size_t nmemb, size_t size)
 
 	/* amiport: replaced reallocarray() with overflow check + realloc() */
 	if (nmemb != 0 && size != 0 && nmemb > SIZE_MAX / size)
-		errx(2, "xreallocarray: overflow %lu * %lu",
+		errx(10, "xreallocarray: overflow %lu * %lu",
 		    (unsigned long)nmemb, (unsigned long)size);
 	new_ptr = realloc(ptr, nmemb * size);
 	if (new_ptr == NULL)
-		err(2, "xreallocarray: allocating %lu * %lu bytes",
+		err(10, "xreallocarray: allocating %lu * %lu bytes",
 		    (unsigned long)nmemb, (unsigned long)size); /* amiport: %zu -> %lu */
 	return new_ptr;
 }
@@ -69,7 +72,7 @@ xstrdup(const char *str)
 	char *cp;
 
 	if ((cp = strdup(str)) == NULL)
-		err(2, "xstrdup");
+		err(10, "xstrdup");
 	return cp;
 }
 
@@ -77,18 +80,27 @@ int
 xasprintf(char **ret, const char *fmt, ...)
 {
 	va_list ap;
+	va_list ap2;
 	int i;
-	char buf[1024]; /* amiport: local buffer for vsnprintf */
 
+	/* amiport: replaced vasprintf() — two-pass vsnprintf to avoid
+	 * fixed-buffer truncation. First pass measures, second allocates. */
 	va_start(ap, fmt);
-	i = vsnprintf(buf, sizeof(buf), fmt, ap); /* amiport: replaced vasprintf() with vsnprintf() */
+	va_copy(ap2, ap);
+	{
+		char probe[1024];
+		i = vsnprintf(probe, sizeof(probe), fmt, ap); /* amiport: libnix vsnprintf does not support NULL destination (C99) */
+	}
 	va_end(ap);
 
-	if (i < 0)
-		err(2, "xasprintf");
+	if (i < 0) {
+		va_end(ap2);
+		err(10, "xasprintf"); /* amiport: exit(2) -> exit(10) RETURN_ERROR */
+	}
 
 	*ret = xmalloc((size_t)i + 1);
-	memcpy(*ret, buf, (size_t)i + 1);
+	vsnprintf(*ret, (size_t)i + 1, fmt, ap2);
+	va_end(ap2);
 
 	return i;
 }
