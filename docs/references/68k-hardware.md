@@ -4,7 +4,7 @@ Target audience: AI agents (debug-agent, code-transformer, build-manager). Optim
 
 Covers: Amiga memory map, 68000/68020 addressing, register conventions, stack behavior, trap frames, Guru codes, vamos differences, and instruction reference (stub for Layer 2 GDB).
 
-Platform context: AmigaOS 3.x on 68020+ (project default). Notes for 68000 (A500/A2000) and 68040 (A4000) where behavior differs.
+Platform context: AmigaOS 3.x on 68EC020+ (project default). Note: stock A1200 uses 68EC020 (24-bit address bus), NOT full 68020. Only A3000/A4000 or accelerator-upgraded machines have true 32-bit addressing.
 
 ---
 
@@ -70,15 +70,19 @@ Stock A1200 (68020, 2MB Chip) / A4000 (68040, 2MB Chip + Fast):
 
 ### 24-bit vs 32-bit
 
-| CPU | Address Bus | Behavior |
-|---|---|---|
-| 68000 / 68010 | 24-bit external | Upper 8 bits ignored. `0xFF000000` = `0x00000000`. `0xFFFF0044` = `0x00FF0044`. |
-| 68020 / 68030 | 32-bit | Full 32-bit addressing. No wrapping. |
-| 68040 / 68060 | 32-bit | Full 32-bit addressing. MMU available. |
+| CPU | Amiga Model | Address Bus | Behavior |
+|---|---|---|---|
+| 68000 / 68010 | A500, A2000 | 24-bit | Upper 8 bits ignored. `0xFFFF0044` = `0x00FF0044`. |
+| **68EC020** | **A1200 (stock)** | **24-bit** | EC variant — same 24-bit wrapping as 68000 despite 32-bit internals. |
+| 68020 (full) | Accelerator cards | 32-bit | Full 32-bit addressing. No wrapping. |
+| 68030 | A3000, accelerators | 32-bit | Full 32-bit addressing. MMU available. |
+| 68040 / 68060 | A4000, accelerators | 32-bit | Full 32-bit addressing. MMU available. |
+
+**Critical:** The stock A1200 uses a 68EC020 (cost-reduced), NOT a full 68020. The "EC" suffix means the address bus is truncated to 24 bits. The 24-bit wrapping problem affects A500, A2000, AND stock A1200.
 
 ### The 24-bit wrapping trap
 
-On a 68000, the CPU internally computes 32-bit addresses but only puts 24 bits on the external address bus. This means:
+On a 68000 or 68EC020 (stock A1200), the CPU internally computes 32-bit addresses but only puts 24 bits on the external address bus. This means:
 
 - `0xFFFF0044` aliases to `0x00FF0044`
 - Code that accidentally computes a negative stack offset (e.g., stack underflow) may appear to access the `0xFFFF0000` range
@@ -89,8 +93,8 @@ On a 68000, the CPU internally computes 32-bit addresses but only puts 24 bits o
 
 When the debug-agent sees SP or an address in the `0xFFFF0000–0xFFFFFFFF` range:
 
-1. If targeting 68000: this is 24-bit wrapping. The real address is `0x00FF0000–0x00FFFFFF`.
-2. If targeting 68020+: this is a genuine invalid address (stack overflow or wild pointer).
+1. If targeting 68000 or 68EC020 (stock A1200): this is 24-bit wrapping. The real address is `0x00FF0000–0x00FFFFFF`.
+2. If targeting 68030+ (A3000/A4000 or accelerator): this is a genuine invalid address (stack overflow or wild pointer).
 3. On vamos: always rejected regardless of target CPU, because vamos uses 32-bit addressing.
 
 The diff port crash (SP=0xffff0044) was this exact pattern — stack overflowed downward past 0x00000000, wrapped to 0xFFFF0044, which vamos rejected.
