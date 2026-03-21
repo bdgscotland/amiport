@@ -9,12 +9,6 @@ AUTHOR      = Roberto Ierusalimschy / PUC-Rio
 # Category 2 scripting interpreter — posix-shim only
 AMINET_CAT  = dev/lang
 
-# -fbaserel is required for libnix's nbcrt0.o startup, which places
-# ___INIT_LIST__ / ___EXIT_LIST__ in the DATA section via .dlist_* sections.
-# Without -fbaserel, ncrt0.o is used and the lists end up in the CODE section,
-# causing the libnix startup to call invalid function pointers → exit code 252.
-CFLAGS += -fbaserel
-
 # Lua core library sources (everything except lua.c and luac.c)
 LUA_CORE = \
 	ported/lapi.c ported/lauxlib.c ported/lbaselib.c ported/lcode.c \

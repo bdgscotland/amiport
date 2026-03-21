@@ -226,3 +226,17 @@ test:
 **Programs Known to Be Affected:** Any port with `__stack > 8192` — especially recursive programs (diff, find), programs with large local arrays, and programs with deep call chains.
 
 **Example Port:** diff (OpenBSD v1.95) — needed 96KB minimum, 192KB recommended.
+
+---
+
+## 8. FileInfoBlock Alignment — DOS Recoverable Alert (not Enforcer hit)
+
+### Stack-allocated FileInfoBlock causes dos.library Address Error on 68000
+
+- **Enforcer signature:** None — no Enforcer hits. The crash manifests as a **Recoverable Alert** with an address like `0x0100 000F` (type `0x0100` = recoverable, code `0x000F` = 15 = `ERROR_OBJECT_WRONG_TYPE` or address error in DOS). No memory access violation visible to Enforcer because the Address Error trap fires inside the ROM before Enforcer can intercept it.
+- **Symptom:** Program crashes with "Error: 0100 000F Task: XXXXXXXX" immediately on file access. ARexx test harness shows `1..N` declared but zero `ok`/`not ok` lines — the binary crashed before producing any output.
+- **Root cause:** `struct FileInfoBlock` (260 bytes) must be **longword-aligned** (4-byte boundary) when passed to `Examine()`, `ExamineFH()`, or `ExNext()`. The AmigaOS dos.library performs longword-sized reads on the FIB and will trap with an Address Error on a 68000 if the FIB is at an odd or word-aligned address. With `-m68000` and gcc's default stack layout, stack-allocated structs may only receive 2-byte alignment, causing this trap. The 68000 does not have an MMU, so Enforcer cannot see the crash — it fires as a CPU exception inside the ROM.
+- **Fix applied:** Replace `struct FileInfoBlock fib;` (stack allocation) with `AllocDosObject(DOS_FIB, NULL)` in `amiport_stat()` (stat.c) and `amiport_fstat()` (file_io.c). `AllocDosObject` allocates from chip/fast RAM with guaranteed longword alignment and zero-initialises the FIB. Free with `FreeDosObject(DOS_FIB, fib)` when done. Note: `opendir()` in dir_ops.c uses `AllocVec(sizeof(AMIPORT_DIR), MEMF_PUBLIC|MEMF_CLEAR)` which already guarantees alignment — the FIB embedded in `struct _AMIPORT_DIR` is safe.
+- **Detection grep:** `struct FileInfoBlock [a-z]` — any stack-allocated FIB in shim code.
+- **Port:** tail (OpenBSD v1.24) — crash on first file argument (`WORK:tail WORK:test-tail-input.txt`)
+- **Date:** 2026-03-21
