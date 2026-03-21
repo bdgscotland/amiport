@@ -1,0 +1,12 @@
+# Amiga C code — C89 targeting 68k AmigaOS 3.x
+# Modern security patterns don't apply here
+ports/
+lib/
+examples/
+toolchain/
+
+# Upstream reference source (read-only)
+*/original/
+
+# Documentation and reference material
+docs/
