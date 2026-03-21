@@ -1,14 +1,15 @@
 #!/bin/bash
-# Stop hook: Remind Claude to verify work before stopping.
-# Checks if stop_hook_active to prevent infinite loops.
+# Stop hook: Force Claude to verify work before stopping.
+# First stop attempt: blocks and tells Claude to verify.
+# Second stop attempt (stop_hook_active=true): allows stop to prevent infinite loop.
 INPUT=$(cat)
 STOP_HOOK_ACTIVE=$(echo "$INPUT" | jq -r '.stop_hook_active // false')
 
-# Prevent infinite loop — if we already ran, let it stop
+# Second attempt — let it stop
 if [ "$STOP_HOOK_ACTIVE" = "true" ]; then
   exit 0
 fi
 
-# Inject a reminder — systemMessage is the valid output field for Stop hooks
-echo '{"systemMessage":"Reminder: verify work before stopping — run tests, check for stray root files, and confirm all docs are updated per CLAUDE.md rules."}'
+# First attempt — block the stop, Claude sees the reason and must address it
+echo '{"decision":"block","reason":"Before stopping, verify: (1) run tests if you changed code, (2) no stray files in project root, (3) all affected docs updated per CLAUDE.md rules. Then you may stop."}'
 exit 0
