@@ -9,7 +9,25 @@
       "Bash(docker run *amiport*)",
       "Bash(vamos *)",
       "Bash(lha *)",
-      "Bash(chmod +x *)"
+      "Bash(chmod +x *)",
+      "Bash(python *)",
+      "Bash(pip *)",
+      "WebSearch",
+      "WebFetch(domain:amigadev.elowar.com)",
+      "WebFetch(domain:archive.org)",
+      "WebFetch(domain:www.haage-partner.de)",
+      "WebFetch(domain:babel.de)",
+      "WebFetch(domain:os.amigaworld.de)",
+      "WebFetch(domain:aminet.net)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:erikarn.github.io)",
+      "WebFetch(domain:www.hyperion-entertainment.com)"
+    ],
+    "deny": [
+      "Bash(rm -rf *)",
+      "Bash(git push --force *)",
+      "Bash(git reset --hard *)",
+      "Bash(git checkout -- *)"
     ]
   },
   "hooks": {
@@ -20,6 +38,11 @@
           {
             "type": "command",
             "command": "bash scripts/hooks/block-original-edits.sh"
+          },
+          {
+            "type": "command",
+            "command": "bash scripts/hooks/block-root-files.sh",
+            "statusMessage": "Checking file location..."
           }
         ]
       },
@@ -32,7 +55,65 @@
           }
         ]
       }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash scripts/hooks/verify-before-stop.sh",
+            "timeout": 10,
+            "statusMessage": "Checking completion..."
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "matcher": "auto",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash scripts/hooks/save-port-context.sh",
+            "statusMessage": "Preserving porting context..."
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash scripts/hooks/check-toolchain.sh",
+            "timeout": 15,
+            "statusMessage": "Checking toolchain..."
+          }
+        ]
+      }
     ]
+  },
+  "autoMode": {
+    "allow": [
+      "Building and testing Amiga ports via make",
+      "Reading any file in the project",
+      "Running vamos for testing",
+      "Running docker for cross-compilation"
+    ],
+    "soft_deny": [
+      "Pushing to remote repositories",
+      "Publishing to Aminet",
+      "Deleting port directories",
+      "Modifying files outside the project"
+    ],
+    "environment": [
+      "Amiga cross-compilation project with Docker toolchain",
+      "Multiple concurrent agents may be operating on ports",
+      "Compiled binaries are committed artifacts, not ephemeral"
+    ]
+  },
+  "worktree": {
+    "symlinkDirectories": ["toolchain/images"]
   },
   "enabledPlugins": {
     "superpowers@claude-plugins-official": true,
