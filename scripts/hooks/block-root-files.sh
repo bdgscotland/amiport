@@ -23,8 +23,12 @@ case "$BASENAME" in
   CLAUDE.md|README.md|PORTS.md|Makefile|.gitignore|.gitattributes|LICENSE|CHANGELOG.md|VERSION)
     exit 0
     ;;
-  *.json|*.yml|*.yaml|*.toml)
+  *.json|*.yml|*.yaml|*.toml|*.md)
     # Config files are fine
+    exit 0
+    ;;
+  .*)
+    # Dotfiles are config (e.g. .semgrepignore, .editorconfig)
     exit 0
     ;;
 esac
