@@ -65,6 +65,8 @@ DO WHILE ~EOF('tf')
 END
 CALL CLOSE('tf')
 
+SAY 'Parsed' testcount 'test cases'
+
 /* Write TAP header */
 IF ~OPEN('rf', resultfile, 'W') THEN DO
     SAY 'ERROR: Cannot open' resultfile
@@ -80,13 +82,18 @@ DO i = 1 TO testcount
     texpect = expect.i
     outfile = 'T:test_out_' || i || '.txt'
 
-    /* Defensive check: skip test if CMD was never defined */
-    IF SYMBOL('cmd.i') \= 'VAR' THEN DO
+    SAY 'Test' i || ':' tdesc
+
+    /* Defensive check: skip test if CMD was never defined.
+     * Note: SYMBOL('cmd.i') checks the literal name CMD.I, not the
+     * compound variable cmd.<value-of-i>. We must construct the
+     * symbol name dynamically. */
+    tcmd = cmd.i
+    IF tcmd = 'CMD.' || i THEN DO
         CALL WRITELN('rf', 'not ok' i '- ' || tdesc || ' (no CMD defined)')
         failed = failed + 1
         ITERATE
     END
-    tcmd = cmd.i
 
     /* Run the command, redirect output to temp file.
      * Use a shell script via Execute with FailAt 21 to ensure
