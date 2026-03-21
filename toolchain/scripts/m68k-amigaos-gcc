@@ -19,9 +19,11 @@ fi
 # Use Docker
 PROJECT_DIR="$(cd "$(dirname "$0")/../.." && pwd)"
 
-# Try pre-built image first, then our custom image
+# Try pre-built images first, then our custom image
 IMAGE=""
-if docker image inspect amigadev/m68k-amigaos-gcc &> /dev/null 2>&1; then
+if docker image inspect amigadev/crosstools:m68k-amigaos &> /dev/null 2>&1; then
+    IMAGE="amigadev/crosstools:m68k-amigaos"
+elif docker image inspect amigadev/m68k-amigaos-gcc &> /dev/null 2>&1; then
     IMAGE="amigadev/m68k-amigaos-gcc"
 elif docker image inspect amiport/bebbo-gcc &> /dev/null 2>&1; then
     IMAGE="amiport/bebbo-gcc"
