@@ -6,9 +6,10 @@
 # captures TAP-format results via shared volume, reports pass/fail.
 #
 # Usage:
-#   scripts/test-fsemu.sh ports/grep        # Test a specific port
-#   scripts/test-fsemu.sh --all             # Test all ports with test-fsemu targets
-#   make test-fsemu TARGET=ports/grep       # Via Makefile
+#   scripts/test-fsemu.sh ports/grep          # Test a specific port
+#   scripts/test-fsemu.sh --debug ports/grep  # Test with Enforcer crash detection
+#   scripts/test-fsemu.sh --all               # Test all ports with test-fsemu targets
+#   make test-fsemu TARGET=ports/grep         # Via Makefile
 #
 # Architecture (ADR-014):
 #   Host prepares a boot volume with test script + binaries
@@ -30,6 +31,9 @@ AMIGA_DIR="$PROJECT_DIR/build/amiga"
 TOOLCHAIN_DIR="$PROJECT_DIR/toolchain"
 KICKSTART="$HOME/Documents/FS-UAE/Kickstarts/kick3.1.rom"
 TIMEOUT_SECONDS=30
+DEBUG_MODE=false
+SERIAL_PID=""
+ENFORCER_LOG=""
 
 # Colors for output
 RED='\033[0;31m'
@@ -38,11 +42,12 @@ YELLOW='\033[0;33m'
 NC='\033[0m' # No Color
 
 usage() {
-    echo "Usage: $0 <port-directory> [--timeout N]"
+    echo "Usage: $0 [--debug] <port-directory> [--timeout N]"
     echo "       $0 --all [--timeout N]"
     echo ""
     echo "Options:"
-    echo "  --timeout N    Timeout in seconds (default: 60)"
+    echo "  --debug        Enable Enforcer crash detection (68030+MMU, serial capture)"
+    echo "  --timeout N    Timeout in seconds (default: 30, or 90 in debug mode)"
     echo "  --all          Test all ports that have test-fsemu targets"
     exit 1
 }
@@ -76,6 +81,18 @@ preflight() {
             echo -e "${RED}ERROR: Failed to build UAEQuit${NC}"
             errors=$((errors + 1))
         fi
+    fi
+
+    # Debug mode checks
+    if [ "$DEBUG_MODE" = true ]; then
+        local debug_tools_dir="$TOOLCHAIN_DIR/debug-tools"
+        for tool in Enforcer MungWall SegTracker; do
+            if [ ! -f "$debug_tools_dir/$tool" ]; then
+                echo -e "${RED}ERROR: Debug tool not found: $debug_tools_dir/$tool${NC}"
+                echo "  Run: make setup-debug-tools"
+                errors=$((errors + 1))
+            fi
+        done
     fi
 
     if [ $errors -gt 0 ]; then
@@ -151,7 +168,33 @@ build_boot_volume() {
         cp "$SYSTEM_DIR/S/User-Startup" "$SYSTEM_DIR/S/User-Startup.bak"
     fi
 
-    cat > "$SYSTEM_DIR/S/User-Startup" << 'AMIGA_SCRIPT'
+    if [ "$DEBUG_MODE" = true ]; then
+        # Copy debug tools to system C: directory
+        local debug_tools_dir="$TOOLCHAIN_DIR/debug-tools"
+        for tool in Enforcer MungWall SegTracker; do
+            cp "$debug_tools_dir/$tool" "$SYSTEM_DIR/C/$tool" 2>/dev/null || true
+        done
+
+        # User-Startup with debug tools + test harness
+        cat > "$SYSTEM_DIR/S/User-Startup" << 'AMIGA_SCRIPT'
+; amiport FS-UAE test runner (DEBUG MODE)
+; Auto-generated — will be restored after test run
+
+; Load debug tools — SegTracker must start before Enforcer (STACKCHECK needs it)
+Run >NIL: SegTracker
+Run >NIL: MungWall
+Run >NIL: Enforcer STACKLINES=4 STACKCHECK DATESTAMP
+Wait 2
+
+; Start RexxMast if not already running (required for ARexx scripts)
+SYS:System/RexxMast >NIL:
+Wait 2
+
+; Run the test harness
+rx WORK:test-runner.rexx
+AMIGA_SCRIPT
+    else
+        cat > "$SYSTEM_DIR/S/User-Startup" << 'AMIGA_SCRIPT'
 ; amiport FS-UAE test runner
 ; Auto-generated — will be restored after test run
 
@@ -162,6 +205,7 @@ Wait 2
 ; Run the test harness
 rx WORK:test-runner.rexx
 AMIGA_SCRIPT
+    fi
 }
 
 # ============================================================
@@ -192,6 +236,25 @@ hard_drive_2_label = RESULTS
 window_width = 720
 window_height = 568
 EOF
+
+    # Debug mode: add 68030 CPU, serial→TCP, JIT off, bsdsocket
+    if [ "$DEBUG_MODE" = true ]; then
+        local serial_port
+        serial_port=$(cat "$RESULTS_DIR/.serial-port" 2>/dev/null || echo "")
+        if [ -z "$serial_port" ]; then
+            echo -e "${RED}ERROR: Serial port not found in sentinel file${NC}"
+            return 1
+        fi
+
+        cat >> "$config_file" << EOF
+
+# Debug mode settings (ADR-016)
+cpu = 68030
+serial_port = tcp://127.0.0.1:${serial_port}/wait
+jit_compiler = 0
+bsdsocket_library = 1
+EOF
+    fi
 
     echo "$config_file"
 }
@@ -398,6 +461,12 @@ with open('$report_file', 'w') as f:
 # Cleanup
 # ============================================================
 cleanup() {
+    # Kill serial capture daemon if still running
+    if [ -n "$SERIAL_PID" ] && kill -0 "$SERIAL_PID" 2>/dev/null; then
+        kill "$SERIAL_PID" 2>/dev/null || true
+        wait "$SERIAL_PID" 2>/dev/null || true
+    fi
+
     # Restore original User-Startup
     if [ -f "$SYSTEM_DIR/S/User-Startup.bak" ]; then
         mv "$SYSTEM_DIR/S/User-Startup.bak" "$SYSTEM_DIR/S/User-Startup"
@@ -420,11 +489,18 @@ cleanup() {
 main() {
     local port_dir=""
 
+    local timeout_set=false
+
     # Parse arguments
     while [ $# -gt 0 ]; do
         case "$1" in
+            --debug)
+                DEBUG_MODE=true
+                shift
+                ;;
             --timeout)
                 TIMEOUT_SECONDS="$2"
+                timeout_set=true
                 shift 2
                 ;;
             --all)
@@ -440,6 +516,11 @@ main() {
                 ;;
         esac
     done
+
+    # Debug mode defaults to 90s timeout (3x normal) unless explicitly set
+    if [ "$DEBUG_MODE" = true ] && [ "$timeout_set" = false ]; then
+        TIMEOUT_SECONDS=90
+    fi
 
     if [ -z "$port_dir" ]; then
         usage
@@ -465,6 +546,39 @@ main() {
     # Pre-flight checks
     preflight
 
+    # Start serial capture daemon (debug mode only)
+    if [ "$DEBUG_MODE" = true ]; then
+        ENFORCER_LOG="$port_dir/enforcer.log"
+        local sentinel_file="$RESULTS_DIR/.serial-ready"
+        local port_file="$RESULTS_DIR/.serial-port"
+
+        echo -e "${YELLOW}Starting serial capture daemon...${NC}"
+        python3 "$SCRIPT_DIR/serial-capture.py" "$ENFORCER_LOG" "$sentinel_file" &
+        SERIAL_PID=$!
+
+        # Wait for sentinel file (5s fast-fail timeout)
+        local wait_count=0
+        while [ ! -f "$sentinel_file" ]; do
+            wait_count=$((wait_count + 1))
+            if [ $wait_count -ge 50 ]; then
+                echo -e "${RED}ERROR: Serial capture daemon failed to start (5s timeout)${NC}"
+                kill "$SERIAL_PID" 2>/dev/null || true
+                exit 1
+            fi
+            if ! kill -0 "$SERIAL_PID" 2>/dev/null; then
+                echo -e "${RED}ERROR: Serial capture daemon exited unexpectedly${NC}"
+                exit 1
+            fi
+            sleep 0.1
+        done
+
+        # Read the ephemeral port from sentinel file and write to port file for generate_config
+        local serial_port
+        serial_port=$(cat "$sentinel_file")
+        echo "$serial_port" > "$port_file"
+        echo "  Serial capture listening on port $serial_port"
+    fi
+
     # Build boot volume
     build_boot_volume "$port_dir"
 
@@ -475,6 +589,67 @@ main() {
     # Run emulator with watchdog
     local emu_exit=0
     run_emulator "$config_file" || emu_exit=$?
+
+    # Stop serial capture daemon
+    if [ "$DEBUG_MODE" = true ] && [ -n "$SERIAL_PID" ]; then
+        kill "$SERIAL_PID" 2>/dev/null || true
+        wait "$SERIAL_PID" 2>/dev/null || true
+        SERIAL_PID=""
+    fi
+
+    # Analyze Enforcer log (debug mode)
+    local enforcer_hits=0
+    if [ "$DEBUG_MODE" = true ] && [ -f "$ENFORCER_LOG" ] && [ -s "$ENFORCER_LOG" ]; then
+        echo ""
+        echo "=== Enforcer Crash Analysis ==="
+
+        # Parse Enforcer hits
+        local hits_json="$port_dir/enforcer-hits.json"
+        if python3 "$SCRIPT_DIR/debug-report.py" parse "$ENFORCER_LOG" > "$hits_json" 2>/dev/null; then
+            enforcer_hits=$(python3 -c "import json,sys; d=json.load(open('$hits_json')); print(d['summary']['total_hits'])" 2>/dev/null || echo "0")
+
+            if [ "$enforcer_hits" -gt 0 ]; then
+                echo -e "${RED}  $enforcer_hits Enforcer hit(s) detected!${NC}"
+
+                # Map addresses to source lines
+                local port_name
+                port_name=$(basename "$port_dir")
+                local binary="$port_dir/$port_name"
+                if [ -f "$binary" ]; then
+                    local mapped_json="$port_dir/enforcer-mapped.json"
+                    python3 "$SCRIPT_DIR/debug-report.py" map "$hits_json" "$binary" > "$mapped_json" 2>/dev/null || true
+                    if [ -f "$mapped_json" ] && [ -s "$mapped_json" ]; then
+                        echo "  Source mapping saved to: $mapped_json"
+                    fi
+                fi
+
+                # Summary
+                python3 -c "
+import json, sys
+try:
+    d = json.load(open('$hits_json'))
+    for ct in d['summary'].get('crash_types', []):
+        print(f'  Type: {ct}')
+except: pass
+" 2>/dev/null || true
+            else
+                echo -e "${GREEN}  No Enforcer hits — clean run${NC}"
+            fi
+        else
+            echo -e "${YELLOW}  Warning: Failed to parse Enforcer log${NC}"
+        fi
+    elif [ "$DEBUG_MODE" = true ]; then
+        echo ""
+        echo "=== Enforcer Crash Analysis ==="
+        # Check for hard crash (no TAP results AND no Enforcer output)
+        if [ ! -f "$RESULTS_DIR/tests-complete" ] && [ $emu_exit -ne 0 ]; then
+            echo -e "${RED}  HARD CRASH detected — no Enforcer output, no test completion${NC}"
+            echo "  This may be a Guru Meditation (bus error, illegal instruction)."
+            echo "  Use /debug-amiga to insert printf breadcrumbs and isolate the crash."
+        else
+            echo -e "${GREEN}  No Enforcer output (clean run or Enforcer not active)${NC}"
+        fi
+    fi
 
     # Check if tests completed (sentinel file exists) regardless of
     # how the emulator exited. UAEQuit may not work in headless mode,

@@ -9,13 +9,14 @@
 #   clean            Remove build artifacts
 #   fetch-ndk        Download AmigaOS NDK 3.2 R4
 
-.PHONY: setup-toolchain build-shim build-emu build-console build-net build test test-shim test-emu test-console test-net package clean fetch-ndk help doctor smoke-test compare list-ports build-ports install-emu setup-emu emu publish check-aminet build-uaequit test-fsemu check-docs scrape-adcd
+.PHONY: setup-toolchain setup-debug-tools build-shim build-emu build-console build-net build test test-shim test-emu test-console test-net package clean fetch-ndk help doctor smoke-test compare list-ports build-ports install-emu setup-emu emu publish check-aminet build-uaequit test-fsemu check-docs scrape-adcd
 
 help:
 	@echo "amiport — AI-powered Amiga porting toolkit"
 	@echo ""
 	@echo "Targets:"
-	@echo "  setup-toolchain  Set up cross-compilation toolchain (Docker)"
+	@echo "  setup-toolchain    Set up cross-compilation toolchain (Docker)"
+	@echo "  setup-debug-tools  Install Enforcer/Mungwall/SegTracker for debug mode"
 	@echo "  build-shim       Cross-compile the POSIX shim library (Tier 1)"
 	@echo "  build-emu        Cross-compile the POSIX emulation library (Tier 2)"
 	@echo "  build-console    Cross-compile the console shim library (ncurses)"
@@ -52,6 +53,9 @@ help:
 
 setup-toolchain:
 	bash toolchain/scripts/setup-toolchain.sh
+
+setup-debug-tools:
+	bash toolchain/scripts/setup-debug-tools.sh
 
 build-shim:
 	$(MAKE) -C lib/posix-shim

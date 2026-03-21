@@ -1,0 +1,127 @@
+# Crash Pattern Knowledge Base
+
+This file stores structured crash signature to fix pattern entries used by the `debug-agent` to accelerate crash diagnosis. When the debug agent fixes a crash, it appends a new entry here. Over time this becomes a lookup table — the agent checks this KB before reasoning from scratch.
+
+See ADR-016 for the autonomous debug agent architecture.
+
+---
+
+## 1. NULL Struct Member Access
+
+**Enforcer Signature:** Address < `0x1000`. Typically a small offset from NULL (e.g., `0x00000014` for the 5th long field of a struct accessed via a NULL pointer).
+
+**Hit Type:** `LONG-READ`, `WORD-READ`, or `BYTE-READ` from a low address.
+
+**Root Cause:** A function returns NULL (e.g., failed allocation, failed lookup) and the caller dereferences the result without checking. The faulting address is the struct field offset from the NULL base pointer.
+
+**Fix Template:**
+```c
+/* Before (crashes if find_node returns NULL): */
+struct node *n = find_node(key);
+printf("%s\n", n->name);
+
+/* After: */
+struct node *n = find_node(key);
+if (n == NULL) {
+    fprintf(stderr, "error: node not found for key '%s'\n", key);
+    exit(10);  /* amiport: RETURN_ERROR */
+}
+printf("%s\n", n->name);
+```
+
+**Diagnostic Clue:** The offset in the Enforcer address reveals which struct field was accessed. Cross-reference with the struct definition to identify the field (e.g., offset `0x14` = 20 bytes = 5th `LONG` field or a field after shorter members).
+
+**Example Port:** TBD
+
+---
+
+## 2. Use-After-Free (Mungwall Sentinel)
+
+**Enforcer Signature:** Address is a Mungwall sentinel value:
+- `0xDEADBEEF` — freed memory (Mungwall fills freed blocks with this)
+- `0xABADCAFE` — pre-fill pattern (Mungwall fills allocated blocks before first use)
+- `0xCCCCCCCC` — uninitialized memory (some allocators use this)
+
+**Hit Type:** Any read or write to a sentinel address.
+
+**Root Cause:** A pointer to a freed memory block is used after `free()` was called, or a pointer to freshly allocated memory is used before initialization. Mungwall fills freed/allocated memory with sentinel values, turning silent corruption into a detectable Enforcer hit.
+
+**Fix Template (use-after-free):**
+```c
+/* Before (use-after-free): */
+free(node);
+/* ... other code ... */
+printf("%s\n", node->name);  /* CRASH: node memory is 0xDEADBEEF */
+
+/* After: */
+free(node);
+node = NULL;  /* amiport: NULL after free to catch reuse */
+/* ... other code ... */
+if (node != NULL) {
+    printf("%s\n", node->name);
+}
+```
+
+**Fix Template (uninitialized):**
+```c
+/* Before (uninitialized pointer in struct): */
+struct context ctx;
+/* forgot to set ctx.buffer */
+memcpy(ctx.buffer, src, len);  /* CRASH: ctx.buffer is 0xABADCAFE */
+
+/* After: */
+struct context ctx;
+memset(&ctx, 0, sizeof(ctx));  /* amiport: zero-init struct */
+ctx.buffer = malloc(len);
+if (ctx.buffer == NULL) {
+    fprintf(stderr, "error: out of memory\n");
+    exit(20);  /* amiport: RETURN_FAIL */
+}
+memcpy(ctx.buffer, src, len);
+```
+
+**Diagnostic Clue:** The specific sentinel value identifies the category. `0xDEADBEEF` means the memory was freed — search for `free()` calls on that pointer. `0xABADCAFE` means the memory was allocated but never written — search for missing initialization.
+
+**Example Port:** TBD
+
+---
+
+## 3. Stack Overflow
+
+**Enforcer Signature:** Crash occurs during deep recursion or in a function with large local arrays. The Enforcer hit may show access to an address near the end of the stack region, or (more commonly) the crash manifests as a Guru Meditation (alert) rather than a clean Enforcer hit because the stack overflows into unmapped memory.
+
+**Hit Type:** `Alert` (Guru Meditation), or `LONG-WRITE`/`LONG-READ` to an address near the task's stack base. Enforcer's `STACKCHECK` option (requires SegTracker) annotates stack longwords to help identify stack-related crashes.
+
+**Root Cause:** The Amiga default stack is 4KB. Ported POSIX programs often assume much larger stacks (Linux default is 8MB). Deep recursion (e.g., directory traversal, expression parsing) or large local arrays (e.g., `char buf[PATH_MAX]` where `PATH_MAX` is 4096) overflow the stack.
+
+**Fix Template (increase stack cookie):**
+```c
+/* Add or increase the stack cookie at file scope: */
+long __stack = 65536;  /* amiport: 64KB stack for recursive program */
+
+/* For extremely deep recursion, use 131072 (128KB) */
+```
+
+**Fix Template (reduce stack usage):**
+```c
+/* Before (large local array on stack): */
+void process(void) {
+    char buffer[8192];  /* 8KB on stack — dangerous */
+    /* ... */
+}
+
+/* After (allocate on heap): */
+void process(void) {
+    char *buffer = malloc(8192);
+    if (buffer == NULL) {
+        fprintf(stderr, "error: out of memory\n");
+        exit(20);  /* amiport: RETURN_FAIL */
+    }
+    /* ... */
+    free(buffer);
+}
+```
+
+**Diagnostic Clue:** If the crash happens in a recursive function or a function with large local variables, suspect stack overflow. Check the `__stack` cookie value — if it is missing (defaults to 4KB) or too small for the recursion depth, increase it. If the program uses `alloca()` or variable-length arrays, convert to heap allocation.
+
+**Example Port:** TBD
