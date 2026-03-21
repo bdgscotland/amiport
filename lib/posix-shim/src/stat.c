@@ -10,6 +10,7 @@
 
 #include <proto/dos.h>
 #include <dos/dos.h>
+#include <dos/dosextens.h>
 
 #include <errno.h>
 #include <string.h>
@@ -53,6 +54,24 @@ int amiport_stat(const char *path, struct amiport_stat *buf)
     }
 
     buf->st_size = fib.fib_Size;
+
+    /* amiport: populate st_ino from fib_DiskKey — this is the filesystem
+     * block number of the file header, unique per file on a volume.
+     * Without this, programs that compare st_dev/st_ino to detect "same file"
+     * (like diff's files_differ()) will treat all files as identical. */
+    buf->st_ino = (ULONG)fib.fib_DiskKey;
+
+    /* amiport: populate st_dev from the volume's device node.
+     * Use the Lock's volume pointer — files on different volumes get
+     * different st_dev values. */
+    {
+        struct DevProc *dp;
+        dp = GetDeviceProc((CONST_STRPTR)path, NULL);
+        if (dp) {
+            buf->st_dev = (ULONG)dp->dvp_Port;
+            FreeDeviceProc(dp);
+        }
+    }
 
     /* Convert Amiga DateStamp to Unix timestamp */
     buf->st_mtime = (fib.fib_Date.ds_Days * 86400L) +

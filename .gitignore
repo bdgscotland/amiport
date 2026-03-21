@@ -77,3 +77,12 @@ gmon.out
 
 # ADCD scraper intermediate files (regenerable)
 docs/references/adcd/raw/
+
+# Debug tools (downloaded from Aminet, not committed)
+toolchain/debug-tools/
+
+# Debug pipeline artifacts (generated per run)
+enforcer.log
+enforcer-hits.json
+enforcer-mapped.json
+*.map

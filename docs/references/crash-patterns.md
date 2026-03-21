@@ -125,3 +125,28 @@ void process(void) {
 **Diagnostic Clue:** If the crash happens in a recursive function or a function with large local variables, suspect stack overflow. Check the `__stack` cookie value — if it is missing (defaults to 4KB) or too small for the recursion depth, increase it. If the program uses `alloca()` or variable-length arrays, convert to heap allocation.
 
 **Example Port:** TBD
+
+---
+
+## 4. Silent Wrong Results from st_dev/st_ino Comparison
+
+**Enforcer Signature:** None — this bug produces **wrong output, not a crash**. No Enforcer hits. The program runs cleanly but gives incorrect results.
+
+**Symptom:** Program treats different files as identical, skips comparisons, or reports "no differences" when files clearly differ.
+
+**Root Cause:** Many POSIX programs compare `st_dev` and `st_ino` to detect whether two file paths refer to the same underlying file (hardlinks, symlinks). If the stat shim returned stub values (0 for both), all files on the same volume appeared to be the same file.
+
+**Detection:** This is a **logic bug**, not a memory error. Enforcer won't catch it. Detect by:
+- Running the program with files that should produce visible output and getting silence instead
+- Searching the ported source for `st_dev` and `st_ino` comparisons
+- `grep -n 'st_dev.*st_ino\|st_ino.*st_dev' ported/*.c`
+
+**Fix:** Fixed at the shim level (March 2026) — `amiport_stat()` now populates:
+- `st_ino` from `fib_DiskKey` (filesystem block number, unique per file on a volume)
+- `st_dev` from `GetDeviceProc()->dvp_Port` (unique per mounted volume)
+
+No per-port fix needed if using the current shim. For legacy ports built before this fix, add `#ifdef __AMIGA__` to skip the inode comparison.
+
+**Programs Known to Be Affected:** Any program with `files_differ()`, `same_file()`, or similar logic: diff, cmp, cp, rsync, tar.
+
+**Example Port:** diff (OpenBSD v1.95) — `diffreg.c:449`

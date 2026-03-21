@@ -42,3 +42,11 @@ For understanding AmigaOS API patterns and usage:
 - Flag any use of GNU extensions (`__attribute__`, statement expressions, etc.)
 - For Tier 2 issues, note the specific caveats from the emulation module
 - For Tier 3 issues, identify which redesign pattern applies and flag `requires_human_review: true`
+
+## Logic Bug Patterns
+
+These won't cause build failures but produce **wrong results** at runtime:
+
+- **st_dev/st_ino comparison**: Programs that compare `stat.st_dev` and `stat.st_ino` to detect same-file (e.g., diff, cmp, cp). The shim populates these from `fib_DiskKey` and `GetDeviceProc`, but flag the usage so the review-amiga step can verify correctness. Search for: `st_ino`, `st_dev`, `same_file`, `files_differ`.
+- **Hardlink/symlink assumptions**: AmigaOS has hardlinks but no symlinks. Code that calls `lstat()`, `readlink()`, or checks `S_ISLNK()` will silently skip symlink handling.
+- **Case-sensitive filename comparisons**: AmigaOS filesystem is case-insensitive. `strcmp()` on filenames will miss matches that `strcasecmp()` would catch.
