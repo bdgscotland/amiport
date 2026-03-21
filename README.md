@@ -42,6 +42,7 @@ Ported programs live in `ports/` — each packages independently for [Aminet](ht
 | [diff](ports/diff/) | File comparison utility (OpenBSD) | Built & tested |
 | [grep](ports/grep/) | Pattern search — regex, fixed string, recursive (OpenBSD) | Built & tested |
 | [sed](ports/sed/) | Stream editor — text transformation (OpenBSD) | Built & tested |
+| [lua](ports/lua/) | Lua 5.4.7 scripting language (PUC-Rio) | Built & tested |
 
 ```bash
 make list-ports                      # Show all ports and status

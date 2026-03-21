@@ -1,0 +1,46 @@
+Short:        Lua 5.4.7 scripting language for AmigaOS
+Type:         dev/lang
+Architecture: m68k-amigaos >= 3.0
+Uploader:     duncan@bowring.us
+Author:       Roberto Ierusalimschy, PUC-Rio (ported by Duncan Bowring)
+Version:      5.4.7
+
+lua — Lua 5.4.7 scripting language for AmigaOS
+
+Original authors: Roberto Ierusalimschy, Luiz Henrique de Figueiredo,
+Waldemar Celes (PUC-Rio). MIT License.
+
+Ported by Duncan Bowring using amiport (AI-assisted porting toolkit).
+Project: https://github.com/bdgscotland/amiport
+
+First port of Lua 5.4 to any Amiga platform. Previous ports (5.2.1, 2012)
+are 14 years old and two major versions behind.
+
+Cross-compiled with m68k-amigaos-gcc for AmigaOS 3.x (68000+).
+Tested in vamos emulator. Standalone binary, no ixemul required.
+
+New in Lua 5.4 (vs old Amiga port at 5.2):
+  - Native integer type with bitwise operators (&, |, ~, <<, >>)
+  - Integer floor-division operator (//)
+  - Generational garbage collector
+  - To-be-closed variables (<close>)
+  - utf8 standard library
+  - Warning system (warn())
+
+Usage:
+  lua                           Start interactive REPL
+  lua script.lua                Run a Lua script
+  lua -e "print('hello')"      Evaluate an expression
+  lua -v                        Show version
+
+Known limitations:
+  - io.popen() not supported (returns Lua error)
+  - No dynamic C module loading (pure Lua require() works)
+  - 32-bit integers (range: -2147483648 to 2147483647)
+  - os.execute() uses AmigaDOS Execute()
+
+Stack: 64KB (set via __stack cookie)
+Binary size: ~256KB
+
+Includes full source code (original POSIX and ported Amiga versions)
+and PORT.md documenting every transformation applied.
