@@ -96,7 +96,14 @@ For Category 3 (Console UI): vamos can run basic smoke tests (start, print versi
 
 For Category 4 (Network): vamos cannot test networking. Build verification only.
 
-**5b. FS-UAE testing (MANDATORY for ALL categories):**
+**5b. Test suite generation (MANDATORY):**
+Dispatch the `test-designer` agent to generate a comprehensive `test-fsemu-cases.txt`:
+
+The test-designer reads the ported source, man pages, and crash-patterns.md to generate a complete test suite meeting `docs/test-coverage-standard.md`. It produces test-fsemu-cases.txt with 8+ tests (CLI) or 10+ tests (scripting), covering all five required categories: functional, error path, exit code, edge case, and Amiga-specific.
+
+It runs BEFORE `make test-fsemu`. The test-designer has the `write-arexx` skill injected and understands ARexx constraints (ASCII-only files, no $ in CMD lines, ~= not \=).
+
+**5c. FS-UAE testing (MANDATORY for ALL categories):**
 Every port MUST have FS-UAE testing with comprehensive coverage per `docs/test-coverage-standard.md`. Create `test-fsemu-cases.txt` in the port directory with test cases covering ALL FIVE required categories:
 
 1. **Functional tests** — one test per documented flag/option
@@ -172,9 +179,10 @@ Sequential pipeline — each stage depends on the previous:
 2. `source-analyzer` → portability analysis with stub value impact analysis (Stage 1)
 3. `code-transformer` → transformation with ADCD reference lookup (Stage 3)
 4. `build-manager` → compilation with error recovery (Stage 4)
-5. `test-runner` → vamos testing (Stage 5)
-6. `memory-checker` → mandatory memory safety (Stage 6b)
-7. `debug-agent` → if crashes detected during FS-UAE testing
+5. `test-designer` → comprehensive test suite generation (Stage 5b)
+6. `test-runner` → vamos testing (Stage 5)
+7. `memory-checker` → mandatory memory safety (Stage 6b)
+8. `debug-agent` → if crashes detected during FS-UAE testing
 
 **Exception:** Stage 2 (directory setup) and Stage 7 (packaging) are mechanical and run inline.
 
