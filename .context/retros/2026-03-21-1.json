@@ -1,0 +1,42 @@
+{
+  "date": "2026-03-21",
+  "window": "7d",
+  "metrics": {
+    "commits": 123,
+    "contributors": 2,
+    "prs_merged": 0,
+    "insertions": 878624,
+    "deletions": 2345,
+    "net_loc": 876279,
+    "test_loc_insertions": 4500,
+    "test_ratio": 0.15,
+    "active_days": 3,
+    "sessions": 6,
+    "deep_sessions": 5,
+    "avg_session_minutes": 90,
+    "loc_per_session_hour": 1600,
+    "feat_pct": 0.07,
+    "fix_pct": 0.13,
+    "peak_hour": 11,
+    "ai_assisted_commits": 114
+  },
+  "authors": {
+    "Duncan Bowring": { "commits": 114, "insertions": 870000, "deletions": 2200, "test_ratio": 0.15, "top_area": "lib/posix-shim/" },
+    "Claude": { "commits": 8, "insertions": 57500, "deletions": 145, "test_ratio": 0.12, "top_area": "lib/" }
+  },
+  "version_range": ["0.1.0", "0.1.0"],
+  "streak_days": 3,
+  "tweetable": "Week of Mar 14: 123 commits, 878K LOC (incl 624K ADCD ref docs), 6 ports shipped, 93% AI-assisted | Streak: 3d",
+  "backlog": {
+    "total_open": 12,
+    "p0_p1": 2,
+    "p2": 4,
+    "completed_this_period": 4,
+    "added_this_period": 2
+  },
+  "test_health": {
+    "total_test_files": 39,
+    "tests_added_this_period": 15,
+    "test_files_changed": 102
+  }
+}
