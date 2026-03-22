@@ -4,6 +4,12 @@ Paths: ports/**/*.c, ports/**/*.h, lib/**/*.c, lib/**/*.h, examples/**/*.c, exam
 
 These rules apply to ALL C code targeting AmigaOS in this project.
 
+## API Documentation — MANDATORY LOOKUP
+
+When writing code that calls AmigaOS functions (exec.library, dos.library, timer.device, intuition, graphics, etc.), **invoke the `/amiga-api-lookup` skill** to load the ADCD reference documentation. Do NOT guess at function signatures, struct layouts, or usage patterns — look them up. The ADCD is the authoritative source.
+
+This applies to: shim implementations, new library features (profiler, crash handler, etc.), code review of AmigaOS calls, and any design work involving AmigaOS APIs.
+
 ## Language Standard
 
 - **ANSI C89** only. No C99 features unless targeting OS 4.x.
