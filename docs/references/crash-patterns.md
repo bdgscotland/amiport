@@ -217,15 +217,19 @@ vamos -s 128 -- ./program args    # 128KB stack
 ```
 
 **Fix Template (Makefile test target):**
-For programs needing more than 128KB (e.g., diff with its recursive LCS algorithm):
+For programs needing more than the default, add a `VAMOS_STACK` variable:
 ```makefile
+# diff needs ~130 KiB (FileInfoBlock + GetDeviceProc + probe buffers + algorithm)
+VAMOS_STACK = 256
 test:
-	../../toolchain/scripts/vamos -s 192 -- ./$(TARGET) ...
+	vamos -s $(VAMOS_STACK) -- ./$(TARGET) ...
 ```
 
-**Programs Known to Be Affected:** Any port with `__stack > 8192` — especially recursive programs (diff, find), programs with large local arrays, and programs with deep call chains.
+**Diagnosis tip:** Binary-search the minimum stack by testing with `-s 64`, `-s 128`, etc. The crash PC is always in the same function but stack addresses shift with allocation size.
 
-**Example Port:** diff (OpenBSD v1.95) — needed 96KB minimum, 192KB recommended.
+**Programs Known to Be Affected:** Any port with `__stack > 8192` — especially recursive programs (diff, find), programs with large local arrays, and programs with deep call chains. Programs using AmigaDOS Lock/Examine/GetDeviceProc need extra stack beyond what the C code appears to use.
+
+**Example Port:** diff (OpenBSD v1.95) — needed ~130 KiB minimum (72 KiB for basic diff, 144 KiB for identical-file exit path), using 256 KiB for safety with recursive `-r` mode.
 
 ---
 

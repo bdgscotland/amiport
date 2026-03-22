@@ -46,10 +46,13 @@
 #endif
 
 /* amiport: Amiga version string */
-static const char *verstag = "$VER: diff 1.95 (20.03.2026)";
+static const char *verstag = "$VER: diff 1.95 (22.03.2026)";
 
-/* amiport: Stack size cookie — diff can recurse deeply with -r */
-LONG __stack = 65536;
+/* amiport: Stack size cookie — diff uses ~130 KiB stack (FileInfoBlock +
+ * GetDeviceProc + probe buffers + algorithm working memory).
+ * Default AmigaOS 4KB is far too small; 256KB provides safety margin
+ * for recursive -r mode on deep directory trees. */
+LONG __stack = 262144;
 
 int	 Nflag, Pflag, rflag, sflag, Tflag;
 int	 diff_format, diff_context, status;
@@ -69,13 +72,32 @@ void push_ignore_pats(char *);
 void read_excludes_file(char *file);
 void set_argstr(char **, char **);
 
+/* amiport: cleanup function for atexit() — AmigaOS with -noixemul
+ * does not reclaim process memory on exit. Without this, every error
+ * exit via err()/errx() leaks all global allocations permanently. */
+static void cleanup_globals(void)
+{
+	cleanup_diffreg(); /* amiport: free diffreg static arrays (file[], J, clist, etc.) */
+	if (diffargs != NULL)
+		free(diffargs);
+	if (ignore_pats != NULL)
+		free(ignore_pats);
+	while (excludes_list != NULL) {
+		struct excludes *next = excludes_list->next;
+		free(excludes_list->pattern);
+		free(excludes_list);
+		excludes_list = next;
+	}
+	(void)fflush(stdout);
+}
+
 /* amiport: vamos Lock() doesn't work on relative paths,
  * so we use fopen() to detect files vs directories.
  * For sizes, diffreg.c will use fseek/ftell after fopen. */
 static int amiport_fill_stat(const char *path, struct amiport_stat *sb)
 {
     BPTR lock;
-    struct FileInfoBlock fib;
+    static struct FileInfoBlock fib; /* amiport: static — 260 bytes, avoid stack pressure (single-threaded) */
     FILE *fp;
     long size;
 
@@ -148,6 +170,7 @@ main(int argc, char **argv)
 	long  l;
 	int   ch, dflags, lastch, gotstdin, prevoptind, newarg;
 
+	atexit(cleanup_globals); /* amiport: ensure cleanup on all exit paths */
 	oargv = argv;
 	gotstdin = 0;
 	dflags = 0;
@@ -396,7 +419,7 @@ read_excludes_file(char *file)
 {
 	FILE *fp;
 	char *pattern;
-	char buf[8192]; /* amiport: replaced fgetln() with fgets() */
+	static char buf[8192]; /* amiport: static — large buffer, avoid stack pressure (not recursive) */
 	size_t len;
 
 	if (strcmp(file, "-") == 0)

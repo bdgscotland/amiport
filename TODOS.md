@@ -74,6 +74,22 @@ Superseded by the autonomous debug agent design (ADR-016). The serial→TCP mech
 
 ---
 
+### CrashLogger: Capture Guru Meditation error codes via SetFunction()
+
+**What:** Write a small AmigaOS program (`CrashLogger`) that patches `exec.library/Alert()` using `SetFunction()` to intercept Guru Meditations before the alert requester appears. The patched Alert writes the alert number, PC, and task name to `WORK:crash-data.txt`, then calls the original Alert.
+
+**Why:** When a ported program crashes on FS-UAE, the Guru Meditation error code (e.g., `#8000000B` = ACPU_LineF) is only visible in the emulator window. The test harness sees only a timeout — Claude never gets the error code. This is the single biggest gap in crash diagnosis: the information exists but is trapped inside the emulator display.
+
+**How:** `SetFunction(SysBase, -108, newAlertFunc)` patches Alert (LVO -108). The new function opens `WORK:crash-data.txt`, writes the alertNum (D7), then JMPs to the original. Load CrashLogger in User-Startup before the test runner. The test-fsemu.sh script reads crash-data.txt on timeout and prints the error code in the diagnosis.
+
+**Research:** SetFunction is explicitly supported for this use case (ADCD autodocs). Alert's LVO is -108 in exec.library. The approach is safe (task-local write, then original Alert runs normally). Enforcer and MungWall use the same technique.
+
+**Priority:** P1 (blocks autonomous crash diagnosis in non-debug mode)
+
+**Effort:** S (human: ~2 hours / CC: ~30 min)
+
+---
+
 ### FS-UAE Integration Testing in CI
 
 **What:** Run `make test-fsemu` in GitHub Actions for every push.
