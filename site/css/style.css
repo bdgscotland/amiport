@@ -594,7 +594,7 @@ body {
 
 .stats-bar__value {
     font-weight: bold;
-    color: var(--amber);
+    color: var(--amber-dark);
 }
 
 .stats-bar__sep {
@@ -1037,6 +1037,7 @@ a:focus-visible {
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    background: var(--surface);
 }
 
 .vote-btn--up:hover:not(:disabled) {
@@ -1142,7 +1143,7 @@ a:focus-visible {
 .stats-big-number__value {
     font-size: var(--fs-3xl);
     font-weight: bold;
-    color: var(--amber);
+    color: var(--amber-dark);
     display: block;
 }
 
