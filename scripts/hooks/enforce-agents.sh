@@ -1,17 +1,18 @@
 #!/bin/bash
-# PreToolUse hook: Enforce agent usage for porting work
+# PreToolUse hook: Remind about agent usage for porting work
 #
-# Blocks direct edits to ported/ C source files unless the edit is coming
-# from within an agent dispatch (code-transformer, debug-agent, etc.)
+# Warns when editing ported/ C source files directly, as a reminder to
+# use pipeline agents (code-transformer, debug-agent, etc.) instead.
 #
-# The hook checks for a sentinel environment variable AMIPORT_AGENT_ACTIVE
-# which is set by the port-project skill when dispatching agents.
-# When Claude tries to manually edit ported/*.c without going through
-# the pipeline agents, this hook blocks it with guidance.
+# This is warn-only (exit 0), not blocking (exit 2), because:
+# - Subagents dispatched via the Agent tool use the same Write/Edit tools
+# - There is no reliable env var or process signal to distinguish a
+#   code-transformer subagent write from a manual Claude write
+# - Blocking would break the pipeline's own agents
 #
-# Note: This is a safety net, not a perfect gate. Claude can't set env vars
-# itself, but subagents inherit the parent's environment. The real enforcement
-# comes from the CLAUDE.md rules + this hook catching obvious violations.
+# The real enforcement comes from CLAUDE.md rules, the agent dispatch table
+# in .claude/rules/use-pipeline-agents.md, and the /port-project skill's
+# GATE checks.
 
 INPUT=$(cat)
 TOOL=$(echo "$INPUT" | jq -r '.tool_name // empty')
@@ -28,25 +29,15 @@ if ! echo "$FILE_PATH" | grep -qE 'ports/[^/]+/ported/.*\.(c|h)$'; then
   exit 0
 fi
 
-# Allow if an agent is active (subagent dispatch sets this)
-if [ "${AMIPORT_AGENT_ACTIVE:-}" = "1" ]; then
-  exit 0
-fi
-
-# Block with guidance
+# Warn (but allow) — agents and manual edits both pass through
 cat >&2 << 'MSG'
-BLOCKED: Direct edits to ported/ source files are not allowed.
+REMINDER: Edits to ported/ source files should use pipeline agents.
 
-Use the pipeline agents instead:
+Preferred workflow:
   - To transform source: dispatch the code-transformer agent or use /transform-source
   - To fix a crash: dispatch the debug-agent or use /debug-amiga
   - To port from scratch: use /port-project
 
-The agents apply consistent transformation rules, document changes with
-/* amiport: */ comments, run stub value impact analysis, and update the
-crash patterns knowledge base.
-
-If you need to make a manual fix (e.g., a one-line tweak the agent can't handle),
-ask the user to approve the edit first.
+If this edit is coming from a dispatched agent, carry on.
 MSG
-exit 2
+exit 0
