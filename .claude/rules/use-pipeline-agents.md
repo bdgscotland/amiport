@@ -37,7 +37,8 @@ subagent_type: "build-manager"          # Stage 4: build
 subagent_type: "test-designer"          # Stage 5b: test suite generation
 subagent_type: "test-runner"            # Stage 5: vamos testing
 subagent_type: "memory-checker"         # Stage 6b: memory safety (mandatory)
-subagent_type: "perf-optimizer"         # Stage 6c: performance (optional)
+subagent_type: "perf-optimizer"         # Stage 6c: performance (mandatory)
+subagent_type: "profiler"               # Stage 6d: empirical runtime measurement (optional)
 subagent_type: "debug-agent"            # On crash: autonomous fix loop
 subagent_type: "port-coordinator"       # Complex multi-file ports (5+ files)
 subagent_type: "aminet-publisher"       # Publishing (never automatic)
