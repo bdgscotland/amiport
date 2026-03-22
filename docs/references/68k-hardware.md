@@ -103,6 +103,10 @@ When the debug-agent sees SP or an address in the `0xFFFF0000–0xFFFFFFFF` rang
 
 The diff port crash (SP=0xffff0044) was this exact pattern — stack overflowed downward past 0x00000000, wrapped to 0xFFFF0044, which vamos rejected.
 
+### Self-modifying code
+
+The 68020+ has an instruction cache. Code that modifies instructions in memory (self-modifying code, runtime patching, JIT) will execute stale cached instructions unless the cache is explicitly flushed with `CacheClearU()` or `CacheClearE()`. This is not an issue on 68000 (no cache). GCC-generated code never self-modifies, but some hand-optimized or generated code (e.g., Lua JIT, regex engines with compiled patterns) may.
+
 ---
 
 ## 4. Register Conventions
