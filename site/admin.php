@@ -20,7 +20,7 @@ if (isset($_GET['logout'])) {
 }
 
 // --- Login ---
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['password'])) {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['password']) && amiport_csrf_check($_POST['csrf_token'] ?? '')) {
     // Rate limiting: check login_attempts table
     $ipHash = amiport_ip_hash();
     $blocked = false;
@@ -58,7 +58,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['password'])) {
 }
 
 // --- Status update for port requests ---
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['request_id'], $_POST['new_status']) && isset($_SESSION['admin'])) {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['request_id'], $_POST['new_status']) && isset($_SESSION['admin']) && amiport_csrf_check($_POST['csrf_token'] ?? '')) {
     $requestId = (int) $_POST['request_id'];
     $newStatus = $_POST['new_status'];
     $notes = $_POST['admin_notes'] ?? '';
@@ -133,6 +133,7 @@ if ($isAdmin && isset($_SESSION['admin_time']) && (time() - $_SESSION['admin_tim
         <div class="alert alert--error mb-md" role="alert"><?php echo htmlspecialchars($error); ?></div>
         <?php endif; ?>
         <form method="POST" action="admin.php">
+            <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(amiport_csrf_token()); ?>">
             <label for="password">Password:</label>
             <input type="password" id="password" name="password" class="wb-input mb-md" required>
             <button type="submit" class="btn btn--primary">Login</button>
@@ -267,6 +268,7 @@ if ($pdo !== null) {
                 <br><em class="text-muted"><?php echo htmlspecialchars($req['admin_notes']); ?></em>
                 <?php endif; ?>
                 <form method="POST" action="admin.php" style="margin-top:var(--sp-xs);display:flex;gap:var(--sp-xs);flex-wrap:wrap;align-items:center">
+                    <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(amiport_csrf_token()); ?>">
                     <input type="hidden" name="request_id" value="<?php echo (int) $req['id']; ?>">
                     <button type="submit" name="new_status" value="accepted" class="btn btn--sm btn--default">Accept</button>
                     <button type="submit" name="new_status" value="rejected" class="btn btn--sm btn--default">Reject</button>
