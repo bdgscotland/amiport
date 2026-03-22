@@ -7,7 +7,7 @@ Programs ported to AmigaOS 3.x using the amiport pipeline.
 | [cal](ports/cal/) | 1.32 | Unix-style calendar display | CLI | OpenBSD cal v1.32 (BSD 3-Clause) | Built & tested | Submitted 2026-03-20 |
 | [cut](ports/cut/) | 1.28 | Extract fields/columns from text | CLI | OpenBSD cut v1.28 (BSD 3-Clause) | Built & tested | Submitted 2026-03-20 |
 | [diff](ports/diff/) | 1.95 | File comparison utility | CLI | OpenBSD diff v1.95 (ISC + BSD 3-Clause) | Built & tested | Not submitted |
-| [grep](ports/grep/) | 1.68 | Pattern search (regex/fixed string) | CLI | OpenBSD grep v1.68 (BSD 2-Clause) | Built & tested | Not submitted |
+| [grep](ports/grep/) | 1.68 | Pattern search (regex/fixed string) | CLI | OpenBSD grep v1.68 (BSD 2-Clause) | Built & tested | Submitted 2026-03-22 |
 | [sed](ports/sed/) | 1.47 | Stream editor (text transformation) | CLI | OpenBSD sed v1.47 (BSD 3-Clause) | Built & tested | Not submitted |
 | [lua](ports/lua/) | 5.4.7 | Lua scripting language | Scripting | PUC-Rio Lua 5.4.7 (MIT) | Built & tested | Not submitted |
 | [tail](ports/tail/) | 1.24 | Display last part of a file | CLI | OpenBSD tail v1.24 (BSD 3-Clause) | Built & tested | Not submitted |
@@ -24,7 +24,7 @@ Programs ported to AmigaOS 3.x using the amiport pipeline.
 | cal | 2026-03-20 | [util/cli/cal-1.0](https://aminet.net/package/util/cli/cal-1.0) | 2026-03-21 — Live, uploaded as 1.0 (now 1.32 locally) |
 | cut | 2026-03-20 | [util/cli/cut-1.0](https://aminet.net/package/util/cli/cut-1.0) | 2026-03-21 — Live, 29 downloads, uploaded as 1.0 (now 1.28 locally) |
 | diff | — | — | — |
-| grep | — | — | — |
+| grep | 2026-03-22 | util/cli/grep-1.68 (pending moderation) | — |
 | sed | — | — | — |
 | lua | — | — | — |
 | head | 2026-03-22 | util/cli/head-1.24 (pending moderation) | — |

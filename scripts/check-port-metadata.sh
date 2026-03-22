@@ -10,6 +10,7 @@ set -euo pipefail
 #   4. PORTS.md entry exists
 #   5. TEST-REPORT.md quality (if present)
 #   6. No stray build artifacts (.lha, gmon.out, *_native, *.map, *.o in ported/)
+#   7. README↔PORTS.md Aminet status consistency
 #
 # Exit 0 if all ports pass, exit 1 if any fail.
 
@@ -213,6 +214,37 @@ for dir in "$PORTS_DIR"/*/; do
         port_failed=1
     else
         echo "PASS  $name: no stray artifacts"
+    fi
+
+    # ----------------------------------------------------------
+    # Check 7: README↔PORTS.md Aminet status consistency
+    # ----------------------------------------------------------
+    # Extract Aminet column from PORTS.md catalog table (preserve internal spaces)
+    ports_aminet=$(grep -E "^\|[[:space:]]*\[?${name}\]?" "$PORTS_CATALOG" | head -1 | awk -F'|' '{print $8}' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' || true)
+
+    # Extract status column from README.md ports table
+    readme_status=""
+    if [ -f "README.md" ]; then
+        readme_status=$(grep -E "^\|[[:space:]]*\[${name}\]" "README.md" | head -1 | awk -F'|' '{print $6}' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' || true)
+    fi
+
+    if [ -n "$ports_aminet" ] && [ -n "$readme_status" ]; then
+        # Check: if PORTS.md says "Submitted <date>" (not "Not submitted") but README doesn't mention Aminet
+        ports_submitted=false
+        readme_submitted=false
+        # Match "Submitted 2026-..." or aminet.net URL, but NOT "Not submitted"
+        echo "$ports_aminet" | grep -qiE "^Submitted[[:space:]]+[0-9]|aminet.net" && ports_submitted=true
+        echo "$readme_status" | grep -qi "aminet" && readme_submitted=true
+
+        if [ "$ports_submitted" = true ] && [ "$readme_submitted" = false ]; then
+            echo "FAIL  $name: Aminet status — PORTS.md says submitted but README.md says '$readme_status'"
+            port_failed=1
+        elif [ "$ports_submitted" = false ] && [ "$readme_submitted" = true ]; then
+            echo "FAIL  $name: Aminet status — README.md says Aminet but PORTS.md says '$ports_aminet'"
+            port_failed=1
+        else
+            echo "PASS  $name: Aminet status consistent"
+        fi
     fi
 
     # Separator between ports

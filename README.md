@@ -6,7 +6,7 @@ amiport combines POSIX compatibility libraries, AI-powered build agents, and a c
 
 [![CI](https://github.com/bdgscotland/amiport/actions/workflows/ci.yml/badge.svg)](https://github.com/bdgscotland/amiport/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Aminet](https://img.shields.io/badge/Aminet-4_ports_submitted-blue)](https://aminet.net)
+[![Aminet](https://img.shields.io/badge/Aminet-6_ports_submitted-blue)](https://aminet.net)
 [![GitHub stars](https://img.shields.io/github/stars/bdgscotland/amiport?style=social)](https://github.com/bdgscotland/amiport/stargazers)
 
 > If you find this project useful or interesting, please give it a star! It helps others discover amiport and motivates continued development.
@@ -23,7 +23,7 @@ amiport combines POSIX compatibility libraries, AI-powered build agents, and a c
 | [cut](ports/cut/) | 1.28 | CLI | Extract fields/columns from text (OpenBSD) | [Live on Aminet](https://aminet.net/package/util/cli/cut-1.0) |
 | [diff](ports/diff/) | 1.95 | CLI | File comparison utility (OpenBSD) | Known issues |
 | [head](ports/head/) | 1.24 | CLI | Print first lines of files (OpenBSD) | Submitted to Aminet |
-| [grep](ports/grep/) | 1.68 | CLI | Pattern search — regex, fixed, recursive (OpenBSD) | Built & tested |
+| [grep](ports/grep/) | 1.68 | CLI | Pattern search — regex, fixed, recursive (OpenBSD) | Submitted to Aminet |
 | [sed](ports/sed/) | 1.47 | CLI | Stream editor — text transformation (OpenBSD) | Built & tested |
 | [lua](ports/lua/) | 5.4.7 | Scripting | Lua 5.4 scripting language (PUC-Rio) | Built & tested |
 | [tail](ports/tail/) | 1.24 | CLI | Display last part of a file with follow mode (OpenBSD) | Built & tested |
