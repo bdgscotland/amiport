@@ -38,6 +38,13 @@ void amiport_globfree(amiport_glob_t *pglob);
 void amiport_expand_argv(int *argc, char ***argv);
 void amiport_free_argv(void);
 
+/*
+ * __progname — initialized from argv[0] by amiport_expand_argv().
+ * OpenBSD programs use this for error messages (extern char *__progname).
+ * Defined with weak linkage in argv_expand.c — ports can override if needed.
+ */
+extern char *__progname;
+
 #ifndef AMIPORT_NO_GLOB_MACROS
 #define glob_t    amiport_glob_t
 #define glob      amiport_glob

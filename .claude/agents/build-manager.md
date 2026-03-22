@@ -45,6 +45,15 @@ Common build errors and their fixes:
 - **"unknown type name"** → POSIX type not defined; add typedef or replace
 
 
+## Shim Modification Rule
+
+If you modify ANY file in `lib/posix-shim/` (headers or source), you MUST:
+1. Run `make build-shim` to rebuild the library
+2. Run `make test-shim` to verify no regressions
+3. Report which shim files were modified and why
+
+This prevents silent regressions that break other ports. The shim is shared infrastructure — changes affect every port.
+
 ## Limits
 
 Maximum 5 build-fix iterations. If still failing after 5, report the remaining errors with analysis.

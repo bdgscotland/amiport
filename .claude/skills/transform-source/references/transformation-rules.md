@@ -792,27 +792,22 @@ long __stack = 32768; /* amiport: stack cookie — Amiga default 4KB is too smal
 long __stack = 65536; /* amiport: stack cookie — extra for recursion */
 ```
 
-### __progname initialization (OpenBSD programs)
+### __progname (OpenBSD programs)
 
-OpenBSD programs use `extern char *__progname` (auto-set by libc). bebbo-gcc libnix does NOT provide this. Define it and initialize from argv[0]:
+OpenBSD programs use `extern char *__progname` (auto-set by libc). The amiport shim now provides this automatically — `amiport_expand_argv()` initializes `__progname` from `argv[0]` (stripping path/volume prefix). It is declared in `<amiport/glob.h>` with weak linkage.
 
 ```c
-/* RULE: Initialize __progname for OpenBSD ports */
+/* RULE: __progname is provided by the shim — no per-port boilerplate needed */
 
 // Before (at file scope):
 extern char *__progname;
 
-// After (at file scope):
-char *__progname; /* amiport: defined here — libnix does not provide it */
+// After: KEEP AS-IS — the shim provides __progname via <amiport/glob.h>.
+// The extern declaration in the source is satisfied by the shim's weak definition.
+// No need to define it or initialize it manually.
 
-// Add at top of main(), before getopt:
-__progname = strrchr(argv[0], '/');
-if (__progname == NULL)
-    __progname = strrchr(argv[0], ':'); /* amiport: Amiga volume separator */
-if (__progname != NULL)
-    __progname++;
-else
-    __progname = argv[0];
+// If <amiport/glob.h> is not included (rare — most ports use expand_argv),
+// add: #include <amiport/glob.h>
 ```
 
 ### <util.h> / fmt_scaled() (OpenBSD human-readable formatting)
