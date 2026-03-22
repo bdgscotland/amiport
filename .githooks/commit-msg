@@ -1,0 +1,31 @@
+#!/bin/bash
+# commit-msg hook for amiport
+# Enforces conventional commit prefixes on all commit messages.
+#
+# Valid prefixes: feat, fix, docs, test, refactor, chore, ci, perf, style, build
+# Format: "prefix: message" or "prefix(scope): message"
+#
+# Install: git config core.hooksPath .githooks
+
+MSG_FILE="$1"
+MSG=$(head -1 "$MSG_FILE")
+
+# Allow merge commits
+if echo "$MSG" | grep -qE '^Merge '; then
+    exit 0
+fi
+
+# Check for conventional commit prefix
+if ! echo "$MSG" | grep -qE '^(feat|fix|docs|test|refactor|chore|ci|perf|style|build)(\(.+\))?: '; then
+    echo ""
+    echo "BLOCKED: Commit message must use a conventional prefix."
+    echo ""
+    echo "  Format: prefix: description"
+    echo "  Or:     prefix(scope): description"
+    echo ""
+    echo "  Valid prefixes: feat, fix, docs, test, refactor, chore, ci, perf, style, build"
+    echo ""
+    echo "  Your message: $MSG"
+    echo ""
+    exit 1
+fi

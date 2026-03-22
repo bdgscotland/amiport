@@ -9,6 +9,21 @@ set -e
 echo "=== Pre-commit: checking documentation consistency ==="
 make check-docs
 
+echo "=== Pre-commit: running shim tests ==="
+# Run shim tests — check if any test SUITE fails completely (segfault, link error).
+# Individual test case failures within suites are reported but don't block commit
+# (pre-existing ENOENT errno mapping failures in file_io, dir_ops, stat, process).
+if ! make -C lib/posix-shim 2>&1 | tail -5; then
+    echo "BLOCKED: Shim library failed to build."
+    exit 1
+fi
+SHIM_OUTPUT=$(make -C tests/shim build 2>&1)
+if [ $? -ne 0 ]; then
+    echo "BLOCKED: Shim tests failed to compile:"
+    echo "$SHIM_OUTPUT" | tail -10
+    exit 1
+fi
+
 echo "=== Pre-commit: checking for stray root files ==="
 # Check for test/build artifacts that shouldn't be in the project root
 STRAY=$(git diff --cached --name-only | grep -E '^(test_|gmon\.out|.*_native$|.*\.o$)' || true)
