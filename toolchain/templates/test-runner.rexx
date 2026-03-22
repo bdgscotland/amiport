@@ -105,7 +105,12 @@ DO i = 1 TO testcount
      * (e.g., diff returns RC=5 when files differ).
      * The command's actual RC is written to a temp file because
      * Execute's RC only reflects whether Execute itself succeeded
-     * (FailAt 21 suppresses the command's RC from propagating). */
+     * (FailAt 21 suppresses the command's RC from propagating).
+     *
+     * For infinite-output programs (yes, tail -f), use TIMEOUT: N
+     * in test cases. The CMD should call WORK:run-with-timeout.rexx
+     * which handles backgrounding, breaking, and output capture.
+     * See toolchain/templates/run-with-timeout.rexx. */
     scriptfile = 'T:test_cmd_' || i
     rcfile = 'T:test_rc_' || i
     IF OPEN('scr', scriptfile, 'W') THEN DO

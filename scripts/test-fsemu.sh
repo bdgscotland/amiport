@@ -147,15 +147,16 @@ build_boot_volume() {
     # Copy UAEQuit to WORK: (always available regardless of system type)
     cp "$TOOLCHAIN_DIR/uaequit/UAEQuit" "$AMIGA_DIR/UAEQuit" 2>/dev/null || true
 
-    # Copy ARexx test runner to build/amiga/ (mounted as WORK:)
+    # Copy ARexx test runner and helpers to build/amiga/ (mounted as WORK:)
     cp "$TOOLCHAIN_DIR/templates/test-runner.rexx" "$AMIGA_DIR/test-runner.rexx"
+    cp "$TOOLCHAIN_DIR/templates/run-with-timeout.rexx" "$AMIGA_DIR/run-with-timeout.rexx"
 
     # Generate test cases
     generate_test_cases "$port_dir"
     cp "$RESULTS_DIR/test-cases.txt" "$AMIGA_DIR/test-cases.txt"
 
-    # Copy any test data files (test-*.txt) from the port directory to WORK:
-    for datafile in "$port_dir"/test-*.txt; do
+    # Copy any test data files (test-*.txt, test-*.rexx) from the port directory to WORK:
+    for datafile in "$port_dir"/test-*.txt "$port_dir"/test-*.rexx; do
         if [ -f "$datafile" ] && [ "$(basename "$datafile")" != "test-fsemu-cases.txt" ]; then
             cp "$datafile" "$AMIGA_DIR/"
         fi
@@ -632,7 +633,7 @@ cleanup() {
     fi
 
     # Clean up temp files from WORK:
-    rm -f "$AMIGA_DIR/test-runner.rexx" "$AMIGA_DIR/test-cases.txt"
+    rm -f "$AMIGA_DIR/test-runner.rexx" "$AMIGA_DIR/run-with-timeout.rexx" "$AMIGA_DIR/test-cases.txt"
 
     # Clean up results dir
     if [ -n "${RESULTS_DIR:-}" ] && [ -d "${RESULTS_DIR:-}" ]; then

@@ -1,0 +1,68 @@
+# yes FS-UAE test suite
+# Category 1 (CLI), minimum 8 tests required
+# OpenBSD yes v1.9 -- outputs a string repeatedly until killed
+#
+# INFINITE OUTPUT: yes runs forever until sent a break signal.
+# Tests use test-yes-run.rexx which backgrounds yes via Run,
+# waits briefly, parses the CLI number, and breaks the process.
+#
+# NO ERROR EXIT PATH: yes has no way to fail -- pledge() is stubbed,
+# all arguments are valid. It only exits via break (RC=0).
+
+# -----------------------------------------------------------------------
+# FUNCTIONAL TESTS
+# -----------------------------------------------------------------------
+
+TEST: Default output -- yes with no args prints "y"
+CMD: SYS:Rexxc/rx WORK:test-yes-run.rexx
+EXPECT_CONTAINS: y
+EXPECT_RC: 0
+
+TEST: Custom string -- yes hello prints "hello"
+CMD: SYS:Rexxc/rx WORK:test-yes-run.rexx hello
+EXPECT_CONTAINS: hello
+EXPECT_RC: 0
+
+TEST: Multiple args -- only argv[1] is used
+CMD: SYS:Rexxc/rx WORK:test-yes-run.rexx hello world
+EXPECT_CONTAINS: hello
+EXPECT_RC: 0
+
+# -----------------------------------------------------------------------
+# ERROR PATH TESTS
+# -----------------------------------------------------------------------
+
+TEST: No error exit path -- always exits RC=0
+CMD: SYS:Rexxc/rx WORK:test-yes-run.rexx
+EXPECT_RC: 0
+
+# -----------------------------------------------------------------------
+# EXIT CODE TESTS
+# -----------------------------------------------------------------------
+
+TEST: Exit code RETURN_OK after break
+CMD: SYS:Rexxc/rx WORK:test-yes-run.rexx testing
+EXPECT_RC: 0
+
+# -----------------------------------------------------------------------
+# EDGE CASE TESTS
+# -----------------------------------------------------------------------
+
+TEST: Single character argument
+CMD: SYS:Rexxc/rx WORK:test-yes-run.rexx x
+EXPECT_CONTAINS: x
+EXPECT_RC: 0
+
+TEST: Multi-character argument
+CMD: SYS:Rexxc/rx WORK:test-yes-run.rexx amigaOS
+EXPECT_CONTAINS: amigaOS
+EXPECT_RC: 0
+
+# -----------------------------------------------------------------------
+# AMIGA-SPECIFIC TESTS
+# -----------------------------------------------------------------------
+
+TEST: Version string embedded in binary
+CMD: Version WORK:yes FULL
+EXPECT_CONTAINS: 1.9
+EXPECT_RC: 0

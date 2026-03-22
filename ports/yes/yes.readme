@@ -1,0 +1,30 @@
+Short:        Repeatedly output a string (OpenBSD)
+Type:         util/cli
+Architecture: m68k-amigaos >= 3.0
+Uploader:     duncan@bowring.us
+Author:       The Regents of the University of California (ported by Duncan Bowring)
+Version:      1.9
+
+yes — Repeatedly output a string (OpenBSD)
+
+Original author: The Regents of the University of California
+Ported by Duncan Bowring using amiport (AI-assisted porting toolkit).
+Project: https://github.com/bdgscotland/amiport
+
+Cross-compiled with m68k-amigaos-gcc for AmigaOS 3.x (68000+).
+Tested in vamos emulator.
+
+Usage:
+  yes [string]
+
+  With no arguments, outputs "y" repeatedly.
+  With an argument, outputs that argument repeatedly.
+  Press Ctrl-C to stop.
+
+Examples:
+  yes              ; outputs "y" forever until Ctrl-C
+  yes n            ; outputs "n" forever until Ctrl-C
+  yes | delete >NIL: RAM:tempfile  ; auto-confirm deletion
+
+Includes full source code (original POSIX and ported Amiga versions)
+and PORT.md documenting every transformation applied.
