@@ -17,6 +17,9 @@
 | Performance tuning | `perf-optimizer` agent | Don't hand-optimize 68k code |
 | Publish to Aminet | `aminet-publisher` agent | Don't publish manually |
 | Design test suites | `test-designer` agent | Don't manually write test-fsemu-cases.txt |
+| Debug crashes | `debug-agent` agent or `/debug-amiga` | Don't manually debug Enforcer hits |
+| Check memory safety | `memory-checker` agent | Don't skip memory audit — AmigaOS has no memory protection |
+| Hardware validation | `hardware-expert` agent | Don't guess at hardware architecture facts |
 | Add missing shim fn | `/extend-shim` | Don't manually add shim functions |
 
 ## How to Dispatch
@@ -29,6 +32,9 @@ subagent_type: "source-analyzer"
 subagent_type: "build-manager"
 subagent_type: "test-runner"
 subagent_type: "port-coordinator"
+subagent_type: "debug-agent"
+subagent_type: "memory-checker"
+subagent_type: "hardware-expert"
 ```
 
 ## Entry Point
