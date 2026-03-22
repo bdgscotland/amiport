@@ -73,6 +73,22 @@ int  amiport_unlink(const char *path);
 int  amiport_rename(const char *oldpath, const char *newpath);
 int  amiport_access(const char *path, int mode);
 
+/*
+ * amiport: chmod() — no-op stub; Amiga protection bits have inverted
+ * semantics and most ports just need the call to succeed silently.
+ */
+int  amiport_chmod(const char *path, unsigned int mode);
+
+/*
+ * amiport: realpath() — resolve canonical path via Lock()+NameFromLock().
+ * If resolved is NULL, malloc's a 256-byte buffer; caller must free().
+ */
+char *amiport_realpath(const char *path, char *resolved);
+
+/* Environment — setenv/unsetenv via AmigaDOS SetVar/DeleteVar (ENV:) */
+int amiport_setenv(const char *name, const char *value, int overwrite);
+int amiport_unsetenv(const char *name);
+
 /* Process-like operations */
 unsigned int amiport_sleep(unsigned int seconds);
 char *amiport_getcwd(char *buf, int size);
@@ -95,6 +111,33 @@ LONG  amiport_getpid(void);
 /* isatty equivalent */
 int amiport_isatty(int fd);
 
+/*
+ * readlink — read the target of an AmigaDOS soft link (OS 2.0+)
+ *
+ * Returns the number of bytes written to buf (not NUL-terminated per POSIX),
+ * or -1 on error.  errno = EINVAL if path is not a soft link.
+ * Available only on dos.library 36+ (AmigaOS 2.0+).
+ */
+#include <stddef.h>
+LONG amiport_readlink(const char *path, char *buf, size_t bufsiz);
+
+/*
+ * ftruncate — truncate or extend an open file to exactly length bytes
+ *
+ * Uses AmigaDOS SetFileSize() (dos.library 36+).  Returns 0 on success or -1.
+ * Caveat: extension does NOT guarantee zero-fill of new bytes on AmigaOS.
+ */
+int amiport_ftruncate(int fd, LONG length);
+
+/* Convenience macros */
+#ifndef AMIPORT_NO_READLINK_MACROS
+#define readlink(p, b, n)   amiport_readlink(p, b, n)
+#endif
+
+#ifndef AMIPORT_NO_FTRUNCATE_MACROS
+#define ftruncate(fd, len)  amiport_ftruncate(fd, len)
+#endif
+
 /* setlocale stub — always returns "C" (no real locale support on classic AmigaOS) */
 char *amiport_setlocale(int category, const char *locale);
 #ifndef AMIPORT_NO_LOCALE_MACROS
@@ -115,6 +158,20 @@ char *amiport_strtok_r(char *str, const char *delim, char **saveptr);
  * Returns FILE* opened for read/write, or NULL on failure. */
 #include <stdio.h>
 FILE *amiport_tmpfile(void);
+
+/* Convenience macros — drop-in POSIX compatibility */
+#ifndef AMIPORT_NO_CHMOD_MACROS
+#define chmod(p, m)     amiport_chmod(p, m)
+#endif
+
+#ifndef AMIPORT_NO_REALPATH_MACROS
+#define realpath(p, r)  amiport_realpath(p, r)
+#endif
+
+#ifndef AMIPORT_NO_SETENV_MACROS
+#define setenv(n, v, o)  amiport_setenv(n, v, o)
+#define unsetenv(n)      amiport_unsetenv(n)
+#endif
 
 /*
  * AMIPORT_STRICT — Tier 3 function guards

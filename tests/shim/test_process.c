@@ -102,6 +102,80 @@ TEST(isatty_stdout)
     ASSERT(result == 0 || result == 1);
 }
 
+TEST(setenv_and_getenv)
+{
+    char *val;
+
+    /* Set a test variable and read it back */
+    ASSERT_EQ(amiport_setenv("AMIPORT_TEST_VAR", "hello", 1), 0);
+
+    val = amiport_getenv("AMIPORT_TEST_VAR");
+    ASSERT_NOT_NULL(val);
+    ASSERT_STR_EQ(val, "hello");
+    free(val);
+
+    /* Clean up */
+    amiport_unsetenv("AMIPORT_TEST_VAR");
+}
+
+TEST(setenv_overwrite_zero)
+{
+    char *val;
+
+    /* Set initial value */
+    ASSERT_EQ(amiport_setenv("AMIPORT_TEST_OW", "original", 1), 0);
+
+    /* Attempt to overwrite with overwrite=0 — must not change */
+    ASSERT_EQ(amiport_setenv("AMIPORT_TEST_OW", "changed", 0), 0);
+
+    val = amiport_getenv("AMIPORT_TEST_OW");
+    ASSERT_NOT_NULL(val);
+    ASSERT_STR_EQ(val, "original");
+    free(val);
+
+    /* Clean up */
+    amiport_unsetenv("AMIPORT_TEST_OW");
+}
+
+TEST(setenv_overwrite_one)
+{
+    char *val;
+
+    /* Set initial value then overwrite it */
+    ASSERT_EQ(amiport_setenv("AMIPORT_TEST_OW2", "first", 1), 0);
+    ASSERT_EQ(amiport_setenv("AMIPORT_TEST_OW2", "second", 1), 0);
+
+    val = amiport_getenv("AMIPORT_TEST_OW2");
+    ASSERT_NOT_NULL(val);
+    ASSERT_STR_EQ(val, "second");
+    free(val);
+
+    amiport_unsetenv("AMIPORT_TEST_OW2");
+}
+
+TEST(unsetenv_removes_var)
+{
+    char *val;
+
+    /* Set then unset */
+    ASSERT_EQ(amiport_setenv("AMIPORT_TEST_UNSET", "value", 1), 0);
+    ASSERT_EQ(amiport_unsetenv("AMIPORT_TEST_UNSET"), 0);
+
+    /* Variable must no longer exist (NULL or empty) */
+    val = amiport_getenv("AMIPORT_TEST_UNSET");
+    if (val != NULL) {
+        /* vamos quirk: may return empty string instead of NULL */
+        ASSERT_STR_EQ(val, "");
+        free(val);
+    }
+}
+
+TEST(unsetenv_nonexistent)
+{
+    /* Unsetting a nonexistent variable must succeed (POSIX requirement) */
+    ASSERT_EQ(amiport_unsetenv("AMIPORT_TEST_GHOST_VAR_999"), 0);
+}
+
 int main(void)
 {
     (void)verstag;
@@ -115,6 +189,11 @@ int main(void)
     RUN_TEST(getenv_returns_allocated);
     RUN_TEST(getpid_nonzero);
     RUN_TEST(isatty_stdout);
+    RUN_TEST(setenv_and_getenv);
+    RUN_TEST(setenv_overwrite_zero);
+    RUN_TEST(setenv_overwrite_one);
+    RUN_TEST(unsetenv_removes_var);
+    RUN_TEST(unsetenv_nonexistent);
 
     return test_summary();
 }

@@ -1,12 +1,14 @@
 /*
  * string_bsd.c — BSD string utility implementations for AmigaOS
  *
- * Pure C implementations of strlcpy, strlcat, and reallocarray.
+ * Pure C implementations of strlcpy, strlcat, reallocarray, strcasecmp,
+ * strncasecmp, and strcasestr.
  * No AmigaOS-specific calls needed — these are portable C.
  */
 
 #include <amiport/string.h>
 
+#include <ctype.h>
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
@@ -96,4 +98,101 @@ amiport_recallocarray(void *ptr, size_t oldnmemb, size_t nmemb, size_t size)
 
     memset((char *)newptr + oldsize, 0, newsize - oldsize);
     return newptr;
+}
+
+int
+amiport_strcasecmp(const char *s1, const char *s2)
+{
+    unsigned char c1, c2;
+
+    for (;;) {
+        c1 = (unsigned char)tolower((unsigned char)*s1);
+        c2 = (unsigned char)tolower((unsigned char)*s2);
+        if (c1 != c2)
+            return (int)c1 - (int)c2;
+        if (c1 == '\0')
+            return 0;
+        s1++;
+        s2++;
+    }
+}
+
+int
+amiport_strncasecmp(const char *s1, const char *s2, size_t n)
+{
+    unsigned char c1, c2;
+
+    if (n == 0)
+        return 0;
+
+    for (;;) {
+        c1 = (unsigned char)tolower((unsigned char)*s1);
+        c2 = (unsigned char)tolower((unsigned char)*s2);
+        if (c1 != c2)
+            return (int)c1 - (int)c2;
+        if (c1 == '\0' || --n == 0)
+            return 0;
+        s1++;
+        s2++;
+    }
+}
+
+char *
+amiport_strcasestr(const char *haystack, const char *needle)
+{
+    size_t needle_len;
+    size_t i;
+    unsigned char nh, nc;
+
+    if (*needle == '\0')
+        return (char *)haystack;
+
+    needle_len = strlen(needle);
+
+    while (*haystack != '\0') {
+        /* Quick check: first char must match before calling strncasecmp */
+        nh = (unsigned char)tolower((unsigned char)*haystack);
+        nc = (unsigned char)tolower((unsigned char)*needle);
+        if (nh == nc) {
+            /* Compare the rest of needle against haystack */
+            for (i = 1; i < needle_len; i++) {
+                if (haystack[i] == '\0')
+                    return NULL;
+                if (tolower((unsigned char)haystack[i]) !=
+                    tolower((unsigned char)needle[i]))
+                    break;
+            }
+            if (i == needle_len)
+                return (char *)haystack;
+        }
+        haystack++;
+    }
+
+    return NULL;
+}
+
+/*
+ * explicit_bzero — secure zero-fill that the compiler cannot optimize away
+ *
+ * Uses a volatile function pointer to force the memset call to be emitted
+ * even in optimized builds. This is the standard technique for clearing
+ * sensitive data (keys, passwords) before freeing the buffer.
+ *
+ * amiport: direct mapping — OpenBSD/glibc explicit_bzero semantics preserved.
+ */
+static void
+amiport_explicit_bzero_fill(void *s, size_t n)
+{
+    memset(s, 0, n);
+}
+
+static void (* volatile amiport_explicit_bzero_fn)(void *, size_t) =
+    amiport_explicit_bzero_fill;
+
+void
+amiport_explicit_bzero(void *s, size_t n)
+{
+    if (n == 0)
+        return;
+    amiport_explicit_bzero_fn(s, n);
 }

@@ -120,6 +120,39 @@ TEST(stat_ino_unique_per_file)
     amiport_unlink("T:test_ino_b.txt");
 }
 
+/* amiport: lstat() is an alias for stat() — classic FFS has no symlinks.
+ * Verify it returns the same result for a regular file and a directory. */
+TEST(lstat_same_as_stat_file)
+{
+    struct amiport_stat st_s, st_l;
+    int fd;
+
+    fd = amiport_open("T:test_lstat.txt", O_WRONLY | O_CREAT | O_TRUNC);
+    ASSERT(fd >= 0);
+    amiport_write(fd, "lstat test", 10);
+    amiport_close(fd);
+
+    ASSERT_EQ(amiport_stat("T:test_lstat.txt", &st_s), 0);
+    ASSERT_EQ(amiport_lstat("T:test_lstat.txt", &st_l), 0);
+
+    /* Both must agree on the key fields */
+    ASSERT_EQ(st_s.st_size, st_l.st_size);
+    ASSERT_EQ(st_s.st_isdir, st_l.st_isdir);
+
+    amiport_unlink("T:test_lstat.txt");
+}
+
+TEST(lstat_same_as_stat_dir)
+{
+    struct amiport_stat st_s, st_l;
+
+    ASSERT_EQ(amiport_stat("T:", &st_s), 0);
+    ASSERT_EQ(amiport_lstat("T:", &st_l), 0);
+
+    ASSERT_EQ(st_s.st_isdir, st_l.st_isdir);
+    ASSERT_EQ(st_s.st_isdir, 1);
+}
+
 /* Note: stat_ino_same_for_same_file test omitted — vamos assigns different
  * fib_DiskKey values for the same file across calls (virtual filesystem).
  * On real AmigaOS hardware, fib_DiskKey is stable. The critical test is
@@ -148,6 +181,8 @@ int main(void)
     RUN_TEST(fstat_null_buf);
     RUN_TEST(stat_ino_unique_per_file);
     RUN_TEST(stat_dev_nonzero);
+    RUN_TEST(lstat_same_as_stat_file);
+    RUN_TEST(lstat_same_as_stat_dir);
 
     return test_summary();
 }

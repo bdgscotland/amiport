@@ -78,6 +78,46 @@ TEST(closedir_null)
     ASSERT_EQ(errno, EBADF);
 }
 
+TEST(mkdir_and_rmdir)
+{
+    /* Create a temporary directory in T: then remove it */
+    ASSERT_EQ(amiport_mkdir("T:test_mkdir_999", 0755), 0);
+
+    /* Should be openable as a directory */
+    {
+        AMIPORT_DIR *dir = amiport_opendir("T:test_mkdir_999");
+        ASSERT_NOT_NULL(dir);
+        amiport_closedir(dir);
+    }
+
+    /* Remove it — should succeed */
+    ASSERT_EQ(amiport_rmdir("T:test_mkdir_999"), 0);
+
+    /* Should no longer exist */
+    {
+        AMIPORT_DIR *dir = amiport_opendir("T:test_mkdir_999");
+        ASSERT_NULL(dir);
+    }
+}
+
+TEST(mkdir_already_exists)
+{
+    /* Creating a directory that already exists should fail */
+    ASSERT_EQ(amiport_mkdir("T:test_mkdir_dup", 0755), 0);
+    /* Second mkdir must fail */
+    ASSERT_EQ(amiport_mkdir("T:test_mkdir_dup", 0755), -1);
+    ASSERT(errno != 0);
+    /* Clean up */
+    amiport_rmdir("T:test_mkdir_dup");
+}
+
+TEST(rmdir_nonexistent)
+{
+    /* Removing a directory that does not exist must return -1 */
+    ASSERT_EQ(amiport_rmdir("T:test_rmdir_ghost_999"), -1);
+    ASSERT(errno != 0);
+}
+
 int main(void)
 {
     (void)verstag;
@@ -88,6 +128,9 @@ int main(void)
     RUN_TEST(opendir_file_not_dir);
     RUN_TEST(readdir_finds_entries);
     RUN_TEST(closedir_null);
+    RUN_TEST(mkdir_and_rmdir);
+    RUN_TEST(mkdir_already_exists);
+    RUN_TEST(rmdir_nonexistent);
 
     return test_summary();
 }

@@ -32,6 +32,39 @@ size_t amiport_strlcpy(char *dst, const char *src, size_t dst_size);
 size_t amiport_strlcat(char *dst, const char *src, size_t dst_size);
 
 /*
+ * explicit_bzero — secure zero-fill not optimized away by the compiler
+ *
+ * Fills n bytes at s with zero using a technique that prevents the
+ * compiler from eliding the call. Use this to clear sensitive data
+ * (keys, passwords) before freeing a buffer.
+ */
+void amiport_explicit_bzero(void *s, size_t n);
+
+/*
+ * strcasecmp — case-insensitive string comparison (BSD origin)
+ *
+ * Compares s1 and s2 ignoring ASCII case differences.
+ * Returns <0, 0, or >0 like strcmp.
+ */
+int amiport_strcasecmp(const char *s1, const char *s2);
+
+/*
+ * strncasecmp — case-insensitive bounded string comparison (BSD origin)
+ *
+ * Like strcasecmp but compares at most n characters.
+ * Returns <0, 0, or >0 like strncmp.
+ */
+int amiport_strncasecmp(const char *s1, const char *s2, size_t n);
+
+/*
+ * strcasestr — case-insensitive substring search (BSD origin)
+ *
+ * Searches for the first occurrence of needle in haystack, ignoring
+ * ASCII case. Returns a pointer to the match or NULL if not found.
+ */
+char *amiport_strcasestr(const char *haystack, const char *needle);
+
+/*
  * reallocarray — overflow-checked array reallocation (OpenBSD origin)
  *
  * Equivalent to realloc(ptr, nmemb * size) but checks for
@@ -59,6 +92,10 @@ void *amiport_recallocarray(void *ptr, size_t oldnmemb, size_t nmemb,
 #define strlcat         amiport_strlcat
 #define reallocarray    amiport_reallocarray
 #define recallocarray   amiport_recallocarray
+#define strcasecmp      amiport_strcasecmp
+#define strncasecmp     amiport_strncasecmp
+#define strcasestr      amiport_strcasestr
+#define explicit_bzero  amiport_explicit_bzero
 #endif
 
 #endif /* AMIPORT_STRING_H */

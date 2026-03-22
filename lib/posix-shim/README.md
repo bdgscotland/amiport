@@ -45,6 +45,15 @@ integer fds to AmigaOS `BPTR` file handles.
 | `pwrite()` | `amiport_pwrite()` | `Seek()+Write()+Seek()` (non-atomic) |
 | `tmpfile()` | `amiport_tmpfile()` | `Open("T:...")` |
 | `mkstemp()` | `amiport_mkstemp()` | Unique name via task address + counter |
+| `chmod()` | `amiport_chmod()` | No-op stub — Amiga protection bits have inverted semantics |
+| `realpath()` | `amiport_realpath()` | `Lock()+NameFromLock()` — NULL resolved arg malloc's buffer |
+
+### Environment (`process.c`)
+| POSIX | Shim | AmigaDOS |
+|-------|------|----------|
+| `getenv()` | `amiport_getenv()` | `GetVar()` — returns malloc'd string |
+| `setenv()` | `amiport_setenv()` | `SetVar()` + `GVF_GLOBAL_ONLY` — writes to ENV: |
+| `unsetenv()` | `amiport_unsetenv()` | `DeleteVar()` + `GVF_GLOBAL_ONLY` — succeeds if not set |
 
 ### Directory Operations (`dir_ops.c`)
 | POSIX | Shim | AmigaDOS |
@@ -53,6 +62,7 @@ integer fds to AmigaOS `BPTR` file handles.
 | `readdir()` | `amiport_readdir()` | `ExNext()` |
 | `closedir()` | `amiport_closedir()` | `UnLock()` |
 | `mkdir()` | `amiport_mkdir()` | `CreateDir()` — mode bits ignored |
+| `rmdir()` | `amiport_rmdir()` | `DeleteFile()` — same call as unlink on AmigaOS |
 | `getcwd()` | `amiport_getcwd()` | `GetCurrentDirName()` |
 | `chdir()` | `amiport_chdir()` | `CurrentDir()+Lock()` |
 
@@ -61,6 +71,7 @@ integer fds to AmigaOS `BPTR` file handles.
 |-------|------|----------|
 | `stat()` | `amiport_stat()` | `Lock()+Examine()` — DateStamp→Unix timestamp |
 | `fstat()` | `amiport_fstat()` | `ExamineFH()` — requires AmigaOS 2.0+ |
+| `lstat()` | `amiport_lstat()` | Alias to `amiport_stat()` — classic FFS has no symlinks |
 
 ### String Safety (`string_bsd.c`)
 | Function | Shim | Notes |

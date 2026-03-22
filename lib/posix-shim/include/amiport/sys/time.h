@@ -29,4 +29,45 @@ LONG amiport_time(LONG *tloc);
  * or finer with timer.device if available. */
 int amiport_usleep(ULONG usec);
 
+/*
+ * amiport_tm — broken-down time structure (mirrors POSIX struct tm).
+ *
+ * All fields follow the same conventions as POSIX struct tm:
+ *   tm_year  — years since 1900 (e.g. 126 for 2026)
+ *   tm_mon   — months since January, 0-11
+ *   tm_mday  — day of month, 1-31
+ *   tm_hour  — hours since midnight, 0-23
+ *   tm_min   — minutes, 0-59
+ *   tm_sec   — seconds, 0-60 (60 allowed for leap second)
+ *   tm_wday  — days since Sunday, 0-6 (not set by strptime)
+ *   tm_yday  — days since January 1, 0-365 (not set by strptime)
+ *   tm_isdst — daylight saving flag (not set by strptime)
+ */
+struct amiport_tm {
+    int tm_sec;
+    int tm_min;
+    int tm_hour;
+    int tm_mday;
+    int tm_mon;
+    int tm_year;
+    int tm_wday;
+    int tm_yday;
+    int tm_isdst;
+};
+
+/*
+ * strptime — parse a date/time string according to a format
+ *
+ * Supported specifiers: %Y %m %d %H %M %S %n %t %%
+ * Returns pointer to first unprocessed character, or NULL on error.
+ * tm_wday, tm_yday, tm_isdst are NOT set — call mktime() if needed.
+ */
+char *amiport_strptime(const char *s, const char *format,
+    struct amiport_tm *tm);
+
+/* Convenience macros */
+#ifndef AMIPORT_NO_TIME_MACROS
+#define strptime(s, f, t)  amiport_strptime(s, f, t)
+#endif
+
 #endif /* AMIPORT_SYS_TIME_H */

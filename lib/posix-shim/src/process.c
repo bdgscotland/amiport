@@ -10,6 +10,7 @@
 #include <proto/dos.h>
 #include <proto/exec.h>
 #include <dos/dos.h>
+#include <dos/var.h>
 
 #include <errno.h>
 #include <stdio.h>
@@ -101,6 +102,61 @@ char *amiport_getenv(const char *name)
     }
     memcpy(result, tmp, len + 1);
     return result;
+}
+
+/*
+ * amiport: setenv() — set a global AmigaDOS environment variable via SetVar().
+ *
+ * Uses GVF_GLOBAL_ONLY to write to ENV: (the system-wide variable store,
+ * typically RAM:ENV/). If overwrite is 0 and the variable already exists,
+ * this returns 0 without changing the existing value (POSIX semantics).
+ */
+int amiport_setenv(const char *name, const char *value, int overwrite)
+{
+    char tmp[256];
+    LONG existing;
+
+    if (!name || !value) {
+        errno = EINVAL;
+        return -1;
+    }
+
+    /* If overwrite is 0, check whether the variable already exists */
+    if (!overwrite) {
+        existing = GetVar((CONST_STRPTR)name, (STRPTR)tmp, sizeof(tmp) - 1, GVF_GLOBAL_ONLY);
+        if (existing >= 0) {
+            /* Variable exists and we must not overwrite — return success silently */
+            return 0;
+        }
+    }
+
+    /* amiport: SetVar with GVF_GLOBAL_ONLY stores in ENV: (current session).
+     * Does not persist to ENVARC: (use GVF_SAVE_VAR for that).
+     * Length -1 tells SetVar to use strlen(value). */
+    if (!SetVar((CONST_STRPTR)name, (CONST_STRPTR)value, -1, GVF_GLOBAL_ONLY)) {
+        errno = ENOMEM; /* Only failure mode is allocation failure */
+        return -1;
+    }
+    return 0;
+}
+
+/*
+ * amiport: unsetenv() — delete a global AmigaDOS environment variable via DeleteVar().
+ *
+ * Uses GVF_GLOBAL_ONLY to remove from ENV:. Returns 0 whether or not the
+ * variable existed (POSIX requires success even if name was not set).
+ */
+int amiport_unsetenv(const char *name)
+{
+    if (!name) {
+        errno = EINVAL;
+        return -1;
+    }
+
+    /* amiport: DeleteVar returns DOSFALSE if not found, but POSIX says
+     * unsetenv succeeds regardless — ignore the return value. */
+    DeleteVar((CONST_STRPTR)name, GVF_GLOBAL_ONLY);
+    return 0;
 }
 
 LONG amiport_getpid(void)

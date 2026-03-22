@@ -13,8 +13,10 @@
 #include <proto/dos.h>
 #include <proto/exec.h>
 #include <dos/dos.h>
+#include <dos/dosextens.h>
 
 #include <errno.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include <amiport/internal.h>
@@ -300,6 +302,69 @@ LONG amiport_lseek(int fd, LONG offset, int whence)
     return new_pos;
 }
 
+/*
+ * amiport: chmod() — no-op stub returning 0.
+ *
+ * AmigaOS protection bits have inverted semantics relative to POSIX
+ * (set bit = permission DENIED, not granted). Attempting a real mapping
+ * would confuse most ported programs. Most callers just want chmod to
+ * succeed silently after creating a file. Return 0 always.
+ */
+int amiport_chmod(const char *path, unsigned int mode)
+{
+    (void)path;
+    (void)mode;
+    return 0;
+}
+
+/*
+ * amiport: realpath() — resolve canonical path using Lock()+NameFromLock().
+ *
+ * AmigaOS has no symbolic links on classic FFS, so resolution is simply
+ * obtaining the full volume-qualified path. If resolved is NULL we
+ * malloc a 256-byte buffer (caller must free). Returns NULL on error.
+ */
+char *amiport_realpath(const char *path, char *resolved)
+{
+    BPTR lock;
+    char *buf;
+    BOOL ok;
+
+    if (!path) {
+        errno = EINVAL;
+        return NULL;
+    }
+
+    if (resolved) {
+        buf = resolved;
+    } else {
+        /* amiport: use malloc so the caller can free() it (POSIX realpath semantics) */
+        buf = (char *)malloc(256);
+        if (!buf) {
+            errno = ENOMEM;
+            return NULL;
+        }
+    }
+
+    lock = Lock((CONST_STRPTR)path, SHARED_LOCK);
+    if (!lock) {
+        amiport_map_errno();
+        if (!resolved) free(buf);
+        return NULL;
+    }
+
+    ok = NameFromLock(lock, (STRPTR)buf, 255);
+    UnLock(lock);
+
+    if (!ok) {
+        amiport_map_errno();
+        if (!resolved) free(buf);
+        return NULL;
+    }
+
+    return buf;
+}
+
 int amiport_unlink(const char *path)
 {
     if (!DeleteFile((CONST_STRPTR)path)) {
@@ -567,4 +632,130 @@ int amiport_fd_is_valid(int fd)
     if (fd < 0 || fd >= AMIPORT_MAX_FDS)
         return 0;
     return fd_used[fd];
+}
+
+/*
+ * readlink — read the target of an AmigaDOS soft link (OS 2.0+)
+ *
+ * amiport: AmigaDOS ReadLink() is designed to be called after receiving
+ * ERROR_IS_SOFT_LINK from a filesystem operation.  The correct sequence is:
+ *
+ *   1. Attempt Lock() on the path
+ *   2. If Lock() fails with ERROR_IS_SOFT_LINK, call GetDeviceProc() on
+ *      the path to get the filesystem MsgPort
+ *   3. Call ReadLink(port, parentlock, name, buf, size) to retrieve the
+ *      soft-link target string
+ *   4. FreeDeviceProc() when done
+ *
+ * If Lock() succeeds the object is NOT a soft link — return -1/EINVAL.
+ * If Lock() fails for any other reason, map and return -1/errno.
+ *
+ * Returns the number of bytes written to buf (not NUL-terminated), or -1.
+ */
+LONG
+amiport_readlink(const char *path, char *buf, size_t bufsiz)
+{
+    BPTR lock;
+    LONG ioerr;
+    struct DevProc *dvp;
+    LONG result;
+
+    if (!path || !buf || bufsiz == 0) {
+        errno = EINVAL;
+        return -1;
+    }
+
+    /* Step 1: try to lock the path */
+    lock = Lock((CONST_STRPTR)path, SHARED_LOCK);
+    if (lock) {
+        /* Lock succeeded — object is NOT a soft link */
+        UnLock(lock);
+        errno = EINVAL;
+        return -1;
+    }
+
+    ioerr = IoErr();
+
+    if (ioerr != ERROR_IS_SOFT_LINK) {
+        /* Some other error (not found, permission, etc.) */
+        amiport_map_errno();
+        /* Guard: if amiport_map_errno() left errno=0 (e.g. vamos quirk
+         * where IoErr() returns 0 for OBJECT_NOT_FOUND), default to ENOENT. */
+        if (errno == 0)
+            errno = ENOENT;
+        return -1;
+    }
+
+    /* Step 2: get the filesystem handler for this path */
+    dvp = GetDeviceProc((CONST_STRPTR)path, NULL);
+    if (!dvp) {
+        amiport_map_errno();
+        return -1;
+    }
+
+    /* Step 3: ask the filesystem for the link target */
+    result = ReadLink(
+        dvp->dvp_Port,
+        dvp->dvp_Lock,
+        (CONST_STRPTR)path,
+        (STRPTR)buf,
+        (ULONG)bufsiz
+    );
+
+    /* Step 4: release the device proc */
+    FreeDeviceProc(dvp);
+
+    if (result == -1) {
+        /* Filesystem refused — treat as EINVAL (not actually a soft link) */
+        errno = EINVAL;
+        return -1;
+    }
+
+    if (result == -2) {
+        errno = ENAMETOOLONG;
+        return -1;
+    }
+
+    /* result = number of bytes written (not NUL-terminated, per POSIX) */
+    return result;
+}
+
+/*
+ * ftruncate — truncate or extend an open file to a specified length
+ *
+ * amiport: uses AmigaDOS SetFileSize() (dos.library 36+, OS 2.0+).
+ * Translates the file descriptor to a BPTR via amiport_fd_to_fh().
+ *
+ * Caveat: when extending, AmigaDOS does NOT guarantee the new bytes are
+ * zero-filled (unlike POSIX).  Programs that depend on zero-fill after
+ * ftruncate() must write the zeros explicitly.
+ */
+int
+amiport_ftruncate(int fd, LONG length)
+{
+    BPTR fh;
+
+    if (length < 0) {
+        errno = EINVAL;
+        return -1;
+    }
+
+    fh = amiport_fd_to_fh(fd);
+    if (!fh) {
+        errno = EBADF;
+        return -1;
+    }
+
+    /*
+     * SetFileSize(fh, offset, mode):
+     *   offset — new file size
+     *   mode   — OFFSET_BEGINNING means size from start of file
+     * Returns -1 on failure (read-only volume, disk full, etc.)
+     */
+    if (SetFileSize(fh, length, OFFSET_BEGINNING) == -1) {
+        amiport_map_errno();
+        return -1;
+    }
+
+    return 0;
 }
