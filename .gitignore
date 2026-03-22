@@ -9,16 +9,14 @@ build/
 
 # Compiled Amiga binaries (produced by make build)
 examples/wc/wc
-examples/head/head
 examples/mini-find/mini-find
 tests/shim/test_*
 !tests/shim/test_*.c
 !tests/shim/test_*.h
 
-# Port packaging artifacts and generated reports
+# Port packaging artifacts
 ports/*/*.lha
 ports/*/*.zip
-ports/*/TEST-REPORT.md
 
 # Stray binaries in ported source dirs (compiled binaries go in ports/<name>/<name> only)
 ports/*/ported/[a-z]*
