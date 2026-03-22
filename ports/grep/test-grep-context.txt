@@ -1,0 +1,5 @@
+before one
+before two
+TARGET LINE
+after one
+after two

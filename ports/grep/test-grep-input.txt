@@ -3,3 +3,8 @@ foo bar
 Hello World
 a.b
 cat
+the quick brown fox
+word boundary test
+line seven has UPPERCASE
+line eight: special.chars[here]
+line nine matches twice matches

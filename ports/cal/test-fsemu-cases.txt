@@ -1,11 +1,106 @@
-TEST: Display March 2026
+# test-fsemu-cases.txt -- FS-UAE ARexx test suite for cal (OpenBSD 1.32)
+# Category 1 (CLI), minimum 8 tests required.
+# Cal reads no stdin -- all tests use argument-only invocation.
+# No input files needed: cal generates its own output from date arithmetic.
+
+TEST: Display specific month and year (March 2026)
 CMD: WORK:cal 3 2026
 EXPECT: March 2026
+EXPECT_RC: 0
 
-TEST: Display full year
+TEST: Display full year with -y flag
 CMD: WORK:cal -y 2026
-EXPECT: 2026
+EXPECT_CONTAINS: January
+EXPECT_RC: 0
 
-TEST: Julian day numbers
+TEST: Julian day numbers for a month (-j)
 CMD: WORK:cal -j 3 2026
 EXPECT: March 2026
+EXPECT_RC: 0
+
+TEST: Monday-first week layout (-m flag)
+CMD: WORK:cal -m 3 2026
+EXPECT_CONTAINS: Mo Tu We Th Fr Sa Su
+EXPECT_RC: 0
+
+TEST: Week numbers displayed (-w flag)
+CMD: WORK:cal -w 3 2026
+EXPECT_CONTAINS: March 2026
+EXPECT_RC: 0
+
+TEST: Week numbers output contains bracket notation
+CMD: WORK:cal -w 3 2026
+EXPECT_CONTAINS: [
+EXPECT_RC: 0
+
+TEST: Abbreviated month name accepted (mar = March)
+CMD: WORK:cal mar 2026
+EXPECT: March 2026
+EXPECT_RC: 0
+
+TEST: Julian full-year view (-j -y)
+CMD: WORK:cal -j -y 2026
+EXPECT_CONTAINS: 2026
+EXPECT_RC: 0
+
+TEST: September 1752 Gregorian reformation special case
+CMD: WORK:cal 9 1752
+EXPECT: September 1752
+EXPECT_RC: 0
+
+TEST: Year-only argument displays full year for that year
+CMD: WORK:cal 2000
+EXPECT_CONTAINS: January
+EXPECT_RC: 0
+
+TEST: Boundary -- January of year 1 (earliest valid year)
+CMD: WORK:cal 1 1
+EXPECT: January 1
+EXPECT_RC: 0
+
+TEST: Boundary -- December 9999 (latest valid year)
+CMD: WORK:cal 12 9999
+EXPECT: December 9999
+EXPECT_RC: 0
+
+TEST: No arguments returns current month without error
+CMD: WORK:cal
+EXPECT_CONTAINS: Su Mo Tu We Th Fr Sa
+EXPECT_RC: 0
+
+TEST: Error -- invalid month number 0
+CMD: WORK:cal 0 2026
+EXPECT_RC: 10
+
+TEST: Error -- invalid month number 13
+CMD: WORK:cal 13 2026
+EXPECT_RC: 10
+
+TEST: Error -- year 0 is out of valid range 1-9999
+CMD: WORK:cal 1 0
+EXPECT_RC: 10
+
+TEST: Error -- year 10000 exceeds valid range 1-9999
+CMD: WORK:cal 1 10000
+EXPECT_RC: 10
+
+TEST: Error -- unrecognised month name string
+CMD: WORK:cal foo 2026
+EXPECT_RC: 10
+
+TEST: Error -- invalid flag triggers usage message
+CMD: WORK:cal -z
+EXPECT_RC: 10
+
+TEST: Error -- too many arguments (month year extra)
+CMD: WORK:cal 3 2026 extra
+EXPECT_RC: 10
+
+TEST: Error -- -j and -w flags are mutually exclusive
+CMD: WORK:cal -j -w 3 2026
+EXPECT_RC: 10
+
+TEST: Amiga WORK: volume path -- cal binary resolves from WORK: correctly
+CMD: WORK:cal 6 2026
+EXPECT: June 2026
+EXPECT_RC: 0

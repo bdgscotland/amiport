@@ -1,3 +1,118 @@
-TEST: Sed runs without crash (version check via q command)
+# sed FS-UAE test suite
+# Category 1 (CLI) — minimum 8 tests required
+# Source: OpenBSD sed v1.47 (ports/sed/ported/)
+# Uses input file instead of piping (ARexx limitation)
+
+TEST: s command substitutes first occurrence on each line
+CMD: WORK:sed s/hello/goodbye/ WORK:test-sed-input.txt
+EXPECT: goodbye world
+EXPECT_RC: 0
+
+TEST: s command with g flag substitutes all occurrences on a line
+CMD: WORK:sed s/aaa/xxx/g WORK:test-sed-input.txt
+EXPECT_CONTAINS: xxx bbb xxx
+EXPECT_RC: 0
+
+TEST: d command deletes matching lines
+CMD: WORK:sed /foo/d WORK:test-sed-input.txt
+EXPECT: hello world
+EXPECT_RC: 0
+
+TEST: p command with -n flag prints only matching lines (-n suppresses auto-print)
+CMD: WORK:sed -n /foo/p WORK:test-sed-input.txt
+EXPECT: foo bar baz
+EXPECT_RC: 0
+
+TEST: -e flag specifies expression on command line
+CMD: WORK:sed -e s/hello/hi/ WORK:test-sed-input.txt
+EXPECT: hi world
+EXPECT_RC: 0
+
+TEST: -f flag reads script from file
+CMD: WORK:sed -f WORK:test-sed-script.txt WORK:test-sed-input.txt
+EXPECT: goodbye world
+EXPECT_RC: 0
+
+TEST: -E flag enables extended regular expressions (+ quantifier)
+CMD: WORK:sed -E s/hel+o/MATCH/ WORK:test-sed-input.txt
+EXPECT: MATCH world
+EXPECT_RC: 0
+
+TEST: q command quits after first line
 CMD: WORK:sed q WORK:test-sed-input.txt
 EXPECT: hello world
+EXPECT_RC: 0
+
+TEST: = command prints line number before each line
+CMD: WORK:sed = WORK:test-sed-input.txt
+EXPECT: 1
+EXPECT_RC: 0
+
+TEST: y command transliterates characters
+CMD: WORK:sed y/abcdef/ABCDEF/ WORK:test-sed-input.txt
+EXPECT: hEllo worlD
+EXPECT_RC: 0
+
+TEST: line address selects specific line number
+CMD: WORK:sed -n 2p WORK:test-sed-input.txt
+EXPECT: foo bar baz
+EXPECT_RC: 0
+
+TEST: $ address selects last line
+CMD: WORK:sed -n $p WORK:test-sed-input.txt
+EXPECT: line six
+EXPECT_RC: 0
+
+TEST: ! negation prints lines not matching pattern
+CMD: WORK:sed -n /hello/!p WORK:test-sed-input.txt
+EXPECT: foo bar baz
+EXPECT_RC: 0
+
+TEST: multiple -e expressions applied in sequence
+CMD: WORK:sed -e s/hello/hi/ -e s/world/earth/ WORK:test-sed-input.txt
+EXPECT: hi earth
+EXPECT_RC: 0
+
+TEST: s command with p flag prints substituted lines (with auto-print)
+CMD: WORK:sed s/hello/goodbye/p WORK:test-sed-input.txt
+EXPECT: goodbye world
+EXPECT_RC: 0
+
+TEST: empty input file produces no output and exits 0
+CMD: WORK:sed s/x/y/ WORK:test-empty.txt
+EXPECT:
+EXPECT_RC: 0
+
+TEST: long line handled without crash (buffer growth)
+CMD: WORK:sed s/MARKER/FOUND/ WORK:test-longline.txt
+EXPECT_CONTAINS: FOUND
+EXPECT_RC: 0
+
+TEST: Amiga WORK: volume path accepted as input file argument
+CMD: WORK:sed -n 1p WORK:test-sed-input.txt
+EXPECT: hello world
+EXPECT_RC: 0
+
+TEST: nonexistent input file reports error and returns RC 10
+CMD: WORK:sed s/x/y/ WORK:no-such-file.txt
+EXPECT_RC: 10
+
+TEST: invalid flag returns RC 10 with usage message
+CMD: WORK:sed -Z s/x/y/ WORK:test-sed-input.txt
+EXPECT_RC: 10
+
+TEST: bad regular expression in -e expression returns RC 10
+CMD: WORK:sed -e s/[invalid/x/ WORK:test-sed-input.txt
+EXPECT_RC: 10
+
+TEST: invalid sed command letter returns RC 10
+CMD: WORK:sed -e X WORK:test-sed-input.txt
+EXPECT_RC: 10
+
+TEST: unterminated substitute pattern returns RC 10
+CMD: WORK:sed s/hello WORK:test-sed-input.txt
+EXPECT_RC: 10
+
+TEST: y transform with unequal string lengths returns RC 10
+CMD: WORK:sed y/abc/xy/ WORK:test-sed-input.txt
+EXPECT_RC: 10

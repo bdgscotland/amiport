@@ -1,19 +1,73 @@
-TEST: Version string present
-CMD: version WORK:tail
-EXPECT_CONTAINS: tail 1.24
+# tail FS-UAE test suite
+# Category 1 (CLI) — minimum 8 tests required
+# Uses input files instead of piping (ARexx limitation)
 
-TEST: Default last 10 lines
-CMD: WORK:tail WORK:test-tail-input.txt
+TEST: Default last 10 lines of a 20-line file
+CMD: WORK:tail WORK:test-tail-numbered.txt
 EXPECT: line 11
+EXPECT_RC: 0
 
-TEST: Last 5 lines
-CMD: WORK:tail -n 5 WORK:test-tail-input.txt
+TEST: -n flag selects last N lines
+CMD: WORK:tail -n 5 WORK:test-tail-numbered.txt
 EXPECT: line 16
+EXPECT_RC: 0
 
-TEST: From line 15 onward
-CMD: WORK:tail -n +15 WORK:test-tail-input.txt
+TEST: -n +N flag starts from line N (forward from beginning)
+CMD: WORK:tail -n +15 WORK:test-tail-numbered.txt
 EXPECT: line 15
+EXPECT_RC: 0
 
-TEST: Last 1 line of second file
-CMD: WORK:tail -n 1 WORK:test-tail-input2.txt
+TEST: -c flag selects last N bytes
+CMD: WORK:tail -c 5 WORK:test-tail-bytes.txt
+EXPECT: GHIJ
+EXPECT_RC: 0
+
+TEST: -r flag reverses output (last line appears first)
+CMD: WORK:tail -r -n 3 WORK:test-tail-short.txt
 EXPECT: gamma
+EXPECT_RC: 0
+
+TEST: Multiple files print filename headers
+CMD: WORK:tail -n 1 WORK:test-tail-short.txt WORK:test-tail-bytes.txt
+EXPECT_CONTAINS: ==> WORK:test-tail-short.txt <==
+EXPECT_RC: 0
+
+TEST: Empty file produces no output
+CMD: WORK:tail WORK:test-tail-empty.txt
+EXPECT:
+EXPECT_RC: 0
+
+TEST: File with fewer lines than requested returns all lines
+CMD: WORK:tail -n 10 WORK:test-tail-short.txt
+EXPECT: alpha
+EXPECT_RC: 0
+
+TEST: Nonexistent file prints warning and exits with RC 5
+CMD: WORK:tail WORK:does-not-exist.txt
+EXPECT_CONTAINS: does-not-exist.txt
+EXPECT_RC: 5
+
+TEST: Invalid -n argument (non-numeric) exits with RC 10
+CMD: WORK:tail -n abc WORK:test-tail-short.txt
+EXPECT_CONTAINS: illegal offset
+EXPECT_RC: 10
+
+TEST: Combining -r and -f flags is rejected (usage error)
+CMD: WORK:tail -r -f WORK:test-tail-short.txt
+EXPECT_CONTAINS: usage
+EXPECT_RC: 10
+
+TEST: Unknown flag exits with RC 10 (usage error)
+CMD: WORK:tail -Z WORK:test-tail-short.txt
+EXPECT_CONTAINS: usage
+EXPECT_RC: 10
+
+TEST: Amiga WORK: volume path works correctly
+CMD: WORK:tail -n 1 WORK:test-tail-short.txt
+EXPECT: gamma
+EXPECT_RC: 0
+
+TEST: Last 1 line of a long file (Amiga path, exact output)
+CMD: WORK:tail -n 1 WORK:test-tail-numbered.txt
+EXPECT: line 20
+EXPECT_RC: 0

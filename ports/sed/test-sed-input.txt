@@ -1,4 +1,6 @@
 hello world
+foo bar baz
 aaa bbb aaa
-line1
-line2
+line four
+UPPERCASE LINE
+line six

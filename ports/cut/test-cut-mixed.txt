@@ -1,0 +1,4 @@
+no-delimiter-here
+has:delimiter:here
+also:has:delimiter
+another-line-without
