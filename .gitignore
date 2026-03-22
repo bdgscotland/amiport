@@ -84,3 +84,4 @@ enforcer.log
 enforcer-hits.json
 enforcer-mapped.json
 *.map
+.gstack/

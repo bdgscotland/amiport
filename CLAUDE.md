@@ -22,6 +22,7 @@ The porting pipeline has 5 stages, each backed by a Claude skill:
 - `lib/posix-emu/` — Tier 2: Approximate POSIX emulation with documented caveats (`amiport_emu_*` functions)
 - `lib/console-shim/` — Minimal ncurses API mapped to Amiga console.device ANSI escapes (ADR-009)
 - `lib/bsdsocket-shim/` — BSD socket API via bsdsocket.library with auto lifecycle (ADR-010)
+- `site/` — Website source (PHP API, static HTML, CSS, JS) for amiport.platesteel.net
 - `toolchain/` — Cross-compiler Docker images, build scripts, target profiles
 - `docs/` — Architecture docs, API mapping tables, porting guide, tier classification
 - `docs/references/adcd/` — Complete ADCD 2.1 in agent-optimized markdown (Libraries, Devices, Hardware, Amiga Mail, Autodocs)
@@ -115,6 +116,13 @@ The toolchain scripts in `toolchain/scripts/` handle detection and invocation. A
 Use **vamos** (from amitools) for CLI program testing (Categories 1-2) — it provides a virtual AmigaOS runtime without needing a full emulator. The `test-amiga` skill handles this.
 
 For console UI apps (Category 3), network apps (Category 4), GUI programs, or hardware-dependent code, use **FS-UAE** with a configured AmigaOS 3.x installation. See ADR-014 for automated FS-UAE testing design.
+
+## Design System
+
+Always read `DESIGN.md` before making any visual or UI decisions for the website (`site/`).
+All font choices, colors, spacing, and aesthetic direction are defined there.
+Do not deviate without explicit user approval.
+In QA mode, flag any code that doesn't match DESIGN.md.
 
 ## Key References
 

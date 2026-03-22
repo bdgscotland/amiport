@@ -194,6 +194,37 @@ Created `hardware-expert` agent (12th agent) with 6 research-backed knowledge do
 
 ---
 
+## Website & Package Manager
+
+### amiport.platesteel.net — Website + Package Index + amiget CLI
+
+**What:** Three-part system: (1) project website on Dreamhost shared hosting with PHP API, (2) browsable package index with download tracking, (3) `amiget` CLI for classic AmigaOS 3.x that fetches and installs packages over HTTP.
+
+**Why:** No package manager exists for classic 68k AmigaOS. Aminet is a file dump. Grunch serves OS4/MorphOS only. This fills the gap and gives amiport a web home.
+
+**Design doc:** `~/.gstack/projects/bdgscotland-amiport/duncan-main-design-20260322-113337.md` (APPROVED)
+**Design system:** `DESIGN.md` (Workbench 3.x aesthetic)
+
+**Implementation phases:**
+1. [ ] Configure `amiport.platesteel.net` subdomain in Dreamhost panel
+2. [ ] Build website skeleton (landing page, package browser, API endpoints) — `site/`
+3. [ ] Create per-port `package.json` files for all 11 ports
+4. [ ] Create `/deploy-site` skill + `site-manager` agent
+5. [ ] Build `lib/http-shim/` (HTTP/1.0 client on top of bsdsocket-shim)
+6. [ ] Port `amiget` CLI through `/port-project` pipeline — `ports/amiget/`
+7. [ ] Create `/publish-package` skill (integrates with port completion)
+8. [ ] Announce on Amiga forums
+
+**Key decisions:**
+- PHP + static frontend (no database, flat-file JSON store)
+- Query parameters for API (`/api/v1/download.php?name=grep`), not pretty URLs
+- HTTP only for Amiga CLI (no TLS), HTTPS for browsers
+- Per-port package.json files committed to repo (no markdown parsing)
+- `lib/http-shim/` as reusable library from day one
+- Unit test HTTP/JSON parsing in vamos; network integration tests via FS-UAE
+
+---
+
 ## Port Targets
 
 ### Completed Ports
@@ -223,6 +254,6 @@ Created `hardware-expert` agent (12th agent) with 6 research-backed knowledge do
 
 Console-shim library complete (ADR-009). `less` is the first target. Needs window size detection via Intuition.
 
-### Category 4 (Network) — wget-lite
+### ~~Category 4 (Network) — wget-lite~~ — SUBSUMED
 
-BSD socket shim complete (ADR-010). Needs a simple HTTP client to validate.
+Subsumed by the `amiget` port (amiport package manager CLI). `amiget` is the first Category 4 consumer of bsdsocket-shim — it implements a full HTTP/1.0 client via `lib/http-shim/` for downloading packages. The http-shim component serves as the reusable HTTP layer that wget-lite would have created.
