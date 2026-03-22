@@ -13,5 +13,6 @@
     "aminet": "https://aminet.net/package/util/cli/head-1.24",
     "readme": "Short:        Print first lines of files (OpenBSD)\nType:         util/cli\nArchitecture: m68k-amigaos >= 3.0\nUploader:     duncan (at) bowring (dot) us\nAuthor:       Bill Joy / UC Berkeley (ported by Duncan Bowring)\nVersion:      1.24\n\nhead \u2014 Print first lines of files\n\nOriginal author: Bill Joy / UC Berkeley (OpenBSD head.c,v 1.24)\nPorted by Duncan Bowring using amiport (AI-assisted porting toolkit).\nProject: https://github.com/bdgscotland/amiport\n\nCross-compiled with m68k-amigaos-gcc for AmigaOS 3.x (68000+).\nTested on FS-UAE (A1200, Kickstart 3.1) -- 21/21 tests passed.\n\nUsage:\n  head [file ...]             Print first 10 lines of each file\n  head -n 5 file.txt          Print first 5 lines\n  head -20 file.txt           Print first 20 lines (legacy syntax)\n  head file1.txt file2.txt    Multiple files with ==> headers <==\n\nFeatures:\n  - Default: 10 lines\n  - -n count: specify line count\n  - Legacy -count syntax supported\n  - Multiple files get ==> filename <== headers\n  - Reads stdin when no files given\n  - AmigaOS wildcard expansion (#? patterns)\n  - Proper exit codes: 0=OK, 10=ERROR\n\nIncludes full source code (original POSIX and ported Amiga versions)\nand PORT.md documenting every transformation applied.",
     "status": "stable",
-    "revision": 1
+    "revision": 1,
+    "published_at": "2026-03-22T12:00:00Z"
 }

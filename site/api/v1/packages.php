@@ -16,15 +16,33 @@ $dataDir = dirname(__DIR__, 2) . '/data/packages';
 /**
  * Sanitize package data: extract only known fields with strict types.
  */
+/**
+ * Mask email addresses: user@domain.tld -> user (at) domain (dot) tld
+ */
+function mask_emails(string $text): string
+{
+    return preg_replace(
+        '/([a-zA-Z0-9._%+-]+)@([a-zA-Z0-9.-]+)\.([a-zA-Z]{2,})/',
+        '$1 (at) $2 (dot) $3',
+        $text
+    );
+}
+
 function sanitize_package(array $raw): array
 {
     $pkg = [];
     $stringFields = ['name', 'version', 'description', 'category', 'source',
-                     'license', 'download', 'aminet', 'sha256', 'readme', 'status'];
+                     'license', 'download', 'aminet', 'sha256', 'readme', 'status',
+                     'published_at'];
     foreach ($stringFields as $field) {
         if (isset($raw[$field]) && is_string($raw[$field])) {
             $pkg[$field] = $raw[$field];
         }
+    }
+
+    // Mask emails in readme to prevent spam scraping
+    if (isset($pkg['readme'])) {
+        $pkg['readme'] = mask_emails($pkg['readme']);
     }
     $intFields = ['size', 'stack', 'revision'];
     foreach ($intFields as $field) {

@@ -83,7 +83,9 @@ Never publish without the user saying yes.
     "aminet": "<aminet URL if published>",
     "stack": <stack cookie value>,
     "status": "stable|testing",
-    "readme": "<full .readme content>"
+    "revision": 1,
+    "published_at": "<ISO 8601 timestamp of publish>",
+    "readme": "<full .readme content — MUST mask emails: user@domain → user (at) domain (dot) tld>"
 }
 ```
 
@@ -115,6 +117,25 @@ rsync -avz --delete --exclude '.env' --exclude 'data/counters/*.txt' \
 Verify after deploy:
 ```bash
 curl -s "http://amiport.platesteel.net/api/v1/packages.php?name=<name>" | python3 -c "import sys,json; d=json.load(sys.stdin); print(f'{d[\"name\"]} v{d[\"version\"]} status={d[\"status\"]}')"
+```
+
+## CRITICAL: Email Masking
+
+When generating the package JSON `readme` field from the port's `.readme` file, **always mask email addresses** before writing the JSON:
+
+```
+user@domain.tld  →  user (at) domain (dot) tld
+```
+
+This prevents spam scraping from the public API. The source `.readme` files in `ports/` keep the real email (Aminet requires it). Only the `site/data/packages/*.json` files get masked.
+
+The PHP API (`packages.php`) also masks at serve time as a safety net, but the JSON files themselves should already be masked.
+
+## CRITICAL: Timestamp
+
+Set `published_at` to the current ISO 8601 timestamp when publishing or updating a package:
+```
+"published_at": "2026-03-22T17:30:00Z"
 ```
 
 ## Relationship to aminet-publisher
