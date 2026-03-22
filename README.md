@@ -6,7 +6,10 @@ amiport combines POSIX compatibility libraries, AI-powered build agents, and a c
 
 [![CI](https://github.com/bdgscotland/amiport/actions/workflows/ci.yml/badge.svg)](https://github.com/bdgscotland/amiport/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Aminet](https://img.shields.io/badge/Aminet-2_ports_live-blue)](https://aminet.net)
+[![Aminet](https://img.shields.io/badge/Aminet-4_ports_submitted-blue)](https://aminet.net)
+[![GitHub stars](https://img.shields.io/github/stars/bdgscotland/amiport?style=social)](https://github.com/bdgscotland/amiport/stargazers)
+
+> If you find this project useful or interesting, please give it a star! It helps others discover amiport and motivates continued development.
 
 ### End-to-end port of OpenBSD `tee` — 28 minutes, 20x speed
 
@@ -19,12 +22,13 @@ amiport combines POSIX compatibility libraries, AI-powered build agents, and a c
 | [cal](ports/cal/) | 1.32 | CLI | Unix calendar display (OpenBSD) | [Live on Aminet](https://aminet.net/package/util/cli/cal-1.0) |
 | [cut](ports/cut/) | 1.28 | CLI | Extract fields/columns from text (OpenBSD) | [Live on Aminet](https://aminet.net/package/util/cli/cut-1.0) |
 | [diff](ports/diff/) | 1.95 | CLI | File comparison utility (OpenBSD) | Known issues |
+| [head](ports/head/) | 1.24 | CLI | Print first lines of files (OpenBSD) | Built & tested |
 | [grep](ports/grep/) | 1.68 | CLI | Pattern search — regex, fixed, recursive (OpenBSD) | Built & tested |
 | [sed](ports/sed/) | 1.47 | CLI | Stream editor — text transformation (OpenBSD) | Built & tested |
 | [lua](ports/lua/) | 5.4.7 | Scripting | Lua 5.4 scripting language (PUC-Rio) | Built & tested |
 | [tail](ports/tail/) | 1.24 | CLI | Display last part of a file with follow mode (OpenBSD) | Built & tested |
-| [tee](ports/tee/) | 1.15 | CLI | Duplicate standard input (OpenBSD) | Built & tested |
-| [yes](ports/yes/) | 1.9 | CLI | Repeatedly output a string (OpenBSD) | Built & tested |
+| [tee](ports/tee/) | 1.15 | CLI | Duplicate standard input (OpenBSD) | Submitted to Aminet |
+| [yes](ports/yes/) | 1.9 | CLI | Repeatedly output a string (OpenBSD) | Submitted to Aminet |
 
 Pre-built Amiga binaries are included in each port directory. See **[PORTS.md](PORTS.md)** for the full catalog.
 

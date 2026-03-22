@@ -30,13 +30,18 @@ for dir in "$PROJECT_DIR"/ports/*/; do
     fi
 done
 
-# Install built examples
+# Install built examples (skip if a port with the same name exists —
+# ports take priority over examples to avoid shadowing)
 for dir in "$PROJECT_DIR"/examples/*/; do
     name=$(basename "$dir")
     if [ -f "$dir/$name" ]; then
-        cp "$dir/$name" "$EMU_DIR/"
-        echo "  [OK] $name (example)"
-        INSTALLED=$((INSTALLED + 1))
+        if [ -f "$PROJECT_DIR/ports/$name/$name" ]; then
+            echo "  [SKIP] $name (example) — port exists, skipping"
+        else
+            cp "$dir/$name" "$EMU_DIR/"
+            echo "  [OK] $name (example)"
+            INSTALLED=$((INSTALLED + 1))
+        fi
     fi
 done
 

@@ -399,10 +399,22 @@ diagnose_timeout() {
             echo "  Run with --debug to capture Enforcer hits."
         else
             echo -e "${YELLOW}DIAGNOSIS: First test command hung (timeout after ${elapsed}s)${NC}"
-            echo "  Likely cause: libnix exit() hang (crash-patterns #9)"
             echo "  The ARexx harness started ($total tests parsed) but the first"
             echo "  command never returned."
+            echo ""
+            echo "  Possible causes (check in order):"
+            echo "  1. Guru Meditation (crash) — program hit a fatal error and FS-UAE"
+            echo "     is waiting at the alert requester. Check the FS-UAE window for"
+            echo "     'Software Failure' dialog. Common: stack overflow (crash-patterns #10),"
+            echo "     NULL pointer deref, illegal instruction."
+            echo "  2. libnix exit() hang (crash-patterns #9) — DEBUNKED but still in"
+            echo "     the diagnosis. Real exit hangs are rare; most 'hangs' are Guru."
+            echo "  3. Infinite loop without Ctrl-C check."
+            echo ""
+            echo "  To debug: re-run with --debug flag to capture Enforcer hits,"
+            echo "  or dispatch the debug-agent: /debug-amiga"
             check_exit_hang_pattern "$port_dir"
+            check_stack_overflow_risk "$port_dir"
         fi
         return 1
     fi
@@ -424,6 +436,33 @@ diagnose_timeout() {
     echo -e "${RED}DIAGNOSIS: Unknown timeout cause${NC}"
     echo "  FS-UAE log: $RESULTS_DIR/fsuae.log"
     return 1
+}
+
+check_stack_overflow_risk() {
+    local port_dir="$1"
+    local ported_dir="$port_dir/ported"
+
+    [ -d "$ported_dir" ] || return 1
+
+    # Check for large local arrays that could overflow the stack
+    local large_bufs
+    large_bufs=$(grep -nE 'char\s+\w+\[([0-9]{4,})\]' "$ported_dir"/*.c 2>/dev/null | grep -v 'static\s' || true)
+
+    local stack_size
+    stack_size=$(grep -oE '__stack\s*=\s*[0-9]+' "$ported_dir"/*.c 2>/dev/null | grep -oE '[0-9]+' | tail -1)
+
+    if [ -n "$large_bufs" ]; then
+        echo ""
+        echo -e "${YELLOW}  STACK OVERFLOW RISK DETECTED:${NC}"
+        echo "  Large non-static local buffer(s) found:"
+        echo "$large_bufs" | sed 's/^/    /'
+        echo "  __stack = ${stack_size:-unknown}"
+        echo "  On real AmigaOS, dos.library calls add 2-4KB to call chain depth."
+        echo "  Fix: make large buffers 'static' or increase __stack (crash-patterns #10)."
+        return 2
+    fi
+
+    return 0
 }
 
 check_exit_hang_pattern() {
