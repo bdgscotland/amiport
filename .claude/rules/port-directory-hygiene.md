@@ -8,6 +8,7 @@ Every port directory (`ports/<name>/`) must contain exactly:
 ports/<name>/
 ├── original/              # Upstream source ONLY (.c, .h)
 ├── ported/                # Transformed source ONLY (.c, .h)
+├── .claude/agent-memory/  # Agent learning artifacts (DO NOT DELETE)
 ├── Makefile               # Build rules
 ├── PORT.md                # Porting log
 ├── <name>.readme          # Aminet readme (REQUIRED for every port)

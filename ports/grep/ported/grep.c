@@ -74,8 +74,9 @@ int	 hflag;		/* -h: don't print filename headers */
 int	 iflag;		/* -i: ignore case */
 int	 lflag;		/* -l: only show names of files with matches */
 int	 mflag;		/* -m x: stop reading the files after x matches */
-long long mcount;	/* count for -m */
-long long mlimit;	/* requested value for -m */
+/* amiport perf: downgraded from long long — see grep.h comment */
+long mcount;		/* count for -m */
+long mlimit;		/* requested value for -m */
 int	 nflag;		/* -n: show line numbers in front of matching lines */
 int	 oflag;		/* -o: print each match */
 int	 qflag;		/* -q: quiet mode (don't output anything) */
@@ -149,6 +150,24 @@ cleanup_patterns(void)
 	}
 	/* amiport: free the global line buffer allocated by getline() in file.c */
 	grep_free_lnbuf();
+}
+
+/* amiport: memory leak fix — free optparse allocations (expr array,
+ * patfile list) before errx() calls in the getopt loop.  AmigaOS has
+ * no process-exit cleanup with -noixemul, so even error-path leaks
+ * persist until reboot.  expr and patfilelh are locals in main() so
+ * we pass them explicitly. */
+static void
+cleanup_optparse(char **expr, struct patfile **patfilelh_first)
+{
+	struct patfile *pf, *pf_next;
+
+	free(expr);
+	for (pf = *patfilelh_first; pf != NULL; pf = pf_next) {
+		pf_next = SLIST_NEXT(pf, pf_next);
+		free(pf);
+	}
+	*patfilelh_first = NULL;
 }
 
 static void
@@ -335,16 +354,20 @@ main(int argc, char *argv[])
 		case '5': case '6': case '7': case '8': case '9':
 			if (newarg || !isdigit(lastc))
 				Aflag = 0;
-			else if (Aflag > INT_MAX / 10)
-				/* amiport: errx(2,...) -> errx(AMIGA_RETURN_ERROR,...) */
+			else if (Aflag > INT_MAX / 10) {
+				/* amiport: memory + errx fix */
+				cleanup_optparse(expr, &patfilelh.slh_first);
 				errx(AMIGA_RETURN_ERROR, "context out of range");
+			}
 			Aflag = Bflag = (Aflag * 10) + (c - '0');
 			break;
 		case 'A':
 		case 'B':
 			l = strtonum(optarg, 1, INT_MAX, &errstr);
-			if (errstr != NULL)
+			if (errstr != NULL) {
+				cleanup_optparse(expr, &patfilelh.slh_first);
 				errx(AMIGA_RETURN_ERROR, "context %s", errstr);
+			}
 			if (c == 'A')
 				Aflag = (int)l;
 			else
@@ -355,8 +378,10 @@ main(int argc, char *argv[])
 				Aflag = Bflag = 2;
 			else {
 				l = strtonum(optarg, 1, INT_MAX, &errstr);
-				if (errstr != NULL)
+				if (errstr != NULL) {
+					cleanup_optparse(expr, &patfilelh.slh_first);
 					errx(AMIGA_RETURN_ERROR, "context %s", errstr);
+				}
 				Aflag = Bflag = (int)l;
 			}
 			break;
@@ -435,11 +460,14 @@ main(int argc, char *argv[])
 			break;
 		case 'm':
 			mflag = 1;
-			mlimit = mcount = strtonum(optarg, 0, LLONG_MAX,
+			/* amiport perf: use LONG_MAX — mcount/mlimit are now long */
+			mlimit = mcount = strtonum(optarg, 0, LONG_MAX,
 			   &errstr);
-			if (errstr != NULL)
+			if (errstr != NULL) {
+				cleanup_optparse(expr, &patfilelh.slh_first);
 				errx(AMIGA_RETURN_ERROR, "invalid max-count %s: %s",
 				    optarg, errstr);
+			}
 			break;
 		case 'n':
 			nflag = 1;
@@ -469,8 +497,10 @@ main(int argc, char *argv[])
 				binbehave = BIN_FILE_SKIP;
 			else if (strcmp("text", optarg) == 0)
 				binbehave = BIN_FILE_TEXT;
-			else
+			else {
+				cleanup_optparse(expr, &patfilelh.slh_first);
 				errx(AMIGA_RETURN_ERROR, "Unknown binary-files option");
+			}
 			break;
 		case 'u':
 		case MMAP_OPT:

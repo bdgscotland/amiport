@@ -48,7 +48,10 @@
 
 typedef struct {
 	size_t		 len;
-	long long	 line_no;
+	/* amiport perf: downgraded from long long — 2.1B lines is sufficient
+	 * and avoids 64-bit arithmetic on every line increment (68000 has no
+	 * 64-bit hardware: each long long add/compare is 4-6 instructions). */
+	long		 line_no;
 	off_t		 off;
 	char		*file;
 	char		*dat;
@@ -83,7 +86,9 @@ extern fastgrep_t *fg_pattern;
 extern regex_t	*r_pattern;
 
 /* For -m max-count */
-extern long long mcount, mlimit;
+/* amiport perf: downgraded from long long — -m values are bounded by INT_MAX
+ * (enforced by strtonum in main()); long is safe and avoids 64-bit ops. */
+extern long mcount, mlimit;
 
 /* For regex errors  */
 #define RE_ERROR_BUF 512
