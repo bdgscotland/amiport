@@ -8,6 +8,10 @@ amiport combines POSIX compatibility libraries, AI-powered build agents, and a c
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Aminet](https://img.shields.io/badge/Aminet-2_ports_live-blue)](https://aminet.net)
 
+### End-to-end port of OpenBSD `tee` — 28 minutes, 20x speed
+
+![End-to-end port of OpenBSD tee to AmigaOS 3.x](docs/media/teeport-demo.gif)
+
 ## Ports
 
 | Port | Version | Category | Description | Status |
