@@ -117,6 +117,28 @@ Headers to **remove entirely** (with a comment):
 #include <dlfcn.h>
 // After:
 /* amiport: removed <dlfcn.h> — no dynamic loading on classic AmigaOS */
+
+// Before:
+#include <locale.h>
+// After:
+/* amiport: removed <locale.h> — setlocale() stub is in <amiport/unistd.h> */
+
+// Before:
+#include <util.h>
+// After:
+/* amiport: removed <util.h> — OpenBSD-specific; inline fmt_scaled() if needed */
+// See Section 9 "fmt_scaled()" rule for inline implementation
+
+// Before:
+#include <wchar.h>
+// After:
+/* amiport: removed <wchar.h> — no wchar support on AmigaOS 3.x */
+// Guard multibyte code paths with #ifndef __AMIGA__
+
+// Before:
+#include <wctype.h>
+// After:
+/* amiport: removed <wctype.h> — no wctype support on AmigaOS 3.x */
 ```
 
 Headers that **need no change** (provided by clib2/newlib):
@@ -768,6 +790,79 @@ long __stack = 32768; /* amiport: stack cookie — Amiga default 4KB is too smal
 
 // For recursive programs (grep -r, find, diff):
 long __stack = 65536; /* amiport: stack cookie — extra for recursion */
+```
+
+### __progname initialization (OpenBSD programs)
+
+OpenBSD programs use `extern char *__progname` (auto-set by libc). bebbo-gcc libnix does NOT provide this. Define it and initialize from argv[0]:
+
+```c
+/* RULE: Initialize __progname for OpenBSD ports */
+
+// Before (at file scope):
+extern char *__progname;
+
+// After (at file scope):
+char *__progname; /* amiport: defined here — libnix does not provide it */
+
+// Add at top of main(), before getopt:
+__progname = strrchr(argv[0], '/');
+if (__progname == NULL)
+    __progname = strrchr(argv[0], ':'); /* amiport: Amiga volume separator */
+if (__progname != NULL)
+    __progname++;
+else
+    __progname = argv[0];
+```
+
+### <util.h> / fmt_scaled() (OpenBSD human-readable formatting)
+
+OpenBSD's `<util.h>` provides `fmt_scaled()` and `FMT_SCALED_STRSIZE` for human-readable byte counts (-h flags). Not available on AmigaOS. Inline a minimal implementation:
+
+```c
+/* RULE: Replace <util.h> with inline fmt_scaled() */
+
+// Remove:
+#include <util.h>
+
+// Add (at file scope):
+/* amiport: fmt_scaled() from OpenBSD util.h — inlined */
+#define FMT_SCALED_STRSIZE 7
+static int
+fmt_scaled(long long number, char *result)
+{
+    const char units[] = " KMGTPE";
+    int i = 0;
+    double v = (double)number;
+    while (v >= 1024.0 && i < 6) { v /= 1024.0; i++; }
+    if (i == 0)
+        snprintf(result, FMT_SCALED_STRSIZE, "%6lld", number);
+    else
+        snprintf(result, FMT_SCALED_STRSIZE, "%5.1f%c", v, units[i]);
+    return 0;
+}
+// Note: Uses double arithmetic — link with -lm for soft-float helpers
+```
+
+### MB_CUR_MAX guard (locale/multibyte paths)
+
+`MB_CUR_MAX` expands to `__locale_mb_cur_max()` in libnix — a runtime function that may return >1. If the multibyte code path is compiled out (`#ifndef __AMIGA__`), guard the `MB_CUR_MAX` check too:
+
+```c
+/* RULE: Guard MB_CUR_MAX checks when multibyte path is compiled out */
+
+// Before:
+if (MB_CUR_MAX > 1)
+    multibyte = 1;
+
+// After:
+#ifndef __AMIGA__
+if (MB_CUR_MAX > 1)
+    multibyte = 1;
+#endif
+/* amiport: MB_CUR_MAX is __locale_mb_cur_max() on libnix — may return >1
+ * even without locale support. Must guard to prevent entering a compiled-out
+ * code path. See known-pitfalls.md. */
 ```
 
 ### vsnprintf(NULL, 0, ...) probe buffer (crash-patterns #5)

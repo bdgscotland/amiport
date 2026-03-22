@@ -49,6 +49,21 @@ When making transformation decisions, consult these ADCD reference docs for HOW 
 - `docs/references/adcd/examples/` — Real AmigaOS code examples by library
 - `docs/references/autodocs/` — API function signatures (existing)
 
+## Pre-Transform Verification (MANDATORY)
+
+Before writing any transformed source, verify the actual shim function signatures:
+
+1. **For each `amiport_*` function you plan to call**, grep the actual header in `lib/posix-shim/include/amiport/` to confirm the function signature (argument count, types, return type). Do NOT assume signatures from memory or documentation alone.
+2. **For each header you plan to include**, verify it exists: `ls lib/posix-shim/include/amiport/<header>.h`
+3. **For `<amiport/glob.h>` functions** (`amiport_expand_argv`, `amiport_free_argv`), check the actual signature — these have changed over time.
+
+Example verification:
+```bash
+grep 'amiport_free_argv' lib/posix-shim/include/amiport/glob.h
+```
+
+This prevents build failures from wrong argument counts or missing headers.
+
 ## When Unsure
 
 - Check `references/amiga-api-reference.md` for AmigaOS function signatures

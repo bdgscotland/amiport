@@ -144,6 +144,18 @@ EXPECT_RC: 0
 
 The `.rexx` file is deployed to `WORK:` automatically (test-fsemu.sh copies `test-*.rexx` files). Programs with infinite output MUST have `amiport_check_break()` in their loops for Break to work.
 
+## stderr Limitation — CRITICAL
+
+The FS-UAE test harness (`test-fsemu.sh`) captures **stdout only**. Error messages from `warn()`, `warnx()`, `err()`, `errx()`, and `fprintf(stderr, ...)` are NOT captured in the test output.
+
+**For error path tests:**
+- Use `EXPECT_RC:` to verify the exit code (this always works)
+- Do NOT use `EXPECT:` or `EXPECT_CONTAINS:` to match error messages — they go to stderr and will appear as empty output
+- If you need to verify error message content, the test must redirect stderr to stdout in the CMD (not currently supported by the harness)
+
+**For formatting-sensitive tests (like -h flags):**
+- Prefer `EXPECT_CONTAINS:` with a key substring over exact `EXPECT:` matches, unless you have verified the exact output format by reading the source carefully
+
 ## Post-Generation Validation
 
 After generating test-fsemu-cases.txt, verify:
