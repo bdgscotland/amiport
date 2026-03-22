@@ -9,5 +9,6 @@
     "sha256": "4047d072e267351d1c66657d64130b0b7017e114d01576a2af8beee77aaba3ad",
     "download": "/packages/diff-1.95.lha",
     "requires": [],
-    "stack": 32768
+    "stack": 32768,
+    "readme": "Short:        File comparison utility for AmigaOS\nType:         util/cli\nArchitecture: m68k-amigaos >= 3.0\nUploader:     duncan@bowring.us\nAuthor:       Todd C. Miller, OpenBSD contributors (ported by Duncan Bowring)\nVersion:      1.95\n\ndiff \u2014 File comparison utility for AmigaOS\n\nOriginal author: University of California, Berkeley\nPorted by Duncan Bowring using amiport (AI-assisted porting toolkit).\nProject: https://github.com/bdgscotland/amiport\n\nCross-compiled with m68k-amigaos-gcc for AmigaOS 3.x (68000+).\nTested in vamos emulator.\n\nUsage:\n  diff file1 file2              Compare two files\n  diff -u file1 file2           Unified diff format\n  diff -c file1 file2           Context diff format\n  diff -r dir1 dir2             Recursive directory comparison\n  diff -i file1 file2           Ignore case differences\n\nExit codes (Amiga-native):\n  0  = files identical (RETURN_OK)\n  5  = files differ (RETURN_WARN)\n  10 = error (RETURN_ERROR)\n\nIncludes full source code (original POSIX and ported Amiga versions)\nand PORT.md documenting every transformation applied."
 }
