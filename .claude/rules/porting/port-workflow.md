@@ -15,11 +15,16 @@ Every port lives in `ports/<toolname>/` with:
 
 ## Porting Rules
 
+- **Use port templates** — read `ports/templates/STRUCTURE.md` and copy `Makefile.template`, `PORT.md.template`, `readme.template` when setting up a new port. Fill in `__PLACEHOLDER__` variables.
+- **Verify shim/emu availability** — check `lib/posix-shim/include/amiport/` for Tier 1 and `lib/posix-emu/include/amiport-emu/` for Tier 2 before assuming a wrapper exists
+- **Follow the tier model** (ADR-008) — Tier 1 shim is automated, Tier 2 emu needs caveat documentation, Tier 3 redesign needs human review
 - **Never remove functionality** — stub with a clear message if no Amiga equivalent
 - **Prefer shim/emu wrappers** over inline AmigaDOS rewrites
 - **Document every transformation** with `/* amiport: ... */` comments
 - **Preserve original source** in `original/` — never modify it
 - **Use upstream version numbers** — VERSION in Makefile, $VER string, and .readme must use the upstream project's version (e.g., `1.68` for OpenBSD grep rev 1.68, `5.4.7` for Lua 5.4.7), not a generic `1.0`
+- Use `#ifdef __AMIGA__` blocks when code should remain cross-platform
+- Target **AmigaOS 3.x on 68020+** as the default
 
 ## Before Starting a Port
 
