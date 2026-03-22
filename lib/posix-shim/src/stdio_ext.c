@@ -158,9 +158,15 @@ amiport_getdelim(char **lineptr, size_t *n, int delim, FILE *stream)
         return -1;
     }
 
-    /* Ensure we have at least an initial buffer */
+    /* Ensure we have at least an initial buffer.
+     * amiport perf: start at 4096 rather than 512 — grep processes files
+     * with lines that routinely reach 200-1000 bytes (source code, logs).
+     * Starting at 512 triggers realloc on the first long line, which on
+     * AmigaOS requires an AllocMem + CopyMem + FreeMem round-trip.
+     * 4096 matches the libnix stdio read buffer size so the fgets() inside
+     * getdelim() fills our buffer in one shot most of the time. */
     if (*lineptr == NULL || *n == 0) {
-        *n = 512;  /* one AmigaDOS disk block */
+        *n = 4096;
         *lineptr = (char *)malloc(*n);
         if (*lineptr == NULL) {
             errno = ENOMEM;

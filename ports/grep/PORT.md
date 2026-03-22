@@ -116,18 +116,38 @@ Also tested interactively in FS-UAE (Amiga 1200): basic match, -i, -n -v, -c, -E
 5. **Line numbers** — Displayed as 32-bit `long` (max ~2 billion). Files with more lines than this are unlikely on AmigaOS.
 6. **POSIX character classes** — `[:alpha:]`, `[:digit:]` etc. in regex patterns are not supported by our Tier 2 regex emulation. Use character ranges `[a-zA-Z]`, `[0-9]` instead.
 
+## Re-Port (2026-03-22)
+
+The grep binary was rebuilt from scratch after discovering it was broken for users downloading from the amiport site. Two critical bugs were found and fixed:
+
+### BUG-1: Exit codes always 0 (HIGH)
+Missing braces in grep.c exit-code logic caused `_exit()` to execute unconditionally — grep always exited 0 even on no-match or error. Shell scripts using `IF WARN` got wrong results. Fixed by adding braces around all if/else branches containing fflush+_exit pairs.
+
+### BUG-2: grep -R skipped subdirectories (MEDIUM)
+The fts_read() replacement used `dp->d_type == DT_DIR` to detect directories, but AmigaOS filesystems (OFS/FFS/SFS) never populate d_type. Fixed by replacing with an opendir() probe.
+
+### Additional fixes applied:
+- **Ctrl-C handling**: Added `amiport_check_break()` in fts_read loop for grep -R interruptibility
+- **Memory leaks**: Added `cleanup_optparse()` to free expr array and patfile list before errx() calls in option parsing
+- **Performance**: Downgraded `long long` → `long` for line_no/mcount/c (saves 3-8 cycles/line on 68000), replaced putchar→fwrite in printline, increased getdelim buffer 512→4096
+- **Stack safety**: Made `buf[BUFSIZ]` static in binary.c
+- **Binary file test data**: Fixed test-fsemu.sh to install .dat files to FS-UAE WORK: volume
+
 ## Review
 
-Reviewed with `/review-amiga`. Score: **READY**. No critical issues.
+Reviewed with `/review-amiga`. Score: **READY**.
 
 | Dimension | Score |
 |-----------|-------|
-| Stack safety | OK (32KB cookie, no deep recursion) |
-| Memory handling | OK (libnix cleanup at exit) |
-| Path handling | OK (Amiga volume: syntax handled) |
+| Stack safety | OK (32KB cookie, static buf in binary.c) |
+| Memory handling | OK (cleanup_patterns + cleanup_optparse on all exit paths) |
+| Path handling | OK (Amiga volume: syntax handled, opendir probe for dirs) |
 | Library cleanup | OK (no direct AmigaOS lib opens) |
-| Conventions | OK (version string, exit codes, stack cookie) |
+| Conventions | OK (version string, exit codes, stack cookie, Ctrl-C) |
+| Logic bugs | OK (all §9 automated checks clean) |
 
 Performance optimized by `perf-optimizer` agent:
-- `amiport_getline`: fgetc loop → fgets block read (2-4x I/O speedup)
-- `grep_cmp`: split into 3 specialized paths (memcmp for -F, reduced branching for 68k)
+- `long long` → `long` for hot-path counters (line_no, mcount, c)
+- `printline()` putchar → fwrite (saves ~4K function calls per 1K output lines)
+- `getdelim` initial buffer 512 → 4096 (eliminates realloc churn)
+- `grep_cmp`: memcmp fast path for -F mode (pre-existing)
