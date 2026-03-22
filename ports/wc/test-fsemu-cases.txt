@@ -1,0 +1,88 @@
+# wc test suite -- OpenBSD wc v1.32
+# Tests cover: functional (per-flag), error paths, exit codes, edge cases, Amiga-specific
+
+# --- Functional tests ---
+
+TEST: default mode counts lines words and bytes
+CMD: WORK:wc WORK:test-oneline.txt
+EXPECT:        1       2      12 WORK:test-oneline.txt
+EXPECT_RC: 0
+
+TEST: -l flag counts lines only
+CMD: WORK:wc -l WORK:test-oneline.txt
+EXPECT:        1 WORK:test-oneline.txt
+EXPECT_RC: 0
+
+TEST: -w flag counts words only
+CMD: WORK:wc -w WORK:test-oneline.txt
+EXPECT:        2 WORK:test-oneline.txt
+EXPECT_RC: 0
+
+TEST: -c flag counts bytes only
+CMD: WORK:wc -c WORK:test-oneline.txt
+EXPECT:       12 WORK:test-oneline.txt
+EXPECT_RC: 0
+
+TEST: -m flag counts bytes (multibyte equivalent to -c on Amiga)
+CMD: WORK:wc -m WORK:test-oneline.txt
+EXPECT:       12 WORK:test-oneline.txt
+EXPECT_RC: 0
+
+TEST: -h flag shows human-readable output (all columns use fmt_scaled)
+CMD: WORK:wc -h WORK:test-oneline.txt
+EXPECT_CONTAINS: 12
+EXPECT_RC: 0
+
+TEST: multiple files produce per-file counts and total line
+CMD: WORK:wc WORK:test-oneline.txt WORK:test-multiline.txt
+EXPECT_CONTAINS: total
+EXPECT_RC: 0
+
+TEST: -l on multiline file counts ten lines
+CMD: WORK:wc -l WORK:test-multiline.txt
+EXPECT:       10 WORK:test-multiline.txt
+EXPECT_RC: 0
+
+# --- Error path tests ---
+
+TEST: nonexistent file returns RC 10
+CMD: WORK:wc WORK:no-such-file-exists.txt
+EXPECT_RC: 10
+
+TEST: invalid flag returns RC 10
+CMD: WORK:wc -Z WORK:test-oneline.txt
+EXPECT_RC: 10
+
+# --- Edge case tests ---
+
+TEST: empty file returns zero counts
+CMD: WORK:wc WORK:test-empty.txt
+EXPECT:        0       0       0 WORK:test-empty.txt
+EXPECT_RC: 0
+
+TEST: file with no trailing newline counts zero lines
+CMD: WORK:wc -l WORK:test-wc-nonewline.txt
+EXPECT:        0 WORK:test-wc-nonewline.txt
+EXPECT_RC: 0
+
+TEST: single-character file with newline counts one line one word two bytes
+CMD: WORK:wc WORK:test-wc-single.txt
+EXPECT:        1       1       2 WORK:test-wc-single.txt
+EXPECT_RC: 0
+
+TEST: long line file byte count exceeds 1024
+CMD: WORK:wc -c WORK:test-longline.txt
+EXPECT:     1107 WORK:test-longline.txt
+EXPECT_RC: 0
+
+# --- Amiga-specific tests ---
+
+TEST: WORK volume path resolves correctly for count
+CMD: WORK:wc -w WORK:test-multiline.txt
+EXPECT:       21 WORK:test-multiline.txt
+EXPECT_RC: 0
+
+TEST: multiple flag combination -lw produces two columns
+CMD: WORK:wc -lw WORK:test-oneline.txt
+EXPECT:        1       2 WORK:test-oneline.txt
+EXPECT_RC: 0

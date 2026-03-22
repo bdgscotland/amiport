@@ -160,6 +160,14 @@ char *amiport_strtok_r(char *str, const char *delim, char **saveptr);
 FILE *amiport_tmpfile(void);
 
 /* Convenience macros — drop-in POSIX compatibility */
+#ifndef AMIPORT_NO_OPEN_MACROS
+#define open(p, f)      amiport_open(p, f)
+#define close(fd)       amiport_close(fd)
+#define read(fd, b, n)  amiport_read(fd, b, n)
+#define write(fd, b, n) amiport_write(fd, b, n)
+#define lseek(fd, o, w) amiport_lseek(fd, o, w)
+#endif
+
 #ifndef AMIPORT_NO_CHMOD_MACROS
 #define chmod(p, m)     amiport_chmod(p, m)
 #endif

@@ -28,6 +28,7 @@ amiport combines POSIX compatibility libraries, AI-powered build agents, and a c
 | [lua](ports/lua/) | 5.4.7 | Scripting | Lua 5.4 scripting language (PUC-Rio) | Built & tested |
 | [tail](ports/tail/) | 1.24 | CLI | Display last part of a file with follow mode (OpenBSD) | Built & tested |
 | [tee](ports/tee/) | 1.15 | CLI | Duplicate standard input (OpenBSD) | Submitted to Aminet |
+| [wc](ports/wc/) | 1.32 | CLI | Count lines, words, and characters (OpenBSD) | Built & tested |
 | [yes](ports/yes/) | 1.9 | CLI | Repeatedly output a string (OpenBSD) | Submitted to Aminet |
 
 Pre-built Amiga binaries are included in each port directory. See **[PORTS.md](PORTS.md)** for the full catalog.

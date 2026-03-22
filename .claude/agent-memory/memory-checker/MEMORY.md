@@ -13,3 +13,8 @@
   - Status: CRITICAL LEAKS FOUND
   - Issues: 6 critical, 1 warning
   - Verdict: Unfixable without code changes
+
+- [memory-audit-wc.md](memory-audit-wc.md) - ports/wc memory safety review (2026-03-22)
+  - Status: CLEAN
+  - Verdict: Approved for shipping — no leaks detected
+  - Static buf allocation idempotent, atexit cleanup covers all paths
