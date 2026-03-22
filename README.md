@@ -154,6 +154,15 @@ The knowledge base is also independently useful as a modern, searchable version 
 
 Regenerate from source with `make scrape-adcd` (requires internet access, ~20 minutes).
 
+The project also includes **Amiga Intern** (1992, Abacus) — a 992-page hardware reference converted from [Internet Archive OCR](https://archive.org/details/Amiga_Intern_1992_Abacus) to 42 markdown chapters. This complements the ADCD with deep hardware internals that the `hardware-expert` and `perf-optimizer` agents use:
+
+- **68030 CPU** — instruction pipeline, PMMU, FPU, cache behavior (95KB)
+- **Custom chips** — Agnus, Denise, Paula internal structure and pin descriptions
+- **Memory map** — Complete address space layout and all 227 chip register addresses
+- **Hardware programming** — DMA slots, bus timing, Copper, Blitter algorithms, interrupts
+
+Regenerate with `python3 scripts/convert-amiga-intern.py`.
+
 ## Automated FS-UAE Testing
 
 Every port is tested inside a real AmigaOS environment — not a mock, not a stub, but actual AmigaOS 3.1 booting from a Kickstart ROM and Workbench HDF inside FS-UAE. A single `make` command handles the entire cycle: boot the emulator, run the test suite, capture results, shut down.

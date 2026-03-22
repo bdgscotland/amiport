@@ -122,6 +122,7 @@ Docker containers provide reproducible cross-compilation environments:
 | Include mapping | `docs/references/adcd/INCLUDES.json` | `#include` path → documentation chapter |
 | Code examples | `docs/references/adcd/examples/` | Extracted AmigaOS code examples by library |
 | Autodocs | `docs/references/autodocs/` | API function signatures (896 functions, 21 libraries) |
+| Amiga Intern (1992) | `docs/references/amiga-intern/` | Hardware internals: 68030 CPU, custom chips, memory map, DMA, Blitter |
 
 ## Data Flow
 
