@@ -1,0 +1,13 @@
+{
+    "name": "grep",
+    "version": "1.68",
+    "description": "Pattern search (regex/fixed string)",
+    "category": "util/cli",
+    "source": "OpenBSD grep v1.68",
+    "license": "BSD 2-Clause",
+    "size": 32855,
+    "sha256": "2c53fbce67631182375cd09625a4f73b22f2d27905affc6fd6b855c6029a03d2",
+    "download": "/packages/grep-1.68.lha",
+    "requires": [],
+    "stack": 32768
+}

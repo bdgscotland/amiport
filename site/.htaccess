@@ -1,0 +1,40 @@
+# amiport.platesteel.net — server config
+#
+# Allow plain HTTP for amiget CLI (classic AmigaOS has no TLS).
+# Browsers get HTTPS via Dreamhost's Let's Encrypt, but we don't force redirect.
+
+# Do NOT force HTTPS — amiget CLI needs plain HTTP
+# RewriteEngine On
+# RewriteCond %{HTTPS} off
+# RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# PHP settings
+<IfModule mod_php.c>
+    php_flag display_errors off
+    php_flag log_errors on
+</IfModule>
+
+# Cache static assets
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType text/css "access plus 1 week"
+    ExpiresByType application/javascript "access plus 1 week"
+    ExpiresByType application/json "access plus 5 minutes"
+    ExpiresByType application/octet-stream "access plus 1 day"
+</IfModule>
+
+# Prevent directory listing
+Options -Indexes
+
+# Protect data directory (counters, package JSON source files)
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^data/counters/ - [F,L]
+</IfModule>
+
+# Security headers
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-Frame-Options "DENY"
+    Header set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>

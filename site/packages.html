@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Browse amiport packages for classic AmigaOS 3.x.">
+    <title>Packages — amiport</title>
+    <link rel="stylesheet" href="css/style.css?v=2">
+</head>
+<body>
+
+<!-- Skip to Content -->
+<a href="#main" class="skip-link">Skip to content</a>
+
+<!-- Screen Bar -->
+<header class="screen-bar" role="banner">
+    <a href="/" class="screen-bar__brand">amiport</a>
+    <nav aria-label="Main navigation">
+        <ul class="screen-bar__nav">
+            <li><a href="packages.html" aria-current="page">Packages</a></li>
+            <li><a href="index.html#about">About</a></li>
+            <li><a href="https://github.com/bdgscotland/amiport" target="_blank" rel="noopener">GitHub</a></li>
+        </ul>
+    </nav>
+    <div class="screen-bar__depth" aria-hidden="true"></div>
+</header>
+
+<!-- Main Content -->
+<main id="main" class="content">
+
+    <h1 class="sr-only">amiport Packages</h1>
+
+    <!-- Package List View -->
+    <div id="pkg-list-view">
+        <section class="window" aria-labelledby="pkg-heading">
+            <div class="window__title">
+                <div class="window__gadget window__gadget--close" aria-hidden="true"></div>
+                <span class="window__title-text" id="pkg-heading" role="heading" aria-level="2">Packages</span>
+                <div class="window__gadget window__gadget--resize" aria-hidden="true"></div>
+            </div>
+            <div class="window__body">
+                <!-- Filter Bar -->
+                <div class="filter-bar mb-md">
+                    <input type="text"
+                           class="wb-input"
+                           id="pkg-search"
+                           placeholder="Search packages..."
+                           aria-label="Search packages by name or description">
+                    <select class="wb-select" id="pkg-category" aria-label="Filter by category">
+                        <option value="">All categories</option>
+                    </select>
+                </div>
+
+                <!-- Package Count -->
+                <p class="pkg-count" id="pkg-count" aria-live="polite"></p>
+
+                <!-- Package Table -->
+                <div class="wb-table-wrap">
+                    <table class="wb-table" id="pkg-table">
+                        <caption class="hidden">Available amiport packages</caption>
+                        <thead>
+                            <tr>
+                                <th scope="col" class="sortable" data-sort="name">Name</th>
+                                <th scope="col">Version</th>
+                                <th scope="col">Description</th>
+                                <th scope="col" class="sortable" data-sort="category">Category</th>
+                                <th scope="col">Size</th>
+                                <th scope="col">Aminet</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pkg-tbody">
+                            <!-- Skeleton rows (loading state) -->
+                            <tr class="skeleton-row"><td><span></span></td><td></td><td></td><td></td><td></td><td></td></tr>
+                            <tr class="skeleton-row"><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+                            <tr class="skeleton-row"><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Empty / Error States -->
+                <div id="pkg-empty" class="state-msg hidden">
+                    No packages match '<span id="pkg-empty-query"></span>'.
+                    <a href="#" id="pkg-clear-filter">Clear filter</a>
+                </div>
+
+                <div id="pkg-error" class="state-msg hidden">
+                    Could not load packages. <a href="#" id="pkg-retry">Try refreshing</a>.
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Package Detail View (hidden by default) -->
+    <div id="pkg-detail-view" class="hidden">
+        <p class="mb-md">
+            <a href="packages.html" id="pkg-back">&lt; All packages</a>
+        </p>
+
+        <section class="window" aria-labelledby="pkg-detail-name">
+            <div class="window__title">
+                <div class="window__gadget window__gadget--close" aria-hidden="true"></div>
+                <span class="window__title-text" id="pkg-detail-title">Package Detail</span>
+                <div class="window__gadget window__gadget--resize" aria-hidden="true"></div>
+            </div>
+            <div class="window__body">
+                <div class="pkg-detail__header">
+                    <span class="pkg-detail__name" id="pkg-detail-name"></span>
+                    <span class="pkg-detail__version" id="pkg-detail-version"></span>
+                    <span class="badge" id="pkg-detail-category"></span>
+                </div>
+
+                <!-- Install command -->
+                <div class="install-cmd mb-md">
+                    <span class="install-cmd__text" id="pkg-detail-install"></span>
+                    <button class="install-cmd__copy" id="pkg-detail-copy" aria-label="Copy install command">Copy</button>
+                </div>
+
+                <p class="pkg-detail__desc" id="pkg-detail-desc"></p>
+
+                <div class="pkg-detail__actions">
+                    <a class="btn btn--primary" id="pkg-detail-download" href="#">
+                        Download .lha
+                    </a>
+                    <span class="text-muted" id="pkg-detail-size"></span>
+                </div>
+
+                <!-- Metadata -->
+                <dl class="pkg-detail__meta mt-md" id="pkg-detail-meta">
+                </dl>
+            </div>
+        </section>
+
+        <!-- Detail: Not Found -->
+        <div id="pkg-not-found" class="state-msg hidden">
+            Package not found. <a href="packages.html">Browse all packages</a>.
+        </div>
+    </div>
+
+</main>
+
+<!-- Footer -->
+<footer class="footer content" role="contentinfo">
+    <span>
+        <a href="https://github.com/bdgscotland/amiport" target="_blank" rel="noopener">GitHub</a>
+        &middot;
+        <a href="https://aminet.net/" target="_blank" rel="noopener">Aminet</a>
+    </span>
+    <span>Built with <a href="https://claude.ai/claude-code" target="_blank" rel="noopener">Claude Code</a>.</span>
+</footer>
+
+<script src="js/packages.js?v=2"></script>
+
+</body>
+</html>

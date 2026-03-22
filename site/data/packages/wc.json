@@ -1,0 +1,13 @@
+{
+    "name": "wc",
+    "version": "1.32",
+    "description": "Count lines, words, and characters",
+    "category": "util/cli",
+    "source": "OpenBSD wc v1.32",
+    "license": "BSD 3-Clause",
+    "size": 22753,
+    "sha256": "6e56860025cedf1e772a2c186d7210395a3e1d14b52ea4a6872de9d0b3c9dfb8",
+    "download": "/packages/wc-1.32.lha",
+    "requires": [],
+    "stack": 32768
+}

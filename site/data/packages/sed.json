@@ -1,0 +1,13 @@
+{
+    "name": "sed",
+    "version": "1.47",
+    "description": "Stream editor (text transformation)",
+    "category": "util/cli",
+    "source": "OpenBSD sed v1.47",
+    "license": "BSD 3-Clause",
+    "size": 35189,
+    "sha256": "2f36eb0b091b5316485f98c68ab59cfc207ecfae5ba73e166185146b8f194dd0",
+    "download": "/packages/sed-1.47.lha",
+    "requires": [],
+    "stack": 32768
+}

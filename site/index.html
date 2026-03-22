@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="amiport — the first package manager for classic AmigaOS 3.x. AI-powered POSIX tool porting pipeline.">
+    <title>amiport — Package Manager for Classic AmigaOS</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- Boot Sequence (first visit only) -->
+<div class="boot-overlay" id="boot-overlay" aria-hidden="true">
+    <div class="boot-overlay__rom">
+        Exec 40.10 (68020+)<br>
+        Copyright 1985-1993 Commodore-Amiga, Inc.<br>
+        All Rights Reserved.
+    </div>
+    <div class="boot-overlay__kick">
+        Workbench 3.1
+    </div>
+</div>
+
+<!-- Skip to Content -->
+<a href="#main" class="skip-link">Skip to content</a>
+
+<!-- Screen Bar (nav) -->
+<header class="screen-bar" role="banner">
+    <a href="/" class="screen-bar__brand">amiport</a>
+    <nav aria-label="Main navigation">
+        <ul class="screen-bar__nav">
+            <li><a href="packages.html">Packages</a></li>
+            <li><a href="#about">About</a></li>
+            <li><a href="https://github.com/bdgscotland/amiport" target="_blank" rel="noopener">GitHub</a></li>
+        </ul>
+    </nav>
+    <div class="screen-bar__depth" aria-hidden="true"></div>
+</header>
+
+<!-- Main Content -->
+<main id="main" class="content">
+
+    <h1 class="sr-only">amiport — Package Manager for Classic AmigaOS</h1>
+
+    <!-- Hero: AmigaShell Window -->
+    <div class="window shell-window">
+        <div class="window__title">
+            <div class="window__gadget window__gadget--close" aria-hidden="true"></div>
+            <span class="window__title-text">AmigaShell</span>
+            <div class="window__gadget window__gadget--resize" aria-hidden="true"></div>
+        </div>
+        <div class="window__body" role="img" aria-label="Terminal showing amiget installing grep on AmigaOS">
+            <div><span class="shell-prompt">1.SYS:&gt; </span><span class="shell-cmd">amiget install grep</span></div>
+            <div class="shell-output">Downloading grep-1.68.lha... 45KB/45KB</div>
+            <div class="shell-output">Installed grep 1.68 to C:</div>
+            <div><span class="shell-prompt">1.SYS:&gt; </span><span class="shell-cmd">grep -i "hello" README</span></div>
+            <div class="shell-output">Hello, Amiga world!</div>
+            <div><span class="shell-prompt">1.SYS:&gt; </span><span class="shell-cmd" id="cursor">_</span></div>
+        </div>
+    </div>
+
+    <!-- Tagline -->
+    <div class="tagline">
+        The first package manager for classic AmigaOS.
+        <div class="tagline__sub">
+            AI-powered POSIX porting pipeline. Type a command, get a tool.
+        </div>
+    </div>
+
+    <!-- Stats Bar -->
+    <div class="stats-bar" role="status">
+        <span class="stats-bar__item"><span class="stats-bar__value" id="stats-ports">11</span> ports</span>
+        <span class="stats-bar__sep" aria-hidden="true">|</span>
+        <span class="stats-bar__item"><span class="stats-bar__value">6</span> on Aminet</span>
+        <span class="stats-bar__sep" aria-hidden="true">|</span>
+        <span class="stats-bar__item">Classic <span class="stats-bar__value">68k</span></span>
+    </div>
+
+    <!-- Featured Packages -->
+    <section class="window" aria-labelledby="featured-heading">
+        <div class="window__title">
+            <div class="window__gadget window__gadget--close" aria-hidden="true"></div>
+            <span class="window__title-text" id="featured-heading" role="heading" aria-level="2">Featured Packages</span>
+            <div class="window__gadget window__gadget--resize" aria-hidden="true"></div>
+        </div>
+        <div class="window__body">
+            <ul class="featured-list" id="featured-list">
+                <li class="featured-list__item">
+                    <a href="packages.html?name=grep" class="featured-list__name">grep</a>
+                    <span class="featured-list__ver">1.68</span>
+                    <span class="featured-list__desc">- Pattern search (regex/fixed string)</span>
+                </li>
+                <li class="featured-list__item">
+                    <a href="packages.html?name=lua" class="featured-list__name">lua</a>
+                    <span class="featured-list__ver">5.4.7</span>
+                    <span class="featured-list__desc">- Lightweight scripting language</span>
+                </li>
+                <li class="featured-list__item">
+                    <a href="packages.html?name=sed" class="featured-list__name">sed</a>
+                    <span class="featured-list__ver">1.47</span>
+                    <span class="featured-list__desc">- Stream editor for text transforms</span>
+                </li>
+                <li class="featured-list__item">
+                    <a href="packages.html?name=diff" class="featured-list__name">diff</a>
+                    <span class="featured-list__ver">1.95</span>
+                    <span class="featured-list__desc">- Compare files line by line</span>
+                </li>
+            </ul>
+            <p class="mt-md"><a href="packages.html">Browse all packages</a></p>
+        </div>
+    </section>
+
+    <!-- Getting Started -->
+    <section class="window" aria-labelledby="start-heading">
+        <div class="window__title">
+            <div class="window__gadget window__gadget--close" aria-hidden="true"></div>
+            <span class="window__title-text" id="start-heading" role="heading" aria-level="2">Getting Started</span>
+            <div class="window__gadget window__gadget--resize" aria-hidden="true"></div>
+        </div>
+        <div class="window__body">
+            <p class="mb-md">Install tools on your Amiga in three steps.</p>
+
+            <div class="alert alert--info mb-md">
+                Requires a TCP/IP stack: Miami, AmiTCP, or Roadshow.
+            </div>
+
+            <ol class="steps">
+                <li class="steps__item">
+                    <span class="steps__label">Download amiget</span>
+                    Get <a href="packages/amiget.lha">amiget.lha</a> from this site. Transfer to your Amiga via network, CF card, or serial.
+                    <code class="steps__code">lha x amiget.lha SYS:</code>
+                </li>
+                <li class="steps__item">
+                    <span class="steps__label">Browse packages</span>
+                    See what's available:
+                    <code class="steps__code">amiget list</code>
+                </li>
+                <li class="steps__item">
+                    <span class="steps__label">Install</span>
+                    Pick a tool and install it:
+                    <div class="install-cmd mt-sm">
+                        <span class="install-cmd__text">amiget install grep</span>
+                        <button class="install-cmd__copy" onclick="copyCmd(this, 'amiget install grep')" aria-label="Copy install command">Copy</button>
+                    </div>
+                </li>
+            </ol>
+
+            <p class="mt-md text-muted">
+                No networking? Download individual .lha packages from the
+                <a href="packages.html">Packages</a> page and extract manually.
+            </p>
+        </div>
+    </section>
+
+    <!-- About / Pipeline -->
+    <section class="window" id="about" aria-labelledby="about-heading">
+        <div class="window__title">
+            <div class="window__gadget window__gadget--close" aria-hidden="true"></div>
+            <span class="window__title-text" id="about-heading" role="heading" aria-level="2">About amiport</span>
+            <div class="window__gadget window__gadget--resize" aria-hidden="true"></div>
+        </div>
+        <div class="window__body">
+            <p class="mb-md">
+                amiport is an AI-powered pipeline that ports POSIX/Unix tools to the
+                Commodore Amiga. It analyzes C source code, transforms POSIX system
+                calls to AmigaOS equivalents, cross-compiles for 68020+, and tests
+                on a virtual Amiga.
+            </p>
+
+            <div class="window shell-window">
+                <div class="window__title">
+                    <div class="window__gadget window__gadget--close" aria-hidden="true"></div>
+                    <span class="window__title-text">Pipeline</span>
+                    <div class="window__gadget window__gadget--resize" aria-hidden="true"></div>
+                </div>
+                <div class="window__body" style="min-height:auto; font-size:14px;">
+<pre>Source code (POSIX/C)
+  |
+  v
+Analyze ---- scan for portability issues
+  |
+  v
+Transform -- replace POSIX calls with Amiga equivalents
+  |
+  v
+Build ------ cross-compile with m68k-amigaos-gcc
+  |
+  v
+Test ------- verify on virtual AmigaOS (vamos + FS-UAE)
+  |
+  v
+Package ---- .lha archive, Aminet readme, amiport index</pre>
+                </div>
+            </div>
+
+            <p class="mt-md">
+                The pipeline uses specialized AI agents for each stage. Source analysis,
+                code transformation, build management, and testing are all automated.
+                Each port produces a working Amiga binary from unmodified upstream source.
+            </p>
+
+            <p class="mt-md">
+                <a href="https://github.com/bdgscotland/amiport" target="_blank" rel="noopener">View on GitHub</a>
+            </p>
+        </div>
+    </section>
+
+</main>
+
+<!-- Footer -->
+<footer class="footer content" role="contentinfo">
+    <span>
+        <a href="https://github.com/bdgscotland/amiport" target="_blank" rel="noopener">GitHub</a>
+        &middot;
+        <a href="https://aminet.net/" target="_blank" rel="noopener">Aminet</a>
+    </span>
+    <span>
+        Built with <a href="https://claude.ai/claude-code" target="_blank" rel="noopener">Claude Code</a>.
+        <button class="boot-replay" id="boot-replay" aria-label="Replay boot animation">Replay boot</button>
+    </span>
+</footer>
+
+<script>
+// Boot sequence: skip on repeat visits
+(function() {
+    var overlay = document.getElementById('boot-overlay');
+    var key = 'amiport-booted';
+    if (localStorage.getItem(key)) {
+        overlay.classList.add('skip');
+    } else {
+        // Mark as booted after animation ends
+        overlay.addEventListener('animationend', function() {
+            overlay.classList.add('skip');
+            localStorage.setItem(key, '1');
+        });
+    }
+
+    // Replay boot
+    document.getElementById('boot-replay').addEventListener('click', function() {
+        overlay.classList.remove('skip');
+        overlay.style.animation = 'none';
+        // Force reflow
+        void overlay.offsetWidth;
+        overlay.style.animation = '';
+    });
+})();
+
+// Copy command to clipboard
+function copyCmd(btn, text) {
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(text).then(function() {
+            btn.textContent = 'Copied';
+            setTimeout(function() { btn.textContent = 'Copy'; }, 1500);
+        });
+    }
+}
+</script>
+
+</body>
+</html>

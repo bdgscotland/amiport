@@ -1,0 +1,14 @@
+{
+    "name": "cut",
+    "version": "1.28",
+    "description": "Extract fields/columns from text",
+    "category": "util/cli",
+    "source": "OpenBSD cut v1.28",
+    "license": "BSD 3-Clause",
+    "size": 18285,
+    "sha256": "73ceff80d2a40f583e31bdd43b306a9bd9034ccebc9d11a19fba50ef3183ba92",
+    "download": "/packages/cut-1.28.lha",
+    "requires": [],
+    "aminet": "https://aminet.net/package/util/cli/cut-1.0",
+    "stack": 32768
+}

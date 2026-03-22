@@ -1,0 +1,14 @@
+{
+    "name": "head",
+    "version": "1.24",
+    "description": "Print first lines of files",
+    "category": "util/cli",
+    "source": "OpenBSD head v1.24",
+    "license": "BSD 3-Clause",
+    "size": 21333,
+    "sha256": "638c9eb845c9acc6aa42a517ad8c7eaa2adff07a0833ad17bfee4d1c06e96c75",
+    "download": "/packages/head-1.24.lha",
+    "requires": [],
+    "stack": 32768,
+    "aminet": "https://aminet.net/package/util/cli/head-1.24"
+}
