@@ -3,7 +3,6 @@
 *.a
 *.elf
 *.adf
-*.lha
 *.lib
 build/
 
@@ -14,8 +13,7 @@ tests/shim/test_*
 !tests/shim/test_*.c
 !tests/shim/test_*.h
 
-# Port packaging artifacts
-ports/*/*.lha
+# Port packaging artifacts (keep .lha — they are distributable artifacts)
 ports/*/*.zip
 
 # Stray binaries in ported source dirs (compiled binaries go in ports/<name>/<name> only)
@@ -23,8 +21,7 @@ ports/*/ported/[a-z]*
 !ports/*/ported/*.c
 !ports/*/ported/*.h
 
-# Aminet-generated readmes with version numbers (keep only <name>.readme)
-ports/*/*-*.readme
+# Keep versioned readmes alongside .lha packages
 
 # Test binaries (emu, console, net)
 tests/emu/test_*
