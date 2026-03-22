@@ -12,7 +12,7 @@ Ported by Duncan Bowring using amiport (AI-assisted porting toolkit).
 Project: https://github.com/bdgscotland/amiport
 
 Cross-compiled with m68k-amigaos-gcc for AmigaOS 3.x (68000+).
-Tested in vamos emulator.
+Tested on FS-UAE (A1200, Kickstart 3.1) -- 21/21 tests passed.
 
 Usage:
   head [file ...]             Print first 10 lines of each file

@@ -12,7 +12,7 @@ Programs ported to AmigaOS 3.x using the amiport pipeline.
 | [lua](ports/lua/) | 5.4.7 | Lua scripting language | Scripting | PUC-Rio Lua 5.4.7 (MIT) | Built & tested | Not submitted |
 | [tail](ports/tail/) | 1.24 | Display last part of a file | CLI | OpenBSD tail v1.24 (BSD 3-Clause) | Built & tested | Not submitted |
 | [tee](ports/tee/) | 1.15 | Duplicate standard input | CLI | OpenBSD tee v1.15 (BSD 3-Clause) | Built & tested | Submitted 2026-03-22 |
-| [head](ports/head/) | 1.24 | Print first lines of files | CLI | OpenBSD head v1.24 (BSD 3-Clause) | Built & tested | Not submitted |
+| [head](ports/head/) | 1.24 | Print first lines of files | CLI | OpenBSD head v1.24 (BSD 3-Clause) | Built & tested | Submitted 2026-03-22 |
 | [yes](ports/yes/) | 1.9 | Repeatedly output a string | CLI | OpenBSD yes v1.9 (BSD 3-Clause) | Built & tested | Submitted 2026-03-22 |
 
 ## Aminet Publication Tracking
@@ -25,7 +25,7 @@ Programs ported to AmigaOS 3.x using the amiport pipeline.
 | grep | — | — | — |
 | sed | — | — | — |
 | lua | — | — | — |
-| head | — | — | — |
+| head | 2026-03-22 | util/cli/head-1.24 (pending moderation) | — |
 | tail | — | — | — |
 | tee | 2026-03-22 | util/cli/tee-1.15 (pending moderation) | — |
 | yes | 2026-03-22 | util/cli/yes-1.9 (pending moderation) | — |
