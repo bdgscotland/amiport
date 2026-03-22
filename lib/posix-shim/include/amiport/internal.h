@@ -27,4 +27,13 @@ BPTR amiport_fd_to_fh(int fd);
  */
 int amiport_fd_is_valid(int fd);
 
+/*
+ * Check if a string contains wildcard/glob metacharacters.
+ * Detects both Unix (*, ?, [) and AmigaOS (#, ~, () patterns.
+ * Returns 1 if wildcards found, 0 if literal.
+ *
+ * Used by glob.c and argv_expand.c — single source of truth.
+ */
+int amiport_glob_has_magic(const char *pattern);
+
 #endif /* AMIPORT_INTERNAL_H */

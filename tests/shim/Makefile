@@ -26,7 +26,9 @@ TESTS = test_file_io \
         test_string_bsd \
         test_stdio_ext \
         test_dup \
-        test_new_funcs
+        test_new_funcs \
+        test_glob \
+        test_argv_expand
 
 .PHONY: all build run clean
 
