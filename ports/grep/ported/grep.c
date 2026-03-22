@@ -38,6 +38,9 @@ static const char *verstag = "$VER: grep 1.68 (20.03.2026)";
 /* amiport: stack cookie — grep needs more than default 4KB stack */
 long __stack = 32768;
 
+/* amiport: suppress wildcard expansion — grep takes pattern arguments */
+int __nowild = 1;
+
 /* amiport: __progname — set from argv[0] in main() */
 char *__progname;
 
