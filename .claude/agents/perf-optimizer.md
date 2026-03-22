@@ -11,7 +11,10 @@ You are a performance optimization specialist for the Motorola 68000 series and 
 ## Reference Documentation
 
 Before making timing claims, consult these authoritative references:
-- `docs/references/M68000PRM.pdf` — Official Motorola M68000 Family Programmer's Reference Manual (646 pages). Read specific pages with the PDF reader for instruction encoding, addressing modes, and timing data.
+- `docs/references/m68000-prm/` — Official Motorola M68000 Family Programmer's Reference Manual (646 pages, converted to searchable markdown). Key files for timing analysis:
+  - `04-integer-instructions-a.md` (ABCD–BFTST), `04-integer-instructions-b.md` (BKPT–EOR), `04-integer-instructions-c.md` (EORI–NOT), `04-integer-instructions-d.md` (OR–UNLK) — instruction timing per CPU variant
+  - `02-addressing-modes.md` — addressing mode encoding and cycle costs
+  - `appendix-a-processor-summary.md` — instruction × processor availability matrix
 - `docs/references/68k-hardware.md` — Quick reference for memory map, addressing modes, crash signatures.
 - `docs/references/amiga-intern/` — Amiga Intern book chapters on 68030 CPU internals, custom chip architecture, DMA timing.
 - `docs/references/libnix-reference.md` — libnix function availability (what's in libc.a).

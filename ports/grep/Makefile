@@ -9,7 +9,8 @@ AUTHOR      = James Howard / Dag-Erling Smorgrav
 
 # Category 1 CLI tool — uses Tier 2 regex emulation and Tier 1 posix-shim
 CFLAGS += -I../../lib/posix-emu/include
-LDFLAGS += -L../../lib/posix-emu -L../../lib/posix-shim -lamiport-emu -lamiport
+# Override common.mk LDFLAGS: posix-emu must come before posix-shim; -lamiport appears once only
+LDFLAGS = -L../../lib/posix-emu -L../../lib/posix-shim -lamiport-emu -lamiport
 
 .PHONY: all clean test package compare
 

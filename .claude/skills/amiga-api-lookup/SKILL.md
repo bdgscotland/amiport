@@ -99,11 +99,29 @@ For CPU internals, memory map, custom chips, and DMA timing:
 
 ```
 Read file_path="docs/references/68k-hardware.md"                    # Quick reference
-Read file_path="docs/references/M68000PRM.pdf" pages="1-5"          # Motorola M68000 PRM (646 pages — use page ranges)
+Glob pattern="docs/references/m68000-prm/*.md"                      # Full M68000 PRM (searchable markdown)
 Glob pattern="docs/references/amiga-intern/*.md"                     # Full Amiga Intern book
 ```
 
-The M68000 PRM contains the authoritative instruction set reference: encoding, condition codes, and timing for 68000/68010/68020/68030/68040. Section 4 (Integer Instructions) is ~400 pages of individual instruction descriptions.
+The M68000 PRM (in `docs/references/m68000-prm/`) contains the authoritative instruction set reference: encoding, condition codes, and timing for 68000/68010/68020/68030/68040.
+
+| File | Content |
+|------|---------|
+| `01-introduction.md` | Programming model, registers, data formats |
+| `02-addressing-modes.md` | All 14+ addressing modes with encoding |
+| `03-instruction-set-overview.md` | Instruction categories, condition code computation |
+| `04-integer-instructions-a.md` | ABCD through BFTST — full reference with timing |
+| `04-integer-instructions-b.md` | BKPT through EOR |
+| `04-integer-instructions-c.md` | EORI through NOT |
+| `04-integer-instructions-d.md` | OR through UNLK |
+| `05-floating-point.md` | FPU instructions (MC68881/MC68882/MC68040) |
+| `06-supervisor.md` | Privileged instructions (MMU, cache, exceptions) |
+| `07-cpu32.md` | CPU32-specific instructions |
+| `08-instruction-format.md` | Binary opcode encoding format |
+| `appendix-a-processor-summary.md` | Instruction × processor matrix |
+| `appendix-b-exception-frames.md` | Exception vectors and stack frames |
+
+Use `Grep` to search across all files for a specific instruction mnemonic or topic.
 
 ## C Runtime Reference
 

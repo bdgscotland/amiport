@@ -1,0 +1,3 @@
+match in file A
+no match here A
+another match A

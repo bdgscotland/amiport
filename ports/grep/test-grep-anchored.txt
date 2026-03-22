@@ -1,0 +1,3 @@
+start of line match
+this line has start in the middle
+startswith
