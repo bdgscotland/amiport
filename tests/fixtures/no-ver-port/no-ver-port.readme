@@ -1,0 +1,6 @@
+Short:        Synthetic test fixture
+Type:         util/cli
+Architecture: m68k-amigaos >= 3.0
+Uploader:     test@test.com
+Author:       Test
+Version:      1.0
