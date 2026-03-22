@@ -147,27 +147,28 @@
                 on a virtual Amiga.
             </p>
 
-            <div class="mui-window">
-                <div class="mui-window__title">Pipeline</div>
-                <div class="mui-window__body" style="min-height:auto; font-size:14px;">
-<pre>Source code (POSIX/C)
-  |
-  v
-Analyze ---- scan for portability issues
-  |
-  v
-Transform -- replace POSIX calls with Amiga equivalents
-  |
-  v
-Build ------ cross-compile with m68k-amigaos-gcc
-  |
-  v
-Test ------- verify on virtual AmigaOS (vamos + FS-UAE)
-  |
-  v
-Package ---- .lha archive, Aminet readme, amiport index</pre>
-                </div>
-            </div>
+            <ol class="pipeline-steps">
+                <li class="pipeline-step">
+                    <span class="pipeline-step__name">Analyze</span>
+                    <span class="pipeline-step__desc">Scan source for portability issues</span>
+                </li>
+                <li class="pipeline-step">
+                    <span class="pipeline-step__name">Transform</span>
+                    <span class="pipeline-step__desc">Replace POSIX calls with Amiga equivalents</span>
+                </li>
+                <li class="pipeline-step">
+                    <span class="pipeline-step__name">Build</span>
+                    <span class="pipeline-step__desc">Cross-compile with m68k-amigaos-gcc</span>
+                </li>
+                <li class="pipeline-step">
+                    <span class="pipeline-step__name">Test</span>
+                    <span class="pipeline-step__desc">Verify on virtual AmigaOS (vamos + FS-UAE)</span>
+                </li>
+                <li class="pipeline-step">
+                    <span class="pipeline-step__name">Package</span>
+                    <span class="pipeline-step__desc">.lha archive, Aminet readme, amiport index</span>
+                </li>
+            </ol>
 
             <p class="mt-md">
                 The pipeline uses specialized AI agents for each stage. Source analysis,

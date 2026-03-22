@@ -20,9 +20,9 @@
     --text-muted: #4A4A4A;
 
     /* Commodore accent palette — no blue */
-    --amber: #CC9933;
-    --amber-light: #DDAA44;
-    --amber-dark: #997722;
+    --amber: #B8860B;
+    --amber-light: #DAA520;
+    --amber-dark: #8B6914;
     --brown: #776644;
     --red: #BB4444;
     --salmon: #CC7755;
@@ -601,6 +601,65 @@ body {
     color: var(--text-muted);
 }
 
+/* --- Pipeline Steps --- */
+.pipeline-steps {
+    list-style: none;
+    counter-reset: pipeline;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    padding: var(--sp-sm) 0;
+}
+
+.pipeline-step {
+    counter-increment: pipeline;
+    display: flex;
+    align-items: center;
+    gap: var(--sp-md);
+    padding: var(--sp-sm) var(--sp-md);
+    position: relative;
+    margin-left: 20px;
+}
+
+.pipeline-step::before {
+    content: counter(pipeline);
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    background: var(--title-bar);
+    color: var(--amber-light);
+    font-weight: bold;
+    font-size: var(--fs-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-top: 1px solid var(--title-bar-shine);
+    border-left: 1px solid var(--title-bar-shine);
+    border-bottom: 1px solid var(--title-bar-shadow);
+    border-right: 1px solid var(--title-bar-shadow);
+}
+
+.pipeline-step:not(:last-child)::after {
+    content: "";
+    position: absolute;
+    left: calc(20px + 14px);
+    top: calc(var(--sp-sm) + 28px);
+    width: 2px;
+    height: calc(100% - 28px);
+    background: var(--bevel-shadow);
+}
+
+.pipeline-step__name {
+    font-weight: bold;
+    color: var(--text);
+    min-width: 80px;
+}
+
+.pipeline-step__desc {
+    color: var(--text-muted);
+    font-size: var(--fs-sm);
+}
+
 /* --- Section Headings --- */
 .section-heading {
     font-size: var(--fs-2xl);
@@ -748,7 +807,7 @@ body {
     width: 26px;
     height: 26px;
     background: var(--elevated);
-    color: var(--amber);
+    color: var(--red);
     font-weight: bold;
     font-size: var(--fs-sm);
     display: flex;
