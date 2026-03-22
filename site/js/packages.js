@@ -130,6 +130,7 @@
                             packages[i].votes_up = resp.votes_up;
                             packages[i].votes_down = resp.votes_down;
                             packages[i].vote_score = resp.score;
+                            packages[i].your_vote = resp.your_vote || vote;
                             break;
                         }
                     }
@@ -268,22 +269,34 @@
             scoreSpan.textContent = (score >= 0 ? '+' : '') + score;
             voteRow.appendChild(scoreSpan);
 
+            var yourVote = pkg.your_vote || 0;
+
             var btnUp = document.createElement('button');
-            btnUp.className = 'btn btn--sm vote-btn vote-btn--up';
+            btnUp.className = 'btn btn--sm vote-btn vote-btn--up' + (yourVote === 1 ? ' vote-active' : '');
             btnUp.textContent = '\u25B2';
             btnUp.setAttribute('aria-label', 'Vote up');
-            btnUp.addEventListener('click', (function(name) {
-                return function(ev) { ev.stopPropagation(); submitVote(name, 1, ev.target); };
-            })(pkg.name));
+            btnUp.setAttribute('aria-pressed', yourVote === 1 ? 'true' : 'false');
+            if (yourVote !== 1) {
+                btnUp.addEventListener('click', (function(name) {
+                    return function(ev) { ev.stopPropagation(); submitVote(name, 1, ev.target); };
+                })(pkg.name));
+            } else {
+                btnUp.disabled = true;
+            }
             voteRow.appendChild(btnUp);
 
             var btnDown = document.createElement('button');
-            btnDown.className = 'btn btn--sm vote-btn vote-btn--down';
+            btnDown.className = 'btn btn--sm vote-btn vote-btn--down' + (yourVote === -1 ? ' vote-active' : '');
             btnDown.textContent = '\u25BC';
             btnDown.setAttribute('aria-label', 'Vote down');
-            btnDown.addEventListener('click', (function(name) {
-                return function(ev) { ev.stopPropagation(); submitVote(name, -1, ev.target); };
-            })(pkg.name));
+            btnDown.setAttribute('aria-pressed', yourVote === -1 ? 'true' : 'false');
+            if (yourVote !== -1) {
+                btnDown.addEventListener('click', (function(name) {
+                    return function(ev) { ev.stopPropagation(); submitVote(name, -1, ev.target); };
+                })(pkg.name));
+            } else {
+                btnDown.disabled = true;
+            }
             voteRow.appendChild(btnDown);
 
             tdDesc.appendChild(voteRow);
