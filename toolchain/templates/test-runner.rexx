@@ -115,6 +115,7 @@ DO i = 1 TO testcount
     rcfile = 'T:test_rc_' || i
     IF OPEN('scr', scriptfile, 'W') THEN DO
         CALL WRITELN('scr', 'FailAt 21')
+        CALL WRITELN('scr', 'Stack 262144')
         CALL WRITELN('scr', tcmd '>' outfile)
         CALL WRITELN('scr', 'Echo >' || rcfile || ' $RC')
         CALL CLOSE('scr')

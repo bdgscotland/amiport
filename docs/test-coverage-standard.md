@@ -6,7 +6,9 @@ Every port MUST meet this coverage standard before it can be considered complete
 
 ### 1. Functional Tests (per flag/option)
 
-Every documented flag and mode of operation must have at least one test case.
+**Every single flag/option accepted by the program** must have at least one test case. Not "most flags" — ALL of them. Extract the flag list from getopt() or the OPTIONS string in the source, and verify each one appears in at least one CMD: line.
+
+The test-designer MUST cross-reference the OPTIONS string (e.g., `"0123456789abC:cdD:efhI:iL:nNPpqrS:sTtU:uwX:x:"`) against the test cases and flag any untested flags.
 
 ```
 # For grep: -i, -v, -c, -n, -E, -F, -w, -o, -m, -l, -B, -A, -C

@@ -113,9 +113,9 @@ diffdir(char *p1, char *p2, int flags)
 	 * If we were given a starting point, find it.
 	 */
 	if (start != NULL) {
-		while (dp1 != edp1 && strcmp((*dp1)->d_name, start) < 0)
+		while (dp1 != edp1 && strcasecmp((*dp1)->d_name, start) < 0) /* amiport: case-insensitive — AmigaOS FS */
 			dp1++;
-		while (dp2 != edp2 && strcmp((*dp2)->d_name, start) < 0)
+		while (dp2 != edp2 && strcasecmp((*dp2)->d_name, start) < 0) /* amiport: case-insensitive — AmigaOS FS */
 			dp2++;
 	}
 
@@ -127,7 +127,7 @@ diffdir(char *p1, char *p2, int flags)
 		dent2 = dp2 != edp2 ? *dp2 : NULL;
 
 		pos = dent1 == NULL ? 1 : dent2 == NULL ? -1 :
-		    strcmp(dent1->d_name, dent2->d_name);
+		    strcasecmp(dent1->d_name, dent2->d_name); /* amiport: case-insensitive — AmigaOS FS */
 		if (pos == 0) {
 			/* file exists in both dirs, diff it */
 			diffit(dent1, path1, dirlen1, path2, dirlen2, flags);

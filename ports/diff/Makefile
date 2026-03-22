@@ -8,6 +8,10 @@ DESCRIPTION = File comparison utility (OpenBSD diff port)
 AUTHOR      = Todd C. Miller, OpenBSD contributors
 AMINET_CAT  = util/cli
 
+# amiport: diff needs ~70 KiB stack (FileInfoBlock + GetDeviceProc + probe buffers).
+# vamos defaults to 8 KiB; the libnix __stack cookie is not read at runtime.
+VAMOS_STACK = 256
+
 .PHONY: all clean test package compare
 
 test: $(TARGET)
@@ -20,15 +24,15 @@ test: $(TARGET)
 	@echo "line 3" >> test_b.txt
 	@echo "line 4 added" >> test_b.txt
 	@echo "--- Normal diff ---"
-	vamos -- ./$(TARGET) test_a.txt test_b.txt || true
+	vamos -s $(VAMOS_STACK) -- ./$(TARGET) test_a.txt test_b.txt || true
 	@echo "--- Unified diff ---"
-	vamos -- ./$(TARGET) -u test_a.txt test_b.txt || true
+	vamos -s $(VAMOS_STACK) -- ./$(TARGET) -u test_a.txt test_b.txt || true
 	@echo "--- Context diff ---"
-	vamos -- ./$(TARGET) -c test_a.txt test_b.txt || true
+	vamos -s $(VAMOS_STACK) -- ./$(TARGET) -c test_a.txt test_b.txt || true
 	@echo "--- Identical files ---"
-	vamos -- ./$(TARGET) test_a.txt test_a.txt; echo "Exit: $$?"
+	vamos -s $(VAMOS_STACK) -- ./$(TARGET) test_a.txt test_a.txt; echo "Exit: $$?"
 	@echo "--- Nonexistent file ---"
-	vamos -- ./$(TARGET) test_a.txt nonexistent.txt || true
+	vamos -s $(VAMOS_STACK) -- ./$(TARGET) test_a.txt nonexistent.txt || true
 	@rm -f test_a.txt test_b.txt
 	@echo "=== diff tests complete ==="
 
@@ -40,7 +44,7 @@ compare: $(TARGET)
 	@echo "line 1" > test_b.txt
 	@echo "line 2 changed" >> test_b.txt
 	./$(TARGET)_native test_a.txt test_b.txt > /tmp/diff_expected.txt 2>&1 || true
-	vamos -- ./$(TARGET) test_a.txt test_b.txt > /tmp/diff_actual.txt 2>&1 || true
+	vamos -s $(VAMOS_STACK) -- ./$(TARGET) test_a.txt test_b.txt > /tmp/diff_actual.txt 2>&1 || true
 	@diff /tmp/diff_expected.txt /tmp/diff_actual.txt && echo "MATCH" || echo "MISMATCH"
 	@rm -f $(TARGET)_native test_a.txt test_b.txt /tmp/diff_expected.txt /tmp/diff_actual.txt
 

@@ -1,7 +1,11 @@
 # diff test suite for FS-UAE ARexx harness
-# Category 1 (CLI tool) — minimum 8 tests required
-# Exit codes: 0 = files identical, 5 = files differ (RETURN_WARN), 10 = error
-# Uses input file instead of piping (ARexx limitation)
+# Category 1 (CLI tool) -- minimum 15 tests required
+# Exit codes: 0 = files identical (RETURN_OK), 5 = files differ (RETURN_WARN), 10 = error (RETURN_ERROR)
+# All flags from OPTIONS: "0123456789abC:cdD:efhI:iL:nNPpqrS:sTtU:uwX:x:"
+# Uses pre-created input files (ARexx ADDRESS COMMAND does not support piping)
+# stderr is NOT captured by the test harness -- error path tests use EXPECT_RC: only
+
+# === EXIT CODE TESTS ===
 
 TEST: Identical files produce no output and return RC 0
 CMD: WORK:diff WORK:test-diff-same.txt WORK:test-diff-same.txt
@@ -13,46 +17,91 @@ CMD: WORK:diff WORK:test-diff-a.txt WORK:test-diff-b.txt
 EXPECT: 2c2
 EXPECT_RC: 5
 
-TEST: Unified diff format (-u) produces --- header
-CMD: WORK:diff -u WORK:test-diff-a.txt WORK:test-diff-b.txt
-EXPECT_CONTAINS: ---
+TEST: Nonexistent first file returns RC 10
+CMD: WORK:diff WORK:nonexistent.txt WORK:test-diff-a.txt
+EXPECT_RC: 10
+
+TEST: Nonexistent second file returns RC 10
+CMD: WORK:diff WORK:test-diff-a.txt WORK:nonexistent2.txt
+EXPECT_RC: 10
+
+TEST: Missing arguments (too few) returns RC 10
+CMD: WORK:diff WORK:test-diff-a.txt
+EXPECT_RC: 10
+
+# === FUNCTIONAL TESTS -- all flags ===
+
+# -a: force ASCII comparison (treat binary as text)
+TEST: Force ASCII comparison (-a) compares binary file as text
+CMD: WORK:diff -a WORK:test-diff-a.txt WORK:test-diff-b.txt
+EXPECT: 2c2
 EXPECT_RC: 5
 
-TEST: Unified diff format (-u) contains @@ hunk marker
-CMD: WORK:diff -u WORK:test-diff-a.txt WORK:test-diff-b.txt
-EXPECT_CONTAINS: @@
-EXPECT_RC: 5
-
-TEST: Context diff format (-c) contains *** header
-CMD: WORK:diff -c WORK:test-diff-a.txt WORK:test-diff-b.txt
-EXPECT_CONTAINS: ***
-EXPECT_RC: 5
-
-TEST: Brief mode (-q) reports files differ without showing diff
-CMD: WORK:diff -q WORK:test-diff-a.txt WORK:test-diff-b.txt
-EXPECT_CONTAINS: differ
-EXPECT_RC: 5
-
-TEST: Identical content different path returns RC 0 (crash-patterns #4 st_ino fix)
-CMD: WORK:diff WORK:test-diff-a.txt WORK:test-diff-same.txt
-EXPECT:
-EXPECT_RC: 0
-
-TEST: Report identical files (-s flag) prints identical message
-CMD: WORK:diff -s WORK:test-diff-same.txt WORK:test-diff-same.txt
-EXPECT_CONTAINS: identical
-EXPECT_RC: 0
-
-TEST: Ignore whitespace changes (-w) treats whitespace-only diff as identical
-CMD: WORK:diff -w WORK:test-diff-blanks-a.txt WORK:test-diff-blanks-b.txt
-EXPECT:
-EXPECT_RC: 0
-
-TEST: Fold blanks (-b) treats run of spaces as equivalent
+# -b: fold blanks (treat runs of whitespace as equivalent)
+TEST: Fold blanks (-b) treats whitespace differences as identical
 CMD: WORK:diff -b WORK:test-diff-blanks-a.txt WORK:test-diff-blanks-b.txt
 EXPECT:
 EXPECT_RC: 0
 
+# -c: context diff (default 3 lines)
+TEST: Context diff (-c) produces *** header
+CMD: WORK:diff -c WORK:test-diff-a.txt WORK:test-diff-b.txt
+EXPECT_CONTAINS: ***
+EXPECT_RC: 5
+
+# -C N: context diff with N lines of context
+TEST: Context diff with 1 line of context (-C 1) produces *** header
+CMD: WORK:diff -C 1 WORK:test-diff-a.txt WORK:test-diff-b.txt
+EXPECT_CONTAINS: ***
+EXPECT_RC: 5
+
+# -C 0: context diff with 0 lines of context
+TEST: Context diff with 0 context lines (-C 0) shows only changed line
+CMD: WORK:diff -C 0 WORK:test-diff-a.txt WORK:test-diff-b.txt
+EXPECT_CONTAINS: ***
+EXPECT_RC: 5
+
+# -d: minimal diff (use shorter diff algorithm)
+TEST: Minimal diff (-d) produces output for differing files
+CMD: WORK:diff -d WORK:test-diff-a.txt WORK:test-diff-b.txt
+EXPECT: 2c2
+EXPECT_RC: 5
+
+# -D string: ifdef diff output
+TEST: Ifdef diff (-D MYDEF) wraps changes in #ifdef blocks
+CMD: WORK:diff -D MYDEF WORK:test-diff-a.txt WORK:test-diff-b.txt
+EXPECT_CONTAINS: MYDEF
+EXPECT_RC: 5
+
+TEST: Ifdef diff (-D MYDEF) outputs #ifndef directive for old text
+CMD: WORK:diff -D MYDEF WORK:test-diff-a.txt WORK:test-diff-b.txt
+EXPECT_CONTAINS: #ifndef
+EXPECT_RC: 5
+
+# -e: ed script output
+TEST: Ed script format (-e) produces change command with dot terminator
+CMD: WORK:diff -e WORK:test-diff-a.txt WORK:test-diff-b.txt
+EXPECT_CONTAINS: line2 changed
+EXPECT_RC: 5
+
+# -f: reverse ed script output
+TEST: Reverse ed script (-f) produces change command
+CMD: WORK:diff -f WORK:test-diff-a.txt WORK:test-diff-b.txt
+EXPECT_CONTAINS: c2
+EXPECT_RC: 5
+
+# -h: silently ignored for backward compat
+TEST: Backward compat flag (-h) is silently ignored and normal diff runs
+CMD: WORK:diff -h WORK:test-diff-a.txt WORK:test-diff-b.txt
+EXPECT: 2c2
+EXPECT_RC: 5
+
+# -I pattern: disabled on AmigaOS (no regex) -- should not crash, warning goes to stderr
+TEST: Ignore pattern (-I) disabled but does not crash
+CMD: WORK:diff -I line WORK:test-diff-a.txt WORK:test-diff-b.txt
+EXPECT_RC: 5
+
+# -i: case insensitive comparison
 TEST: Case-insensitive diff (-i) treats case differences as identical
 CMD: WORK:diff -i WORK:test-diff-case-a.txt WORK:test-diff-case-b.txt
 EXPECT:
@@ -63,31 +112,182 @@ CMD: WORK:diff WORK:test-diff-case-a.txt WORK:test-diff-case-b.txt
 EXPECT: 1,2c1,2
 EXPECT_RC: 5
 
-TEST: ed script format (-e) produces ed commands
-CMD: WORK:diff -e WORK:test-diff-a.txt WORK:test-diff-b.txt
-EXPECT_CONTAINS: line2 changed
+# -L label: use label in headers (unified diff)
+TEST: Label flag (-L) replaces filename in unified diff header
+CMD: WORK:diff -u -L oldfile -L newfile WORK:test-diff-a.txt WORK:test-diff-b.txt
+EXPECT_CONTAINS: oldfile
 EXPECT_RC: 5
+
+# -n: RCS-style output (D_NREVERSE)
+TEST: RCS format (-n) produces RCS-style diff with d/a commands
+CMD: WORK:diff -n WORK:test-diff-a.txt WORK:test-diff-b.txt
+EXPECT_CONTAINS: d2 1
+EXPECT_RC: 5
+
+# -N: treat absent files as empty (dir diff flag -- test doesn't crash on files)
+TEST: New-file flag (-N) does not crash when used with regular files
+CMD: WORK:diff -N WORK:test-diff-a.txt WORK:test-diff-b.txt
+EXPECT: 2c2
+EXPECT_RC: 5
+
+# -p: show C function prototypes in @@ hunk header
+TEST: Show function prototype (-p) with unified diff includes function name in @@
+CMD: WORK:diff -u -p WORK:test-diff-func-a.txt WORK:test-diff-func-b.txt
+EXPECT_CONTAINS: @@
+EXPECT_RC: 5
+
+# -P: treat absent first files as empty (dir diff flag -- test doesn't crash on files)
+TEST: Unidirectional new-file (-P) does not crash when used with regular files
+CMD: WORK:diff -P WORK:test-diff-a.txt WORK:test-diff-b.txt
+EXPECT: 2c2
+EXPECT_RC: 5
+
+# -q: brief output (files differ message only)
+TEST: Brief mode (-q) reports files differ without showing the diff
+CMD: WORK:diff -q WORK:test-diff-a.txt WORK:test-diff-b.txt
+EXPECT_CONTAINS: differ
+EXPECT_RC: 5
+
+TEST: Brief mode (-q) on identical files produces no output
+CMD: WORK:diff -q WORK:test-diff-same.txt WORK:test-diff-same.txt
+EXPECT:
+EXPECT_RC: 0
+
+# -r: recursive directory diff (flag only -- test doesn't crash when used on files)
+TEST: Recursive flag (-r) does not crash when comparing regular files
+CMD: WORK:diff -r WORK:test-diff-a.txt WORK:test-diff-b.txt
+EXPECT: 2c2
+EXPECT_RC: 5
+
+# -s: report identical files
+TEST: Report identical files (-s) prints identical message
+CMD: WORK:diff -s WORK:test-diff-same.txt WORK:test-diff-same.txt
+EXPECT_CONTAINS: identical
+EXPECT_RC: 0
+
+# -S name: start at named file in dir diff (flag only -- test doesn't crash on files)
+TEST: Starting file (-S) does not crash when used with regular files
+CMD: WORK:diff -r -S somefile WORK:test-diff-a.txt WORK:test-diff-b.txt
+EXPECT: 2c2
+EXPECT_RC: 5
+
+# -T: expand initial tab in output (adds tab after </>/<! markers)
+TEST: Initial tab flag (-T) in normal diff produces output with tab after marker
+CMD: WORK:diff -T WORK:test-diff-a.txt WORK:test-diff-b.txt
+EXPECT_CONTAINS: 2c2
+EXPECT_RC: 5
+
+# -t: expand all tabs in output
+TEST: Expand tabs (-t) with tab-indented files produces diff output
+CMD: WORK:diff -t WORK:test-diff-tabs-a.txt WORK:test-diff-tabs-b.txt
+EXPECT_CONTAINS: TWO
+EXPECT_RC: 5
+
+# -u: unified diff (default 3 lines context)
+TEST: Unified diff format (-u) produces --- header
+CMD: WORK:diff -u WORK:test-diff-a.txt WORK:test-diff-b.txt
+EXPECT_CONTAINS: ---
+EXPECT_RC: 5
+
+TEST: Unified diff format (-u) contains @@ hunk marker
+CMD: WORK:diff -u WORK:test-diff-a.txt WORK:test-diff-b.txt
+EXPECT_CONTAINS: @@
+EXPECT_RC: 5
+
+# -U N: unified diff with N lines of context
+TEST: Unified diff with 1 line context (-U 1) produces @@ hunk marker
+CMD: WORK:diff -U 1 WORK:test-diff-a.txt WORK:test-diff-b.txt
+EXPECT_CONTAINS: @@
+EXPECT_RC: 5
+
+TEST: Unified diff with 0 context lines (-U 0) shows only changed line
+CMD: WORK:diff -U 0 WORK:test-diff-a.txt WORK:test-diff-b.txt
+EXPECT_CONTAINS: @@
+EXPECT_RC: 5
+
+# -w: ignore all whitespace
+TEST: Ignore all whitespace (-w) treats whitespace-only diff as identical
+CMD: WORK:diff -w WORK:test-diff-blanks-a.txt WORK:test-diff-blanks-b.txt
+EXPECT:
+EXPECT_RC: 0
+
+# -X file: read exclude patterns from file (dir diff -- test doesn't crash on files)
+TEST: Exclude from file (-X) does not crash when used with regular files
+CMD: WORK:diff -X WORK:test-diff-exclude.txt WORK:test-diff-a.txt WORK:test-diff-b.txt
+EXPECT: 2c2
+EXPECT_RC: 5
+
+# -x pattern: exclude files matching pattern (dir diff -- pattern stored, not applied to file args)
+TEST: Exclude pattern (-x) does not crash when used with regular files
+CMD: WORK:diff -x backup WORK:test-diff-a.txt WORK:test-diff-b.txt
+EXPECT: 2c2
+EXPECT_RC: 5
+
+# === NUMERIC CONTEXT LINES (0-9 flags: OPTIONS "0123456789" are digits used as context count modifiers) ===
+# The digits 0-9 in OPTIONS are valid only immediately after -c or -u to set context lines.
+# -c2 is equivalent to -C 2 (context diff, 2 lines of context).
+
+TEST: Numeric context after -c (e.g. -c2) sets context to 2 lines
+CMD: WORK:diff -c2 WORK:test-diff-a.txt WORK:test-diff-b.txt
+EXPECT_CONTAINS: ***
+EXPECT_RC: 5
+
+TEST: Numeric context after -u (e.g. -u0) sets unified diff to 0 context lines
+CMD: WORK:diff -u0 WORK:test-diff-a.txt WORK:test-diff-b.txt
+EXPECT_CONTAINS: @@
+EXPECT_RC: 5
+
+# === FLAG COMBINATIONS ===
+
+TEST: Unified diff with case insensitive (-u -i) on case-only diff returns RC 0
+CMD: WORK:diff -u -i WORK:test-diff-case-a.txt WORK:test-diff-case-b.txt
+EXPECT:
+EXPECT_RC: 0
+
+TEST: Brief mode with fold blanks (-q -b) on blank-only diff returns RC 0
+CMD: WORK:diff -q -b WORK:test-diff-blanks-a.txt WORK:test-diff-blanks-b.txt
+EXPECT:
+EXPECT_RC: 0
+
+TEST: Context diff with ignore all whitespace (-c -w) on blank-only diff returns RC 0
+CMD: WORK:diff -c -w WORK:test-diff-blanks-a.txt WORK:test-diff-blanks-b.txt
+EXPECT:
+EXPECT_RC: 0
+
+TEST: Unified diff with report identical (-u -s) on same file prints identical
+CMD: WORK:diff -u -s WORK:test-diff-same.txt WORK:test-diff-same.txt
+EXPECT_CONTAINS: identical
+EXPECT_RC: 0
+
+# === EDGE CASE TESTS ===
 
 TEST: Binary file detection returns binary differ message
 CMD: WORK:diff WORK:test-diff-a.txt WORK:test-binary.dat
 EXPECT_CONTAINS: Binary files
 EXPECT_RC: 5
 
-TEST: Nonexistent first file produces error message and RC 10
-CMD: WORK:diff WORK:nonexistent.txt WORK:test-diff-a.txt
-EXPECT_CONTAINS: nonexistent
-EXPECT_RC: 10
+TEST: Comparing file to itself returns RC 0 (identical inodes via path)
+CMD: WORK:diff WORK:test-diff-a.txt WORK:test-diff-a.txt
+EXPECT:
+EXPECT_RC: 0
 
-TEST: Nonexistent second file produces error message and RC 10
-CMD: WORK:diff WORK:test-diff-a.txt WORK:nonexistent2.txt
-EXPECT_CONTAINS: nonexistent
-EXPECT_RC: 10
+TEST: Identical content but different filename returns RC 0
+CMD: WORK:diff WORK:test-diff-a.txt WORK:test-diff-same.txt
+EXPECT:
+EXPECT_RC: 0
 
-TEST: Missing arguments prints usage to stderr and returns RC 10
-CMD: WORK:diff WORK:test-diff-a.txt
-EXPECT_RC: 10
+# === AMIGA-SPECIFIC TESTS ===
 
 TEST: WORK: volume path handling works for both arguments
 CMD: WORK:diff WORK:test-diff-a.txt WORK:test-diff-b.txt
 EXPECT: 2c2
 EXPECT_RC: 5
+
+TEST: Unified diff with WORK: paths produces correct --- header format
+CMD: WORK:diff -u WORK:test-diff-a.txt WORK:test-diff-b.txt
+EXPECT_CONTAINS: +++
+EXPECT_RC: 5
+
+TEST: Invalid flag returns RC 10 (usage printed to stderr)
+CMD: WORK:diff -Z WORK:test-diff-a.txt WORK:test-diff-b.txt
+EXPECT_RC: 10

@@ -423,6 +423,34 @@ diagnose_timeout() {
         local next_test=$((result_count + 1))
         echo -e "${YELLOW}DIAGNOSIS: Test $next_test of $total hung${NC}"
         echo "  Tests 1-$result_count completed. Test $next_test never returned."
+        echo ""
+        # Extract the hung test's CMD from test-fsemu-cases.txt
+        local cases_file="$port_dir/test-fsemu-cases.txt"
+        if [ -f "$cases_file" ]; then
+            local test_idx=0
+            local hung_cmd="" hung_desc=""
+            while IFS= read -r cline; do
+                case "$cline" in
+                    TEST:*) test_idx=$((test_idx + 1)); hung_desc="${cline#TEST: }" ;;
+                    CMD:*) [ "$test_idx" -eq "$next_test" ] && hung_cmd="${cline#CMD: }" ;;
+                esac
+            done < "$cases_file"
+            if [ -n "$hung_cmd" ]; then
+                echo -e "  ${YELLOW}Hung test: $hung_desc${NC}"
+                echo "  CMD: $hung_cmd"
+            fi
+        fi
+        echo ""
+        echo "  Most likely cause: Guru Meditation (Software Failure)."
+        echo "  The Guru alert blocks the Execute script, preventing RC capture."
+        echo "  Common Guru codes:"
+        echo "    #8000000B = ACPU_LineF (stack overflow / illegal instruction)"
+        echo "    #80000004 = ACPU_IllegalInsn"
+        echo "    #80000003 = ACPU_AddressErr (alignment / bad pointer)"
+        echo ""
+        check_stack_overflow_risk "$port_dir"
+        echo ""
+        echo "  To capture details: re-run with --debug flag"
         return 1
     fi
 

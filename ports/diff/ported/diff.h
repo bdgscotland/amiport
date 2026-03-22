@@ -168,3 +168,4 @@ int	diffreg(char *, char *, int);
 void	diffdir(char *, char *, int);
 void	print_only(const char *, size_t, const char *);
 void	print_status(int, char *, char *, char *);
+void	cleanup_diffreg(void); /* amiport: free diffreg static arrays */
