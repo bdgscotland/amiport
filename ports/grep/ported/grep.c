@@ -551,7 +551,8 @@ main(int argc, char *argv[])
 					fg_pattern[i].pattern = (unsigned char *)0x1;  /* non-NULL non-freeable sentinel */
 					cleanup_patterns();
 					fprintf(stderr, "%s: %s\n", __progname, re_error);
-					exit(AMIGA_RETURN_ERROR);
+					fflush(stdout);
+			_exit(AMIGA_RETURN_ERROR); /* amiport: _exit to avoid libnix hang */
 				}
 			}
 		}
@@ -571,11 +572,14 @@ main(int argc, char *argv[])
 		/* amiport: memory leak fix — cleanup before all exit paths */
 		cleanup_patterns();
 		if (c)
-			exit(AMIGA_RETURN_OK);
+			fflush(stdout);
+			_exit(AMIGA_RETURN_OK); /* amiport: _exit to avoid libnix hang */
 		else if (file_err)
-			exit(AMIGA_RETURN_ERROR);
+			fflush(stdout);
+			_exit(AMIGA_RETURN_ERROR); /* amiport: _exit to avoid libnix hang */
 		else
-			exit(AMIGA_RETURN_WARN);
+			fflush(stdout);
+			_exit(AMIGA_RETURN_WARN); /* amiport: _exit to avoid libnix hang */
 	}
 
 	if (Rflag)
@@ -591,13 +595,17 @@ main(int argc, char *argv[])
 	cleanup_patterns();
 	if (c) {
 		if (file_err && !qflag)
-			exit(AMIGA_RETURN_ERROR);
+			fflush(stdout);
+			_exit(AMIGA_RETURN_ERROR); /* amiport: _exit to avoid libnix hang */
 		else
-			exit(AMIGA_RETURN_OK);
+			fflush(stdout);
+			_exit(AMIGA_RETURN_OK); /* amiport: _exit to avoid libnix hang */
 	} else {
 		if (file_err)
-			exit(AMIGA_RETURN_ERROR);
+			fflush(stdout);
+			_exit(AMIGA_RETURN_ERROR); /* amiport: _exit to avoid libnix hang */
 		else
-			exit(AMIGA_RETURN_WARN);
+			fflush(stdout);
+			_exit(AMIGA_RETURN_WARN); /* amiport: _exit to avoid libnix hang */
 	}
 }
