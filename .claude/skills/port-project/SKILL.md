@@ -29,6 +29,8 @@ Create this structure at the start of the pipeline using the templates in `ports
 ### Stage 0: Research (before any work)
 Dispatch an `aminet-researcher` agent to check whether this tool already exists for AmigaOS 3.x. If a recent, functional port already exists, stop and tell the user — don't duplicate work. If an old or limited version exists, note this in PORT.md and proceed (our port will be the upgrade). This step is mandatory.
 
+**GATE:** Do NOT dispatch the source-analyzer (Stage 1) until the aminet-researcher has returned. Do not run it in the background and proceed — wait for the result. If the researcher says SKIP, present the finding to the user and let them decide whether to proceed. Proceeding without waiting wastes work if a good port already exists.
+
 ### Stage 0b: Dependency Audit (conditional)
 
 If the source has external library dependencies (anything beyond libc/libm — detected via `#include` of non-standard headers, linker flags, pkg-config, or Makefile LDLIBS), dispatch the `dependency-auditor` agent:
