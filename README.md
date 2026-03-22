@@ -196,6 +196,7 @@ UAEQuit shuts down emulator -> host reads TAP from shared volume -> TEST-REPORT.
 make test-fsemu TARGET=ports/cal       # Run full FS-UAE test suite for a port
 make check-test-coverage               # Validate test suite completeness across all ports
 make check-fix-propagation             # Scan ports for known crash patterns
+make check-port-metadata               # Validate port metadata consistency
 ```
 
 See [ADR-014](docs/adr/014-fs-uae-automated-testing.md) for the full design.
@@ -218,6 +219,7 @@ make setup-debug-tools              # Install Enforcer, Mungwall, SegTracker
 make check-docs                     # Validate doc consistency
 make check-test-coverage            # Validate FS-UAE test suite completeness
 make check-fix-propagation          # Scan ports for known crash patterns
+make check-port-metadata            # Validate port metadata consistency
 
 # Emulator
 make setup-emu                      # Install FS-UAE

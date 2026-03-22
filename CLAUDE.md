@@ -151,6 +151,7 @@ make check-agents      # Validate agent/skill frontmatter fields
 make package TARGET=examples/wc # Create LHA archive
 make check-test-coverage  # Validate FS-UAE test suite completeness
 make check-fix-propagation # Scan ports for known crash patterns (informational)
+make check-port-metadata  # Validate port metadata consistency (version, files, PORTS.md)
 make clean             # Remove build artifacts
 make scrape-adcd       # Scrape ADCD and regenerate reference docs (~20 min)
 ```
@@ -279,7 +280,7 @@ Additionally, hookify rules block test file creation in the project root.
 The repo uses `.githooks/` for git hooks, configured by `make setup` (which runs `git config core.hooksPath .githooks`):
 
 - **commit-msg**: Enforces conventional commit prefixes (`feat:`, `fix:`, `docs:`, `test:`, `refactor:`, `chore:`, `ci:`, `perf:`, `style:`, `build:`). Allows merge commits.
-- **pre-commit**: Runs `make check-docs` to validate agent references, checks for stray root files, and verifies port directory hygiene. Blocks commits that would introduce doc drift or violate hygiene rules. Kept fast (<2s).
+- **pre-commit**: Runs `make check-docs` and `make check-port-metadata` to validate agent references and port metadata consistency (version alignment, required files, no template placeholders, PORTS.md entries, stray artifacts). Also checks for stray root files and port directory hygiene. Blocks commits that would introduce doc drift, metadata drift, or violate hygiene rules.
 - **pre-push**: Builds the shim library and compiles all shim tests. Catches build/link breakage before it reaches origin. Runs expensive Docker cross-compilation (~10-15s).
 
 **`make setup` is mandatory after cloning.** Without it, hook validation is skipped.
