@@ -100,11 +100,20 @@ get_var() {
 }
 
 VERSION=$(get_var VERSION)
+REVISION=$(get_var REVISION)
 DESCRIPTION=$(get_var DESCRIPTION)
 AUTHOR=$(get_var AUTHOR)
 AMINET_CAT=$(get_var AMINET_CAT)
 
 VERSION="${VERSION:-1.0}"
+REVISION="${REVISION:-1}"
+
+# Package suffix: version alone for rev 1, version-revision for rev 2+
+if [ "$REVISION" = "1" ]; then
+    PKG_SUFFIX="$VERSION"
+else
+    PKG_SUFFIX="${VERSION}-${REVISION}"
+fi
 DESCRIPTION="${DESCRIPTION:-Ported CLI utility}"
 AUTHOR="${AUTHOR:-Unknown}"
 AMINET_CAT="${AMINET_CAT:-util/cli}"
@@ -163,7 +172,7 @@ fi
 
 # --- Generate .readme ---
 
-ARCHIVE_NAME="${PORT_NAME}-${VERSION}"
+ARCHIVE_NAME="${PORT_NAME}-${PKG_SUFFIX}"
 README_FILE="$PORT_DIR/${ARCHIVE_NAME}.readme"
 
 cat > "$README_FILE" << READMEEOF

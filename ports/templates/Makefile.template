@@ -4,6 +4,7 @@ include ../common.mk
 TARGET      = __TARGET__
 SOURCES     = ported/__TARGET__.c
 VERSION     = __VERSION__
+REVISION    = 1
 DESCRIPTION = __DESCRIPTION__
 AUTHOR      = __AUTHOR__
 

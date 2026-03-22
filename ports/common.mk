@@ -20,8 +20,16 @@ SHIM_LIB = ../../lib/posix-shim/libamiport.a
 NATIVE_CC = cc
 NATIVE_CFLAGS = -O2 -Wall
 
-# Default version
+# Default version and revision
 VERSION ?= 1.0
+REVISION ?= 1
+
+# Package suffix: version alone for rev 1, version-revision for rev 2+
+ifeq ($(REVISION),1)
+PKG_SUFFIX = $(VERSION)
+else
+PKG_SUFFIX = $(VERSION)-$(REVISION)
+endif
 
 # Aminet category (override per port if needed)
 AMINET_CAT ?= util/cli
@@ -61,15 +69,15 @@ package: $(TARGET)
 	@cp -r original/ .pkg/original/
 	@cp -r ported/ .pkg/ported/
 	@if [ -f TEST-REPORT.md ]; then \
-		$(LHA_CMD) a ../$(TARGET)-$(VERSION).lha $(TARGET) $(TARGET).readme PORT.md TEST-REPORT.md original/ ported/; \
+		$(LHA_CMD) a ../$(TARGET)-$(PKG_SUFFIX).lha $(TARGET) $(TARGET).readme PORT.md TEST-REPORT.md original/ ported/; \
 	else \
-		$(LHA_CMD) a ../$(TARGET)-$(VERSION).lha $(TARGET) $(TARGET).readme PORT.md original/ ported/; \
+		$(LHA_CMD) a ../$(TARGET)-$(PKG_SUFFIX).lha $(TARGET) $(TARGET).readme PORT.md original/ ported/; \
 	fi
 	@rm -rf .pkg
-	@cp $(TARGET).readme $(TARGET)-$(VERSION).readme
+	@cp $(TARGET).readme $(TARGET)-$(PKG_SUFFIX).readme
 	@echo "Package ready:"
-	@echo "  $(TARGET)-$(VERSION).lha     — upload to ftp://main.aminet.net/new/"
-	@echo "  $(TARGET)-$(VERSION).readme  — upload alongside the .lha"
+	@echo "  $(TARGET)-$(PKG_SUFFIX).lha     — upload to ftp://main.aminet.net/new/"
+	@echo "  $(TARGET)-$(PKG_SUFFIX).readme  — upload alongside the .lha"
 
 clean:
 	rm -f $(TARGET) $(TARGET)-*.lha $(TARGET).map

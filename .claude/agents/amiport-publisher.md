@@ -78,7 +78,7 @@ Never publish without the user saying yes.
     "license": "<license>",
     "size": <lha file size>,
     "sha256": "<sha256 of lha>",
-    "download": "/packages/<name>-<version>.lha",
+    "download": "/packages/<name>-<version>.lha (or <name>-<version>-<revision>.lha if revision > 1)",
     "requires": [],
     "aminet": "<aminet URL if published>",
     "stack": <stack cookie value>,
@@ -98,7 +98,9 @@ docker run --rm -v /path/to/amiport:/work ubuntu:22.04 bash -c "
   mkdir -p /tmp/stage/C
   cp /work/ports/<name>/<name> /tmp/stage/C/<name>
   cp /work/ports/<name>/<name>.readme /tmp/stage/<name>.readme
-  cd /tmp/stage && /tmp/lha/src/lha a /work/site/packages/<name>-<version>.lha C/<name> <name>.readme
+  # Use version-revision suffix when revision > 1
+  SUFFIX=<version>  # or <version>-<revision> if revision > 1
+  cd /tmp/stage && /tmp/lha/src/lha a /work/site/packages/<name>-$SUFFIX.lha C/<name> <name>.readme
 "
 ```
 
