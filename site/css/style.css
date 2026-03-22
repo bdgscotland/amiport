@@ -982,6 +982,23 @@ a:focus-visible {
     color: var(--wb-darkgray);
 }
 
+/* --- Package Readme --- */
+.pkg-readme {
+    font-family: var(--font);
+    font-size: var(--fs-sm);
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    background: var(--wb-surface);
+    padding: var(--sp-md);
+    border-top: 2px solid var(--wb-shadow);
+    border-left: 2px solid var(--wb-shadow);
+    border-bottom: 2px solid var(--wb-highlight);
+    border-right: 2px solid var(--wb-highlight);
+    max-height: 400px;
+    overflow-y: auto;
+}
+
 /* --- Utility --- */
 .text-center { text-align: center; }
 .text-muted  { color: var(--wb-darkgray); }

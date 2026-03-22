@@ -8,7 +8,7 @@
 (function() {
     'use strict';
 
-    var API_URL = 'api/v1/packages.php';
+    var API_URL = 'api/v1/packages.php?_=' + Date.now();
     var packages = [];
     var currentSort = { key: 'name', dir: 'asc' };
 
@@ -370,7 +370,16 @@
         detailVersion.textContent = 'v' + (pkg.version || '');
         detailCategory.textContent = pkg.category || '';
         detailInstall.textContent = 'amiget install ' + pkg.name;
-        detailDesc.textContent = pkg.description || '';
+        // Show readme if available, otherwise just description
+        if (pkg.readme) {
+            var pre = document.createElement('pre');
+            pre.className = 'pkg-readme';
+            pre.textContent = pkg.readme;
+            while (detailDesc.firstChild) detailDesc.removeChild(detailDesc.firstChild);
+            detailDesc.appendChild(pre);
+        } else {
+            detailDesc.textContent = pkg.description || '';
+        }
         detailSize.textContent = formatSize(pkg.size);
 
         // Download link

@@ -10,5 +10,6 @@
     "download": "/packages/tee-1.15.lha",
     "requires": [],
     "stack": 32768,
-    "aminet": "https://aminet.net/package/util/cli/tee-1.15"
+    "aminet": "https://aminet.net/package/util/cli/tee-1.15",
+    "readme": "Short:        duplicate standard input\nType:         util/cli\nArchitecture: m68k-amigaos >= 3.0\nUploader:     duncan@bowring.us\nAuthor:       University of California, Berkeley (ported by Duncan Bowring)\nVersion:      1.15\n\ntee \u2014 duplicate standard input\n\nOriginal author: University of California, Berkeley\nPorted by Duncan Bowring using amiport (AI-assisted porting toolkit).\nProject: https://github.com/bdgscotland/amiport\n\nCross-compiled with m68k-amigaos-gcc for AmigaOS 3.x (68000+).\nTested on AmigaOS 3.1 via FS-UAE (11/11 tests passed).\n\nUsage:\n  tee [-ai] [file ...]\n\n  -a   Append to files instead of overwriting them\n  -i   Ignore the SIGINT signal (Ctrl-C on Amiga)\n\nExamples:\n  Echo hello | tee RAM:output.txt     ; prints \"hello\" and saves to file\n  Echo hello | tee -a RAM:output.txt  ; appends \"hello\" to existing file\n  Echo hello | tee RAM:a.txt RAM:b.txt ; writes to multiple files at once\n  Type file.txt | tee T:backup.txt    ; copy file while backing up to T:\n\nOpenBSD tee v1.15 (2023-03-04). BSD 3-Clause license.\n\nIncludes full source code (original POSIX and ported Amiga versions)\nand PORT.md documenting every transformation applied."
 }

@@ -9,5 +9,6 @@
     "sha256": "2f36eb0b091b5316485f98c68ab59cfc207ecfae5ba73e166185146b8f194dd0",
     "download": "/packages/sed-1.47.lha",
     "requires": [],
-    "stack": 32768
+    "stack": 32768,
+    "readme": "Short:        Stream editor (text transformation) for AmigaOS\nType:         util/cli\nArchitecture: m68k-amigaos >= 3.0\nUploader:     duncan@bowring.us\nAuthor:       Diomidis Spinellis / University of California, Berkeley (ported by Duncan Bowring)\nVersion:      1.47\n\nsed \u2014 Stream editor (text transformation) for AmigaOS\n\nOriginal author: Diomidis Spinellis / University of California, Berkeley\nPorted by Duncan Bowring using amiport (AI-assisted porting toolkit).\nProject: https://github.com/bdgscotland/amiport\n\nCross-compiled with m68k-amigaos-gcc for AmigaOS 3.x (68000+).\nTested in vamos emulator.\n\nUsage:\n  sed 's/old/new/' file.txt          Substitute first match per line\n  sed 's/old/new/g' file.txt         Substitute all matches\n  sed -n '10,20p' file.txt           Print lines 10-20\n  sed '/pattern/d' file.txt          Delete matching lines\n  echo \"hello\" | sed 'y/helo/HELO/'  Transliterate characters\n  sed -e 's/a/A/' -e 's/b/B/' file   Multiple expressions\n\nExit codes (Amiga-native):\n  0  = success (RETURN_OK)\n  10 = error (RETURN_ERROR)\n\nNote: In-place editing (-i) is not supported on AmigaOS (no fdopen).\n\nIncludes full source code (original POSIX and ported Amiga versions)\nand PORT.md documenting every transformation applied."
 }
