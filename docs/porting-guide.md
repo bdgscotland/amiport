@@ -53,11 +53,23 @@ Cross-compiles the ported source using the Docker toolchain. Handles:
 
 ### 4. Test
 
+First, dispatch the `test-designer` agent to generate a comprehensive test suite for the port. Test cases should NOT be written manually — the test-designer produces thorough coverage including edge cases, error paths, and boundary conditions.
+
+Then validate test suite completeness:
+
+```bash
+make check-test-coverage
+```
+
+This checks that the generated test suite meets the project's coverage standards.
+
+Run the compiled binary in vamos:
+
 ```bash
 /test-amiga
 ```
 
-Runs the compiled binary in vamos and verifies output. This works for Category 1-2 ports (CLI tools, scripting interpreters).
+This works for Category 1-2 ports (CLI tools, scripting interpreters).
 
 For Category 3-4 ports (console UI, network), also run automated FS-UAE testing:
 

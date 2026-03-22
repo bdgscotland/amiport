@@ -148,6 +148,8 @@ make setup-debug-tools # Install Enforcer, Mungwall, SegTracker for crash debugg
 make check-docs        # Validate agent references across all docs
 make check-agents      # Validate agent/skill frontmatter fields
 make package TARGET=examples/wc # Create LHA archive
+make check-test-coverage  # Validate FS-UAE test suite completeness
+make check-fix-propagation # Scan ports for known crash patterns (informational)
 make clean             # Remove build artifacts
 make scrape-adcd       # Scrape ADCD and regenerate reference docs (~20 min)
 ```
