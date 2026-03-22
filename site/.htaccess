@@ -26,9 +26,14 @@
 # Prevent directory listing
 Options -Indexes
 
-# Protect data directory (counters, package JSON source files)
+# Rewrite rules:
+#   1. amiga.html → amiga.php (internal rewrite, URL unchanged)
+#      Dreamhost uses PHP-FPM — SetHandler/AddType for .html don't trigger FPM.
+#      amiga.php is the authoritative PHP source; amiga.html stays for amiget URL compat.
+#   2. Block data/ directory from public access
 <IfModule mod_rewrite.c>
     RewriteEngine On
+    RewriteRule ^amiga\.html$ /amiga.php [L]
     RewriteRule ^data/ - [F,L]
 </IfModule>
 
