@@ -52,6 +52,10 @@ One wrapper per function. Semantics match POSIX for all common use cases. The tr
 |`tmpfile()`     |`amiport_tmpfile()`     |`Open("T:...")`             |Uses T: assign                                                   |
 
 |`fnmatch()`    |`amiport_fnmatch()`     |Pure C implementation       |Shell-style glob matching                                        |
+|`glob()`       |`amiport_glob()`        |`opendir()`+`fnmatch()`     |Filesystem wildcard expansion; Unix + AmigaOS patterns            |
+|`globfree()`   |`amiport_globfree()`    |`free()` loop               |Free glob result array                                           |
+|`—` (startup)  |`amiport_expand_argv()` |`amiport_glob()`            |Expand wildcard argv entries; SAS/C `__nowild` opt-out            |
+|`—` (cleanup)  |`amiport_free_argv()`   |`free()` loop               |Free expanded argv memory                                        |
 |`scandir()`    |`amiport_scandir()`     |`opendir()`+`readdir()`     |With filter and sort callbacks                                   |
 |`alphasort()`  |`amiport_alphasort()`   |`strcmp()` wrapper           |For use with `scandir()`                                         |
 |`strlcpy()`    |`amiport_strlcpy()`     |Pure C implementation       |BSD safe string copy                                             |
