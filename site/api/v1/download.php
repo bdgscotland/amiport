@@ -81,8 +81,10 @@ if (!preg_match('/^[0-9][0-9a-z._-]*$/', $version)) {
     exit;
 }
 
-// Construct LHA path from trusted metadata
-$lhaFile = $pkgDir . '/' . $pkgName . '-' . $version . '.lha';
+// Construct LHA path from trusted metadata (include revision if > 1)
+$revision = (int) ($found['revision'] ?? 1);
+$pkgSuffix = ($revision > 1) ? ($version . '-' . $revision) : $version;
+$lhaFile = $pkgDir . '/' . $pkgName . '-' . $pkgSuffix . '.lha';
 
 // Resolve to real path and verify it's within the packages directory
 $realPath = realpath($lhaFile);
@@ -116,7 +118,7 @@ try {
 // Serve the LHA file
 $fileSize = filesize($realPath);
 header('Content-Type: application/octet-stream');
-header('Content-Disposition: attachment; filename="' . $pkgName . '-' . $version . '.lha"');
+header('Content-Disposition: attachment; filename="' . $pkgName . '-' . $pkgSuffix . '.lha"');
 if ($fileSize !== false) {
     header('Content-Length: ' . $fileSize);
 }

@@ -155,6 +155,18 @@ for dir in "$PORTS_DIR"/*/; do
     fi
 
     # ----------------------------------------------------------
+    # Check 3b: Revision consistency (optional field)
+    # ----------------------------------------------------------
+    rev_makefile=$(grep -E '^REVISION\s*=' "$dir/Makefile" 2>/dev/null | head -1 | sed 's/.*=\s*//' | tr -d ' ' || true)
+    rev_makefile="${rev_makefile:-1}"
+    if [ "$rev_makefile" -gt 0 ] 2>/dev/null; then
+        echo "PASS  $name: revision ($rev_makefile)"
+    else
+        echo "WARN  $name: revision — invalid REVISION value in Makefile"
+        port_warned=1
+    fi
+
+    # ----------------------------------------------------------
     # Check 4: PORTS.md entry
     # ----------------------------------------------------------
     if grep -qE "^\|[[:space:]]*\[?${name}\]?" "$PORTS_CATALOG" 2>/dev/null; then
