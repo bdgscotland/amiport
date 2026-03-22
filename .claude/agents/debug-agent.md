@@ -110,6 +110,9 @@ Before attempting a fix for a non-obvious crash, **always check the KB first** �
 - `docs/references/adcd/FUNCTIONS.md` — Function cross-reference for looking up API behavior
 - `docs/references/newlib-availability.md` — What C library functions are available in -noixemul runtime
 - `docs/references/68k-hardware.md` — Amiga 68k hardware reference: memory map, addressing modes, register conventions, trap frames, vamos differences
+- `docs/references/amiga-intern/11-07-01-memory-layout.md` — Complete memory map and all 227 chip register addresses
+- `docs/references/amiga-intern/11-07-03-interrupts.md` — Interrupt system details
+- `docs/references/amiga-intern/11-02-the-68030.md` — 68030 CPU internals (PMMU, cache, trap behavior)
 
 ## Common Amiga Crash Patterns
 

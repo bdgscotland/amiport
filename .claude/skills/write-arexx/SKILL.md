@@ -12,6 +12,8 @@ You are writing ARexx scripts for AmigaOS 3.x. ARexx is the Amiga's built-in scr
 
 Read `docs/references/arexx-reference.md` for the complete language reference. It covers syntax, built-in functions, file I/O, IPC, and testing patterns. **Read it before writing any ARexx code.**
 
+For deeper ARexx internals (RexxMsg structures, function libraries, command interface protocol), see `docs/references/amiga-intern/10-arexx-interface.md`.
+
 ## Mandatory Rules
 
 ### 1. First Line Must Be a Comment
