@@ -58,6 +58,7 @@ Agents define **who** does the work — model selection, tool access, persona, a
 - **port-coordinator**: Dispatched by /port-project for complex multi-file ports. Uses worktree isolation. Full tool access.
 - **debug-agent**: Uses Sonnet for autonomous crash debugging. Parses Enforcer hits, maps to source, classifies crashes, applies fixes, and iterates until clean (max 5 iterations). Bash + edit + agent access (can escalate to hardware-expert).
 - **dependency-auditor**: Uses Sonnet for auditing external library dependencies. Research + read tools.
+- **test-designer**: Uses Sonnet for comprehensive FS-UAE test suite design. Analyzes ported source code (flags, exit codes, error paths) to generate test-fsemu-cases.txt files meeting the project's test coverage standard. Read + write tools.
 - **aminet-publisher**: Uses Sonnet for Aminet package preparation and publishing. Curated, never automatic.
 
 ### Libraries

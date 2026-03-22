@@ -104,6 +104,7 @@ Safety hooks enforce discipline across the pipeline:
 | `hardware-expert` | Amiga system architecture validation — CPU variants, address space, chipset capabilities |
 | `debug-agent` | Autonomous Enforcer-based crash diagnosis and fix loop |
 | `dependency-auditor` | External library dependency analysis |
+| `test-designer` | Comprehensive FS-UAE test suite generation from source analysis |
 | `aminet-publisher` | Aminet packaging, readme generation, upload |
 
 Every architectural decision is recorded in ADRs and product decisions in PDRs — see [docs/adr/](docs/adr/) and [docs/pdr/](docs/pdr/).
