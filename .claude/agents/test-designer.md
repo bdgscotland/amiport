@@ -69,6 +69,19 @@ Use these for generic edge case tests. Create port-specific files as `ports/<nam
 
 If the source reads from stdin when no file argument is given (grep for `read(STDIN_FILENO`, `fgets(.*stdin`, `getline`, `scanf`, `getchar` without preceding `fopen`), create a pre-built input file and pass it as a file argument. Comment: `# Uses input file instead of piping (ARexx limitation)`.
 
+## Dollar Signs in CMD Lines
+
+CMD lines go through AmigaDOS `Execute` which expands `$` as variable substitution. **Never use `$` in CMD lines.** For sed `$` addresses (last line), use a script file with `-f` instead:
+
+```
+# BAD -- $ gets expanded by AmigaDOS
+CMD: WORK:sed -n $p WORK:input.txt
+
+# GOOD -- use a sed script file
+CMD: WORK:sed -f WORK:test-sed-lastline.sed WORK:input.txt
+# Create test-sed-lastline.sed containing: $p
+```
+
 ## Post-Generation Validation
 
 After generating test-fsemu-cases.txt, verify:
@@ -77,6 +90,7 @@ After generating test-fsemu-cases.txt, verify:
 3. At least one test has `EXPECT_RC: 0` or `EXPECT_RC: 5`
 4. At least one test has `EXPECT_RC: 10`
 5. No tests use stdin piping (no `|` or `<` in CMD lines)
+6. No CMD lines contain bare `$` characters (AmigaDOS expands them)
 
 ## Coverage Report
 

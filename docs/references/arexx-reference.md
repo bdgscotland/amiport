@@ -1548,6 +1548,18 @@ AmigaDOS does not support `&&` for conditional chaining through ADDRESS COMMAND.
 
 Commands returning RC >= 10 trigger ARexx's ERROR condition by default. Use `OPTIONS FAILAT 21` at the top of test harnesses to prevent premature abort and ensure output files are always written. See [Section 14: FAILAT](#failat-error-threshold).
 
+### 17. ASCII Only -- No UTF-8
+
+ARexx (1987) does not understand UTF-8. Any non-ASCII byte in a `.rexx` file -- **including inside comments** -- causes "Error 8: Unrecognized token" and crashes the script. This includes em dashes (U+2014), smart quotes, accented characters, and any other multi-byte UTF-8 characters. Use only ASCII (0x00-0x7F) in all `.rexx` files.
+
+### 18. Use ~= for Not-Equal, Not \=
+
+Both `\=` and `~=` mean "not equal" in the ARexx spec, but `\=` may not be recognized by all ARexx interpreters (including ARexx 1.15 on Workbench 3.1). Always use `~=` for portability. Same applies to `~==` (strictly not equal) vs `\==`.
+
+### 19. Dollar Signs in Execute Scripts
+
+When ARexx runs `ADDRESS COMMAND 'Execute scriptfile'`, the AmigaDOS shell processes the script. Dollar signs (`$`) in the script are interpreted as AmigaDOS variable substitution (e.g., `$RC` for return code). If a command argument contains a literal `$` (e.g., `sed -n '$p'`), it will be expanded or cause an error. Workaround: write the sed expression to a script file with `-f`, or use a different addressing syntax.
+
 ---
 
 ## 20. Testing Patterns

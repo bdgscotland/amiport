@@ -270,6 +270,27 @@ TEST: grep finds match
 CMD: WORK:grep hello WORK:test-grep-input.txt
 ```
 
+### 6. Dollar Signs in Execute Scripts
+
+When ARexx runs `ADDRESS COMMAND 'Execute scriptfile'`, the AmigaDOS shell processes the script content. Dollar signs (`$`) are expanded as AmigaDOS variables (e.g., `$RC` = return code). If a command argument needs a literal `$` (e.g., `sed -n '$p'` for "last line"), it will be expanded or cause an error. Workaround: use a sed script file (`-f`) or a different addressing syntax.
+
+```
+# BAD -- $ gets expanded by AmigaDOS Execute
+CMD: WORK:sed -n $p WORK:input.txt
+
+# GOOD -- use a script file instead
+CMD: WORK:sed -f WORK:test-sed-lastline.sed WORK:input.txt
+# Where test-sed-lastline.sed contains: $p
+```
+
+### 7. ASCII Only -- No UTF-8
+
+ARexx (1987) does not understand UTF-8. Any non-ASCII byte -- **including inside comments** -- causes "Error 8: Unrecognized token". Use only ASCII (0x00-0x7F). This includes em dashes, smart quotes, and accented characters.
+
+### 8. Use ~= for Not-Equal, Not \=
+
+Both `\=` and `~=` mean "not equal" but `\=` may not be recognized by all ARexx interpreters. Always use `~=` for portability.
+
 ## Common Gotchas Checklist
 
 Before finishing any ARexx script, verify:
@@ -282,3 +303,6 @@ Before finishing any ARexx script, verify:
 - [ ] Error handling via `SIGNAL ON ERROR` if the script can fail
 - [ ] Exit codes use Amiga conventions: 0=OK, 5=WARN, 10=ERROR, 20=FAIL
 - [ ] String comparisons use strict operators (`==`) when case matters
+- [ ] No UTF-8 characters anywhere in the file (ASCII only)
+- [ ] Use `~=` not `\=` for not-equal comparisons
+- [ ] No `$` in CMD lines that go through AmigaDOS Execute (use -f script files)
