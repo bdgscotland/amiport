@@ -223,6 +223,22 @@ make check-port-metadata               # Validate port metadata consistency
 
 See [ADR-014](docs/adr/014-fs-uae-automated-testing.md) for the full design.
 
+## Website
+
+The project website at [amiport.platesteel.net](https://amiport.platesteel.net) serves as both a package index and a showcase of the porting pipeline. It uses an Amiga MUI (Magic User Interface) design system — warm gray base, amber/brown/red Commodore accents, 1px bevels, no blue, no rounded corners. See [DESIGN.md](DESIGN.md) for the full spec.
+
+| Page | Purpose |
+|------|---------|
+| `index.html` | Landing page — hero terminal animation, featured packages, getting started guide, port request form |
+| `packages.html` | Package browser — search, filter, sort, rich detail view with porting notes, test gauges, and known limitations |
+| `stats.html` | Stats dashboard — SVG bar charts for downloads, category breakdown, publication timeline |
+| `amiga.html` | Dedicated page for classic Amiga browsers (IBrowse, AWeb, NetSurf). HTML 3.2, table layout, <30KB, 640x480 |
+| `feed.php` | RSS 2.0 feed of published packages |
+
+The site uses no CSS frameworks, no JS charting libraries, no CDN dependencies, and no web fonts. Keyboard shortcuts are available on the packages page: <kbd>P</kbd> packages, <kbd>S</kbd> stats, <kbd>/</kbd> search, <kbd>Esc</kbd> close.
+
+Each package JSON in `site/data/packages/` includes enriched fields (`porting_notes`, `test_count`, `test_pass`, `known_limitations`) that power the rich detail view — showing what was technically interesting about each port, not just metadata.
+
 ## Make Targets
 
 ```bash
