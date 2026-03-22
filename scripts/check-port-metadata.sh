@@ -199,9 +199,9 @@ for dir in "$PORTS_DIR"/*/; do
 
     # ----------------------------------------------------------
     # Check 6: Stray artifacts
+    # LHA packages and versioned readmes are expected after `make package`
     # ----------------------------------------------------------
     strays=""
-    for f in "$dir"/*.lha; do [ -f "$f" ] && strays="$strays $(basename "$f")"; done
     for f in "$dir"/gmon.out; do [ -f "$f" ] && strays="$strays gmon.out"; done
     for f in "$dir"/*_native; do [ -f "$f" ] && strays="$strays $(basename "$f")"; done
     for f in "$dir"/*.map; do [ -f "$f" ] && strays="$strays $(basename "$f")"; done
