@@ -64,7 +64,15 @@ for port_dir in "$PORTS_DIR"/*/; do
             fi
         fi
 
-        # 4. exit(1) — non-Amiga exit code
+        # 4. MB_CUR_MAX without guard — crash-patterns #11
+        if ! is_suppressed "$port_dir" "mb_cur_max"; then
+            if echo "$contents" | grep -q 'MB_CUR_MAX' && ! echo "$contents" | grep -qB2 'MB_CUR_MAX' | grep -q 'ifndef __AMIGA__'; then
+                warn "$file_label" "MB_CUR_MAX used without #ifndef __AMIGA__ guard — may silently skip code paths (crash-patterns #11)"
+                port_has_warning=1
+            fi
+        fi
+
+        # 5. exit(1) — non-Amiga exit code
         if ! is_suppressed "$port_dir" "exit_code_1"; then
             if echo "$contents" | grep -q 'exit(1)'; then
                 warn "$file_label" "exit(1) is invisible to Amiga shells — use exit(10) for RETURN_ERROR"

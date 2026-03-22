@@ -46,7 +46,9 @@ Creates a `ported/` directory alongside the original with:
 - Headers swapped for amiport shim equivalents
 - Function calls replaced with `amiport_*` wrappers
 - Blocking patterns stubbed with clear messages
-- Amiga boilerplate added (version string, stack cookie)
+- Amiga boilerplate added (version string, stack cookie, argv expansion)
+- `__progname` auto-initialized by `amiport_expand_argv()` — no per-port boilerplate needed
+- Long-running loops get `amiport_check_break()` for Ctrl-C support (no OS-level SIGINT on AmigaOS)
 
 ### 2b. Hardware Review (conditional — Category 3+ ports)
 

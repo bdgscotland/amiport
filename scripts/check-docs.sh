@@ -194,6 +194,72 @@ fi
 echo ""
 
 # ---------------------------------------------------------------------------
+# Check 5: Crash patterns ↔ known-pitfalls cross-reference
+# ---------------------------------------------------------------------------
+echo "=== Check 5: Crash patterns ↔ known-pitfalls sync ==="
+
+CRASH_PATTERNS="$REPO_ROOT/docs/references/crash-patterns.md"
+KNOWN_PITFALLS="$REPO_ROOT/.claude/rules/known-pitfalls.md"
+
+check5_warn=0
+
+# Extract crash pattern numbers (## N. Title)
+if [ -f "$CRASH_PATTERNS" ]; then
+    while IFS= read -r title; do
+        # Extract number and short identifier
+        num=$(echo "$title" | grep -oE '^## [0-9]+' | grep -oE '[0-9]+')
+        # Check if crash-patterns #N is mentioned in known-pitfalls
+        if [ -n "$num" ] && ! grep -q "crash-patterns.*#$num\|crash.patterns.*#$num\|#$num\b" "$KNOWN_PITFALLS" 2>/dev/null; then
+            # Not all crash patterns need a pitfall entry, but warn about recent ones (>= #5)
+            if [ "$num" -ge 5 ] 2>/dev/null; then
+                echo "WARN  crash-patterns #$num exists but is not referenced in known-pitfalls.md"
+                check5_warn=1
+                warned=1
+            fi
+        fi
+    done < <(grep -E '^## [0-9]+\.' "$CRASH_PATTERNS" 2>/dev/null)
+fi
+
+if [ "$check5_warn" -eq 0 ]; then
+    pattern_count=$(grep -cE '^## [0-9]+\.' "$CRASH_PATTERNS" 2>/dev/null || echo 0)
+    echo "PASS  all crash patterns (>= #5) referenced in known-pitfalls.md"
+fi
+
+echo ""
+
+# ---------------------------------------------------------------------------
+# Check 6: Shim exports ↔ porting-guide sync
+# ---------------------------------------------------------------------------
+echo "=== Check 6: Key shim features in porting-guide ==="
+
+PORTING_GUIDE="$REPO_ROOT/docs/porting-guide.md"
+
+check6_warn=0
+
+# Key shim features that should be mentioned in the porting guide
+KEY_FEATURES=(
+    "expand_argv:argv expansion"
+    "__progname:__progname"
+    "check_break:Ctrl-C"
+)
+
+for entry in "${KEY_FEATURES[@]}"; do
+    feature="${entry%%:*}"
+    label="${entry##*:}"
+    if ! grep -qi "$label" "$PORTING_GUIDE" 2>/dev/null; then
+        echo "WARN  shim provides '$feature' but porting-guide.md does not mention '$label'"
+        check6_warn=1
+        warned=1
+    fi
+done
+
+if [ "$check6_warn" -eq 0 ]; then
+    echo "PASS  key shim features documented in porting-guide.md"
+fi
+
+echo ""
+
+# ---------------------------------------------------------------------------
 # Summary
 # ---------------------------------------------------------------------------
 if [ "$failed" -ne 0 ] || [ "$warned" -ne 0 ]; then
