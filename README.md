@@ -29,6 +29,7 @@ amiport combines POSIX compatibility libraries, AI-powered build agents, and a c
 | [tail](ports/tail/) | 1.24 | CLI | Display last part of a file with follow mode (OpenBSD) | Built & tested |
 | [tee](ports/tee/) | 1.15 | CLI | Duplicate standard input (OpenBSD) | Submitted to Aminet |
 | [wc](ports/wc/) | 1.32 | CLI | Count lines, words, and characters (OpenBSD) | Built & tested |
+| [sort](ports/sort/) | 1.0 | CLI | Sort lines of text files (Plan 9) | Built & tested |
 | [yes](ports/yes/) | 1.9 | CLI | Repeatedly output a string (OpenBSD) | Submitted to Aminet |
 
 Pre-built Amiga binaries are included in each port directory. See **[PORTS.md](PORTS.md)** for the full catalog.
