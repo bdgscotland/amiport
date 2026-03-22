@@ -22,7 +22,7 @@ amiport combines POSIX compatibility libraries, AI-powered build agents, and a c
 | [cal](ports/cal/) | 1.32 | CLI | Unix calendar display (OpenBSD) | [Live on Aminet](https://aminet.net/package/util/cli/cal-1.0) |
 | [cut](ports/cut/) | 1.28 | CLI | Extract fields/columns from text (OpenBSD) | [Live on Aminet](https://aminet.net/package/util/cli/cut-1.0) |
 | [diff](ports/diff/) | 1.95 | CLI | File comparison utility (OpenBSD) | Known issues |
-| [head](ports/head/) | 1.24 | CLI | Print first lines of files (OpenBSD) | Built & tested |
+| [head](ports/head/) | 1.24 | CLI | Print first lines of files (OpenBSD) | Submitted to Aminet |
 | [grep](ports/grep/) | 1.68 | CLI | Pattern search — regex, fixed, recursive (OpenBSD) | Built & tested |
 | [sed](ports/sed/) | 1.47 | CLI | Stream editor — text transformation (OpenBSD) | Built & tested |
 | [lua](ports/lua/) | 5.4.7 | Scripting | Lua 5.4 scripting language (PUC-Rio) | Built & tested |
