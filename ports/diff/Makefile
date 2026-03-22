@@ -12,7 +12,11 @@ AMINET_CAT  = util/cli
 # vamos defaults to 8 KiB; the libnix __stack cookie is not read at runtime.
 VAMOS_STACK = 256
 
-.PHONY: all clean test package compare
+# Profiling support: make profile-build && make profile-run
+PROF_OBJ = ../../lib/posix-shim/src/profile.o
+PROF_CFLAGS = -DAMIPORT_PROFILE
+
+.PHONY: all clean test package compare profile-build profile-run
 
 test: $(TARGET)
 	@echo "=== Testing diff ==="
@@ -48,5 +52,15 @@ compare: $(TARGET)
 	@diff /tmp/diff_expected.txt /tmp/diff_actual.txt && echo "MATCH" || echo "MISMATCH"
 	@rm -f $(TARGET)_native test_a.txt test_b.txt /tmp/diff_expected.txt /tmp/diff_actual.txt
 
+profile-build:
+	$(CC) $(CFLAGS) $(PROF_CFLAGS) -o $(TARGET) $(SOURCES) $(PROF_OBJ) $(LDFLAGS)
+
+profile-run: profile-build
+	@echo "=== Profiling diff ==="
+	vamos -s $(VAMOS_STACK) -- ./$(TARGET) test-diff-a.txt test-diff-b.txt 2>profile-output.txt || true
+	@echo "--- Profile output ---"
+	@cat profile-output.txt
+	@rm -f profile-output.txt
+
 clean:
-	rm -f $(TARGET) $(TARGET)_native test_a.txt test_b.txt
+	rm -f $(TARGET) $(TARGET)_native test_a.txt test_b.txt profile-output.txt

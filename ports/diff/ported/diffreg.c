@@ -84,6 +84,7 @@
 
 #include "diff.h"
 #include "xmalloc.h"
+#include <amiport/profile.h> /* amiport: ReadEClock profiler */
 
 /* amiport: path compat defines for AmigaOS */
 #ifndef _PATH_DEVNULL
@@ -321,6 +322,7 @@ diffreg(char *file1, char *file2, int flags)
 {
 	FILE *f1, *f2;
 	int i, rval;
+	AMIPORT_PROFILE_BEGIN("diffreg");
 
 	f1 = f2 = NULL;
 	rval = D_SAME;
@@ -443,6 +445,7 @@ closem:
 	if (f2 != NULL)
 		fclose(f2);
 
+	AMIPORT_PROFILE_END("diffreg");
 	return (rval);
 }
 
@@ -530,6 +533,7 @@ prepare(int i, FILE *fd, off_t filesize, int flags)
 	struct line *p;
 	int j, h;
 	size_t sz;
+	AMIPORT_PROFILE_BEGIN("prepare");
 
 	rewind(fd);
 
@@ -547,6 +551,7 @@ prepare(int i, FILE *fd, off_t filesize, int flags)
 	}
 	len[i] = j;
 	file[i] = p;
+	AMIPORT_PROFILE_END("prepare");
 }
 
 static void
@@ -734,6 +739,7 @@ check(FILE *f1, FILE *f2, int flags)
 {
 	int i, j, jackpot, c, d;
 	long ctold, ctnew;
+	AMIPORT_PROFILE_BEGIN("check");
 
 	rewind(f1);
 	rewind(f2);
@@ -830,6 +836,7 @@ check(FILE *f1, FILE *f2, int flags)
 	 * if (jackpot)
 	 *	fprintf(stderr, "jackpot\n");
 	 */
+	AMIPORT_PROFILE_END("check");
 }
 
 /* shellsort CACM #201 */
@@ -898,6 +905,7 @@ static void
 output(char *file1, FILE *f1, char *file2, FILE *f2, int flags)
 {
 	int m, i0, i1, j0, j1;
+	AMIPORT_PROFILE_BEGIN("output");
 
 	rewind(f1);
 	rewind(f2);
@@ -937,6 +945,7 @@ output(char *file1, FILE *f1, char *file2, FILE *f2, int flags)
 		size_t nr;
 		while ((nr = fread(ifdbuf, 1, sizeof(ifdbuf), f1)) > 0)
 			fwrite(ifdbuf, 1, nr, stdout);
+		AMIPORT_PROFILE_END("output");
 		return;
 	}
 	if (anychange != 0) {
@@ -945,6 +954,7 @@ output(char *file1, FILE *f1, char *file2, FILE *f2, int flags)
 		else if (diff_format == D_UNIFIED)
 			dump_unified_vec(f1, f2, flags);
 	}
+	AMIPORT_PROFILE_END("output");
 }
 
 static void

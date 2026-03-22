@@ -30,16 +30,23 @@ SRCS = $(SRCDIR)/file_io.c \
 
 OBJS = $(SRCS:.c=.o)
 
+# Profiler object -- built separately with -DAMIPORT_PROFILE
+PROF_SRC = $(SRCDIR)/profile.c
+PROF_OBJ = $(SRCDIR)/profile.o
+
 .PHONY: all clean
 
-all: $(TARGET)
+all: $(TARGET) $(PROF_OBJ)
 
 $(TARGET): $(OBJS)
 	$(AR) rcs $@ $(OBJS)
 	$(RANLIB) $@
 
+$(PROF_OBJ): $(PROF_SRC)
+	$(CC) $(CFLAGS) -DAMIPORT_PROFILE -c -o $@ $<
+
 $(SRCDIR)/%.o: $(SRCDIR)/%.c
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 clean:
-	rm -f $(OBJS) $(TARGET)
+	rm -f $(OBJS) $(PROF_OBJ) $(TARGET)
