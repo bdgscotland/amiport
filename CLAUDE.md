@@ -190,7 +190,7 @@ This avoids the need for manual interactive testing in the emulator. See ADR-014
 
 **Architecture & guides:** `docs/architecture.md`, `docs/porting-guide.md`, `docs/api-mapping.md`
 
-**ADRs:** `docs/adr/008` (tiers), `009` (console), `010` (bsdsocket), `011` (categories), `014` (FS-UAE testing), `015` (CI/quality), `016` (debug agent)
+**ADRs:** `docs/adr/008` (tiers), `009` (console), `010` (bsdsocket), `011` (categories), `014` (FS-UAE testing), `015` (CI/quality), `016` (debug agent), `017` (hooks enforcement), `018` (ADCD knowledge base), `019` (agent persona matrix), `020` (git hooks validation)
 
 **Shim references:** `docs/references/bsd-isms.md`, `docs/references/newlib-availability.md`, `docs/references/adcd/FUNCTIONS.md`, `docs/references/adcd/TYPES.md`
 
@@ -244,6 +244,9 @@ libnix's `vsnprintf` does NOT support `NULL` as the destination buffer (a C99 ex
 
 ### Epoch offset
 AmigaOS epoch is 1978-01-01, Unix is 1970-01-01. The offset is 252460800 seconds (AMIGA_EPOCH_OFFSET). All time conversions must add this.
+
+### __nowild for pattern-argument programs
+Programs that accept regex or pattern arguments (grep, sed, find -name, awk) MUST define `int __nowild = 1;` at file scope. Without this, `amiport_expand_argv()` will expand pattern arguments like `*.c` before the program sees them. This matches the SAS/C convention where `__nowild` suppressed automatic argv expansion.
 
 ## Safety Hooks
 

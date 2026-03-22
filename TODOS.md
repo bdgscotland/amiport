@@ -24,13 +24,21 @@ Implemented as Tier 2 emulation (`amiport_emu_pipe()`) using AmigaDOS PIPE: devi
 
 ---
 
-### Amiga wildcard/glob expansion shim
+### ~~Amiga wildcard/glob expansion shim~~ — DONE
 
-**What:** `amiport_glob_args()` to expand `#?` and `*` patterns in argv at program startup.
+Implemented both POSIX `glob()`/`globfree()` (Tier 1) and automatic argv wildcard expansion via `amiport_expand_argv()`. Supports both Unix (`*`, `?`, `[...]`) and AmigaOS (`#?`, `(a|b)`) patterns via transparent Amiga-to-Unix translation. Opt-out via `int __nowild = 1;` matching SAS/C convention. 32 tests across two test suites (test_glob: 22, test_argv_expand: 10).
 
-**Why:** Amiga shells don't glob-expand like Unix. Programs ported from Unix expect the shell to expand wildcards, but AmigaOS passes them literally. Support both Amiga (`#?`, `~`, `(a|b)`) and Unix (`*`, `?`, `[a-z]`) patterns.
+---
 
-**Priority:** Medium — most ports work without it since users can quote/expand manually. Becomes important for xargs and find-like tools.
+### Retrofit __nowild to existing pattern-argument ports
+
+**What:** Add `int __nowild = 1;` to grep and sed ports.
+
+**Why:** With argv expansion now in libamiport, these ports will incorrectly expand pattern arguments unless suppressed. E.g., `grep *.c file.txt` would expand `*.c` before grep sees it as a regex.
+
+**Priority:** High — required before next libamiport release.
+
+**Depends on:** Glob/argv shim being complete (done).
 
 ---
 

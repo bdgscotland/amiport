@@ -28,11 +28,14 @@ The amiport toolkit targets `-noixemul` to avoid the heavy ixemul.library depend
 | `tmpnam` | Missing | Use `amiport_tmpfile()` instead |
 | `popen`, `pclose` | Missing | Tier 3 — needs SystemTags+PIPE: redesign |
 | `fileno` | Missing | Use `amiport_fileno()` |
-| `fdopen` | Missing | Would need custom implementation |
-| `getline`, `getdelim` | Missing | GNU extensions; not in libnix |
-| `fgetln` | Missing | BSD extension |
+| `fdopen` | Missing | Use `amiport_fdopen()` |
+| `getline` | Missing | Use `amiport_getline()` |
+| `getdelim` | Missing | Use `amiport_getdelim()` |
+| `fgetln` | Missing | BSD extension; not in libnix |
 | `asprintf`, `vasprintf` | Missing | Use `amiport_asprintf()` / `amiport_vasprintf()` |
 | `setbuf`, `setvbuf` | Available | |
+| `fpurge` | Missing | Use `amiport_fpurge()` (stub — no-op) |
+| `pread`, `pwrite` | Missing | Use `amiport_pread()` / `amiport_pwrite()` |
 
 ## String (`<string.h>`)
 
@@ -50,8 +53,11 @@ The amiport toolkit targets `-noixemul` to avoid the heavy ixemul.library depend
 | `memcpy`, `memmove`, `memset`, `memcmp` | Available | |
 | `strerror` | Available | |
 | `strsep` | Missing | BSD extension; simple to implement inline |
-| `strcasestr` | Missing | Case-insensitive strstr; not standard |
+| `strcasestr` | Missing | Use `amiport_strcasestr()` |
+| `strcasecmp` | Missing | Use `amiport_strcasecmp()` |
+| `strncasecmp` | Missing | Use `amiport_strncasecmp()` |
 | `strndup` | Missing | POSIX.1-2008; implement with malloc+strncpy |
+| `explicit_bzero` | Missing | Use `amiport_explicit_bzero()` |
 
 ## Standard Library (`<stdlib.h>`)
 
@@ -59,15 +65,18 @@ The amiport toolkit targets `-noixemul` to avoid the heavy ixemul.library depend
 |----------|--------|-------|
 | `malloc`, `calloc`, `realloc`, `free` | Available | |
 | `reallocarray` | Missing | Use `amiport_reallocarray()` |
+| `recallocarray` | Missing | Use `amiport_recallocarray()` |
 | `atoi`, `atol` | Available | |
 | `strtol`, `strtoul` | Available | |
 | `strtoll`, `strtoull` | Partial | May not be available on all builds; `long` is 32-bit on Amiga |
+| `strtonum` | Missing | Use `amiport_strtonum()` (OpenBSD extension) |
 | `qsort`, `bsearch` | Available | |
 | `abs`, `labs` | Available | |
 | `rand`, `srand` | Available | |
 | `exit`, `atexit` | Available | |
 | `getenv` | Partial | libnix provides it but uses ENV:; `amiport_getenv()` uses GetVar() for full compatibility |
-| `setenv`, `unsetenv` | Missing | Need AmigaDOS SetVar/DeleteVar wrappers |
+| `setenv` | Missing | Use `amiport_setenv()` |
+| `unsetenv` | Missing | Use `amiport_unsetenv()` |
 | `mkstemp` | Missing | Use `amiport_mkstemp()` |
 | `system` | Partial | Available but uses Execute(); prefer SystemTags() for more control |
 
@@ -97,7 +106,7 @@ The amiport toolkit targets `-noixemul` to avoid the heavy ixemul.library depend
 | `time` | Partial | Available but may not handle timezone; use `amiport_time()` |
 | `localtime`, `gmtime` | Partial | Available; timezone support varies |
 | `strftime` | Available | |
-| `strptime` | Missing | BSD/POSIX; not in libnix |
+| `strptime` | Missing | Use `amiport_strptime()` |
 | `mktime` | Available | |
 | `difftime` | Available | |
 | `clock` | Partial | Available but resolution is poor |
@@ -111,6 +120,7 @@ The amiport toolkit targets `-noixemul` to avoid the heavy ixemul.library depend
 | `open`, `close` (raw) | Available | But flag mapping is wrong; use `amiport_open()` |
 | `lseek` | Available | But semantics differ; use `amiport_lseek()` |
 | `unlink` | Available | |
+| `rename` | Missing | Use `amiport_rename()` |
 | `access` | Missing | Use `amiport_access()` |
 | `getcwd` | Missing | Use `amiport_getcwd()` |
 | `chdir` | Missing | Use `amiport_chdir()` |
@@ -118,10 +128,28 @@ The amiport toolkit targets `-noixemul` to avoid the heavy ixemul.library depend
 | `usleep` | Missing | Use `amiport_usleep()` |
 | `getpid` | Missing | Use `amiport_getpid()` |
 | `isatty` | Missing | Use `amiport_isatty()` |
-| `dup`, `dup2` | Missing | Planned Tier 1 shim |
+| `dup` | Missing | Use `amiport_dup()` |
+| `dup2` | Missing | Use `amiport_dup2()` |
 | `pipe` | Missing | Use `amiport_emu_pipe()` (Tier 2) |
 | `fork`, `exec*`, `wait*` | Missing | Tier 3 — no process model |
-| `ftruncate` | Missing | Planned; use SetFileSize() |
+| `ftruncate` | Missing | Use `amiport_ftruncate()` |
+| `readlink` | Missing | Use `amiport_readlink()` (stub — returns EINVAL, no symlinks on classic FFS) |
+| `realpath` | Missing | Use `amiport_realpath()` |
+| `setlocale` | Missing | Use `amiport_setlocale()` (stub — returns "C") |
+
+## Argument Parsing (`<getopt.h>`)
+
+| Function | Status | Notes |
+|----------|--------|-------|
+| `getopt` | Missing | Use `amiport_getopt()` |
+| `getopt_long` | Missing | Use `amiport_getopt_long()` |
+
+## Error Reporting (BSD `<err.h>`)
+
+| Function | Status | Notes |
+|----------|--------|-------|
+| `err`, `errx` | Missing | Use `amiport_err()` / `amiport_errx()` |
+| `warn`, `warnx`, `warnc` | Missing | Use `amiport_warn()` / `amiport_warnx()` / `amiport_warnc()` |
 
 ## Directory (`<dirent.h>`)
 
@@ -132,6 +160,8 @@ The amiport toolkit targets `-noixemul` to avoid the heavy ixemul.library depend
 | `closedir` | Missing | Use `amiport_closedir()` |
 | `scandir` | Missing | Use `amiport_scandir()` |
 | `alphasort` | Missing | Use `amiport_alphasort()` |
+| `mkdir` | Partial | libnix may provide; use `amiport_mkdir()` for consistency |
+| `rmdir` | Missing | Use `amiport_rmdir()` |
 
 ## File Status (`<sys/stat.h>`)
 
@@ -140,8 +170,7 @@ The amiport toolkit targets `-noixemul` to avoid the heavy ixemul.library depend
 | `stat` | Missing | Use `amiport_stat()` |
 | `fstat` | Missing | Use `amiport_fstat()` |
 | `lstat` | Missing | Use `amiport_stat()` (no symlink distinction on classic FFS) |
-| `chmod` | Missing | Stub — Amiga protection bits have inverted semantics |
-| `mkdir` | Partial | libnix may provide; use `amiport_mkdir()` for consistency |
+| `chmod` | Missing | Use `amiport_chmod()` (stub — Amiga protection bits have inverted semantics) |
 
 ## Signals (`<signal.h>`)
 
@@ -162,12 +191,25 @@ The amiport toolkit targets `-noixemul` to avoid the heavy ixemul.library depend
 | `regfree` | Missing | Use `amiport_emu_regfree()` (Tier 2) |
 | `regerror` | Missing | Use `amiport_emu_regerror()` (Tier 2) |
 
+## Memory Mapping (`<sys/mman.h>`)
+
+| Function | Status | Notes |
+|----------|--------|-------|
+| `mmap` | Missing | Use `amiport_emu_mmap()` (Tier 2 — AllocMem+Read emulation) |
+| `munmap` | Missing | Use `amiport_emu_munmap()` (Tier 2) |
+
+## Select / Polling (`<sys/select.h>`)
+
+| Function | Status | Notes |
+|----------|--------|-------|
+| `select` (on fds) | Missing | Use `amiport_emu_select()` (Tier 2 — WaitForChar polling) |
+
 ## Glob / Pattern Matching
 
 | Function | Status | Notes |
 |----------|--------|-------|
 | `fnmatch` | Missing | Use `amiport_fnmatch()` |
-| `glob`, `globfree` | Missing | Complex; implement with opendir+fnmatch if needed |
+| `glob`, `globfree` | Missing | Use `amiport_glob()` / `amiport_globfree()` from posix-shim |
 
 ## Networking (all missing with -noixemul)
 
@@ -175,7 +217,7 @@ All BSD socket functions (`socket`, `connect`, `bind`, `listen`, `accept`, `send
 - **ixemul.library** (which we avoid), or
 - **bsdsocket.library** (AmiTCP/Roadshow/Miami) with direct API calls
 
-See Tier 3 bsdsocket redesign pattern in `redesign-patterns.md`.
+Use `lib/bsdsocket-shim/` for BSD socket API wrappers. See ADR-010.
 
 ---
 
