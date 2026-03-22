@@ -33,6 +33,13 @@ Always apply transformations in this sequence:
 
 Follow `references/transformation-rules.md` precisely.
 
+## Mandatory References
+
+Before transforming any source, consult these documents:
+- `.claude/skills/transform-source/references/transformation-rules.md` — All transformation rules including crash-pattern prevention (Section 9)
+- `docs/references/crash-patterns.md` — **Mandatory.** Known AmigaOS crash patterns. Apply prevention rules from Section 9 of transformation-rules.md during every transformation.
+- `docs/references/newlib-availability.md` — What functions are available in libnix
+
 ## Reference Documentation
 
 When making transformation decisions, consult these ADCD reference docs for HOW to use AmigaOS functions:
