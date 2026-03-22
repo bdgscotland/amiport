@@ -19,3 +19,22 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+---
+
+NOTICE — Scope of This License
+
+The amiport toolkit — including the POSIX shim libraries (lib/posix-shim,
+lib/posix-emu, lib/console-shim, lib/bsdsocket-shim), build system,
+toolchain scripts, website, and all supporting infrastructure — is the
+original work of Duncan MacKinnon and is licensed under the MIT License above.
+
+Individual ported programs in ports/*/original/ retain their upstream licenses
+(BSD, ISC, MIT, Lucent Public License). The transformed source in
+ports/*/ported/ is a derivative work of both the upstream code and the amiport
+toolkit. See each port's source file headers and .readme file for upstream
+license details.
+
+If you use the amiport shim libraries, build pipeline, or any other part of
+the toolkit in your own projects, attribution to amiport and Duncan MacKinnon
+is required per the MIT License terms above.
