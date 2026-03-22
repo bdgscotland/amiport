@@ -20,7 +20,7 @@ function sanitize_package(array $raw): array
 {
     $pkg = [];
     $stringFields = ['name', 'version', 'description', 'category', 'source',
-                     'license', 'download', 'aminet', 'sha256', 'readme'];
+                     'license', 'download', 'aminet', 'sha256', 'readme', 'status'];
     foreach ($stringFields as $field) {
         if (isset($raw[$field]) && is_string($raw[$field])) {
             $pkg[$field] = $raw[$field];

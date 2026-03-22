@@ -930,6 +930,20 @@ a:focus-visible {
     color: var(--wb-text);
 }
 
+/* --- TESTING/WARNING Badge --- */
+.badge--warning {
+    background: var(--warning-bg);
+    color: var(--wb-text);
+    border-color: var(--warning-border);
+}
+
+/* --- Disabled Button --- */
+.btn--disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
 /* --- Bar Chart --- */
 .bar-chart {
     display: flex;
