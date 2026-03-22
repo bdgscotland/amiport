@@ -20,8 +20,8 @@ The function to add: `$ARGUMENTS`
 3. **Check the tier classification** in `docs/posix-tiers.md`:
    - If already classified, use that tier
    - If not classified, use the decision tree in `docs/posix-tiers.md` to determine the tier
-4. **Check AmigaOS equivalents** — consult `docs/references/autodocs/` and the `posix-to-amiga-map.md` reference
-5. **Read prose documentation** — consult `docs/references/adcd/FUNCTIONS.md` for understanding function behavior and usage patterns
+4. **Look up the AmigaOS equivalent** — invoke `/amiga-api-lookup` to find the AmigaOS function that implements the POSIX behavior. Search `docs/references/adcd/FUNCTIONS.md` for the function name, then read the autodoc AND prose documentation. Do NOT guess at function signatures or struct layouts.
+5. **Read code examples** — check `docs/references/adcd/examples/` for canonical Commodore usage patterns
 
 ## Step 2: Classify
 

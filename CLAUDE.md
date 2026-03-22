@@ -136,6 +136,12 @@ In QA mode, flag any code that doesn't match DESIGN.md.
 - `docs/test-coverage-standard.md` — **Mandatory** test coverage requirements (no happy-path-only testing)
 - `.claude/skills/transform-source/references/transformation-rules.md` — Tier 1 transformation rules
 
+**Skills for on-demand context loading:**
+- `/amiga-api-lookup` — **Invoke this skill** when writing or reviewing code that uses AmigaOS APIs (exec.library, dos.library, timer.device, etc.). Loads the ADCD reference library with function signatures, struct layouts, usage patterns, and code examples. Do NOT guess at AmigaOS APIs — look them up via this skill.
+- `/write-arexx` — Invoke when writing or modifying ARexx scripts. Loads ARexx syntax reference and known gotchas.
+- `/extend-shim` — Invoke when adding new POSIX functions to the shim library.
+- `/review-amiga` — Invoke for Amiga-specific code review.
+
 **Architecture & guides:** `docs/architecture.md`, `docs/porting-guide.md`, `docs/api-mapping.md`
 
 **ADRs:** `docs/adr/008` (tiers), `009` (console), `010` (bsdsocket), `011` (categories), `014` (FS-UAE testing), `015` (CI/quality), `016` (debug agent), `017` (hooks enforcement), `018` (ADCD knowledge base), `019` (agent persona matrix), `020` (git hooks validation)
