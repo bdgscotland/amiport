@@ -26,7 +26,7 @@ function sanitize_package(array $raw): array
             $pkg[$field] = $raw[$field];
         }
     }
-    $intFields = ['size', 'stack'];
+    $intFields = ['size', 'stack', 'revision'];
     foreach ($intFields as $field) {
         if (isset($raw[$field]) && is_numeric($raw[$field])) {
             $pkg[$field] = (int) $raw[$field];

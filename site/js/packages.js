@@ -390,7 +390,11 @@
 
         detailTitle.textContent = pkg.name;
         detailName.textContent = pkg.name;
-        detailVersion.textContent = 'v' + (pkg.version || '');
+        var verText = 'v' + (pkg.version || '');
+        if (pkg.revision && pkg.revision > 1) {
+            verText += '-' + pkg.revision;
+        }
+        detailVersion.textContent = verText;
         detailCategory.textContent = pkg.category || '';
         detailInstall.textContent = 'amiget install ' + pkg.name;
         // Show readme if available, otherwise just description

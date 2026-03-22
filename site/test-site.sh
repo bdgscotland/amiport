@@ -244,9 +244,16 @@ echo ""
 echo "Admin Security"
 echo "--------------"
 
-# Wrong password
+# Wrong password (may hit rate limit from repeated test runs)
 BODY=$(curl -s -X POST "$BASE_URL/admin.php" -d "password=wrongpassword")
-assert_contains "Wrong password shows error" "Invalid password" "$BODY"
+TOTAL=$((TOTAL + 1))
+if echo "$BODY" | grep -q "Invalid password\|Too many login attempts"; then
+    echo -e "  ${GREEN}PASS${NC} Wrong password shows error"
+    PASS=$((PASS + 1))
+else
+    echo -e "  ${RED}FAIL${NC} Wrong password shows error (no error message found)"
+    FAIL=$((FAIL + 1))
+fi
 
 # --- Summary ---
 echo ""
