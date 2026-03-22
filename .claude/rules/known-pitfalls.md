@@ -42,14 +42,15 @@ if (amiport_check_break()) {
 }
 ```
 
-## exit() Hangs on AmigaOS — Use _exit()
+## ~~exit() Hangs on AmigaOS~~ DEBUNKED
 
-libnix's `exit()` calls atexit handlers that can hang on real AmigaOS hardware (and FS-UAE), particularly when stdio handles are connected to a console. The program produces correct output but never returns to the shell prompt. **Fix:** Use `_exit(rval)` instead of `exit(rval)` in `main()`. Flush stdout explicitly first:
-```c
-fflush(stdout);
-_exit(rval);
-```
-`_exit()` bypasses atexit handlers and goes straight to process termination. This is safe for ported programs because we explicitly free resources before calling it. Do NOT use `_exit()` in error paths where cleanup hasn't happened — use it only at the final exit point in `main()` after all cleanup is done.
+This was a misdiagnosis. Testing with minimal programs on FS-UAE + Workbench 3.1 confirmed that `exit(0)` returns immediately — no hang. The actual cause of all FS-UAE test timeouts was ARexx syntax errors in the test harness (UTF-8 characters and `\=` operator). See crash-patterns.md #9 for the full post-mortem.
+
+The `amiport_exit()` shim exists but is unnecessary. It remains in place to avoid churn.
+
+## ARexx Files Must Be Pure ASCII
+
+ARexx (1987) does not understand UTF-8. Any non-ASCII byte in a `.rexx` file — including inside comments — causes "Error 8: Unrecognized token" and crashes the script. Also, use `~=` for not-equal, not `\=` which may not be recognized by all ARexx interpreters. **This caused weeks of misdiagnosed "exit hang" bugs.**
 
 ## Exit Path Cleanup
 
