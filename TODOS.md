@@ -74,6 +74,22 @@ Superseded by the autonomous debug agent design (ADR-016). The serial→TCP mech
 
 ---
 
+### FS-UAE Integration Testing in CI
+
+**What:** Run `make test-fsemu` in GitHub Actions for every push.
+
+**Why:** Currently only vamos tests run in CI. FS-UAE tests catch bugs that vamos misses (console I/O, real AmigaOS behavior).
+
+**Details:** Requires FS-UAE + Kickstart 3.1 ROM in CI runner (licensing issue), headless mode. Consider running only on main branch.
+
+**Depends on:** All FS-UAE test infrastructure shipping first.
+
+**Priority:** P2
+
+**Effort:** L (human: ~1 week / CC: ~1 hour)
+
+---
+
 ## Infrastructure
 
 ### ~~Add CI/CD with GitHub Actions~~ — DONE
