@@ -155,8 +155,8 @@ build_boot_volume() {
     generate_test_cases "$port_dir"
     cp "$RESULTS_DIR/test-cases.txt" "$AMIGA_DIR/test-cases.txt"
 
-    # Copy any test data files (test-*.txt, test-*.dat, test-*.rexx) from the port directory to WORK:
-    for datafile in "$port_dir"/test-*.txt "$port_dir"/test-*.dat "$port_dir"/test-*.rexx; do
+    # Copy any test data files (test-*.txt, test-*.dat, test-*.sed, test-*.rexx) from the port directory to WORK:
+    for datafile in "$port_dir"/test-*.txt "$port_dir"/test-*.dat "$port_dir"/test-*.sed "$port_dir"/test-*.rexx; do
         if [ -f "$datafile" ] && [ "$(basename "$datafile")" != "test-fsemu-cases.txt" ]; then
             cp "$datafile" "$AMIGA_DIR/"
         fi

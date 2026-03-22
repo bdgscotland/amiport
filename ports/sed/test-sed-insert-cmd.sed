@@ -1,0 +1,2 @@
+/second/i\
+INSERTED LINE

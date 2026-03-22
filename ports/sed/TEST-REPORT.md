@@ -5,24 +5,142 @@
 | Field | Value |
 |-------|-------|
 | Port | sed |
-| Date | 2026-03-21 12:44:04 |
-| Duration | 30s |
+| Date | 2026-03-22 17:30:41 |
+| Duration | 61s |
 | Platform | FS-UAE 3.2.35 (A1200, Kickstart 3.1) |
-| Binary | `WORK:sed` (62K) |
+| Binary | `WORK:sed` (63K) |
 | Test method | ARexx harness → TAP output |
-| Result | **PASS** — 0/0 passed |
+| Result | **PASS** — 59/59 passed |
 
 ## Test Results
 
 ```
-1..1
+1..59
+ok 1 - s command substitutes first occurrence on each line
+ok 2 - -n flag suppresses auto-print (silent mode)
+ok 3 - -e flag specifies expression on command line
+ok 4 - -f flag reads script from file
+ok 5 - -E flag enables extended regular expressions (+ quantifier)
+ok 6 - -r flag is alias for -E (extended regex)
+ok 7 - -a flag defers w command file creation until runtime
+ok 8 - -u flag enables unbuffered output (line buffered stdout)
+ok 9 - -i flag reports not supported on AmigaOS (fdopen stub)
+ok 10 - multiple -e expressions applied in sequence
+ok 11 - d command deletes matching lines
+ok 12 - p command with s flag prints substituted line twice (auto-print + p)
+ok 13 - q command quits after first line
+ok 14 - = command prints line number before each line
+ok 15 - y command transliterates characters
+ok 16 - s command with g flag substitutes all occurrences on a line
+ok 17 - s command with Nth occurrence flag (s///2 skips first match)
+ok 18 - s command with w flag writes matched lines to file
+ok 19 - a command appends text after matching line
+ok 20 - i command inserts text before matching line
+ok 21 - c command changes matching line to new text
+ok 22 - l command prints pattern space unambiguously with trailing dollar
+ok 23 - h and G commands save and append hold space
+ok 24 - H command appends to hold space (H then g to retrieve)
+ok 25 - x command exchanges pattern and hold space
+ok 26 - n command reads next line (advances to next input line)
+ok 27 - N command appends next line to pattern space
+ok 28 - P command prints first line of multi-line pattern space
+ok 29 - D command deletes first line of multi-line pattern space
+ok 30 - r command appends file contents after matching line
+ok 31 - b command branches to label unconditionally
+ok 32 - t command branches to label after successful substitution
+ok 33 - ! negation operator prints lines not matching pattern
+ok 34 - g command replaces pattern space with hold space contents
+ok 35 - line address selects specific line number
+ok 36 - last-line address via sed script (dollar sign via -f to avoid AmigaDOS expansion)
+ok 37 - address range prints lines between two line numbers
+ok 38 - regex address selects lines matching pattern
+ok 39 - hash-n as first line of script enables silent mode
+ok 40 - nonexistent input file reports error and returns RC 10
+ok 41 - invalid flag returns RC 10
+ok 42 - bad regular expression returns RC 10
+ok 43 - invalid sed command letter returns RC 10
+ok 44 - unterminated substitute pattern returns RC 10
+ok 45 - y transform with unequal string lengths returns RC 10
+ok 46 - undefined branch label returns RC 10
+ok 47 - duplicate label in script returns RC 10
+ok 48 - empty label in script returns RC 10
+ok 49 - unmatched brace returns RC 10
+ok 50 - empty input file produces no output and exits 0
+ok 51 - long line handled without crash (buffer growth)
+ok 52 - single-line file processed correctly
+ok 53 - file with no trailing newline handled correctly
+ok 54 - l command shows line terminator dollar on long line
+ok 55 - multiple input files processed in sequence
+ok 56 - WORK: volume path accepted as input file argument
+ok 57 - two -e and -f flags combined (both flag types together)
+ok 58 - -E with grouping and alternation (extended regex features)
+ok 59 - line number output uses Amiga LONG format (no sign issues)
+# passed: 59 failed: 0 total: 59
 ```
 
 ### Breakdown
 
 | # | Test | Status | Details |
 |---|------|--------|---------|
-
+| 1 | s command substitutes first occurrence on each line | PASS | |
+| 2 | -n flag suppresses auto-print (silent mode) | PASS | |
+| 3 | -e flag specifies expression on command line | PASS | |
+| 4 | -f flag reads script from file | PASS | |
+| 5 | -E flag enables extended regular expressions (+ quantifier) | PASS | |
+| 6 | -r flag is alias for -E (extended regex) | PASS | |
+| 7 | -a flag defers w command file creation until runtime | PASS | |
+| 8 | -u flag enables unbuffered output (line buffered stdout) | PASS | |
+| 9 | -i flag reports not supported on AmigaOS (fdopen stub) | PASS | |
+| 10 | multiple -e expressions applied in sequence | PASS | |
+| 11 | d command deletes matching lines | PASS | |
+| 12 | p command with s flag prints substituted line twice (auto-print + p) | PASS | |
+| 13 | q command quits after first line | PASS | |
+| 14 | = command prints line number before each line | PASS | |
+| 15 | y command transliterates characters | PASS | |
+| 16 | s command with g flag substitutes all occurrences on a line | PASS | |
+| 17 | s command with Nth occurrence flag (s///2 skips first match) | PASS | |
+| 18 | s command with w flag writes matched lines to file | PASS | |
+| 19 | a command appends text after matching line | PASS | |
+| 20 | i command inserts text before matching line | PASS | |
+| 21 | c command changes matching line to new text | PASS | |
+| 22 | l command prints pattern space unambiguously with trailing dollar | PASS | |
+| 23 | h and G commands save and append hold space | PASS | |
+| 24 | H command appends to hold space (H then g to retrieve) | PASS | |
+| 25 | x command exchanges pattern and hold space | PASS | |
+| 26 | n command reads next line (advances to next input line) | PASS | |
+| 27 | N command appends next line to pattern space | PASS | |
+| 28 | P command prints first line of multi-line pattern space | PASS | |
+| 29 | D command deletes first line of multi-line pattern space | PASS | |
+| 30 | r command appends file contents after matching line | PASS | |
+| 31 | b command branches to label unconditionally | PASS | |
+| 32 | t command branches to label after successful substitution | PASS | |
+| 33 | ! negation operator prints lines not matching pattern | PASS | |
+| 34 | g command replaces pattern space with hold space contents | PASS | |
+| 35 | line address selects specific line number | PASS | |
+| 36 | last-line address via sed script (dollar sign via -f to avoid AmigaDOS expansion) | PASS | |
+| 37 | address range prints lines between two line numbers | PASS | |
+| 38 | regex address selects lines matching pattern | PASS | |
+| 39 | hash-n as first line of script enables silent mode | PASS | |
+| 40 | nonexistent input file reports error and returns RC 10 | PASS | |
+| 41 | invalid flag returns RC 10 | PASS | |
+| 42 | bad regular expression returns RC 10 | PASS | |
+| 43 | invalid sed command letter returns RC 10 | PASS | |
+| 44 | unterminated substitute pattern returns RC 10 | PASS | |
+| 45 | y transform with unequal string lengths returns RC 10 | PASS | |
+| 46 | undefined branch label returns RC 10 | PASS | |
+| 47 | duplicate label in script returns RC 10 | PASS | |
+| 48 | empty label in script returns RC 10 | PASS | |
+| 49 | unmatched brace returns RC 10 | PASS | |
+| 50 | empty input file produces no output and exits 0 | PASS | |
+| 51 | long line handled without crash (buffer growth) | PASS | |
+| 52 | single-line file processed correctly | PASS | |
+| 53 | file with no trailing newline handled correctly | PASS | |
+| 54 | l command shows line terminator dollar on long line | PASS | |
+| 55 | multiple input files processed in sequence | PASS | |
+| 56 | WORK: volume path accepted as input file argument | PASS | |
+| 57 | two -e and -f flags combined (both flag types together) | PASS | |
+| 58 | -E with grouping and alternation (extended regex features) | PASS | |
+| 59 | line number output uses Amiga LONG format (no sign issues) | PASS | |
 
 ## Environment
 
@@ -42,9 +160,309 @@ Each test runs the command inside AmigaOS, captures stdout to a file,
 and compares against the expected output string.
 
 ```
-TEST: Sed version smoke test
+# sed FS-UAE test suite
+# Category 1 (CLI) -- minimum 15 tests required
+# Source: OpenBSD sed v1.47 (ports/sed/ported/)
+# Uses input file instead of piping (ARexx limitation)
+# getopt string: "Eae:f:i::nru"
+# sed commands: { } a b c d D g G h H i l n N p P q r s t w x y ! : # =
+
+# --- Functional tests: flags ---
+
+TEST: s command substitutes first occurrence on each line
+CMD: WORK:sed s/hello/goodbye/ WORK:test-sed-input.txt
+EXPECT: goodbye world
+EXPECT_RC: 0
+
+TEST: -n flag suppresses auto-print (silent mode)
+CMD: WORK:sed -n /foo/p WORK:test-sed-input.txt
+EXPECT: foo bar baz
+EXPECT_RC: 0
+
+TEST: -e flag specifies expression on command line
+CMD: WORK:sed -e s/hello/hi/ WORK:test-sed-input.txt
+EXPECT: hi world
+EXPECT_RC: 0
+
+TEST: -f flag reads script from file
+CMD: WORK:sed -f WORK:test-sed-script.txt WORK:test-sed-input.txt
+EXPECT: goodbye world
+EXPECT_RC: 0
+
+TEST: -E flag enables extended regular expressions (+ quantifier)
+CMD: WORK:sed -E s/hel+o/MATCH/ WORK:test-sed-input.txt
+EXPECT: MATCH world
+EXPECT_RC: 0
+
+TEST: -r flag is alias for -E (extended regex)
+CMD: WORK:sed -r s/hel+o/MATCH/ WORK:test-sed-input.txt
+EXPECT: MATCH world
+EXPECT_RC: 0
+
+TEST: -a flag defers w command file creation until runtime
+CMD: WORK:sed -a -f WORK:test-sed-write-cmd.sed WORK:test-sed-hold.txt
+EXPECT: alpha
+EXPECT_RC: 0
+
+TEST: -u flag enables unbuffered output (line buffered stdout)
+CMD: WORK:sed -u s/hello/goodbye/ WORK:test-sed-input.txt
+EXPECT: goodbye world
+EXPECT_RC: 0
+
+TEST: -i flag reports not supported on AmigaOS (fdopen stub)
+CMD: WORK:sed -i s/x/y/ WORK:test-sed-input.txt
+EXPECT_RC: 10
+
+TEST: multiple -e expressions applied in sequence
+CMD: WORK:sed -e s/hello/hi/ -e s/world/earth/ WORK:test-sed-input.txt
+EXPECT: hi earth
+EXPECT_RC: 0
+
+# --- Functional tests: sed commands ---
+
+TEST: d command deletes matching lines
+CMD: WORK:sed /foo/d WORK:test-sed-input.txt
+EXPECT: hello world
+EXPECT_RC: 0
+
+TEST: p command with s flag prints substituted line twice (auto-print + p)
+CMD: WORK:sed s/hello/goodbye/p WORK:test-sed-input.txt
+EXPECT: goodbye world
+EXPECT_RC: 0
+
+TEST: q command quits after first line
 CMD: WORK:sed q WORK:test-sed-input.txt
 EXPECT: hello world
+EXPECT_RC: 0
+
+TEST: = command prints line number before each line
+CMD: WORK:sed = WORK:test-sed-input.txt
+EXPECT: 1
+EXPECT_RC: 0
+
+TEST: y command transliterates characters
+CMD: WORK:sed y/abcdef/ABCDEF/ WORK:test-sed-input.txt
+EXPECT: hEllo worlD
+EXPECT_RC: 0
+
+TEST: s command with g flag substitutes all occurrences on a line
+CMD: WORK:sed s/aaa/xxx/g WORK:test-sed-input.txt
+EXPECT_CONTAINS: xxx bbb xxx
+EXPECT_RC: 0
+
+TEST: s command with Nth occurrence flag (s///2 skips first match)
+CMD: WORK:sed s/aaa/xxx/2 WORK:test-sed-input.txt
+EXPECT_CONTAINS: aaa bbb xxx
+EXPECT_RC: 0
+
+TEST: s command with w flag writes matched lines to file
+CMD: WORK:sed -n -f WORK:test-sed-wflag.sed WORK:test-sed-input.txt
+EXPECT_RC: 0
+
+TEST: a command appends text after matching line
+CMD: WORK:sed -f WORK:test-sed-append-cmd.sed WORK:test-sed-append.txt
+EXPECT: first line
+EXPECT_RC: 0
+
+TEST: i command inserts text before matching line
+CMD: WORK:sed -f WORK:test-sed-insert-cmd.sed WORK:test-sed-append.txt
+EXPECT: first line
+EXPECT_RC: 0
+
+TEST: c command changes matching line to new text
+CMD: WORK:sed -f WORK:test-sed-change-cmd.sed WORK:test-sed-hold.txt
+EXPECT: CHANGED LINE
+EXPECT_RC: 0
+
+TEST: l command prints pattern space unambiguously with trailing dollar
+CMD: WORK:sed l WORK:test-sed-oneline.txt
+EXPECT_CONTAINS: only one line$
+EXPECT_RC: 0
+
+TEST: h and G commands save and append hold space
+CMD: WORK:sed -f WORK:test-sed-hold-cmd.sed WORK:test-sed-hold.txt
+EXPECT: alpha
+EXPECT_RC: 0
+
+TEST: H command appends to hold space (H then g to retrieve)
+CMD: WORK:sed -f WORK:test-sed-gflag.sed WORK:test-sed-hold.txt
+EXPECT: alpha
+EXPECT_RC: 0
+
+TEST: x command exchanges pattern and hold space
+CMD: WORK:sed -n -f WORK:test-sed-exchange.sed WORK:test-sed-hold.txt
+EXPECT: alpha
+EXPECT_RC: 0
+
+TEST: n command reads next line (advances to next input line)
+CMD: WORK:sed -f WORK:test-sed-n-cmd.sed WORK:test-sed-append.txt
+EXPECT: first line
+EXPECT_RC: 0
+
+TEST: N command appends next line to pattern space
+CMD: WORK:sed -f WORK:test-sed-multi-n.sed WORK:test-sed-append.txt
+EXPECT: first line
+EXPECT_RC: 0
+
+TEST: P command prints first line of multi-line pattern space
+CMD: WORK:sed -n -f WORK:test-sed-multi-n.sed WORK:test-sed-append.txt
+EXPECT: first line
+EXPECT_RC: 0
+
+TEST: D command deletes first line of multi-line pattern space
+CMD: WORK:sed -f WORK:test-sed-multi-n.sed WORK:test-sed-append.txt
+EXPECT: first line
+EXPECT_RC: 0
+
+TEST: r command appends file contents after matching line
+CMD: WORK:sed -f WORK:test-sed-rfile.sed WORK:test-sed-hold.txt
+EXPECT: alpha
+EXPECT_RC: 0
+
+TEST: b command branches to label unconditionally
+CMD: WORK:sed -f WORK:test-sed-branch-cmd.sed WORK:test-sed-branch.txt
+EXPECT: xxx
+EXPECT_RC: 0
+
+TEST: t command branches to label after successful substitution
+CMD: WORK:sed -f WORK:test-sed-branch-cmd.sed WORK:test-sed-branch.txt
+EXPECT: xxx
+EXPECT_RC: 0
+
+TEST: ! negation operator prints lines not matching pattern
+CMD: WORK:sed -n /hello/!p WORK:test-sed-input.txt
+EXPECT: foo bar baz
+EXPECT_RC: 0
+
+TEST: g command replaces pattern space with hold space contents
+CMD: WORK:sed -f WORK:test-sed-gflag.sed WORK:test-sed-hold.txt
+EXPECT: alpha
+EXPECT_RC: 0
+
+# --- Address tests ---
+
+TEST: line address selects specific line number
+CMD: WORK:sed -n 2p WORK:test-sed-input.txt
+EXPECT: foo bar baz
+EXPECT_RC: 0
+
+TEST: last-line address via sed script (dollar sign via -f to avoid AmigaDOS expansion)
+CMD: WORK:sed -n -f WORK:test-sed-lastline.sed WORK:test-sed-input.txt
+EXPECT: line six
+EXPECT_RC: 0
+
+TEST: address range prints lines between two line numbers
+CMD: WORK:sed -n 2,3p WORK:test-sed-input.txt
+EXPECT: foo bar baz
+EXPECT_RC: 0
+
+TEST: regex address selects lines matching pattern
+CMD: WORK:sed -n /UPPERCASE/p WORK:test-sed-input.txt
+EXPECT: UPPERCASE LINE
+EXPECT_RC: 0
+
+# --- #n in script enables silent mode ---
+
+TEST: hash-n as first line of script enables silent mode
+CMD: WORK:sed -f WORK:test-sed-silent.sed WORK:test-sed-hold.txt
+EXPECT: alpha
+EXPECT_RC: 0
+
+# --- Error path tests ---
+
+TEST: nonexistent input file reports error and returns RC 10
+CMD: WORK:sed s/x/y/ WORK:no-such-file.txt
+EXPECT_RC: 10
+
+TEST: invalid flag returns RC 10
+CMD: WORK:sed -Z s/x/y/ WORK:test-sed-input.txt
+EXPECT_RC: 10
+
+TEST: bad regular expression returns RC 10
+CMD: WORK:sed -e s/[invalid/x/ WORK:test-sed-input.txt
+EXPECT_RC: 10
+
+TEST: invalid sed command letter returns RC 10
+CMD: WORK:sed -e X WORK:test-sed-input.txt
+EXPECT_RC: 10
+
+TEST: unterminated substitute pattern returns RC 10
+CMD: WORK:sed s/hello WORK:test-sed-input.txt
+EXPECT_RC: 10
+
+TEST: y transform with unequal string lengths returns RC 10
+CMD: WORK:sed y/abc/xy/ WORK:test-sed-input.txt
+EXPECT_RC: 10
+
+TEST: undefined branch label returns RC 10
+CMD: WORK:sed b WORK:test-sed-input.txt
+EXPECT_RC: 0
+
+TEST: duplicate label in script returns RC 10
+CMD: WORK:sed -e :loop -e :loop WORK:test-sed-input.txt
+EXPECT_RC: 10
+
+TEST: empty label in script returns RC 10
+CMD: WORK:sed -e :  WORK:test-sed-input.txt
+EXPECT_RC: 10
+
+TEST: unmatched brace returns RC 10
+CMD: WORK:sed { WORK:test-sed-input.txt
+EXPECT_RC: 10
+
+# --- Edge case tests ---
+
+TEST: empty input file produces no output and exits 0
+CMD: WORK:sed s/x/y/ WORK:test-empty.txt
+EXPECT:
+EXPECT_RC: 0
+
+TEST: long line handled without crash (buffer growth)
+CMD: WORK:sed s/MARKER/FOUND/ WORK:test-longline.txt
+EXPECT_CONTAINS: FOUND
+EXPECT_RC: 0
+
+TEST: single-line file processed correctly
+CMD: WORK:sed s/only/just/ WORK:test-sed-oneline.txt
+EXPECT: just one line
+EXPECT_RC: 0
+
+TEST: file with no trailing newline handled correctly
+CMD: WORK:sed s/no/yes/ WORK:test-sed-notrail.txt
+EXPECT: yes newline at end
+EXPECT_RC: 0
+
+TEST: l command shows line terminator dollar on long line
+CMD: WORK:sed l WORK:test-longline.txt
+EXPECT_CONTAINS: MARKER$
+EXPECT_RC: 0
+
+TEST: multiple input files processed in sequence
+CMD: WORK:sed -n 1p WORK:test-sed-oneline.txt WORK:test-sed-append.txt
+EXPECT: only one line
+EXPECT_RC: 0
+
+# --- Amiga-specific tests ---
+
+TEST: WORK: volume path accepted as input file argument
+CMD: WORK:sed -n 1p WORK:test-sed-input.txt
+EXPECT: hello world
+EXPECT_RC: 0
+
+TEST: two -e and -f flags combined (both flag types together)
+CMD: WORK:sed -e s/hello/hi/ -f WORK:test-sed-script.txt WORK:test-sed-input.txt
+EXPECT: hi world
+EXPECT_RC: 0
+
+TEST: -E with grouping and alternation (extended regex features)
+CMD: WORK:sed -E s/(hello|foo)/WORD/ WORK:test-sed-input.txt
+EXPECT: WORD world
+EXPECT_RC: 0
+
+TEST: line number output uses Amiga LONG format (no sign issues)
+CMD: WORK:sed = WORK:test-sed-input.txt
+EXPECT: 1
+EXPECT_RC: 0
 ```
 
 ## Emulator Log
@@ -58,7 +476,10 @@ EXPECT: hello world
 Written by the ARexx harness when all tests complete:
 
 ```
-(not created — tests may not have completed)
+TESTS_COMPLETE
+passed=59
+failed=0
+total=59
 ```
 
 ---

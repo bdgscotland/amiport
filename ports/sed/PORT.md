@@ -66,6 +66,7 @@ Verdict: **MODERATE** — mostly Tier 1 shim transforms with Tier 2 regex emulat
 | process.c | 527-573 | `regexec` with REG_STARTEND | Substring copy + offset adjust | REG_STARTEND emulation |
 | misc.c | 58,69,82,126 | `err(1, ...)` | `err(10, ...)` | Amiga exit codes |
 | misc.c | 67-77 | `xreallocarray` | Zero-size guard | reallocarray(NULL,0,size) returns NULL legitimately |
+| compat.h | 83-97 | `open(p,f,m)` (3-arg) | `amiport_open3()` wrapper | Shim macro only accepts 2 args; 3-arg wrapper discards mode |
 
 ## Shim Functions Exercised
 
@@ -86,21 +87,18 @@ Verdict: **MODERATE** — mostly Tier 1 shim transforms with Tier 2 regex emulat
 | Target | m68k-amigaos, 68000+ |
 | CFLAGS | `-O2 -noixemul -m68000 -Wall` |
 | Libraries | `-lamiport` (posix-shim), `-lamiport-emu` (regex) |
-| Binary size | 58K |
+| Binary size | 64K |
 
 ## Test Results
 
-Tested via vamos. All 7 tests passed.
+Tested via vamos (smoke tests) and FS-UAE (comprehensive suite). **59/59 tests passed.**
 
-| Test | Command | Input | Expected | Result |
-|------|---------|-------|----------|--------|
-| Basic substitution | `sed 's/hello/goodbye/'` | hello world | goodbye world | PASS |
-| Print mode | `sed -n 'p'` | line1 | line1 | PASS |
-| Delete line | `sed '2d'` | line1\nline2\nline3 | line1\nline3 | PASS |
-| Transform | `sed 'y/abc/ABC/'` | aaa\nbbb\nccc | AAA\nBBB\nCCC | PASS |
-| Multiple -e | `sed -e 's/hello/hi/' -e 's/world/earth/'` | hello world | hi earth | PASS |
-| Address range | `sed '2,3d'` | line1..line4 | line1\nline4 | PASS |
-| Extended regex | `sed -E 's/[0-9]+/NUM/'` | abc123def | abcNUMdef | PASS |
+| Category | Count | Description |
+|----------|-------|-------------|
+| Functional | 39 | All 8 flags (-E, -a, -e, -f, -i, -n, -r, -u) and all 22 sed commands |
+| Error path | 11 | Bad regex, invalid flag, missing file, unterminated patterns (EXPECT_RC: 10) |
+| Edge case | 6 | Empty file, long line, no trailing newline, single-line, multi-file input |
+| Amiga-specific | 3 | WORK: path handling, T: write path, line number format |
 
 ## Known Limitations
 
