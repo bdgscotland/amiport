@@ -11,6 +11,7 @@ These rules apply to ALL C code targeting AmigaOS in this project.
 ## Headers
 
 - Use `<proto/*.h>` for Amiga system calls (never `<clib/*.h>` pragmas).
+- Replace `<stdlib.h>` with `<amiport/stdlib.h>` — activates the `exit()` → `amiport_exit()` macro.
 
 ## Types
 
