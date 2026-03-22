@@ -5,7 +5,7 @@
 | Field | Value |
 |-------|-------|
 | Program | grep |
-| Version | 1.0 |
+| Version | 1.68 |
 | Source | OpenBSD usr.bin/grep (v1.68, May 2025) |
 | Category | 1 — CLI tool |
 | License | BSD 2-Clause |

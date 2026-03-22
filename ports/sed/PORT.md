@@ -5,7 +5,7 @@
 | Field | Value |
 |-------|-------|
 | Program | sed |
-| Version | 1.0 |
+| Version | 1.47 |
 | Source | OpenBSD src (usr.bin/sed, v1.47 2024/07/17) |
 | Category | 1 — CLI tool |
 | License | BSD 3-Clause |
