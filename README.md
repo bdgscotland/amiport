@@ -154,6 +154,43 @@ The knowledge base is also independently useful as a modern, searchable version 
 
 Regenerate from source with `make scrape-adcd` (requires internet access, ~20 minutes).
 
+## Automated FS-UAE Testing
+
+Every port is tested inside a real AmigaOS environment — not a mock, not a stub, but actual AmigaOS 3.1 booting from a Kickstart ROM and Workbench HDF inside FS-UAE. A single `make` command handles the entire cycle: boot the emulator, run the test suite, capture results, shut down.
+
+```
+make test-fsemu TARGET=ports/cal
+        |
+        v
+FS-UAE boots AmigaOS 3.1 (Kickstart 3.1 ROM + Workbench HDF)
+        |
+        v
+User-Startup launches ARexx: RexxMast -> rx test-runner.rexx
+        |
+        v
+ARexx harness: parse test cases -> execute commands -> capture output -> compare expected -> TAP results
+        |
+        v
+UAEQuit shuts down emulator -> host reads TAP from shared volume -> TEST-REPORT.md generated
+```
+
+**Test results from real ports:**
+
+- **cal** — 22/22 tests passing (functional output, error paths, exit codes, edge cases)
+- **cut** — 20/20 tests passing
+
+**AI-generated test suites.** The `test-designer` agent analyzes ported source code — control flow, error paths, boundary conditions — and generates comprehensive test cases automatically. No manual test writing required.
+
+**Timeout diagnosis.** When tests hang, the harness does not just report "timeout." It diagnoses the failure mode: ARexx interpreter failed to start, binary crashed before producing output, or a specific test case froze. This turns opaque hangs into actionable debugging information.
+
+```bash
+make test-fsemu TARGET=ports/cal       # Run full FS-UAE test suite for a port
+make check-test-coverage               # Validate test suite completeness across all ports
+make check-fix-propagation             # Scan ports for known crash patterns
+```
+
+See [ADR-014](docs/adr/014-fs-uae-automated-testing.md) for the full design.
+
 ## Make Targets
 
 ```bash
@@ -170,6 +207,8 @@ make test TARGET=ports/grep         # Test via vamos
 make smoke-test                     # Full end-to-end validation
 make setup-debug-tools              # Install Enforcer, Mungwall, SegTracker
 make check-docs                     # Validate doc consistency
+make check-test-coverage            # Validate FS-UAE test suite completeness
+make check-fix-propagation          # Scan ports for known crash patterns
 
 # Emulator
 make setup-emu                      # Install FS-UAE
