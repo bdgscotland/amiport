@@ -100,6 +100,12 @@ Created `docs/references/68k-hardware.md` with 8 sections: crash signature quick
 
 ---
 
+### ~~Amiga Hardware Expert Agent~~ — DONE
+
+Created `hardware-expert` agent (12th agent) with 6 research-backed knowledge domains: CPU variant matrix (EC020/EC030 distinctions), chipset generations (OCS/ECS/AGA), address space architecture, Kickstart ROM & LVO calling convention, DMA & bus arbitration, and common hardware misconceptions. Dual-role: on-demand consultant (debug-agent, perf-optimizer, port-coordinator can escalate) + proactive auditor for reference docs. Added Agent tool to debug-agent for escalation path. Fixed perf-optimizer CPU table to correctly distinguish 68EC020. Motivated by the EC020/68020 mistake in 68k-hardware.md that the user caught.
+
+---
+
 ### libnix Limitations Reference
 
 **What:** Create `docs/references/libnix-limitations.md` documenting known gaps and quirks in bebbo-gcc's libnix C runtime.

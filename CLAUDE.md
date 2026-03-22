@@ -74,6 +74,7 @@ The `/port-project` skill has GATE checks — it will not proceed to the next st
 | `debug-agent` | When a port crashes at runtime — autonomous Enforcer-based crash diagnosis and fix loop |
 | `memory-checker` | **Mandatory** Stage 6b — memory leak detection, double-free, allocation safety |
 | `perf-optimizer` | Optional Stage 6c — 68k instruction timing and loop optimization |
+| `hardware-expert` | Hardware architecture validation — on-demand consultant + proactive doc auditor. Dispatch when agents need hardware facts (address space, CPU variants, chipset capabilities). |
 | `aminet-publisher` | Publishing — curated, never automatic |
 
 **Post-port quality gates:**

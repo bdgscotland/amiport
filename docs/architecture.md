@@ -14,6 +14,8 @@
     (agent)            (agent)            (agent)            (agent)       (mandatory, 6b)
                                                                           perf-optimizer
                                                                          (optional, 6c)
+                                                                          hardware-expert
+                                                                         (on-demand, any stage)
 
                          ▲                   ▲
                          │                   │
@@ -52,8 +54,9 @@ Agents define **who** does the work — model selection, tool access, persona, a
 - **test-runner**: Uses Haiku for lightweight test execution. Bash + read only.
 - **memory-checker**: Uses Sonnet for memory safety analysis. **Mandatory** (Stage 6b). Read-only tools.
 - **perf-optimizer**: Uses Sonnet for 68k hardware performance optimization. Optional (Stage 6c). Read + analysis tools.
+- **hardware-expert**: Uses Sonnet for Amiga system architecture validation. Dual-role: on-demand consultant (other agents escalate hardware questions) + proactive auditor (reviews reference docs for hardware accuracy). Baked-in knowledge covers CPU variants, chipset generations, address space, bus arbitration. Read + edit tools.
 - **port-coordinator**: Dispatched by /port-project for complex multi-file ports. Uses worktree isolation. Full tool access.
-- **debug-agent**: Uses Sonnet for autonomous crash debugging. Parses Enforcer hits, maps to source, classifies crashes, applies fixes, and iterates until clean (max 5 iterations). Bash + edit access.
+- **debug-agent**: Uses Sonnet for autonomous crash debugging. Parses Enforcer hits, maps to source, classifies crashes, applies fixes, and iterates until clean (max 5 iterations). Bash + edit + agent access (can escalate to hardware-expert).
 - **dependency-auditor**: Uses Sonnet for auditing external library dependencies. Research + read tools.
 - **aminet-publisher**: Uses Sonnet for Aminet package preparation and publishing. Curated, never automatic.
 

@@ -54,6 +54,17 @@ When encountering patterns not yet classified by tier:
    - YES → Document in PORT.md as a known limitation
    - NO → Apply silently
 
+## Hardware Review
+
+For Category 3+ ports (console UI, network, GUI), dispatch the `hardware-expert` agent before the build stage to review hardware assumptions:
+
+```
+subagent_type: "hardware-expert"
+prompt: "This is a Category [N] port of [name]. Review the ported source for hardware assumptions — Chip RAM allocation sizes, direct hardware access, DMA-sensitive timing, chipset-specific features. Source is at ports/[name]/ported/"
+```
+
+Category 1-2 (CLI, scripting) ports rarely need hardware review unless they do unusual memory allocation.
+
 ## Pipeline Stages
 
 Use these skills in order:

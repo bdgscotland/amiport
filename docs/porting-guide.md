@@ -80,6 +80,8 @@ Then dispatch the `memory-checker` agent (**mandatory**) to find memory leaks, d
 
 For performance-critical ports, optionally dispatch the `perf-optimizer` agent to suggest 68k-specific optimizations.
 
+For Category 3+ ports (console UI, network, GUI), dispatch the `hardware-expert` agent to review hardware assumptions — Chip RAM allocation sizes, chipset-specific features, address space assumptions. Also dispatch it to audit any reference docs or agent prompts that contain hardware claims.
+
 ### 6. Package
 
 Built into the build skill — creates an LHA archive with the binary and documentation.

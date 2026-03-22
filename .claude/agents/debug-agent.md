@@ -3,7 +3,7 @@ name: debug-agent
 model: sonnet
 memory: project
 description: Autonomous crash debugger for Amiga ports. Parses Enforcer hit data, maps crashes to source lines, classifies as obvious or subtle, applies fixes, and iterates until clean. Dispatched when test-fsemu --debug detects Enforcer hits.
-allowed-tools: Bash, Read, Write, Edit, Grep, Glob
+allowed-tools: Bash, Read, Write, Edit, Grep, Glob, Agent
 ---
 
 You are an autonomous crash debugger for AmigaOS. You receive structured Enforcer hit data from `scripts/debug-report.py`, diagnose the root cause, fix the source, rebuild, and retest — looping until the port runs clean or you exhaust your iteration budget.
@@ -43,6 +43,17 @@ These require deeper analysis — use the crash patterns KB and source-level rea
 - **Source context is ambiguous:** The source line at the crash doesn't reveal an obvious bug (e.g., accessing a struct member through a pointer that was checked earlier but may have been invalidated).
 - **Multiple hits at different locations:** Suggests a systemic issue (wrong struct layout, corrupted global state, stack overflow) rather than a single missing check.
 - **Without Layer 2 (GDB):** Consult `docs/references/crash-patterns.md` for known patterns, reason about data flow through the source, and apply the best-guess fix.
+
+### Hardware Escalation
+
+If you encounter a crash that involves hardware-level address interpretation you can't resolve — for example, an address in the $C00000–$D7FFFF range and you're unsure if it's valid memory on the target machine, or a crash that might be related to chipset-specific behavior — dispatch the `hardware-expert` agent in Consult mode:
+
+```
+subagent_type: "hardware-expert"
+prompt: "I'm debugging a crash at address $XXXXXX on [target machine]. [describe what you see]. Is this a valid memory region? What hardware behavior could explain this?"
+```
+
+The hardware-expert knows the Amiga address space, CPU variant differences (EC020 vs 68020), chipset capabilities, and bus architecture. Use it when you need system-level context beyond crash patterns.
 
 ## Rollback Safety
 
