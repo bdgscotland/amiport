@@ -40,6 +40,17 @@ for dir in "$PROJECT_DIR"/examples/*/; do
     fi
 done
 
+# Install common test data files
+COMMON_DATA="$PROJECT_DIR/ports/common-test-data"
+if [ -d "$COMMON_DATA" ]; then
+    for datafile in "$COMMON_DATA"/*; do
+        if [ -f "$datafile" ]; then
+            cp "$datafile" "$EMU_DIR/"
+        fi
+    done
+    echo "  [OK] common test data"
+fi
+
 if [ "$INSTALLED" -eq 0 ]; then
     echo "  No built binaries found. Run 'make build-ports' first."
     exit 1
