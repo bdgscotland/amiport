@@ -365,6 +365,90 @@ run_emulator() {
 }
 
 # ============================================================
+# Diagnose timeout causes
+# ============================================================
+diagnose_timeout() {
+    local port_dir="$1"
+    local elapsed="$2"
+    local tap_file="$RESULTS_DIR/tap-output.txt"
+    local sentinel="$RESULTS_DIR/tests-complete"
+
+    echo ""
+    echo "=== Timeout Diagnosis ==="
+
+    # Check 1: Did ARexx harness start at all?
+    if [ ! -f "$tap_file" ] || [ ! -s "$tap_file" ]; then
+        echo -e "${RED}DIAGNOSIS: ARexx harness did not start${NC}"
+        echo "  RexxMast may not be running, or test-runner.rexx failed to launch."
+        return 1
+    fi
+
+    # Check 2: TAP header but no results?
+    local has_header=$(grep -c '^1\.\.' "$tap_file" 2>/dev/null || echo 0)
+    local result_count=$(grep -cE '^ok |^not ok ' "$tap_file" 2>/dev/null || echo 0)
+    local total=$(head -1 "$tap_file" | grep -oE '[0-9]+$' || echo 0)
+
+    if [ "$has_header" -gt 0 ] && [ "$result_count" -eq 0 ]; then
+        if [ "$elapsed" -lt 15 ]; then
+            echo -e "${RED}DIAGNOSIS: Binary crashed immediately (FS-UAE exited in ${elapsed}s)${NC}"
+            echo "  The program likely segfaulted on startup."
+            echo "  Run with --debug to capture Enforcer hits."
+        else
+            echo -e "${YELLOW}DIAGNOSIS: First test command hung (timeout after ${elapsed}s)${NC}"
+            echo "  Likely cause: libnix exit() hang (crash-patterns #9)"
+            echo "  The ARexx harness started ($total tests parsed) but the first"
+            echo "  command never returned."
+            check_exit_hang_pattern "$port_dir"
+        fi
+        return 1
+    fi
+
+    if [ "$has_header" -gt 0 ] && [ "$result_count" -gt 0 ] && [ "$result_count" -lt "$total" ]; then
+        local next_test=$((result_count + 1))
+        echo -e "${YELLOW}DIAGNOSIS: Test $next_test of $total hung${NC}"
+        echo "  Tests 1-$result_count completed. Test $next_test never returned."
+        return 1
+    fi
+
+    # Check 3: Tests completed but UAEQuit failed?
+    if [ -f "$sentinel" ]; then
+        echo -e "${YELLOW}DIAGNOSIS: Tests completed but UAEQuit failed${NC}"
+        echo "  Results are valid — UAEQuit did not shut down FS-UAE."
+        return 0
+    fi
+
+    echo -e "${RED}DIAGNOSIS: Unknown timeout cause${NC}"
+    echo "  FS-UAE log: $RESULTS_DIR/fsuae.log"
+    return 1
+}
+
+check_exit_hang_pattern() {
+    local port_dir="$1"
+    local ported_dir="$port_dir/ported"
+
+    [ -d "$ported_dir" ] || return 1
+
+    local has_exit=false
+    local has__exit=false
+
+    for src in "$ported_dir"/*.c; do
+        [ -f "$src" ] || continue
+        grep -q 'exit(' "$src" 2>/dev/null && has_exit=true
+        grep -q '_exit(' "$src" 2>/dev/null && has__exit=true
+    done
+
+    if [ "$has_exit" = true ] && [ "$has__exit" = false ]; then
+        echo ""
+        echo -e "${YELLOW}  EXIT HANG PATTERN DETECTED:${NC}"
+        echo "  Source has exit() but no _exit(). This matches crash-patterns #9."
+        echo "  Fix: replace exit() at the end of main() with fflush(stdout); _exit();"
+        return 2
+    fi
+
+    return 1
+}
+
+# ============================================================
 # Parse TAP results
 # ============================================================
 parse_results() {
@@ -710,7 +794,8 @@ except: pass
         generate_report "$port_dir"
         exit $test_exit
     elif [ $emu_exit -ne 0 ]; then
-        echo -e "${RED}FS-UAE testing failed (timeout or crash, no results)${NC}"
+        local elapsed=$(( $(date +%s) - START_TIME ))
+        diagnose_timeout "$port_dir" "$elapsed"
         parse_results 2>/dev/null || true
         generate_report "$port_dir"
         exit 1
