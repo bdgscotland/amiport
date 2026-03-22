@@ -243,14 +243,14 @@ test:
 
 ---
 
-### #9: libnix exit() hangs on AmigaOS console
+### #9: ~~libnix exit() hangs on AmigaOS console~~ DEBUNKED
 
-- **Symptom:** Program produces correct output but never returns to the shell prompt. Process hangs indefinitely after last output line. Ctrl-C does not break. Not an Enforcer hit — no illegal memory access, just a deadlock.
-- **Alert/Error:** None — no Guru Meditation, no Enforcer hits. The process simply never exits.
-- **Trigger:** Calling `exit()` in `main()` after stdio output to an AmigaOS console window. Occurs on real hardware and FS-UAE, but NOT in vamos (vamos has its own exit handling).
-- **Root cause:** libnix's `exit()` calls atexit handlers that attempt to flush and close all stdio streams. When stdout is connected to an AmigaDOS console (CON: or RAW:), the `fclose(stdout)` or internal stdio cleanup blocks waiting for the console handler to acknowledge. This is a libnix bug — the console handler may not respond to the close request if the process is already shutting down.
-- **Fix applied:** Replace `exit(rval)` with `_exit(rval)` at the final exit point in `main()`. Add `fflush(stdout)` immediately before `_exit()` to ensure buffered output is written. `_exit()` bypasses atexit handlers and goes straight to `_exit()` → `Exit()` in AmigaDOS, which works correctly.
-- **Detection grep:** `exit(rval)` or `exit(0)` at the end of `main()` — replace with `fflush(stdout); _exit(rval);`
-- **Caveat:** Only use `_exit()` at the final exit point in `main()` after explicit cleanup (free, fclose). Do NOT use `_exit()` in error paths where `err()`/`errx()` are called — those still use `exit()` internally and the cleanup matters less for error exits (the program is dying anyway).
-- **Port:** tail (OpenBSD v1.24) — hung after displaying output on FS-UAE console
-- **Date:** 2026-03-21
+- **Status:** DEBUNKED — exit() works correctly on FS-UAE + Workbench 3.1 with libnix.
+- **Original claim:** libnix's `exit()` hangs when stdout is connected to a console.
+- **Actual root cause of observed hangs:** ARexx syntax errors in test-runner.rexx:
+  1. UTF-8 em dashes (U+2014) in comments — ARexx is ASCII-only (1987 interpreter)
+  2. `\=` (not-equal) operator not recognized by ARexx 1.15 — use `~=` instead
+- **How it was debunked:** Built two test programs — one with `exit(0)`, one with `_exit(0)`. Both return to the shell prompt immediately on FS-UAE. No hang observed.
+- **Impact:** An `amiport_exit()` shim was created and `#include <amiport/stdlib.h>` transformation added. Both are harmless (amiport_exit calls _exit which works identically to exit on this system) and remain in place to avoid churn. No port functionality was affected.
+- **Lesson:** Always verify crash patterns empirically with minimal test programs before building infrastructure to work around them. The ARexx harness failure was misattributed to exit() because the timeout diagnosis heuristic matched ("source has exit() without _exit()").
+- **Date:** 2026-03-21 (original), 2026-03-22 (debunked)
