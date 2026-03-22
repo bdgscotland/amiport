@@ -30,6 +30,15 @@ typedef struct amiport_stat stat;
 int amiport_stat(const char *path, struct amiport_stat *buf);
 int amiport_fstat(int fd, struct amiport_stat *buf);
 
+/*
+ * amiport: lstat() — alias to amiport_stat().
+ *
+ * Classic FFS (OFS/FFS/SFS) has no symbolic links in the POSIX sense;
+ * AmigaOS 2.0+ soft-links are rare and most ported code never exercises
+ * them. Treating lstat as stat is the correct behaviour for 99% of ports.
+ */
+#define amiport_lstat(path, buf)  amiport_stat(path, buf)
+
 /* Convenience macros */
 #define AMIPORT_S_ISDIR(m)  (((m) & 0170000) == AMIPORT_S_IFDIR)
 #define AMIPORT_S_ISREG(m)  (((m) & 0170000) == AMIPORT_S_IFREG)
@@ -42,6 +51,7 @@ int amiport_fstat(int fd, struct amiport_stat *buf);
 #define S_ISREG   AMIPORT_S_ISREG
 #define fstat     amiport_fstat
 #define stat      amiport_stat
+#define lstat     amiport_lstat
 #endif
 
 #endif /* AMIPORT_SYS_STAT_H */

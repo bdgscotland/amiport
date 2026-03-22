@@ -103,3 +103,40 @@ int amiport_closedir(AMIPORT_DIR *dir)
     FreeVec(dir);
     return 0;
 }
+
+/*
+ * amiport: mkdir() — create a directory using AmigaDOS CreateDir().
+ *
+ * Mode bits are ignored — AmigaOS protection bits have inverted semantics
+ * relative to POSIX. CreateDir() returns a lock on success which must be
+ * UnLock'd immediately.
+ */
+int amiport_mkdir(const char *path, unsigned int mode)
+{
+    BPTR lock;
+
+    (void)mode; /* amiport: mode bits ignored — no POSIX permission model on AmigaOS */
+
+    lock = CreateDir((CONST_STRPTR)path);
+    if (!lock) {
+        amiport_map_errno();
+        return -1;
+    }
+    UnLock(lock);
+    return 0;
+}
+
+/*
+ * amiport: rmdir() — remove a directory using AmigaDOS DeleteFile().
+ *
+ * On AmigaOS, directories and files are both deleted with DeleteFile().
+ * Returns -1 with errno set if the path does not exist or is non-empty.
+ */
+int amiport_rmdir(const char *path)
+{
+    if (!DeleteFile((CONST_STRPTR)path)) {
+        amiport_map_errno();
+        return -1;
+    }
+    return 0;
+}

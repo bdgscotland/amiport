@@ -218,6 +218,65 @@ TEST(access_nonexistent)
     ASSERT_EQ(errno, ENOENT);
 }
 
+/* --- chmod test --- */
+
+TEST(chmod_noop)
+{
+    /* chmod is a no-op stub — must return 0 on any valid path */
+    create_test_file("T:test_chmod.txt", "data");
+    ASSERT_EQ(amiport_chmod("T:test_chmod.txt", 0644), 0);
+    ASSERT_EQ(amiport_chmod("T:test_chmod.txt", 0755), 0);
+    ASSERT_EQ(amiport_chmod("T:test_chmod.txt", 0000), 0);
+    amiport_unlink("T:test_chmod.txt");
+}
+
+/* --- realpath tests --- */
+
+TEST(realpath_existing_file)
+{
+    char resolved[256];
+    char *result;
+
+    create_test_file("T:test_realpath.txt", "data");
+
+    result = amiport_realpath("T:test_realpath.txt", resolved);
+    ASSERT_NOT_NULL(result);
+    /* Must be non-empty and start with a volume name */
+    ASSERT(strlen(result) > 0);
+    /* Must contain a colon (AmigaOS volume: prefix) */
+    ASSERT(strchr(result, ':') != NULL);
+
+    amiport_unlink("T:test_realpath.txt");
+}
+
+TEST(realpath_null_resolved)
+{
+    /* When resolved is NULL, realpath() must malloc the buffer */
+    char *result;
+
+    create_test_file("T:test_realpath2.txt", "data");
+
+    result = amiport_realpath("T:test_realpath2.txt", NULL);
+    ASSERT_NOT_NULL(result);
+    ASSERT(strlen(result) > 0);
+    ASSERT(strchr(result, ':') != NULL);
+
+    /* Caller must free the result (malloc'd inside realpath) */
+    free(result);
+
+    amiport_unlink("T:test_realpath2.txt");
+}
+
+TEST(realpath_nonexistent)
+{
+    char resolved[256];
+    char *result;
+
+    result = amiport_realpath("T:no_such_realpath_999.txt", resolved);
+    ASSERT_NULL(result);
+    ASSERT(errno != 0);
+}
+
 /* --- append test --- */
 
 TEST(open_append)
@@ -267,6 +326,10 @@ int main(void)
     RUN_TEST(access_existing);
     RUN_TEST(access_nonexistent);
     RUN_TEST(open_append);
+    RUN_TEST(chmod_noop);
+    RUN_TEST(realpath_existing_file);
+    RUN_TEST(realpath_null_resolved);
+    RUN_TEST(realpath_nonexistent);
 
     return test_summary();
 }

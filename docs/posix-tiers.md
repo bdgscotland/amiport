@@ -68,16 +68,19 @@ One wrapper per function. Semantics match POSIX for all common use cases. The tr
 |`fpurge()`     |`amiport_fpurge()`      |No-op macro                 |BSD stdio discard; no clib2 equivalent. Safe as no-op.           |
 |`dup()`        |`amiport_dup()`         |fd_table sharing + scan-on-close|Finds lowest free fd; shared BPTR not closed until last user  |
 |`dup2()`       |`amiport_dup2()`        |fd_table sharing + scan-on-close|Closes target fd first if open; oldfd==newfd is no-op         |
+|`chmod()`      |`amiport_chmod()`       |No-op stub returning 0          |Amiga protection bits have inverted semantics; most ports just need success|
+|`rmdir()`      |`amiport_rmdir()`       |`DeleteFile()`                  |AmigaOS deletes dirs and files the same way                   |
+|`lstat()`      |`amiport_lstat()`       |Alias to `amiport_stat()`       |Classic FFS has no symlinks; lstat==stat                      |
+|`setenv()`     |`amiport_setenv()`      |`SetVar()` + `GVF_GLOBAL_ONLY`  |Writes to ENV:; respects overwrite=0                          |
+|`unsetenv()`   |`amiport_unsetenv()`    |`DeleteVar()` + `GVF_GLOBAL_ONLY`|Succeeds even if variable not set (POSIX)                    |
+|`realpath()`   |`amiport_realpath()`    |`Lock()`+`NameFromLock()`       |NULL resolved arg: malloc'd buffer, caller must free()        |
 
 ### Planned Tier 1 additions
 
 |POSIX function    |Implementation approach      |Priority                                           |
 |------------------|-----------------------------|---------------------------------------------------|
-|`chmod()`         |No-op with comment           |Low — Amiga has protection bits but different model|
-|`rmdir()`         |`DeleteFile()`               |Low — same as unlink on Amiga                      |
 |`readlink()`      |`ReadLink()` (OS 2.0+)       |Low — soft links rare on classic Amiga             |
 |`symlink()`       |`MakeLink()` (OS 2.0+)       |Low                                                |
-|`ftruncate()`     |`SetFileSize()` (OS 2.0+)    |Medium — needed by some editors                    |
 |`fileno()`        |Lookup in amiport_files table|Medium — already partially implemented             |
 
 -----

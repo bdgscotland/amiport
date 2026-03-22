@@ -1,6 +1,7 @@
 /*
  * test_string_bsd.c — Tests for amiport BSD string functions
- *                     (strlcpy, strlcat, reallocarray, recallocarray)
+ *                     (strlcpy, strlcat, reallocarray, recallocarray,
+ *                      strcasecmp, strncasecmp, strcasestr)
  */
 
 #include "test_framework.h"
@@ -238,6 +239,86 @@ TEST(recallocarray_overflow)
     ASSERT_NULL(p);
 }
 
+/* --- strcasecmp tests --- */
+
+TEST(strcasecmp_equal)
+{
+    ASSERT_EQ(amiport_strcasecmp("hello", "hello"), 0);
+}
+
+TEST(strcasecmp_case_insensitive)
+{
+    ASSERT_EQ(amiport_strcasecmp("Hello", "hELLO"), 0);
+    ASSERT_EQ(amiport_strcasecmp("ABC", "abc"), 0);
+}
+
+TEST(strcasecmp_inequality)
+{
+    ASSERT(amiport_strcasecmp("apple", "banana") < 0);
+    ASSERT(amiport_strcasecmp("zebra", "Ant") > 0);
+}
+
+TEST(strcasecmp_empty)
+{
+    ASSERT_EQ(amiport_strcasecmp("", ""), 0);
+    ASSERT(amiport_strcasecmp("", "a") < 0);
+    ASSERT(amiport_strcasecmp("a", "") > 0);
+}
+
+/* --- strncasecmp tests --- */
+
+TEST(strncasecmp_equal)
+{
+    ASSERT_EQ(amiport_strncasecmp("hello", "HELLO", 5), 0);
+}
+
+TEST(strncasecmp_partial)
+{
+    /* Compare only first 3 chars — "hel" == "HEL" */
+    ASSERT_EQ(amiport_strncasecmp("hello", "HELP", 3), 0);
+    /* Full 4 chars differ: 'l' vs 'p' */
+    ASSERT(amiport_strncasecmp("hello", "HELP", 4) < 0);
+}
+
+TEST(strncasecmp_zero_n)
+{
+    ASSERT_EQ(amiport_strncasecmp("abc", "xyz", 0), 0);
+}
+
+/* --- strcasestr tests --- */
+
+TEST(strcasestr_found)
+{
+    const char *result;
+    result = amiport_strcasestr("Hello World", "world");
+    ASSERT_NOT_NULL(result);
+    ASSERT_STR_EQ(result, "World");
+}
+
+TEST(strcasestr_not_found)
+{
+    const char *result;
+    result = amiport_strcasestr("Hello World", "planet");
+    ASSERT_NULL(result);
+}
+
+TEST(strcasestr_empty_needle)
+{
+    const char *result;
+    result = amiport_strcasestr("Hello", "");
+    /* Empty needle returns pointer to haystack */
+    ASSERT_NOT_NULL(result);
+    ASSERT_STR_EQ(result, "Hello");
+}
+
+TEST(strcasestr_case_variants)
+{
+    const char *result;
+    result = amiport_strcasestr("Commodore Amiga", "AMIGA");
+    ASSERT_NOT_NULL(result);
+    ASSERT_STR_EQ(result, "Amiga");
+}
+
 int main(void)
 {
     (void)verstag;
@@ -263,6 +344,22 @@ int main(void)
     RUN_TEST(recallocarray_grow_zeroes_new);
     RUN_TEST(recallocarray_shrink);
     RUN_TEST(recallocarray_overflow);
+
+    printf("\n--- Case-insensitive String Tests ---\n");
+
+    RUN_TEST(strcasecmp_equal);
+    RUN_TEST(strcasecmp_case_insensitive);
+    RUN_TEST(strcasecmp_inequality);
+    RUN_TEST(strcasecmp_empty);
+
+    RUN_TEST(strncasecmp_equal);
+    RUN_TEST(strncasecmp_partial);
+    RUN_TEST(strncasecmp_zero_n);
+
+    RUN_TEST(strcasestr_found);
+    RUN_TEST(strcasestr_not_found);
+    RUN_TEST(strcasestr_empty_needle);
+    RUN_TEST(strcasestr_case_variants);
 
     return test_summary();
 }
