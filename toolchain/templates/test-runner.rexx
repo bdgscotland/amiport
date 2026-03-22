@@ -145,9 +145,14 @@ DO i = 1 TO testcount
     tmode = expect_mode.i
     IF tmode = 'EXPECT_MODE.' || i THEN tmode = 'EXACT'
 
-    /* Check output match */
+    /* Check output match -- skip if no EXPECT: or EXPECT_CONTAINS: was set.
+     * When only EXPECT_RC: is specified, any output is acceptable. */
     match = 0
-    IF tmode = 'CONTAINS' THEN DO
+    IF texpect = 'EXPECT.' || i THEN DO
+        /* No EXPECT line was set -- output match is automatic */
+        match = 1
+    END
+    ELSE IF tmode = 'CONTAINS' THEN DO
         /* Substring search across full multi-line output */
         IF POS(STRIP(texpect), actual) > 0 THEN match = 1
     END
