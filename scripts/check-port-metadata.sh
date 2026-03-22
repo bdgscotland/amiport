@@ -65,10 +65,12 @@ for dir in "$PORTS_DIR"/*/; do
     # ----------------------------------------------------------
     # Check 2: No template placeholders
     # ----------------------------------------------------------
+    # Known template placeholders (from ports/templates/*.template)
+    placeholder_re='__TARGET__|__VERSION__|__SOURCE_URL__|__SOURCE_VERSION__|__CATEGORY__|__CATEGORY_NAME__|__LICENSE__|__AUTHOR__|__DATE_ISO__|__DESCRIPTION__|__AMINET_CAT__'
     placeholders=""
     for f in "$dir/PORT.md" "$dir/Makefile" "$dir/${name}.readme"; do
         if [ -f "$f" ]; then
-            found=$(grep -oE '__[A-Z_]+__' "$f" 2>/dev/null | sort -u | tr '\n' ' ' || true)
+            found=$(grep -oE "$placeholder_re" "$f" 2>/dev/null | sort -u | tr '\n' ' ' || true)
             [ -n "$found" ] && placeholders="$placeholders $(basename "$f"):$found"
         fi
     done
