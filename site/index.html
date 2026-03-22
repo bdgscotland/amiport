@@ -6,6 +6,7 @@
     <meta name="description" content="amiport — the first package manager for classic AmigaOS 3.x. AI-powered POSIX tool porting pipeline.">
     <title>amiport — Package Manager for Classic AmigaOS</title>
     <link rel="stylesheet" href="css/style.css">
+    <link rel="alternate" type="application/rss+xml" title="amiport — New Ports" href="/feed.php">
 </head>
 <body>
 
@@ -31,11 +32,11 @@
         <ul class="screen-bar__nav">
             <li><a href="packages.html">Packages</a></li>
             <li><a href="stats.html">Stats</a></li>
+            <li><a href="amiga.html">Amiga</a></li>
             <li><a href="#about">About</a></li>
             <li><a href="https://github.com/bdgscotland/amiport" target="_blank" rel="noopener">GitHub</a></li>
         </ul>
     </nav>
-    <div class="screen-bar__depth" aria-hidden="true"></div>
 </header>
 
 <!-- Main Content -->
@@ -43,20 +44,18 @@
 
     <h1 class="sr-only">amiport — Package Manager for Classic AmigaOS</h1>
 
-    <!-- Hero: AmigaShell Window -->
-    <div class="window shell-window">
-        <div class="window__title">
-            <div class="window__gadget window__gadget--close" aria-hidden="true"></div>
-            <span class="window__title-text">AmigaShell</span>
-            <div class="window__gadget window__gadget--resize" aria-hidden="true"></div>
-        </div>
-        <div class="window__body" role="img" aria-label="Terminal showing amiget installing grep on AmigaOS">
-            <div><span class="shell-prompt">1.SYS:&gt; </span><span class="shell-cmd">amiget install grep</span></div>
-            <div class="shell-output">Downloading grep-1.68.lha... 45KB/45KB</div>
-            <div class="shell-output">Installed grep 1.68 to C:</div>
-            <div><span class="shell-prompt">1.SYS:&gt; </span><span class="shell-cmd">grep -i "hello" README</span></div>
-            <div class="shell-output">Hello, Amiga world!</div>
-            <div><span class="shell-prompt">1.SYS:&gt; </span><span class="shell-cmd" id="cursor">_</span></div>
+    <!-- Hero: Terminal Window -->
+    <div class="mui-window">
+        <div class="mui-window__title">AmigaShell</div>
+        <div class="mui-window__body terminal-anim" role="img" aria-label="Terminal showing amiget installing grep on AmigaOS">
+            <noscript>
+                <div><span class="shell-prompt">1.SYS:&gt; </span><span class="shell-cmd">amiget install grep</span></div>
+                <div class="shell-output">Downloading grep-1.68.lha... 45KB/45KB</div>
+                <div class="shell-output">Installed grep 1.68 to C:</div>
+                <div><span class="shell-prompt">1.SYS:&gt; </span><span class="shell-cmd">grep -i "hello" README</span></div>
+                <div class="shell-output">Hello, Amiga world!</div>
+                <div><span class="shell-prompt">1.SYS:&gt; </span><span class="shell-cursor"></span></div>
+            </noscript>
         </div>
     </div>
 
@@ -78,13 +77,9 @@
     </div>
 
     <!-- Featured Packages -->
-    <section class="window" aria-labelledby="featured-heading">
-        <div class="window__title">
-            <div class="window__gadget window__gadget--close" aria-hidden="true"></div>
-            <span class="window__title-text" id="featured-heading" role="heading" aria-level="2">Featured Packages</span>
-            <div class="window__gadget window__gadget--resize" aria-hidden="true"></div>
-        </div>
-        <div class="window__body">
+    <section class="group-frame" aria-labelledby="featured-heading">
+        <div class="group-frame__title" id="featured-heading" role="heading" aria-level="2">Featured Packages</div>
+        <div class="group-frame__body">
             <ul class="featured-list" id="featured-list">
                 <li class="featured-list__item">
                     <a href="packages.html?name=grep" class="featured-list__name">grep</a>
@@ -112,13 +107,9 @@
     </section>
 
     <!-- Getting Started -->
-    <section class="window" aria-labelledby="start-heading">
-        <div class="window__title">
-            <div class="window__gadget window__gadget--close" aria-hidden="true"></div>
-            <span class="window__title-text" id="start-heading" role="heading" aria-level="2">Getting Started</span>
-            <div class="window__gadget window__gadget--resize" aria-hidden="true"></div>
-        </div>
-        <div class="window__body">
+    <section class="group-frame" aria-labelledby="start-heading">
+        <div class="group-frame__title" id="start-heading" role="heading" aria-level="2">Getting Started</div>
+        <div class="group-frame__body">
             <p class="mb-md">Download and install tools on your Amiga.</p>
 
             <ol class="steps">
@@ -146,13 +137,9 @@
     </section>
 
     <!-- About / Pipeline -->
-    <section class="window" id="about" aria-labelledby="about-heading">
-        <div class="window__title">
-            <div class="window__gadget window__gadget--close" aria-hidden="true"></div>
-            <span class="window__title-text" id="about-heading" role="heading" aria-level="2">About amiport</span>
-            <div class="window__gadget window__gadget--resize" aria-hidden="true"></div>
-        </div>
-        <div class="window__body">
+    <section class="group-frame" id="about" aria-labelledby="about-heading">
+        <div class="group-frame__title" id="about-heading" role="heading" aria-level="2">About amiport</div>
+        <div class="group-frame__body">
             <p class="mb-md">
                 amiport is an AI-powered pipeline that ports POSIX/Unix tools to the
                 Commodore Amiga. It analyzes C source code, transforms POSIX system
@@ -160,13 +147,9 @@
                 on a virtual Amiga.
             </p>
 
-            <div class="window shell-window">
-                <div class="window__title">
-                    <div class="window__gadget window__gadget--close" aria-hidden="true"></div>
-                    <span class="window__title-text">Pipeline</span>
-                    <div class="window__gadget window__gadget--resize" aria-hidden="true"></div>
-                </div>
-                <div class="window__body" style="min-height:auto; font-size:14px;">
+            <div class="mui-window">
+                <div class="mui-window__title">Pipeline</div>
+                <div class="mui-window__body" style="min-height:auto; font-size:14px;">
 <pre>Source code (POSIX/C)
   |
   v
@@ -199,23 +182,29 @@ Package ---- .lha archive, Aminet readme, amiport index</pre>
     </section>
 
     <!-- Request a Port -->
-    <section class="window" id="request" aria-labelledby="request-heading">
-        <div class="window__title">
-            <div class="window__gadget window__gadget--close" aria-hidden="true"></div>
-            <span class="window__title-text" id="request-heading" role="heading" aria-level="2">Request a Port</span>
-            <div class="window__gadget window__gadget--resize" aria-hidden="true"></div>
-        </div>
-        <div class="window__body">
+    <section class="group-frame" id="request" aria-labelledby="request-heading">
+        <div class="group-frame__title" id="request-heading" role="heading" aria-level="2">Request a Port</div>
+        <div class="group-frame__body">
             <p class="mb-md">Want a Unix tool ported to your Amiga? Tell us what you need.</p>
 
-            <form id="request-form">
-                <label for="tool-name">Tool name:</label>
-                <input type="text" id="tool-name" name="tool_name" class="wb-input mb-sm" placeholder="e.g. less, awk, bc" required>
+            <form id="request-form" class="request-form">
+                <label for="tool-name">Tool name <span aria-hidden="true">*</span></label>
+                <input type="text" id="tool-name" name="tool_name" class="wb-input mb-sm"
+                       placeholder="e.g. less, awk, bc" required aria-required="true" maxlength="100">
 
-                <label for="tool-url">URL (optional):</label>
-                <input type="text" id="tool-url" name="tool_url" class="wb-input mb-md" placeholder="https://github.com/...">
+                <label for="tool-why">Why you want it (optional)</label>
+                <textarea id="tool-why" name="tool_why" class="wb-textarea mb-sm"
+                          placeholder="What would you use it for?" maxlength="500" rows="2"></textarea>
 
-                <!-- Honeypot — hidden from humans, bots fill it -->
+                <label for="tool-setup">Your Amiga setup (optional)</label>
+                <input type="text" id="tool-setup" name="tool_setup" class="wb-input mb-sm"
+                       placeholder="e.g. A1200 + 68030 + Roadshow" maxlength="200">
+
+                <label for="tool-url">URL (optional)</label>
+                <input type="text" id="tool-url" name="tool_url" class="wb-input mb-md"
+                       placeholder="https://github.com/...">
+
+                <!-- Honeypot -->
                 <div style="position:absolute;left:-9999px" aria-hidden="true">
                     <label for="website">Website:</label>
                     <input type="text" id="website" name="website" tabindex="-1" autocomplete="off">
@@ -224,8 +213,8 @@ Package ---- .lha archive, Aminet readme, amiport index</pre>
                 <button type="submit" class="btn btn--primary" id="request-submit">Submit Request</button>
             </form>
 
-            <div id="request-success" class="alert alert--success mt-md hidden" role="alert"></div>
-            <div id="request-error" class="alert alert--error mt-md hidden" role="alert"></div>
+            <div id="request-success" class="alert alert--success mt-md hidden" role="alert" aria-live="polite"></div>
+            <div id="request-error" class="alert alert--error mt-md hidden" role="alert" aria-live="polite"></div>
         </div>
     </section>
 
@@ -237,6 +226,8 @@ Package ---- .lha archive, Aminet readme, amiport index</pre>
         <a href="https://github.com/bdgscotland/amiport" target="_blank" rel="noopener">GitHub</a>
         &middot;
         <a href="https://aminet.net/" target="_blank" rel="noopener">Aminet</a>
+        &middot;
+        <a href="feed.php">RSS</a>
     </span>
     <span>
         Built with <a href="https://claude.ai/claude-code" target="_blank" rel="noopener">Claude Code</a>.
@@ -244,6 +235,7 @@ Package ---- .lha archive, Aminet readme, amiport index</pre>
     </span>
 </footer>
 
+<script src="js/terminal-anim.js"></script>
 <script>
 // Boot sequence: skip on repeat visits
 (function() {
@@ -252,32 +244,19 @@ Package ---- .lha archive, Aminet readme, amiport index</pre>
     if (localStorage.getItem(key)) {
         overlay.classList.add('skip');
     } else {
-        // Mark as booted after animation ends
         overlay.addEventListener('animationend', function() {
             overlay.classList.add('skip');
             localStorage.setItem(key, '1');
         });
     }
 
-    // Replay boot
     document.getElementById('boot-replay').addEventListener('click', function() {
         overlay.classList.remove('skip');
         overlay.style.animation = 'none';
-        // Force reflow
         void overlay.offsetWidth;
         overlay.style.animation = '';
     });
 })();
-
-// Copy command to clipboard
-function copyCmd(btn, text) {
-    if (navigator.clipboard) {
-        navigator.clipboard.writeText(text).then(function() {
-            btn.textContent = 'Copied';
-            setTimeout(function() { btn.textContent = 'Copy'; }, 1500);
-        });
-    }
-}
 
 // Port request form submission
 (function() {
@@ -293,10 +272,12 @@ function copyCmd(btn, text) {
         successEl.classList.add('hidden');
         errorEl.classList.add('hidden');
         submitBtn.disabled = true;
-        submitBtn.textContent = 'Submitting...';
+        submitBtn.textContent = 'Sending...';
 
         var data = {
             tool_name: form.tool_name.value,
+            tool_why: form.tool_why ? form.tool_why.value : '',
+            tool_setup: form.tool_setup ? form.tool_setup.value : '',
             tool_url: form.tool_url.value,
             website: form.website.value
         };
@@ -311,10 +292,18 @@ function copyCmd(btn, text) {
                 var resp = JSON.parse(xhr.responseText);
                 if (resp.ok) {
                     successEl.textContent = resp.message;
+                    if (resp.issue_url) {
+                        var link = document.createElement('a');
+                        link.href = resp.issue_url;
+                        link.target = '_blank';
+                        link.rel = 'noopener';
+                        link.textContent = ' Track on GitHub';
+                        successEl.appendChild(link);
+                    }
                     successEl.classList.remove('hidden');
                     form.reset();
                 } else {
-                    errorEl.textContent = resp.error || 'Could not submit request.';
+                    errorEl.textContent = resp.error || 'Could not submit request. Try again later.';
                     errorEl.classList.remove('hidden');
                 }
             } catch (ex) {

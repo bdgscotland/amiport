@@ -14,5 +14,9 @@
     "readme": "Short:        Unix-style calendar display for AmigaOS\nType:         util/cli\nArchitecture: m68k-amigaos >= 3.0\nUploader:     duncan (at) bowring (dot) us\nAuthor:       University of California, Berkeley (ported by Duncan Bowring)\nReplaces:     util/cli/cal-1.0.lha\nVersion:      1.32\n\ncal \u2014 Unix-style calendar display for AmigaOS\n\nOriginal author: University of California, Berkeley\nPorted by Duncan Bowring using amiport (AI-assisted porting toolkit).\nProject: https://github.com/bdgscotland/amiport\n\nCross-compiled with m68k-amigaos-gcc for AmigaOS 3.x (68000+).\nTested in vamos emulator.\n\nUsage:\n  cal                  Display current month\n  cal 2026             Display full year 2026\n  cal 3 2026           Display March 2026\n  cal -j               Julian day numbers\n  cal -y               Full year display\n\nExit codes (Amiga-native):\n  0  = success (RETURN_OK)\n  10 = error (RETURN_ERROR)\n\nIncludes full source code (original POSIX and ported Amiga versions)\nand PORT.md documenting every transformation applied.",
     "status": "stable",
     "revision": 1,
-    "published_at": "2026-03-20T04:40:39Z"
+    "published_at": "2026-03-20T04:40:39Z",
+    "porting_notes": "Pure computation and output with zero blocking issues; the only non-trivial change was replacing strptime() (used for parsing month names) with a C89 tolower() loop, since strptime() is absent from libnix. This port also first established the amiport/err.h shim that all subsequent ports reuse.",
+    "test_count": 22,
+    "test_pass": 22,
+    "known_limitations": "No highlight of the current day. Year range 1-9999 (same as the original source). Current date detection uses clib2's localtime() and depends on Amiga Locale timezone preferences."
 }

@@ -2,7 +2,8 @@
  * packages.js — amiport package browser
  *
  * Fetches /api/v1/packages.json, renders the package table,
- * handles search/filter/sort, and shows package detail view.
+ * handles search/filter/sort, shows package detail with rich fields,
+ * and provides keyboard shortcuts (P/S/Esc//).
  * No dependencies. No framework.
  */
 (function() {
@@ -34,21 +35,16 @@
     var detailDesc     = document.getElementById('pkg-detail-desc');
     var detailDownload = document.getElementById('pkg-detail-download');
     var detailSize     = document.getElementById('pkg-detail-size');
+    var detailRich     = document.getElementById('pkg-detail-rich');
     var detailMeta     = document.getElementById('pkg-detail-meta');
     var notFoundEl     = document.getElementById('pkg-not-found');
 
     // --- Helpers ---
 
     function formatSize(bytes) {
-        if (!bytes) return '—';
+        if (!bytes) return '--';
         if (bytes < 1024) return bytes + ' B';
         return Math.round(bytes / 1024) + ' KB';
-    }
-
-    function escapeHtml(str) {
-        var div = document.createElement('div');
-        div.textContent = str;
-        return div.innerHTML;
     }
 
     // --- Fetch packages ---
@@ -88,7 +84,6 @@
     // --- Compute badges ---
 
     function computeBadges() {
-        // POPULAR: top 3 by download count
         var byDownloads = packages.slice().sort(function(a, b) {
             return (b.downloads || 0) - (a.downloads || 0);
         });
@@ -101,8 +96,6 @@
                 byDownloads[j]._isPopular = true;
             }
         }
-        // NEW: we check added_at field if present, otherwise skip
-        // (server-side filemtime check not available in browser)
         for (var k = 0; k < packages.length; k++) {
             if (packages[k].added_at) {
                 var added = new Date(packages[k].added_at);
@@ -124,7 +117,6 @@
             try {
                 var resp = JSON.parse(xhr.responseText);
                 if (resp.ok) {
-                    // Update package data and re-render
                     for (var i = 0; i < packages.length; i++) {
                         if (packages[i].name === packageName) {
                             packages[i].votes_up = resp.votes_up;
@@ -210,7 +202,7 @@
             }
         }
 
-        // Build rows (DOM construction — no innerHTML)
+        // Build rows
         while (tbody.firstChild) tbody.removeChild(tbody.firstChild);
         for (var i = 0; i < filtered.length; i++) {
             var pkg = filtered[i];
@@ -223,7 +215,6 @@
             strong.textContent = pkg.name;
             tdName.appendChild(strong);
 
-            // NEW badge (package JSON modified in last 30 days)
             if (pkg._isNew) {
                 var newBadge = document.createElement('span');
                 newBadge.className = 'badge badge--new';
@@ -233,22 +224,20 @@
                 tdName.appendChild(newBadge);
             }
 
-            // POPULAR badge (top 3 by downloads)
             if (pkg._isPopular) {
                 var popBadge = document.createElement('span');
-                popBadge.className = 'badge badge--blue';
+                popBadge.className = 'badge badge--popular';
                 popBadge.textContent = 'POPULAR';
                 popBadge.setAttribute('aria-label', 'Popular package');
                 tdName.appendChild(document.createTextNode(' '));
                 tdName.appendChild(popBadge);
             }
 
-            // TESTING badge (not fully verified)
             if (pkg.status === 'testing') {
                 var testBadge = document.createElement('span');
                 testBadge.className = 'badge badge--warning';
                 testBadge.textContent = 'TESTING';
-                testBadge.setAttribute('aria-label', 'Package is in testing — download disabled');
+                testBadge.setAttribute('aria-label', 'Package is in testing');
                 tdName.appendChild(document.createTextNode(' '));
                 tdName.appendChild(testBadge);
             }
@@ -262,7 +251,7 @@
             var tdDesc = document.createElement('td');
             tdDesc.textContent = pkg.description || '';
 
-            // Vote UI + download count below description
+            // Vote UI + download count
             var voteRow = document.createElement('div');
             voteRow.className = 'vote-group';
             voteRow.setAttribute('role', 'group');
@@ -355,7 +344,7 @@
         render();
     }
 
-    // --- Row click → detail ---
+    // --- Row click -> detail ---
 
     function handleRowClick(e) {
         var row = e.target.closest('tr.clickable');
@@ -364,6 +353,92 @@
         if (name) {
             showDetail(name);
             history.pushState(null, '', 'packages.html?name=' + encodeURIComponent(name));
+        }
+    }
+
+    // --- Render rich detail fields ---
+
+    function renderRichDetail(pkg) {
+        while (detailRich.firstChild) detailRich.removeChild(detailRich.firstChild);
+
+        // Porting notes
+        var notes = pkg.porting_notes || '';
+        if (notes) {
+            var section = document.createElement('div');
+            section.className = 'pkg-detail__section';
+            var title = document.createElement('div');
+            title.className = 'pkg-detail__section-title';
+            title.textContent = 'Porting Story';
+            section.appendChild(title);
+            var p = document.createElement('p');
+            p.className = 'pkg-detail__porting-notes';
+            p.textContent = notes;
+            section.appendChild(p);
+            detailRich.appendChild(section);
+        }
+
+        // Test stats
+        var testCount = pkg.test_count || 0;
+        var testPass = pkg.test_pass || 0;
+        if (testCount > 0) {
+            var testSection = document.createElement('div');
+            testSection.className = 'pkg-detail__section';
+            var testTitle = document.createElement('div');
+            testTitle.className = 'pkg-detail__section-title';
+            testTitle.textContent = 'Test Results';
+            testSection.appendChild(testTitle);
+
+            var gaugeWrap = document.createElement('div');
+            gaugeWrap.className = 'pkg-detail__test-gauge';
+
+            var gauge = document.createElement('div');
+            gauge.className = 'gauge';
+            var fill = document.createElement('div');
+            fill.className = 'gauge__fill';
+            var pct = Math.round((testPass / testCount) * 100);
+            fill.style.width = pct + '%';
+            gauge.appendChild(fill);
+            var gaugeText = document.createElement('span');
+            gaugeText.className = 'gauge__text';
+            gaugeText.textContent = pct + '%';
+            gauge.appendChild(gaugeText);
+            gaugeWrap.appendChild(gauge);
+
+            var label = document.createElement('span');
+            label.style.fontSize = '14px';
+            label.textContent = testPass + '/' + testCount + ' tests passing';
+            gaugeWrap.appendChild(label);
+
+            testSection.appendChild(gaugeWrap);
+            detailRich.appendChild(testSection);
+        }
+
+        // Known limitations
+        var limitations = pkg.known_limitations || '';
+        if (limitations) {
+            var limSection = document.createElement('div');
+            limSection.className = 'pkg-detail__section';
+            var limTitle = document.createElement('div');
+            limTitle.className = 'pkg-detail__section-title';
+            limTitle.textContent = 'Known Limitations';
+            limSection.appendChild(limTitle);
+            var limP = document.createElement('p');
+            limP.className = 'pkg-detail__limitations';
+            limP.textContent = limitations;
+            limSection.appendChild(limP);
+            detailRich.appendChild(limSection);
+        }
+
+        // Empty state
+        if (!notes && testCount === 0 && !limitations) {
+            var emptySection = document.createElement('div');
+            emptySection.className = 'pkg-detail__section';
+            var emptyP = document.createElement('p');
+            emptyP.className = 'text-muted';
+            emptyP.style.fontSize = '14px';
+            emptyP.textContent = 'Porting story coming soon.';
+            emptySection.appendChild(emptyP);
+            detailRich.appendChild(emptySection);
         }
     }
 
@@ -397,6 +472,7 @@
         detailVersion.textContent = verText;
         detailCategory.textContent = pkg.category || '';
         detailInstall.textContent = 'amiget install ' + pkg.name + '  (coming soon)';
+
         // Show readme if available, otherwise just description
         if (pkg.readme) {
             var pre = document.createElement('pre');
@@ -409,12 +485,12 @@
         }
         detailSize.textContent = formatSize(pkg.size);
 
-        // Download link (blocked for non-stable packages)
+        // Download link
         if (pkg.download && pkg.status !== 'testing') {
             detailDownload.href = 'api/v1/download.php?name=' + encodeURIComponent(pkg.name);
             detailDownload.classList.remove('hidden', 'btn--disabled');
             var sizeText = formatSize(pkg.size);
-            detailDownload.textContent = 'Download .lha' + (sizeText !== '—' ? ' (' + sizeText + ')' : '');
+            detailDownload.textContent = 'Download .lha' + (sizeText !== '--' ? ' (' + sizeText + ')' : '');
         } else if (pkg.status === 'testing') {
             detailDownload.removeAttribute('href');
             detailDownload.classList.remove('hidden');
@@ -424,7 +500,10 @@
             detailDownload.classList.add('hidden');
         }
 
-        // Metadata (DOM construction — no innerHTML)
+        // Rich detail fields
+        renderRichDetail(pkg);
+
+        // Metadata
         while (detailMeta.firstChild) detailMeta.removeChild(detailMeta.firstChild);
 
         function addMetaRow(label, value) {
@@ -511,6 +590,42 @@
             showList();
         }
     }
+
+    // --- Keyboard shortcuts ---
+
+    function isInputFocused() {
+        var tag = (document.activeElement || {}).tagName;
+        return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT';
+    }
+
+    document.addEventListener('keydown', function(e) {
+        if (isInputFocused()) return;
+
+        switch (e.key) {
+            case 'p':
+            case 'P':
+                window.location.href = 'packages.html';
+                break;
+            case 's':
+            case 'S':
+                window.location.href = 'stats.html';
+                break;
+            case '/':
+                e.preventDefault();
+                searchInput.focus();
+                break;
+            case 'Escape':
+                if (!detailView.classList.contains('hidden')) {
+                    showList();
+                    history.pushState(null, '', 'packages.html');
+                } else if (searchInput.value) {
+                    searchInput.value = '';
+                    categorySel.value = '';
+                    render();
+                }
+                break;
+        }
+    });
 
     // --- Event listeners ---
 
