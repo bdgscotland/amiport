@@ -9,7 +9,7 @@
 #   clean            Remove build artifacts
 #   fetch-ndk        Download AmigaOS NDK 3.2 R4
 
-.PHONY: setup setup-toolchain setup-debug-tools build-shim build-emu build-console build-net build test test-shim test-emu test-console test-net test-ports package clean fetch-ndk help doctor smoke-test compare list-ports build-ports install-emu setup-emu emu publish check-aminet build-uaequit test-fsemu check-docs check-agents scrape-adcd
+.PHONY: setup setup-toolchain setup-debug-tools build-shim build-emu build-console build-net build test test-shim test-emu test-console test-net test-ports package clean fetch-ndk help doctor smoke-test compare list-ports build-ports install-emu setup-emu emu publish check-aminet build-uaequit test-fsemu check-docs check-agents check-test-coverage check-fix-propagation scrape-adcd
 
 help:
 	@echo "amiport — AI-powered Amiga porting toolkit"
@@ -45,6 +45,8 @@ help:
 	@echo "  emu              Launch FS-UAE with built binaries mounted as WORK:"
 	@echo "  check-docs       Validate agent references across all docs"
 	@echo "  check-agents     Validate agent/skill frontmatter fields"
+	@echo "  check-test-coverage  Validate FS-UAE test suite completeness"
+	@echo "  check-fix-propagation  Scan ports for known crash patterns"
 	@echo "  scrape-adcd      Scrape ADCD and generate reference docs"
 	@echo ""
 	@echo "Claude Code skills:"
@@ -258,6 +260,12 @@ check-agents:
 		echo "FAIL: Agent/skill frontmatter issues found. Fix the errors above."; \
 		exit 1; \
 	fi
+
+check-test-coverage:
+	@bash scripts/check-test-coverage.sh
+
+check-fix-propagation:
+	@bash scripts/check-fix-propagation.sh
 
 clean:
 	$(MAKE) -C lib/posix-shim clean
