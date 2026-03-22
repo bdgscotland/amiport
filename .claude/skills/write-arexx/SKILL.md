@@ -293,6 +293,26 @@ ARexx (1987) does not understand UTF-8. Any non-ASCII byte -- **including inside
 
 Both `\=` and `~=` mean "not equal" but `\=` may not be recognized by all ARexx interpreters. Always use `~=` for portability.
 
+### 9. AmigaDOS Double-Redirect Bug with Run
+
+AmigaDOS parses ALL `>` redirections at the top level. `Run >file1 cmd >file2` applies BOTH redirects to the Run command -- the backgrounded command gets NO redirect and floods the console.
+
+**Fix:** Write the command + redirect into a temp Execute script, then Run the script:
+
+```rexx
+/* WRONG -- both > apply to Run, cmd gets no redirect */
+ADDRESS COMMAND 'Run >T:cli.txt WORK:yes >T:output.txt'
+
+/* RIGHT -- isolate cmd's redirect inside an Execute script */
+IF OPEN('sf', 'T:cmd.txt', 'W') THEN DO
+    CALL WRITELN('sf', 'WORK:yes >T:output.txt')
+    CALL CLOSE('sf')
+END
+ADDRESS COMMAND 'Run >T:cli.txt Execute T:cmd.txt'
+```
+
+This pattern is used by per-port ARexx wrappers for testing infinite-output programs. See the `test-designer` agent for the full wrapper template.
+
 ## Common Gotchas Checklist
 
 Before finishing any ARexx script, verify:

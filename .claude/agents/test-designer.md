@@ -82,6 +82,68 @@ CMD: WORK:sed -f WORK:test-sed-lastline.sed WORK:input.txt
 # Create test-sed-lastline.sed containing: $p
 ```
 
+## Infinite-Output Programs (yes, tail -f, event loops)
+
+Programs that run forever need a per-port ARexx wrapper script to test. The wrapper backgrounds the program via `Run`, waits briefly, parses the CLI number from Run's `[CLI N]` output, and breaks it.
+
+**Critical:** AmigaDOS parses ALL `>` redirections at the top level. `Run >file1 cmd >file2` applies BOTH redirects to Run — the command gets NO redirect and floods the console. Fix: write the command + redirect into a temp Execute script, then `Run >clinumfile Execute scriptfile`.
+
+Create a file like `ports/<name>/test-<name>-run.rexx`:
+```rexx
+/* test-<name>-run.rexx -- Run <name> with timeout and break */
+OPTIONS FAILAT 21
+PARSE ARG args
+args = STRIP(args)
+outfile = 'T:<name>_run_out.txt'
+clinumfile = 'T:<name>_cli.txt'
+cmdscript = 'T:<name>_cmd.txt'
+/* Write command + redirect to temp script (isolates > from Run's >) */
+IF OPEN('sf', cmdscript, 'W') THEN DO
+    IF args = '' THEN
+        CALL WRITELN('sf', 'WORK:<name> >' || outfile)
+    ELSE
+        CALL WRITELN('sf', 'WORK:<name>' args '>' || outfile)
+    CALL CLOSE('sf')
+END
+/* Background via Run, capture CLI number */
+ADDRESS COMMAND 'Run >' || clinumfile || ' Execute' cmdscript
+ADDRESS COMMAND 'Wait 1'
+/* Parse CLI number and break */
+IF OPEN('cf', clinumfile, 'R') THEN DO
+    cliline = READLN('cf')
+    CALL CLOSE('cf')
+    PARSE VAR cliline '[CLI' clinum ']'
+    clinum = STRIP(clinum)
+    IF DATATYPE(clinum, 'W') THEN
+        ADDRESS COMMAND 'Break' clinum 'C'
+END
+ADDRESS COMMAND 'Wait 1'
+IF OPEN('of', outfile, 'R') THEN DO
+    line = READLN('of')
+    SAY line
+    CALL CLOSE('of')
+END
+ADDRESS COMMAND 'Delete >NIL:' outfile
+ADDRESS COMMAND 'Delete >NIL:' clinumfile
+ADDRESS COMMAND 'Delete >NIL:' cmdscript
+EXIT 0
+```
+
+Then test cases use:
+```
+TEST: Default output
+CMD: SYS:Rexxc/rx WORK:test-<name>-run.rexx
+EXPECT_CONTAINS: expected
+EXPECT_RC: 0
+
+TEST: With arguments
+CMD: SYS:Rexxc/rx WORK:test-<name>-run.rexx hello
+EXPECT_CONTAINS: hello
+EXPECT_RC: 0
+```
+
+The `.rexx` file is deployed to `WORK:` automatically (test-fsemu.sh copies `test-*.rexx` files). Programs with infinite output MUST have `amiport_check_break()` in their loops for Break to work.
+
 ## Post-Generation Validation
 
 After generating test-fsemu-cases.txt, verify:
