@@ -16,6 +16,7 @@
 | Amiga code review | `/review-amiga` | Don't skip the review step |
 | Performance tuning | `perf-optimizer` agent | Don't hand-optimize 68k code |
 | Publish to Aminet | `aminet-publisher` agent | Don't publish manually |
+| Design test suites | `test-designer` agent | Don't manually write test-fsemu-cases.txt |
 | Add missing shim fn | `/extend-shim` | Don't manually add shim functions |
 
 ## How to Dispatch
