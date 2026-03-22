@@ -136,7 +136,7 @@ Every port MUST have FS-UAE testing with comprehensive coverage per `docs/test-c
 4. **Edge case tests** — empty files, special characters, long lines, boundary values
 5. **Amiga-specific tests** — path handling, T: temp files, epoch (if applicable)
 
-**Minimum test counts:** CLI tools: 8+, Scripting: 10+, Console UI: 8+, Network: 8+.
+**Minimum test counts:** CLI tools: 15+, Scripting: 20+, Console UI: 12+, Network: 12+.
 
 Create test input files as `test-<name>-*.txt` in the port directory (include an empty file for edge case testing). Use `EXPECT_RC:` on every test case.
 
@@ -168,11 +168,12 @@ If tests fail (wrong output, not crash), analyze the failure and fix. May requir
 
 Fix all memory safety issues before proceeding.
 
-**6c. Performance optimization (optional):** For performance-critical ports, dispatch the `perf-optimizer` agent. This checks for:
+**6c. Performance optimization (MANDATORY):** Dispatch the `perf-optimizer` agent on **every port**. This is arguably the best agent in the pipeline — it finds critical 68k-specific wins that no other agent catches. On 7MHz hardware, a 3-5x I/O speedup is the difference between usable and unusable. It checks for:
 - Hot loop optimization for 68000 (7 MHz, no cache, no pipeline)
-- I/O patterns (per-character vs buffered)
-- Integer operation costs (multiply/divide avoidance)
+- I/O patterns (per-character fgetc vs buffered fgets — 3-5x difference)
+- Integer operation costs (multiply/divide avoidance in hot paths)
 - Memory access patterns (sequential vs random, alignment)
+- Stack-heavy recursion patterns that crash on real hardware but pass on vamos
 
 If 6b or 6c makes changes, **rebuild (Stage 4) and retest (Stage 5)** before proceeding.
 
