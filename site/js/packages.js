@@ -456,6 +456,10 @@
             detailMeta.appendChild(row);
         }
 
+        if (pkg.published_at) {
+            var pubDate = new Date(pkg.published_at);
+            addMetaRow('Published', pubDate.toLocaleDateString(undefined, {year:'numeric',month:'short',day:'numeric'}));
+        }
         if (pkg.source)  addMetaRow('Source', pkg.source);
         if (pkg.license) addMetaRow('License', pkg.license);
         if (pkg.stack)   addMetaRow('Stack', pkg.stack + ' bytes');
