@@ -24,7 +24,9 @@ SRCS = $(SRCDIR)/file_io.c \
        $(SRCDIR)/fnmatch.c \
        $(SRCDIR)/scandir.c \
        $(SRCDIR)/string_bsd.c \
-       $(SRCDIR)/stdio_ext.c
+       $(SRCDIR)/stdio_ext.c \
+       $(SRCDIR)/glob.c \
+       $(SRCDIR)/argv_expand.c
 
 OBJS = $(SRCS:.c=.o)
 
