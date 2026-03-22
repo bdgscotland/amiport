@@ -1,0 +1,40 @@
+Short:        OpenBSD grep pattern search for AmigaOS
+Type:         util/cli
+Architecture: m68k-amigaos >= 3.0
+Uploader:     duncan@bowring.us
+Author:       James Howard / Dag-Erling Smorgrav (ported by Duncan Bowring)
+Version:      1.68
+Replaces:     util/cli/grep.lha
+URL:          https://github.com/bdgscotland/amiport
+
+grep — OpenBSD grep (pattern search) for AmigaOS
+
+Original author: James Howard / Dag-Erling Smorgrav
+Ported by Duncan Bowring using amiport (AI-assisted porting toolkit).
+Project: https://github.com/bdgscotland/amiport
+
+Cross-compiled with m68k-amigaos-gcc for AmigaOS 3.x (68000+).
+Tested in vamos emulator and FS-UAE (Amiga 1200).
+
+Usage:
+  grep [options] pattern [file ...]
+
+  grep hello file.txt          Search for "hello" in file.txt
+  grep -i HELLO file.txt       Case-insensitive search
+  grep -n pattern file.txt     Show line numbers
+  grep -v pattern file.txt     Show non-matching lines
+  grep -c pattern file.txt     Count matching lines
+  grep -E "foo|bar" file.txt   Extended regex (alternation)
+  grep -F "a.b" file.txt       Fixed string (no regex)
+  grep -R pattern dir          Recursive directory search
+  grep -B2 -A2 pattern file    Show 2 lines before/after match
+
+Exit codes (Amiga-native):
+  0  = match found (RETURN_OK)
+  5  = no match found (RETURN_WARN)
+  10 = error (RETURN_ERROR)
+
+Note: -Z (decompress) is not supported (no zlib on AmigaOS).
+
+Includes full source code (original POSIX and ported Amiga versions)
+and PORT.md documenting every transformation applied.
