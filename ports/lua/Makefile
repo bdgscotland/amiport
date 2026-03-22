@@ -7,6 +7,7 @@ DESCRIPTION = Lua 5.4.7 scripting language for AmigaOS
 AUTHOR      = Roberto Ierusalimschy / PUC-Rio
 
 # Category 2 scripting interpreter — posix-shim only
+CATEGORY    = 2
 AMINET_CAT  = dev/lang
 
 # -fbaserel is required for libnix's nbcrt0.o startup, which places
