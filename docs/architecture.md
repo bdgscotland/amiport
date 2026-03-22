@@ -66,6 +66,14 @@ Agents define **who** does the work — model selection, tool access, persona, a
 - **site-manager**: Uses Sonnet for website deployment, manifest generation, security scanning, and testing. Dispatched by /deploy-site skill.
 - **amiport-publisher**: Uses Sonnet for test-gated publishing to amiport.platesteel.net. Validates vamos/FS-UAE tests pass before allowing downloads. Sets package status (stable/testing/hidden). Never publishes without explicit approval.
 
+### Context-Loading Skills
+
+Skills load reference documentation on demand (not always in context):
+
+- `/amiga-api-lookup` — ADCD 2.1 reference library (exec/dos/timer/intuition/graphics APIs)
+- `/c89-reference` — C89 constraints, libnix function availability, format specifiers, common mistakes
+- `/write-arexx` — ARexx language reference, FS-UAE test harness patterns
+
 ### Libraries
 
 The project provides four libraries, corresponding to the tiered compatibility model (ADR-008) and port categories (ADR-011):

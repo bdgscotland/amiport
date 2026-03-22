@@ -126,6 +126,13 @@ Every architectural decision is recorded in ADRs and product decisions in PDRs �
 
 The pipeline is currently driven by `/port-project`, which dispatches agents sequentially as a human-in-the-loop workflow. Full agent-to-agent orchestration is planned. Individual stages are also available directly as `/analyze-source`, `/transform-source`, `/build-amiga`, `/test-amiga`, `/review-amiga`, and `/debug-amiga`.
 
+**Context-loading skills** (invoked on demand to load reference documentation):
+| Skill | Loads |
+|-------|-------|
+| `/amiga-api-lookup` | ADCD 2.1 reference library — function signatures, struct layouts, code examples for exec/dos/timer/intuition/graphics |
+| `/c89-reference` | C89/ANSI C constraints — what C99+ features are NOT available, libnix function availability, common agent mistakes |
+| `/write-arexx` | ARexx language reference, FS-UAE test harness patterns, known gotchas |
+
 ### Testing
 
 Two automated testing paths cover different port categories, so every port gets validated without manual intervention.
