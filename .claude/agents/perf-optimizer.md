@@ -98,6 +98,9 @@ while reviewing, flag them, but the memory-checker is the primary safety gate.
 For understanding API alternatives and call overhead:
 - `docs/references/adcd/libraries/` — Full Exec/DOS/Graphics documentation with performance notes
 - `docs/references/adcd/FUNCTIONS.md` — Find all documentation for any function
+- `docs/references/amiga-intern/11-02-the-68030.md` — 68030 CPU internals, cache behavior, PMMU (95KB)
+- `docs/references/amiga-intern/11-07-02-fundamentals.md` — DMA slot allocation, bus timing
+- `docs/references/amiga-intern/11-07-08-blitter.md` — Blitter algorithms and minterm logic
 
 ## Approach
 
