@@ -45,7 +45,7 @@
 /* amiport: <regex.h> replaced by amiport-emu/regex.h via compat.h */
 #include <stddef.h>
 #include <stdio.h>
-#include <stdlib.h>
+#include <amiport/stdlib.h> /* amiport: exit() override prevents libnix hang */
 #include <string.h>
 /* amiport: <unistd.h> replaced by amiport/unistd.h via compat.h */
 /* amiport: removed <libgen.h> — dirname() provided in compat.h */

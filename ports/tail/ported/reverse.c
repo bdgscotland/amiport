@@ -39,7 +39,7 @@
 /* amiport: replaced #include <err.h> with amiport wrapper */
 #include <amiport/err.h>
 #include <stdio.h>
-#include <stdlib.h>
+#include <amiport/stdlib.h> /* amiport: exit() override prevents libnix hang */
 /* amiport: replaced #include <unistd.h> with amiport wrapper */
 #include <amiport/unistd.h>
 

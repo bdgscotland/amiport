@@ -29,7 +29,7 @@
 #include <amiport/fnmatch.h> /* amiport: replaced <fnmatch.h> */
 /* amiport: removed <paths.h> — using local defines instead */
 #include <stdio.h>
-#include <stdlib.h>
+#include <amiport/stdlib.h> /* amiport: exit() override prevents libnix hang */
 #include <string.h>
 #include <amiport/unistd.h> /* amiport: replaced <unistd.h> */
 #include <limits.h>

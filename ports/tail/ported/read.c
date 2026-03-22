@@ -44,7 +44,7 @@
 #ifndef SIZE_MAX
 #define SIZE_MAX ((size_t)-1)
 #endif
-#include <stdlib.h>
+#include <amiport/stdlib.h> /* amiport: exit() override prevents libnix hang */
 #include <string.h>
 /* amiport: replaced #include <unistd.h> with amiport wrapper */
 #include <amiport/unistd.h>

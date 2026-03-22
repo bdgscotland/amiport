@@ -30,8 +30,12 @@
  */
 void amiport_exit(int status)
 {
-    fflush(stdout);
-    fflush(stderr);
+    /* Note: fflush() can also hang on AmigaOS console handles in some
+     * configurations. Since ported programs typically write all output
+     * before calling exit(), and the ARexx test harness redirects to
+     * files (which auto-flush on close), we skip fflush and go straight
+     * to _exit(). If buffered output is lost, the program should call
+     * fflush() explicitly before exit(). */
     _exit(status);
 }
 

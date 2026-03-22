@@ -46,7 +46,7 @@ long __stack = 32768;
 #include <limits.h>
 #include <locale.h>
 #include <stdio.h>
-#include <stdlib.h>
+#include <amiport/stdlib.h> /* amiport: replaced <stdlib.h> — exit() override prevents libnix hang */
 #include <string.h>
 #include <amiport/unistd.h> /* amiport: replaced <unistd.h> */
 #include <amiport/getopt.h> /* amiport: provides getopt, optarg, optind */

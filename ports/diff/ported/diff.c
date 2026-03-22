@@ -30,7 +30,7 @@
 #include <amiport/err.h> /* amiport: replaced <err.h> */
 #include <errno.h>
 #include <amiport/getopt.h> /* amiport: replaced <getopt.h> — getopt only, no getopt_long */
-#include <stdlib.h>
+#include <amiport/stdlib.h> /* amiport: exit() override prevents libnix hang */
 #include <stdio.h>
 #include <stdarg.h>
 #include <string.h>

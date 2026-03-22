@@ -76,7 +76,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <amiport/stdio.h> /* amiport: added for fopen/fclose/fileno wrappers */
-#include <stdlib.h>
+#include <amiport/stdlib.h> /* amiport: exit() override prevents libnix hang */
 #include <string.h>
 #include <time.h> /* amiport: added for ctime() */
 #include <amiport/unistd.h> /* amiport: replaced <unistd.h> */
