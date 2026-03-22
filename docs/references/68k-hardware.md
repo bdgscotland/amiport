@@ -39,7 +39,7 @@ Stock A1200 (68EC020, 2MB Chip) / A4000 (68040, 2MB Chip + Fast):
 |---|---|---|
 | `0x000000–0x0003FF` | 1KB | Exception vector table (68k trap vectors) |
 | `0x000400–0x1FFFFF` | ~2MB | Chip RAM (DMA-accessible by custom chips; 2MB max with AGA Alice, 1MB with Fat Agnus, 512KB with Thin Agnus) |
-| `0x200000–0x9FFFFF` | 8MB | Ranger/slow RAM or Zorro II expansion memory |
+| `0x200000–0x9FFFFF` | 8MB | Zorro II expansion + motherboard Fast RAM |
 | `0xA00000–0xBEFFFF` | ~2MB | Slow I/O space |
 | `0xBFD000` | — | CIA-B (8520) — even addresses only |
 | `0xBFE001` | — | CIA-A (8520) — odd addresses only |
@@ -50,13 +50,12 @@ Stock A1200 (68EC020, 2MB Chip) / A4000 (68040, 2MB Chip + Fast):
 | `0xE00000–0xE7FFFF` | 512KB | Reserved (A3000/A4000 motherboard resources) |
 | `0xE80000–0xEFFFFF` | 512KB | Autoconfig expansion space (Zorro II cards) |
 | `0xF00000–0xF7FFFF` | 512KB | Reserved / diagnostic ROM / A3000 Fast ROM |
-| `0xF80000–0xFFFFFF` | 512KB | Kickstart ROM (256KB mirrored on A500/A2000, 512KB on A1200+) |
+| `0xF80000–0xFFFFFF` | 512KB | Kickstart ROM (256KB on KS 1.x/2.x, mirrored at $FC0000; 512KB on KS 3.x, fills full range) |
 
 **Zorro III (A3000/A4000 only):**
 
 | Address Range | What's There |
 |---|---|
-| `0x10000000–0x3FFFFFFF` | Zorro III I/O space |
 | `0x40000000–0x7FFFFFFF` | Zorro III Fast RAM and expansion |
 | `0xFF000000` | Zorro III autoconfig space (different protocol from Zorro II $E80000) |
 
@@ -73,7 +72,7 @@ Stock A1200 (68EC020, 2MB Chip) / A4000 (68040, 2MB Chip + Fast):
 
 | CPU | Amiga Model | Address Bus | Behavior |
 |---|---|---|---|
-| 68000 / 68010 | A500, A2000 | 24-bit | Upper 8 bits ignored. `0xFFFF0044` = `0x00FF0044`. |
+| 68000 | A500, A2000 | 24-bit | Upper 8 bits ignored. `0xFFFF0044` = `0x00FF0044`. (68010 was never used in any production Amiga.) |
 | **68EC020** | **A1200 (stock)** | **24-bit** | EC variant — same 24-bit wrapping as 68000 despite 32-bit internals. |
 | 68020 (full) | Accelerator cards | 32-bit | Full 32-bit addressing. No wrapping. |
 | 68030 (full) | A3000, accelerators | 32-bit | Full 32-bit addressing. MMU available. |
