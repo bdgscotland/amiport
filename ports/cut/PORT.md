@@ -5,7 +5,7 @@
 | Field | Value |
 |-------|-------|
 | Program | cut |
-| Version | 1.0 |
+| Version | 1.28 |
 | Source | OpenBSD usr.bin/cut (cut.c v1.28, 2023-03-08) |
 | Category | 1 — CLI tool |
 | License | BSD 3-Clause |
