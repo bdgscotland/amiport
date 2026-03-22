@@ -1,4 +1,4 @@
-/* test-runner.rexx — ARexx test harness for FS-UAE automated testing
+/* test-runner.rexx -- ARexx test harness for FS-UAE automated testing
  *
  * Runs test cases defined in WORK:test-cases.txt, captures output,
  * compares against expected values, and writes TAP-format results
@@ -126,7 +126,7 @@ DO i = 1 TO testcount
     ADDRESS COMMAND 'Delete >NIL:' scriptfile
     ADDRESS COMMAND 'Delete >NIL:' rcfile
 
-    /* Read actual output — read ALL lines so EXPECT_CONTAINS works on
+    /* Read actual output -- read ALL lines so EXPECT_CONTAINS works on
      * multi-line output (e.g., unified diff with @@ markers on later lines) */
     actual = ''
     IF OPEN('of', outfile, 'R') THEN DO
@@ -140,7 +140,7 @@ DO i = 1 TO testcount
         CALL CLOSE('of')
     END
 
-    /* Compare — supports exact match (EXPECT:), substring (EXPECT_CONTAINS:),
+    /* Compare -- supports exact match (EXPECT:), substring (EXPECT_CONTAINS:),
      * and exit code assertion (EXPECT_RC:). */
     tmode = expect_mode.i
     IF tmode = 'EXPECT_MODE.' || i THEN tmode = 'EXACT'
@@ -161,7 +161,7 @@ DO i = 1 TO testcount
     rc_ok = 1
     trc = expect_rc.i
     IF trc \= 'EXPECT_RC.' || i THEN DO
-        /* EXPECT_RC was set — verify the command's return code */
+        /* EXPECT_RC was set -- verify the command's return code */
         IF cmdrc \= trc THEN rc_ok = 0
     END
 
