@@ -64,6 +64,7 @@ Agents define **who** does the work — model selection, tool access, persona, a
 - **test-designer**: Uses Sonnet for comprehensive FS-UAE test suite design. Analyzes ported source code (flags, exit codes, error paths) to generate test-fsemu-cases.txt files meeting the project's test coverage standard. Read + write tools.
 - **aminet-publisher**: Uses Sonnet for Aminet package preparation and publishing. Curated, never automatic.
 - **site-manager**: Uses Sonnet for website deployment, manifest generation, security scanning, and testing. Dispatched by /deploy-site skill.
+- **amiport-publisher**: Uses Sonnet for test-gated publishing to amiport.platesteel.net. Validates vamos/FS-UAE tests pass before allowing downloads. Sets package status (stable/testing/hidden). Never publishes without explicit approval.
 
 ### Libraries
 

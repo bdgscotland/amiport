@@ -243,6 +243,16 @@
                 tdName.appendChild(popBadge);
             }
 
+            // TESTING badge (not fully verified)
+            if (pkg.status === 'testing') {
+                var testBadge = document.createElement('span');
+                testBadge.className = 'badge badge--warning';
+                testBadge.textContent = 'TESTING';
+                testBadge.setAttribute('aria-label', 'Package is in testing — download disabled');
+                tdName.appendChild(document.createTextNode(' '));
+                tdName.appendChild(testBadge);
+            }
+
             tr.appendChild(tdName);
 
             var tdVer = document.createElement('td');
@@ -395,12 +405,17 @@
         }
         detailSize.textContent = formatSize(pkg.size);
 
-        // Download link
-        if (pkg.download) {
+        // Download link (blocked for non-stable packages)
+        if (pkg.download && pkg.status !== 'testing') {
             detailDownload.href = 'api/v1/download.php?name=' + encodeURIComponent(pkg.name);
-            detailDownload.classList.remove('hidden');
+            detailDownload.classList.remove('hidden', 'btn--disabled');
             var sizeText = formatSize(pkg.size);
             detailDownload.textContent = 'Download .lha' + (sizeText !== '—' ? ' (' + sizeText + ')' : '');
+        } else if (pkg.status === 'testing') {
+            detailDownload.removeAttribute('href');
+            detailDownload.classList.remove('hidden');
+            detailDownload.classList.add('btn--disabled');
+            detailDownload.textContent = 'Download unavailable (testing)';
         } else {
             detailDownload.classList.add('hidden');
         }

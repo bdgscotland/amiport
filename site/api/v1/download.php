@@ -60,6 +60,15 @@ if ($found === null || !isset($found['version']) || !is_string($found['version']
     exit;
 }
 
+// Block downloads for non-stable packages
+$status = $found['status'] ?? 'stable';
+if ($status !== 'stable') {
+    http_response_code(403);
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode(['error' => 'This package is currently in testing and not available for download']);
+    exit;
+}
+
 // Use trusted data from the package metadata (not user input) for paths
 $pkgName = $found['name'];
 $version = $found['version'];
