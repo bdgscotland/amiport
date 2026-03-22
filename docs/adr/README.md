@@ -23,6 +23,11 @@ ADRs capture significant technical and architectural decisions with their contex
 | [ADR-013](013-port-directory-hygiene.md) | Port directory hygiene | Accepted | 2026-03-20 |
 | [ADR-014](014-fs-uae-automated-testing.md) | FS-UAE automated testing pipeline | Accepted | 2026-03-21 |
 | [ADR-015](015-toolkit-quality-infrastructure.md) | Toolkit quality infrastructure (CI, memory-checker split, hooks, check-docs) | Accepted | 2026-03-21 |
+| [ADR-016](016-autonomous-debug-agent.md) | Autonomous debug agent with Enforcer integration | Accepted | 2026-03-21 |
+| [ADR-017](017-pretooluse-hooks-for-structural-enforcement.md) | PreToolUse hooks for structural enforcement | Accepted | 2026-03-21 |
+| [ADR-018](018-adcd-reference-knowledge-base.md) | ADCD reference knowledge base as agent context | Accepted | 2026-03-21 |
+| [ADR-019](019-agent-persona-and-tool-matrix.md) | Agent persona and tool matrix | Accepted | 2026-03-21 |
+| [ADR-020](020-git-hooks-for-doc-and-hygiene-validation.md) | Git hooks for documentation and hygiene validation | Accepted | 2026-03-21 |
 
 ## Template
 
