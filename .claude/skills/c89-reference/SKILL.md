@@ -59,7 +59,8 @@ This project targets **ANSI C89 (ISO C90)** compiled with `m68k-amigaos-gcc -ans
 For the complete list of what libnix provides and what needs shimming, see:
 
 ```
-Read file_path="docs/references/newlib-availability.md"
+Read file_path="docs/references/libnix-reference.md"       # Complete function list (700+ functions from libc.a)
+Read file_path="docs/references/newlib-availability.md"     # Curated availability table with amiport shim status
 ```
 
 Key missing functions that commonly appear in ported code:
