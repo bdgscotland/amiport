@@ -29,6 +29,18 @@ Create this structure at the start of the pipeline using the templates in `ports
 ### Stage 0: Research (before any work)
 Dispatch an `aminet-researcher` agent to check whether this tool already exists for AmigaOS 3.x. If a recent, functional port already exists, stop and tell the user — don't duplicate work. If an old or limited version exists, note this in PORT.md and proceed (our port will be the upgrade). This step is mandatory.
 
+### Stage 0b: Dependency Audit (conditional)
+
+If the source has external library dependencies (anything beyond libc/libm — detected via `#include` of non-standard headers, linker flags, pkg-config, or Makefile LDLIBS), dispatch the `dependency-auditor` agent:
+
+```
+Agent(subagent_type="dependency-auditor", prompt="Audit external dependencies for <path>...")
+```
+
+For single-file CLI tools with only standard C library deps, skip this stage.
+
+**GATE:** If the auditor classifies any dependency as **blocker** (not available and not portable to AmigaOS), stop and report to the user. Do not proceed to analysis with known-impossible dependencies.
+
 ### Stage 1: Analyze — MANDATORY AGENT DISPATCH
 
 **YOU MUST dispatch the `source-analyzer` agent.** Do not analyze source manually. The agent runs stub value impact analysis, logic bug pattern detection, and tier classification that manual grep cannot replicate.
@@ -74,6 +86,16 @@ Agent(subagent_type="code-transformer", prompt="Transform <port>/ported/ source 
 **GATE:** Do not proceed to Stage 4 until the code-transformer agent has returned and all ported source files exist in `ports/<name>/ported/`.
 
 Before dispatching, verify which `amiport_*` shim functions actually exist by checking headers in `lib/posix-shim/include/amiport/`. For Tier 2 functions, check `lib/posix-emu/include/amiport-emu/`. If a needed wrapper is missing, use `/extend-shim` to add it before dispatching the transformer.
+
+### Stage 3b: Hardware Review (conditional — Category 3+ ports)
+
+For Category 3 (Console UI), Category 4 (Network), or any port that does unusual memory allocation (Chip RAM, DMA buffers), dispatch the `hardware-expert` agent to review hardware assumptions before building:
+
+```
+Agent(subagent_type="hardware-expert", prompt="This is a Category [N] port of [name]. Review the ported source at ports/[name]/ported/ for hardware assumptions — Chip RAM allocation sizes, direct hardware access, DMA-sensitive timing, chipset-specific features.")
+```
+
+Category 1-2 (CLI, scripting) ports skip this stage unless they do unusual memory allocation.
 
 ### Stage 4: Build — MANDATORY AGENT DISPATCH
 
@@ -168,6 +190,16 @@ Then package with: `make -C ports/<name> TARGET=<name> package`
 
 This creates `<name>-<version>.lha` containing the binary, readme, and PORT.md — ready for Aminet upload.
 
+## Complex Multi-File Ports
+
+For projects with 5+ source files, multiple Tier 3 issues, or significant judgment calls (e.g., redesigning subsystems), dispatch the `port-coordinator` agent instead of orchestrating stages 1-6 inline. The port-coordinator runs in a worktree and has its own tiered decision framework:
+
+```
+Agent(subagent_type="port-coordinator", prompt="Port <name> to AmigaOS 3.x. Source is at ports/<name>/original/. Analysis report: <paste summary>. Port category: <N>.")
+```
+
+The port-coordinator delegates to the same specialized agents (source-analyzer, code-transformer, build-manager, etc.) but brings deeper judgment for complex tradeoffs. For simple single-file CLI tools, run the pipeline inline — port-coordinator adds overhead that isn't needed.
+
 ## Orchestration — Mandatory Agent Dispatch
 
 **Every stage MUST dispatch its designated agent.** There is no "small project" exemption. The agents run stub value impact analysis, crash pattern detection, and transformation rule enforcement that inline work skips.
@@ -176,13 +208,16 @@ A PreToolUse hook (`enforce-agents.sh`) warns on direct edits to `ported/*.c` fi
 
 Sequential pipeline — each stage depends on the previous:
 1. `aminet-researcher` → check prior art (Stage 0)
-2. `source-analyzer` → portability analysis with stub value impact analysis (Stage 1)
-3. `code-transformer` → transformation with ADCD reference lookup (Stage 3)
-4. `build-manager` → compilation with error recovery (Stage 4)
-5. `test-designer` → comprehensive test suite generation (Stage 5b)
-6. `test-runner` → vamos testing (Stage 5)
-7. `memory-checker` → mandatory memory safety (Stage 6b)
-8. `debug-agent` → if crashes detected during FS-UAE testing
+2. `dependency-auditor` → audit external library deps (Stage 0b, conditional — skip for stdlib-only projects)
+3. `source-analyzer` → portability analysis with stub value impact analysis (Stage 1)
+4. `code-transformer` → transformation with ADCD reference lookup (Stage 3)
+5. `hardware-expert` → hardware assumption review (Stage 3b, conditional — Category 3+ ports only)
+6. `build-manager` → compilation with error recovery (Stage 4)
+7. `test-designer` → comprehensive test suite generation (Stage 5b)
+8. `test-runner` → vamos testing (Stage 5)
+9. `memory-checker` → mandatory memory safety (Stage 6b)
+10. `debug-agent` → if crashes detected during FS-UAE testing
+11. `port-coordinator` → dispatched instead of inline orchestration for complex multi-file ports
 
 **Exception:** Stage 2 (directory setup) and Stage 7 (packaging) are mechanical and run inline.
 
@@ -212,11 +247,11 @@ At each stage, you may need to make judgment calls:
 2. **Tier 3 (redesign) features**: Present redesign patterns from `redesign-patterns.md`. Wait for human decision. Do NOT auto-stub.
 3. **Unclassified blocking features**: Stub with a warning message if non-essential. If core functionality, stop and ask.
 
-2. **Multiple source files**: Transform all files, build all objects, link together. Update `SOURCES` in the Makefile to list all `.c` files.
+4. **Multiple source files**: Transform all files, build all objects, link together. Update `SOURCES` in the Makefile to list all `.c` files.
 
-3. **External dependencies**: If the project depends on external libraries, check if they've been ported. If not, note this as a limitation.
+5. **External dependencies**: If the project depends on external libraries, check if they've been ported. If not, note this as a limitation.
 
-4. **AmigaOS version**: Default to 3.x. Only target earlier versions if specifically requested.
+6. **AmigaOS version**: Default to 3.x. Only target earlier versions if specifically requested.
 
 ## Boilerplate
 

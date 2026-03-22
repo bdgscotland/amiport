@@ -27,16 +27,21 @@
 Use the `Agent` tool with `subagent_type` set to the agent name from `.claude/agents/`:
 
 ```
-subagent_type: "aminet-researcher"
-subagent_type: "source-analyzer"
-subagent_type: "build-manager"
-subagent_type: "test-runner"
-subagent_type: "port-coordinator"
-subagent_type: "debug-agent"
-subagent_type: "memory-checker"
-subagent_type: "hardware-expert"
+subagent_type: "aminet-researcher"      # Stage 0: research
+subagent_type: "dependency-auditor"     # Stage 0b: dep audit (conditional)
+subagent_type: "source-analyzer"        # Stage 1: analyze
+subagent_type: "code-transformer"       # Stage 3: transform
+subagent_type: "hardware-expert"        # Stage 3b: hardware review (Cat 3+)
+subagent_type: "build-manager"          # Stage 4: build
+subagent_type: "test-designer"          # Stage 5b: test suite generation
+subagent_type: "test-runner"            # Stage 5: vamos testing
+subagent_type: "memory-checker"         # Stage 6b: memory safety (mandatory)
+subagent_type: "perf-optimizer"         # Stage 6c: performance (optional)
+subagent_type: "debug-agent"            # On crash: autonomous fix loop
+subagent_type: "port-coordinator"       # Complex multi-file ports (5+ files)
+subagent_type: "aminet-publisher"       # Publishing (never automatic)
 ```
 
 ## Entry Point
 
-For any new port, always start with `/port-project` — it orchestrates the full pipeline (Stage 0 through Stage 6) and dispatches the right agents at each step.
+For any new port, always start with `/port-project` — it orchestrates the full pipeline (Stage 0 through Stage 7) and dispatches the right agents at each step.

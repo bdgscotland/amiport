@@ -15,6 +15,14 @@ This runs the full pipeline: analyze, transform, build, test, package.
 
 For more control, run each stage individually:
 
+### 0. Research
+
+Dispatch the `aminet-researcher` agent to check whether the tool already exists for AmigaOS 3.x. If a recent, functional port exists, don't duplicate work.
+
+### 0b. Dependency Audit (conditional)
+
+For projects with external library dependencies (beyond libc/libm), dispatch the `dependency-auditor` agent. Skip for single-file CLI tools with only standard C library deps.
+
 ### 1. Analyze
 
 ```bash
@@ -39,6 +47,10 @@ Creates a `ported/` directory alongside the original with:
 - Function calls replaced with `amiport_*` wrappers
 - Blocking patterns stubbed with clear messages
 - Amiga boilerplate added (version string, stack cookie)
+
+### 2b. Hardware Review (conditional — Category 3+ ports)
+
+For Category 3 (Console UI), Category 4 (Network), or any port with unusual memory allocation, dispatch the `hardware-expert` agent to review hardware assumptions before building.
 
 ### 3. Build
 

@@ -3,28 +3,30 @@
 ## Pipeline Overview
 
 ```
-┌─────────────┐    ┌──────────────┐    ┌─────────────┐    ┌────────────┐    ┌───────────┐    ┌───────────┐
-│   Analyze    │───▶│  Transform   │───▶│    Build     │───▶│    Test     │───▶│   Review   │───▶│  Package   │
-│              │    │              │    │              │    │            │    │           │    │           │
-│ /analyze-    │    │ /transform-  │    │ /build-      │    │ /test-     │    │ /review-  │    │ (in build │
-│  source      │    │  source      │    │  amiga       │    │  amiga     │    │  amiga    │    │  skill)   │
-└─────────────┘    └──────────────┘    └─────────────┘    └────────────┘    └───────────┘    └───────────┘
-       │                  │                   │                  │                 │
-  source-analyzer   code-transformer    build-manager       test-runner     memory-checker
-    (agent)            (agent)            (agent)            (agent)       (mandatory, 6b)
-                                                                          perf-optimizer
-                                                                         (optional, 6c)
-                                                                          hardware-expert
-                                                                         (on-demand, any stage)
+┌──────────┐   ┌──────────┐   ┌──────────┐   ┌──────────┐   ┌──────────┐   ┌──────────┐   ┌──────────┐
+│ Research  │──▶│ Dep Audit│──▶│ Analyze  │──▶│Transform │──▶│  Build   │──▶│  Test    │──▶│ Review & │
+│          │   │(if deps) │   │          │   │          │   │          │   │          │   │ Package  │
+│ Stage 0  │   │Stage 0b  │   │ Stage 1  │   │ Stage 3  │   │ Stage 4  │   │ Stage 5  │   │ Stage 6-7│
+└──────────┘   └──────────┘   └──────────┘   └──────────┘   └──────────┘   └──────────┘   └──────────┘
+      │              │              │              │    │          │              │              │
+ aminet-        dependency-    source-        code-  hardware-  build-       test-runner   memory-checker
+ researcher     auditor        analyzer       trans- expert     manager      test-designer (mandatory, 6b)
+  (agent)      (conditional)   (agent)        former (Cat 3+)  (agent)      (agents)      perf-optimizer
+                                              (agent)                                    (optional, 6c)
 
-                         ▲                   ▲
-                         │                   │
-                    ┌─────────────────────────────┐
-                    │     lib/posix-shim/          │  Tier 1: Direct POSIX wrappers
-                    │     lib/posix-emu/           │  Tier 2: Approximate emulation
-                    │     lib/console-shim/        │  ncurses → ANSI escapes
-                    │     lib/bsdsocket-shim/      │  BSD sockets → bsdsocket.library
-                    └─────────────────────────────┘
+                                   ▲                   ▲
+                                   │                   │
+                              ┌─────────────────────────────┐
+                              │     lib/posix-shim/          │  Tier 1: Direct POSIX wrappers
+                              │     lib/posix-emu/           │  Tier 2: Approximate emulation
+                              │     lib/console-shim/        │  ncurses → ANSI escapes
+                              │     lib/bsdsocket-shim/      │  BSD sockets → bsdsocket.library
+                              └─────────────────────────────┘
+
+For complex multi-file ports (5+ source files, multiple Tier 3 issues):
+  port-coordinator agent is dispatched instead of inline orchestration.
+  debug-agent is dispatched automatically on FS-UAE crash (Guru Meditation).
+  hardware-expert is available on-demand at any stage for hardware questions.
 ```
 
 ## Components
