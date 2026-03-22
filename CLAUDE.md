@@ -274,9 +274,11 @@ Additionally, hookify rules block test file creation in the project root.
 
 The repo uses `.githooks/` for git hooks, configured by `make setup` (which runs `git config core.hooksPath .githooks`):
 
-- **pre-commit**: Runs `make check-docs` to validate agent references, checks for stray root files, and verifies port directory hygiene. Blocks commits that would introduce doc drift or violate hygiene rules.
+- **commit-msg**: Enforces conventional commit prefixes (`feat:`, `fix:`, `docs:`, `test:`, `refactor:`, `chore:`, `ci:`, `perf:`, `style:`, `build:`). Allows merge commits.
+- **pre-commit**: Runs `make check-docs` to validate agent references, checks for stray root files, and verifies port directory hygiene. Blocks commits that would introduce doc drift or violate hygiene rules. Kept fast (<2s).
+- **pre-push**: Builds the shim library and compiles all shim tests. Catches build/link breakage before it reaches origin. Runs expensive Docker cross-compilation (~10-15s).
 
-**`make setup` is mandatory after cloning.** Without it, pre-commit validation is skipped.
+**`make setup` is mandatory after cloning.** Without it, hook validation is skipped.
 
 ## Continuous Integration
 
