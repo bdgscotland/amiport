@@ -39,6 +39,7 @@
 
 #include "diff.h"
 #include "xmalloc.h"
+#include <amiport/profile.h> /* amiport: ReadEClock profiler — enable with -DAMIPORT_PROFILE */
 
 /* amiport: __dead may not be defined on AmigaOS */
 #ifndef __dead
@@ -171,6 +172,10 @@ main(int argc, char **argv)
 	int   ch, dflags, lastch, gotstdin, prevoptind, newarg;
 
 	atexit(cleanup_globals); /* amiport: ensure cleanup on all exit paths */
+#ifdef AMIPORT_PROFILE
+	amiport_profile_init();
+	atexit(amiport_profile_summary);
+#endif
 	oargv = argv;
 	gotstdin = 0;
 	dflags = 0;
