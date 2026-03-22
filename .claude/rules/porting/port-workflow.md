@@ -32,12 +32,16 @@ Every port lives in `ports/<toolname>/` with:
 2. Run `dependency-auditor` agent for complex ports
 3. Check `docs/posix-tiers.md` for tier classification of needed functions
 
+## Critical: Never Mix amiport_open() with fdopen()
+
+`amiport_open()` returns fds from amiport's internal table — a **separate namespace** from libnix fds. Calling `fdopen()` on an amiport fd creates a broken FILE* that silently fails. Use `fopen()` when you need a FILE*, `amiport_open()` only with `amiport_read()`/`amiport_write()`/`amiport_close()`. See crash-patterns.md #12.
+
 ## After Completing a Port
 
 1. Run `/review-amiga` for Amiga-specific code review
 2. Dispatch `memory-checker` agent (**mandatory** — AmigaOS has no memory protection or GC)
-3. Dispatch `perf-optimizer` agent (optional — 68k performance tuning)
-4. Dispatch `test-designer` agent to generate comprehensive `test-fsemu-cases.txt` (8+ tests for CLI, 10+ for scripting). Do NOT write test cases manually — the agent analyzes source for flags, exit codes, error paths.
+3. Dispatch `perf-optimizer` agent (**mandatory** — arguably the best agent, finds critical 68k wins like fgetc→fgets 3-5x speedup)
+4. Dispatch `test-designer` agent to generate comprehensive `test-fsemu-cases.txt` (15+ tests for CLI, 20+ for scripting, 12+ for console/network). Do NOT write test cases manually — the agent analyzes source for flags, exit codes, error paths. Tests must include flag combinations, every error message path, edge cases (empty file, long line, no trailing newline), and crash-pattern regressions.
 5. Run `make test-fsemu TARGET=ports/<name>` — FS-UAE testing is **mandatory for ALL categories**, not just Category 3-4. Test input files must be pre-created (no piping — ARexx `ADDRESS COMMAND` doesn't support it).
 6. Run `make check-test-coverage` to verify the test suite meets the coverage standard
 7. Update `PORTS.md` with the new port entry
