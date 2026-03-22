@@ -123,6 +123,7 @@ EXPECT_RC: 0
 - `EXPECT_CONTAINS:` — substring match (for multi-line output)
 - `EXPECT_RC:` — expected Amiga return code (optional but RECOMMENDED for every test)
 - Input files must be pre-created (no piping in ARexx)
+- **stderr is NOT captured** — error messages from `warn()`, `err()`, `fprintf(stderr,...)` do not appear in test output. For error path tests, use `EXPECT_RC:` only. Do not use `EXPECT:` or `EXPECT_CONTAINS:` for error messages.
 
 ## Test Input Files
 

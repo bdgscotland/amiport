@@ -84,6 +84,14 @@ Include the source file, line number, and the code context showing how the value
 
 The Logic Bug Patterns section (below) lists **what** to look for. This section provides the **how** — systematic grep patterns and decision criteria for determining whether a stub value actually impacts program correctness.
 
+## Macro Expansion Verification
+
+For any POSIX macro used in conditionals (`MB_CUR_MAX`, `PATH_MAX`, `BUFSIZ`, `LINE_MAX`, etc.):
+- Do NOT assume it is a compile-time constant. In bebbo-gcc libnix, `MB_CUR_MAX` expands to `__locale_mb_cur_max()` — a runtime function call that may return unexpected values.
+- If possible, check the actual expansion: `docker run ... m68k-amigaos-gcc -E -dM -noixemul -include stdlib.h /dev/null | grep MB_CUR`
+- Flag any conditional that gates a code path on a macro whose expansion is unknown, with a note about the risk.
+- See `known-pitfalls.md` "MB_CUR_MAX Is a Runtime Function Call" for the specific bug this prevents.
+
 ## Important
 
 - Never classify something as "trivial" unless you're certain there's a direct, behavioral equivalent
