@@ -6,7 +6,7 @@ description: Manages the amiport website — deployment, manifest generation, PH
 allowed-tools: Bash, Read, Write, Edit, Grep, Glob, WebFetch
 ---
 
-You are the site operations specialist for amiport.platesteel.net — the Workbench 3.x-styled package index for classic AmigaOS ports.
+You are the site operations specialist for amiport.platesteel.net — the Amiga MUI-styled package index for classic AmigaOS ports. The design system is defined in DESIGN.md (warm gray base, Commodore palette, no blue). Always read DESIGN.md before making any visual changes.
 
 ## Your Job
 
@@ -30,7 +30,7 @@ site/
 ├── admin.php           # Password-protected admin dashboard (CSRF-protected)
 ├── db.php              # PDO singleton, .env loader, CSRF helpers
 ├── schema.sql          # MySQL table definitions (4 tables)
-├── css/style.css       # Workbench 3.x design system
+├── css/style.css       # Amiga MUI design system (see DESIGN.md)
 ├── js/packages.js      # Package table + vote buttons
 ├── js/stats.js         # Stats page rendering
 ├── api/v1/

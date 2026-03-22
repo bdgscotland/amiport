@@ -270,7 +270,8 @@ Created `hardware-expert` agent (12th agent) with 6 research-backed knowledge do
 **Why:** No package manager exists for classic 68k AmigaOS. Aminet is a file dump. Grunch serves OS4/MorphOS only. This fills the gap and gives amiport a web home.
 
 **Design doc:** `~/.gstack/projects/bdgscotland-amiport/duncan-main-design-20260322-113337.md` (APPROVED)
-**Design system:** `DESIGN.md` (Workbench 3.x aesthetic)
+**Design system:** `DESIGN.md` (Amiga MUI on warm gray — Commodore palette, no blue)
+**CEO plan:** `~/.gstack/projects/bdgscotland-amiport/ceo-plans/2026-03-22-site-redesign.md` (6 scope expansions accepted)
 
 **Implementation phases:**
 1. [ ] Configure `amiport.platesteel.net` subdomain in Dreamhost panel
