@@ -80,6 +80,22 @@ amiport_fdopen(int fd, const char *mode)
 #define fdopen amiport_fdopen
 #endif
 
+/* amiport: open() with 3 args (O_CREAT mode) — the shim macro only accepts
+ * 2 args.  AmigaOS has no permission model so the mode argument is always
+ * discarded.  Undefine the shim macro and replace with a 3-arg inline that
+ * forwards to amiport_open(), dropping the mode silently.
+ * All open() calls in sed use O_CREAT and supply a mode, so 3-arg form only. */
+#ifdef open
+#undef open
+#endif
+static int
+amiport_open3(const char *path, int flags, int mode)
+{
+    (void)mode; /* amiport: no permission model on AmigaOS */
+    return amiport_open(path, flags);
+}
+#define open(p, f, m)  amiport_open3(p, f, m)
+
 /* amiport: fchown/fchmod — no UNIX permissions on AmigaOS, no-op */
 #define fchown(fd, uid, gid) (0)
 #define fchmod(fd, mode)     (0)

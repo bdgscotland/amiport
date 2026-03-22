@@ -156,15 +156,45 @@ The FS-UAE test harness (`test-fsemu.sh`) captures **stdout only**. Error messag
 **For formatting-sensitive tests (like -h flags):**
 - Prefer `EXPECT_CONTAINS:` with a key substring over exact `EXPECT:` matches, unless you have verified the exact output format by reading the source carefully
 
+## Stdin Hang Prevention — CRITICAL
+
+Programs that accept stdin when no file argument is given will **hang forever** in the ARexx test harness (no way to send EOF or Ctrl-C). This applies to ALL programs, not just ones you'd normally think of as stdin readers.
+
+**Rule:** Every CMD line must either:
+- Pass an explicit input file argument, OR
+- Test a flag/error that causes immediate exit before stdin is read (e.g., invalid flag `-Z`)
+
+**Never write a CMD that runs a program with no arguments and no input file.** Even if the program "should" print usage and exit, verify by reading the source — many programs try to read stdin before checking for missing arguments.
+
+## Script Files and Auxiliary Data — CRITICAL
+
+Test input files with extensions `.txt`, `.dat`, `.sed`, and `.rexx` are automatically copied to `WORK:` by `test-fsemu.sh`. If your tests reference script files (sed scripts, awk programs, etc.), name them `test-<name>-<purpose>.sed` (or appropriate extension) and create them in the port directory.
+
+**Commands with embedded filenames (sed `w`, `r`, `R`, `W`):** The `w` flag (`s///w filename`) and `r` command (`1r filename`) require the filename on the **same line** as the command, not as a separate argv. On the command line, AmigaDOS splits argv before sed sees it. **Always use a script file (`-f`) for commands that take filenames as part of the expression.**
+
+```
+# BAD -- AmigaDOS splits the w/r filename into a separate argv
+CMD: WORK:sed -n s/hello/goodbye/w T:out.txt WORK:input.txt
+CMD: WORK:sed 1r WORK:readfile.txt WORK:input.txt
+
+# GOOD -- use sed script files
+CMD: WORK:sed -n -f WORK:test-sed-wflag.sed WORK:input.txt
+# Create test-sed-wflag.sed containing: s/hello/goodbye/w T:out.txt
+CMD: WORK:sed -f WORK:test-sed-rfile.sed WORK:input.txt
+# Create test-sed-rfile.sed containing: 1r WORK:readfile.txt
+```
+
 ## Post-Generation Validation
 
 After generating test-fsemu-cases.txt, verify:
-1. Every `WORK:test-*.txt` or `WORK:test-*.dat` reference has a corresponding file in `ports/<name>/` or `ports/common-test-data/`
+1. Every `WORK:test-*.*` reference has a corresponding file in `ports/<name>/` or `ports/common-test-data/`
 2. Test count meets the minimum for the port's category
 3. At least one test has `EXPECT_RC: 0` or `EXPECT_RC: 5`
 4. At least one test has `EXPECT_RC: 10`
 5. No tests use stdin piping (no `|` or `<` in CMD lines)
 6. No CMD lines contain bare `$` characters (AmigaDOS expands them)
+7. **No CMD runs a program with zero arguments and no input file** (stdin hang risk)
+8. **Every `WORK:test-*.sed` reference has a matching file** in the port directory
 
 ## Coverage Report
 
