@@ -716,3 +716,65 @@ while (1) {
     do_work();
 }
 ```
+
+## 9. Crash-Pattern Prevention Rules
+
+Rules derived from `docs/references/crash-patterns.md`. Apply these AFTER all other
+transformations to prevent known AmigaOS-specific bugs.
+
+### exit() → _exit() at end of main() (crash-patterns #9)
+
+libnix's `exit()` calls atexit handlers that deadlock when closing console-connected
+stdio streams. `_exit()` bypasses atexit and goes straight to AmigaDOS `Exit()`.
+
+**IMPORTANT:** Only change `exit()` at the final return point of `main()`. Do NOT change
+`exit()` in error paths, `err()`/`errx()` calls, or helper functions — those still need
+atexit cleanup for proper resource release.
+
+```c
+/* RULE: Replace exit() with _exit() at end of main() */
+
+// Before (at end of main()):
+exit(0);
+// After:
+fflush(stdout); /* amiport: flush before _exit — no atexit handlers */
+_exit(0); /* amiport: _exit to avoid libnix exit() hang (crash-patterns #9) */
+
+// Before (with variable):
+exit(rval);
+// After:
+fflush(stdout);
+_exit(rval); /* amiport: _exit to avoid libnix exit() hang (crash-patterns #9) */
+```
+
+### Missing __stack cookie (crash-patterns #7)
+
+Amiga default stack is 4KB. vamos defaults to 8KB and ignores `__stack`. Most ported
+programs need 32KB+. Recursive programs (find, diff) need 64KB+.
+
+```c
+/* RULE: Add __stack cookie if missing */
+
+// Add at file scope near top of main source file:
+long __stack = 32768; /* amiport: stack cookie — Amiga default 4KB is too small */
+
+// For recursive programs (grep -r, find, diff):
+long __stack = 65536; /* amiport: stack cookie — extra for recursion */
+```
+
+### vsnprintf(NULL, 0, ...) probe buffer (crash-patterns #5)
+
+C99 allows `vsnprintf(NULL, 0, fmt, ap)` to measure buffer size. libnix does NOT
+support this — it writes to address zero and crashes.
+
+```c
+/* RULE: Replace vsnprintf(NULL, 0, ...) with probe buffer */
+
+// Before:
+int len = vsnprintf(NULL, 0, fmt, ap);
+
+// After:
+char probe[1024];
+int len = vsnprintf(probe, sizeof(probe), fmt, ap);
+/* amiport: probe buffer — libnix vsnprintf crashes on NULL (crash-patterns #5) */
+```
