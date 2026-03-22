@@ -1,11 +1,93 @@
-TEST: Identical files produce no output (exit 0)
+# diff test suite for FS-UAE ARexx harness
+# Category 1 (CLI tool) — minimum 8 tests required
+# Exit codes: 0 = files identical, 5 = files differ (RETURN_WARN), 10 = error
+# Uses input file instead of piping (ARexx limitation)
+
+TEST: Identical files produce no output and return RC 0
 CMD: WORK:diff WORK:test-diff-same.txt WORK:test-diff-same.txt
 EXPECT:
+EXPECT_RC: 0
 
-TEST: Different files produce normal diff output
+TEST: Differing files produce normal diff output and return RC 5
 CMD: WORK:diff WORK:test-diff-a.txt WORK:test-diff-b.txt
-EXPECT: 1c1
+EXPECT: 2c2
+EXPECT_RC: 5
 
-TEST: Unified diff format works
+TEST: Unified diff format (-u) produces --- header
+CMD: WORK:diff -u WORK:test-diff-a.txt WORK:test-diff-b.txt
+EXPECT_CONTAINS: ---
+EXPECT_RC: 5
+
+TEST: Unified diff format (-u) contains @@ hunk marker
 CMD: WORK:diff -u WORK:test-diff-a.txt WORK:test-diff-b.txt
 EXPECT_CONTAINS: @@
+EXPECT_RC: 5
+
+TEST: Context diff format (-c) contains *** header
+CMD: WORK:diff -c WORK:test-diff-a.txt WORK:test-diff-b.txt
+EXPECT_CONTAINS: ***
+EXPECT_RC: 5
+
+TEST: Brief mode (-q) reports files differ without showing diff
+CMD: WORK:diff -q WORK:test-diff-a.txt WORK:test-diff-b.txt
+EXPECT_CONTAINS: differ
+EXPECT_RC: 5
+
+TEST: Identical content different path returns RC 0 (crash-patterns #4 st_ino fix)
+CMD: WORK:diff WORK:test-diff-a.txt WORK:test-diff-same.txt
+EXPECT:
+EXPECT_RC: 0
+
+TEST: Report identical files (-s flag) prints identical message
+CMD: WORK:diff -s WORK:test-diff-same.txt WORK:test-diff-same.txt
+EXPECT_CONTAINS: identical
+EXPECT_RC: 0
+
+TEST: Ignore whitespace changes (-w) treats whitespace-only diff as identical
+CMD: WORK:diff -w WORK:test-diff-blanks-a.txt WORK:test-diff-blanks-b.txt
+EXPECT:
+EXPECT_RC: 0
+
+TEST: Fold blanks (-b) treats run of spaces as equivalent
+CMD: WORK:diff -b WORK:test-diff-blanks-a.txt WORK:test-diff-blanks-b.txt
+EXPECT:
+EXPECT_RC: 0
+
+TEST: Case-insensitive diff (-i) treats case differences as identical
+CMD: WORK:diff -i WORK:test-diff-case-a.txt WORK:test-diff-case-b.txt
+EXPECT:
+EXPECT_RC: 0
+
+TEST: Case-sensitive diff (no flags) detects case differences
+CMD: WORK:diff WORK:test-diff-case-a.txt WORK:test-diff-case-b.txt
+EXPECT: 1,2c1,2
+EXPECT_RC: 5
+
+TEST: ed script format (-e) produces ed commands
+CMD: WORK:diff -e WORK:test-diff-a.txt WORK:test-diff-b.txt
+EXPECT_CONTAINS: line2 changed
+EXPECT_RC: 5
+
+TEST: Binary file detection returns binary differ message
+CMD: WORK:diff WORK:test-diff-a.txt WORK:test-binary.dat
+EXPECT_CONTAINS: Binary files
+EXPECT_RC: 5
+
+TEST: Nonexistent first file produces error message and RC 10
+CMD: WORK:diff WORK:nonexistent.txt WORK:test-diff-a.txt
+EXPECT_CONTAINS: nonexistent
+EXPECT_RC: 10
+
+TEST: Nonexistent second file produces error message and RC 10
+CMD: WORK:diff WORK:test-diff-a.txt WORK:nonexistent2.txt
+EXPECT_CONTAINS: nonexistent
+EXPECT_RC: 10
+
+TEST: Missing arguments prints usage to stderr and returns RC 10
+CMD: WORK:diff WORK:test-diff-a.txt
+EXPECT_RC: 10
+
+TEST: WORK: volume path handling works for both arguments
+CMD: WORK:diff WORK:test-diff-a.txt WORK:test-diff-b.txt
+EXPECT: 2c2
+EXPECT_RC: 5

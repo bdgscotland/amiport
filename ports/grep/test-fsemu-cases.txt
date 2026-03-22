@@ -1,15 +1,110 @@
-TEST: Basic pattern match
+# grep FS-UAE test suite
+# Category 1 (CLI), minimum 8 tests required
+# Input file: WORK:test-grep-input.txt (10 lines, known content)
+# Uses input file instead of piping (ARexx limitation)
+
+TEST: Basic pattern match returns first matching line
 CMD: WORK:grep hello WORK:test-grep-input.txt
 EXPECT: hello world
+EXPECT_RC: 0
 
-TEST: Case-insensitive match
+TEST: Case-insensitive match (-i) matches both hello and Hello
 CMD: WORK:grep -i hello WORK:test-grep-input.txt
 EXPECT: hello world
+EXPECT_RC: 0
 
-TEST: Fixed string match
-CMD: WORK:grep -F "a.b" WORK:test-grep-input.txt
+TEST: Invert match (-v) returns non-matching lines
+CMD: WORK:grep -v hello WORK:test-grep-input.txt
+EXPECT: foo bar
+EXPECT_RC: 0
+
+TEST: Count matching lines (-c)
+CMD: WORK:grep -c hello WORK:test-grep-input.txt
+EXPECT: 1
+EXPECT_RC: 0
+
+TEST: Line numbers (-n) prefix output with line number
+CMD: WORK:grep -n hello WORK:test-grep-input.txt
+EXPECT: 1:hello world
+EXPECT_RC: 0
+
+TEST: Fixed string match (-F) treats dot as literal not regex wildcard
+CMD: WORK:grep -F a.b WORK:test-grep-input.txt
 EXPECT: a.b
+EXPECT_RC: 0
 
-TEST: Extended regex
-CMD: WORK:grep -E "ca[rt]" WORK:test-grep-input.txt
+TEST: Extended regex (-E) matches character class
+CMD: WORK:grep -E ca[rt] WORK:test-grep-input.txt
 EXPECT: cat
+EXPECT_RC: 0
+
+TEST: Word boundary match (-w) does not match substrings
+CMD: WORK:grep -w cat WORK:test-grep-input.txt
+EXPECT: cat
+EXPECT_RC: 0
+
+TEST: Print only matching part (-o) prints just the match
+CMD: WORK:grep -o hello WORK:test-grep-input.txt
+EXPECT: hello
+EXPECT_RC: 0
+
+TEST: Max count (-m 1) stops after first match
+CMD: WORK:grep -m 1 hello WORK:test-grep-input.txt
+EXPECT: hello world
+EXPECT_RC: 0
+
+TEST: List files with matches (-l) prints filename only
+CMD: WORK:grep -l hello WORK:test-grep-input.txt
+EXPECT: WORK:test-grep-input.txt
+EXPECT_RC: 0
+
+TEST: After-context (-A 1) prints one line after match
+CMD: WORK:grep -A 1 TARGET WORK:test-grep-context.txt
+EXPECT: TARGET LINE
+EXPECT_RC: 0
+
+TEST: Before-context (-B 1) prints one line before match
+CMD: WORK:grep -B 1 TARGET WORK:test-grep-context.txt
+EXPECT_CONTAINS: before two
+EXPECT_RC: 0
+
+TEST: Pattern from file (-f) reads patterns from file
+CMD: WORK:grep -f WORK:test-grep-patterns.txt WORK:test-grep-input.txt
+EXPECT: foo bar
+EXPECT_RC: 0
+
+TEST: No match returns RETURN_WARN (RC=5)
+CMD: WORK:grep NOMATCHSTRING WORK:test-grep-input.txt
+EXPECT_RC: 5
+
+TEST: Empty file produces no output and returns RETURN_WARN
+CMD: WORK:grep hello WORK:test-grep-empty.txt
+EXPECT_RC: 5
+
+TEST: Nonexistent file returns RETURN_ERROR (RC=10)
+CMD: WORK:grep hello WORK:nosuchfile-grep.txt
+EXPECT_RC: 10
+
+TEST: No pattern argument returns RETURN_ERROR
+CMD: WORK:grep
+EXPECT_RC: 10
+
+TEST: Binary file prints binary file notice when match found
+CMD: WORK:grep -U a WORK:test-grep-binary.dat
+EXPECT_CONTAINS: Binary file
+EXPECT_RC: 0
+
+TEST: Quiet mode (-q) produces no output on match
+CMD: WORK:grep -q hello WORK:test-grep-input.txt
+EXPECT:
+EXPECT_RC: 0
+
+TEST: Suppress error messages (-s) on missing file
+CMD: WORK:grep -s hello WORK:nosuchfile-grep2.txt
+EXPECT:
+EXPECT_RC: 10
+
+TEST: Amiga volume path (WORK:) resolves correctly
+CMD: WORK:grep quick WORK:test-grep-input.txt
+EXPECT: the quick brown fox
+EXPECT_RC: 0
