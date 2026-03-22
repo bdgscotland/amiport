@@ -384,9 +384,12 @@ diagnose_timeout() {
     fi
 
     # Check 2: TAP header but no results?
-    local has_header=$(grep -c '^1\.\.' "$tap_file" 2>/dev/null || echo 0)
-    local result_count=$(grep -cE '^ok |^not ok ' "$tap_file" 2>/dev/null || echo 0)
-    local total=$(head -1 "$tap_file" | grep -oE '[0-9]+$' || echo 0)
+    local has_header
+    has_header=$(grep -c '^1\.\.' "$tap_file" 2>/dev/null) || has_header=0
+    local result_count
+    result_count=$(grep -cE '^ok |^not ok ' "$tap_file" 2>/dev/null) || result_count=0
+    local total
+    total=$(head -1 "$tap_file" | grep -oE '[0-9]+$' 2>/dev/null) || total=0
 
     if [ "$has_header" -gt 0 ] && [ "$result_count" -eq 0 ]; then
         if [ "$elapsed" -lt 15 ]; then
