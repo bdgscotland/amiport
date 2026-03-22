@@ -77,3 +77,10 @@ jobs:
 
       - name: Test production ports (vamos)
         run: make test-ports
+
+      - name: Check test coverage standard
+        run: make check-test-coverage
+
+      - name: Check fix propagation (informational)
+        continue-on-error: true
+        run: make check-fix-propagation
