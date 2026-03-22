@@ -100,10 +100,20 @@ EXPECT: T:
 
 | Category | Min FS-UAE Tests | Required Categories |
 |----------|-----------------|---------------------|
-| 1. CLI tools | 8+ | Functional, Error, Exit Code, Edge Case |
-| 2. Scripting | 10+ | Functional, Error, Exit Code, Edge Case, Amiga-Specific |
-| 3. Console UI | 8+ | Functional, Error, Exit Code (+ interactive via FS-UAE) |
-| 4. Network | 8+ | Functional, Error, Exit Code, Connection (+ TCP/IP via FS-UAE) |
+| 1. CLI tools | 15+ | Functional, Error, Exit Code, Edge Case, Amiga-Specific |
+| 2. Scripting | 20+ | Functional, Error, Exit Code, Edge Case, Amiga-Specific |
+| 3. Console UI | 12+ | Functional, Error, Exit Code (+ interactive via FS-UAE) |
+| 4. Network | 12+ | Functional, Error, Exit Code, Connection (+ TCP/IP via FS-UAE) |
+
+### Depth Requirements (not just breadth)
+
+The test-designer should go **deeper** on each category, not just check the box:
+
+- **Functional:** Test every documented flag AND common flag combinations (e.g., `-r -n`, `-f -u`). At least 2 combination tests.
+- **Error paths:** Test EVERY error message in the source (grep for `err(`, `errx(`, `fprintf(stderr`). Not just "bad option" and "missing file" — test permission errors, malformed input, invalid flag values, conflicting options.
+- **Edge cases:** Include at minimum: empty file, single-line file, very long line (>1000 chars), file with no trailing newline, file with only whitespace, special characters in filenames (spaces, colons). Create dedicated test input files for each.
+- **Amiga-specific:** Test Amiga volume paths (WORK:, T:, RAM:), test with AmigaDOS path separators, test output to Amiga-specific locations.
+- **Regression:** If crash-patterns.md has entries relevant to this tool, add a test for each.
 
 ## Test Case File Format
 
