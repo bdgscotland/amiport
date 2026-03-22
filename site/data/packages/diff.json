@@ -1,0 +1,13 @@
+{
+    "name": "diff",
+    "version": "1.95",
+    "description": "File comparison utility",
+    "category": "util/cli",
+    "source": "OpenBSD diff v1.95",
+    "license": "ISC + BSD 3-Clause",
+    "size": 32691,
+    "sha256": "4047d072e267351d1c66657d64130b0b7017e114d01576a2af8beee77aaba3ad",
+    "download": "/packages/diff-1.95.lha",
+    "requires": [],
+    "stack": 32768
+}

@@ -1,0 +1,14 @@
+{
+    "name": "cal",
+    "version": "1.32",
+    "description": "Unix-style calendar display",
+    "category": "util/cli",
+    "source": "OpenBSD cal v1.32",
+    "license": "BSD 3-Clause",
+    "size": 17844,
+    "sha256": "2fe55db1b1db7ad136c13b0d76671b85266c3730c169bbbbbff2eaf4207e3539",
+    "download": "/packages/cal-1.32.lha",
+    "requires": [],
+    "aminet": "https://aminet.net/package/util/cli/cal-1.0",
+    "stack": 32768
+}

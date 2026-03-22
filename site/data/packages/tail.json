@@ -1,0 +1,13 @@
+{
+    "name": "tail",
+    "version": "1.24",
+    "description": "Display last part of a file",
+    "category": "util/cli",
+    "source": "OpenBSD tail v1.24",
+    "license": "BSD 3-Clause",
+    "size": 20589,
+    "sha256": "22d96257d580c24688641a3635c3233de29db3c10e754dd6a6cfa6036d818f2e",
+    "download": "/packages/tail-1.24.lha",
+    "requires": [],
+    "stack": 32768
+}

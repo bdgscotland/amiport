@@ -1,0 +1,13 @@
+{
+    "name": "lua",
+    "version": "5.4.7",
+    "description": "Lightweight scripting language",
+    "category": "dev/lang",
+    "source": "PUC-Rio Lua 5.4.7",
+    "license": "MIT",
+    "size": 129576,
+    "sha256": "5a7eeafb7c4c35f79000fcaae795cb4765e2e0987027e2a19756048d80df0c62",
+    "download": "/packages/lua-5.4.7.lha",
+    "requires": [],
+    "stack": 65536
+}

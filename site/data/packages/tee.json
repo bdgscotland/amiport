@@ -1,0 +1,14 @@
+{
+    "name": "tee",
+    "version": "1.15",
+    "description": "Duplicate standard input",
+    "category": "util/cli",
+    "source": "OpenBSD tee v1.15",
+    "license": "BSD 3-Clause",
+    "size": 17761,
+    "sha256": "3ab7dee811616f80342a38efb7bf758db38ed23a1732a021603b30e66c0c9644",
+    "download": "/packages/tee-1.15.lha",
+    "requires": [],
+    "stack": 32768,
+    "aminet": "https://aminet.net/package/util/cli/tee-1.15"
+}

@@ -1,0 +1,14 @@
+{
+    "name": "yes",
+    "version": "1.9",
+    "description": "Repeatedly output a string",
+    "category": "util/cli",
+    "source": "OpenBSD yes v1.9",
+    "license": "BSD 3-Clause",
+    "size": 5279,
+    "sha256": "f05fbf23eba7c6727bd7a959a1fb2937095c91dc8467e3b55f5ff6ab8d3c4acf",
+    "download": "/packages/yes-1.9.lha",
+    "requires": [],
+    "stack": 32768,
+    "aminet": "https://aminet.net/package/util/cli/yes-1.9"
+}
