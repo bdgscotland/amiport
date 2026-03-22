@@ -105,11 +105,13 @@ char *amiport_getenv(const char *name)
 }
 
 /*
- * amiport: setenv() — set a global AmigaDOS environment variable via SetVar().
+ * amiport: setenv() — set an AmigaDOS environment variable via SetVar().
  *
- * Uses GVF_GLOBAL_ONLY to write to ENV: (the system-wide variable store,
- * typically RAM:ENV/). If overwrite is 0 and the variable already exists,
- * this returns 0 without changing the existing value (POSIX semantics).
+ * Tries GVF_GLOBAL_ONLY first (ENV: — the real AmigaOS global store).
+ * Falls back to local (task-level) variables if global fails, which
+ * happens under vamos where GVF_GLOBAL_ONLY is not implemented.
+ * If overwrite is 0 and the variable already exists, returns 0 without
+ * changing the existing value (POSIX semantics).
  */
 int amiport_setenv(const char *name, const char *value, int overwrite)
 {
@@ -121,30 +123,34 @@ int amiport_setenv(const char *name, const char *value, int overwrite)
         return -1;
     }
 
-    /* If overwrite is 0, check whether the variable already exists */
+    /* If overwrite is 0, check whether the variable already exists.
+     * Check both global and local — one of them will work. */
     if (!overwrite) {
         existing = GetVar((CONST_STRPTR)name, (STRPTR)tmp, sizeof(tmp) - 1, GVF_GLOBAL_ONLY);
+        if (existing < 0)
+            existing = GetVar((CONST_STRPTR)name, (STRPTR)tmp, sizeof(tmp) - 1, 0);
         if (existing >= 0) {
-            /* Variable exists and we must not overwrite — return success silently */
             return 0;
         }
     }
 
-    /* amiport: SetVar with GVF_GLOBAL_ONLY stores in ENV: (current session).
-     * Does not persist to ENVARC: (use GVF_SAVE_VAR for that).
-     * Length -1 tells SetVar to use strlen(value). */
-    if (!SetVar((CONST_STRPTR)name, (CONST_STRPTR)value, -1, GVF_GLOBAL_ONLY)) {
-        errno = ENOMEM; /* Only failure mode is allocation failure */
-        return -1;
-    }
-    return 0;
+    /* amiport: try global first (ENV:), fall back to local (task-level).
+     * vamos doesn't implement GVF_GLOBAL_ONLY — the local fallback
+     * ensures tests pass under vamos while real AmigaOS uses ENV:. */
+    if (SetVar((CONST_STRPTR)name, (CONST_STRPTR)value, -1, GVF_GLOBAL_ONLY))
+        return 0;
+    if (SetVar((CONST_STRPTR)name, (CONST_STRPTR)value, -1, 0))
+        return 0;
+
+    errno = ENOMEM;
+    return -1;
 }
 
 /*
- * amiport: unsetenv() — delete a global AmigaDOS environment variable via DeleteVar().
+ * amiport: unsetenv() — delete an AmigaDOS environment variable.
  *
- * Uses GVF_GLOBAL_ONLY to remove from ENV:. Returns 0 whether or not the
- * variable existed (POSIX requires success even if name was not set).
+ * Tries both global (ENV:) and local scopes. Returns 0 whether or not
+ * the variable existed (POSIX requires success even if name was not set).
  */
 int amiport_unsetenv(const char *name)
 {
@@ -153,9 +159,9 @@ int amiport_unsetenv(const char *name)
         return -1;
     }
 
-    /* amiport: DeleteVar returns DOSFALSE if not found, but POSIX says
-     * unsetenv succeeds regardless — ignore the return value. */
+    /* Try both scopes — one will work on real AmigaOS, the other on vamos */
     DeleteVar((CONST_STRPTR)name, GVF_GLOBAL_ONLY);
+    DeleteVar((CONST_STRPTR)name, 0);
     return 0;
 }
 
