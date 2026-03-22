@@ -1,0 +1,2 @@
+no match in file B
+match in file B

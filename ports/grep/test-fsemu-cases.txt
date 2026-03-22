@@ -1,7 +1,11 @@
 # grep FS-UAE test suite
-# Category 1 (CLI), minimum 8 tests required
-# Input file: WORK:test-grep-input.txt (10 lines, known content)
-# Uses input file instead of piping (ARexx limitation)
+# OpenBSD grep 1.68 -- Category 1 (CLI), minimum 15 tests required
+# Uses input files instead of piping (ARexx limitation)
+# optstr: +0123456789A:B:CEFGHILRUVabce:f:hilm:noqrsuvwxy
+
+# -----------------------------------------------------------------------
+# CATEGORY 1: FUNCTIONAL TESTS (one test per flag)
+# -----------------------------------------------------------------------
 
 TEST: Basic pattern match returns first matching line
 CMD: WORK:grep hello WORK:test-grep-input.txt
@@ -58,6 +62,11 @@ CMD: WORK:grep -l hello WORK:test-grep-input.txt
 EXPECT: WORK:test-grep-input.txt
 EXPECT_RC: 0
 
+TEST: List files without matches (-L) prints filename when no match
+CMD: WORK:grep -L NOMATCH WORK:test-grep-input.txt
+EXPECT: WORK:test-grep-input.txt
+EXPECT_RC: 0
+
 TEST: After-context (-A 1) prints one line after match
 CMD: WORK:grep -A 1 TARGET WORK:test-grep-context.txt
 EXPECT: TARGET LINE
@@ -68,18 +77,100 @@ CMD: WORK:grep -B 1 TARGET WORK:test-grep-context.txt
 EXPECT_CONTAINS: before two
 EXPECT_RC: 0
 
+TEST: Combined context (-C 1) prints one line before and after match
+CMD: WORK:grep -C 1 TARGET WORK:test-grep-context.txt
+EXPECT_CONTAINS: before two
+EXPECT_RC: 0
+
 TEST: Pattern from file (-f) reads patterns from file
 CMD: WORK:grep -f WORK:test-grep-patterns.txt WORK:test-grep-input.txt
 EXPECT: foo bar
 EXPECT_RC: 0
 
-TEST: No match returns RETURN_WARN (RC=5)
-CMD: WORK:grep NOMATCHSTRING WORK:test-grep-input.txt
+TEST: Explicit pattern with -e flag matches correctly
+CMD: WORK:grep -e hello WORK:test-grep-input.txt
+EXPECT: hello world
+EXPECT_RC: 0
+
+TEST: Whole-line match (-x) only matches complete line
+CMD: WORK:grep -x "exactly this line" WORK:test-grep-xflag.txt
+EXPECT: exactly this line
+EXPECT_RC: 0
+
+TEST: Force filename header (-H) on single-file search
+CMD: WORK:grep -H hello WORK:test-grep-input.txt
+EXPECT: WORK:test-grep-input.txt:hello world
+EXPECT_RC: 0
+
+TEST: Suppress filename header (-h) in multi-file search
+CMD: WORK:grep -h hello WORK:test-grep-multifile-a.txt WORK:test-grep-multifile-b.txt
+EXPECT: match in file A
+EXPECT_RC: 0
+
+TEST: Byte offset (-b) prints byte offset before each match
+CMD: WORK:grep -b hello WORK:test-grep-input.txt
+EXPECT: 0:hello world
+EXPECT_RC: 0
+
+TEST: Quiet mode (-q) produces no output on match
+CMD: WORK:grep -q hello WORK:test-grep-input.txt
+EXPECT:
+EXPECT_RC: 0
+
+TEST: Suppress error messages (-s) on missing file silences stderr
+CMD: WORK:grep -s hello WORK:nosuchfile-grep2.txt
+EXPECT:
+EXPECT_RC: 10
+
+TEST: Treat binary as text (-a) processes binary file as text
+CMD: WORK:grep -a hello WORK:test-grep-input.txt
+EXPECT: hello world
+EXPECT_RC: 0
+
+TEST: Binary-files option text treats binary as text (no match in dat = RC 5)
+CMD: WORK:grep --binary-files=text hello WORK:test-grep-binary.dat
 EXPECT_RC: 5
 
-TEST: Empty file produces no output and returns RETURN_WARN
-CMD: WORK:grep hello WORK:test-grep-empty.txt
+TEST: Binary-files option without-match skips binary file (no binary file notice)
+CMD: WORK:grep --binary-files=without-match hello WORK:test-grep-binary.dat
 EXPECT_RC: 5
+
+TEST: Line-buffered output flag does not break normal matching
+CMD: WORK:grep --line-buffered hello WORK:test-grep-input.txt
+EXPECT: hello world
+EXPECT_RC: 0
+
+TEST: Null-separated output (--null) with -l produces NUL after filename
+CMD: WORK:grep -l --null hello WORK:test-grep-input.txt
+EXPECT_RC: 0
+
+TEST: Custom label (--label) replaces filename in multi-file output
+CMD: WORK:grep -H --label=MYFILE hello WORK:test-grep-input.txt
+EXPECT_CONTAINS: MYFILE:hello world
+EXPECT_RC: 0
+
+TEST: Anchored pattern match on line start using BRE caret
+CMD: WORK:grep "^start" WORK:test-grep-anchored.txt
+EXPECT: start of line match
+EXPECT_RC: 0
+
+TEST: Flag combination -n -i case-insensitive with line numbers
+CMD: WORK:grep -n -i hello WORK:test-grep-input.txt
+EXPECT: 1:hello world
+EXPECT_RC: 0
+
+TEST: Flag combination -c -v count of non-matching lines
+CMD: WORK:grep -c -v hello WORK:test-grep-input.txt
+EXPECT_RC: 0
+
+TEST: Multiple -e patterns matches lines with either pattern
+CMD: WORK:grep -e hello -e "quick brown" WORK:test-grep-input.txt
+EXPECT: hello world
+EXPECT_RC: 0
+
+# -----------------------------------------------------------------------
+# CATEGORY 2: ERROR PATH TESTS
+# -----------------------------------------------------------------------
 
 TEST: Nonexistent file returns RETURN_ERROR (RC=10)
 CMD: WORK:grep hello WORK:nosuchfile-grep.txt
@@ -89,22 +180,97 @@ TEST: No pattern argument returns RETURN_ERROR
 CMD: WORK:grep
 EXPECT_RC: 10
 
+TEST: Invalid regex pattern returns RETURN_ERROR
+CMD: WORK:grep "[invalid" WORK:test-grep-input.txt
+EXPECT_RC: 10
+
+TEST: Bad --binary-files value returns RETURN_ERROR
+CMD: WORK:grep --binary-files=badvalue hello WORK:test-grep-input.txt
+EXPECT_RC: 10
+
+# -----------------------------------------------------------------------
+# CATEGORY 3: EXIT CODE TESTS
+# -----------------------------------------------------------------------
+
+TEST: Match found returns RETURN_OK (RC=0)
+CMD: WORK:grep hello WORK:test-grep-input.txt
+EXPECT_RC: 0
+
+TEST: No match returns RETURN_WARN (RC=5)
+CMD: WORK:grep NOMATCHSTRING WORK:test-grep-input.txt
+EXPECT_RC: 5
+
+TEST: Empty file produces no output and returns RETURN_WARN (RC=5)
+CMD: WORK:grep hello WORK:test-grep-empty.txt
+EXPECT_RC: 5
+
+TEST: Nonexistent file returns RETURN_ERROR (RC=10)
+CMD: WORK:grep hello WORK:nosuchfile-grep3.txt
+EXPECT_RC: 10
+
+# -----------------------------------------------------------------------
+# CATEGORY 4: EDGE CASE TESTS
+# -----------------------------------------------------------------------
+
+TEST: Empty file produces no output on any pattern
+CMD: WORK:grep pattern WORK:test-grep-empty.txt
+EXPECT:
+EXPECT_RC: 5
+
 TEST: Binary file prints binary file notice when match found
 CMD: WORK:grep -U a WORK:test-grep-binary.dat
 EXPECT_CONTAINS: Binary file
 EXPECT_RC: 0
 
-TEST: Quiet mode (-q) produces no output on match
-CMD: WORK:grep -q hello WORK:test-grep-input.txt
-EXPECT:
+TEST: Very long line (>1024 chars) is processed correctly
+CMD: WORK:grep MARKER WORK:test-longline.txt
+EXPECT_CONTAINS: MARKER
 EXPECT_RC: 0
 
-TEST: Suppress error messages (-s) on missing file
-CMD: WORK:grep -s hello WORK:nosuchfile-grep2.txt
-EXPECT:
-EXPECT_RC: 10
+TEST: Pattern matching special regex chars in -F mode (literal bracket)
+CMD: WORK:grep -F "special.chars[here]" WORK:test-grep-input.txt
+EXPECT: line eight: special.chars[here]
+EXPECT_RC: 0
 
-TEST: Amiga volume path (WORK:) resolves correctly
+TEST: Count on empty file returns zero
+CMD: WORK:grep -c hello WORK:test-grep-empty.txt
+EXPECT: 0
+EXPECT_RC: 5
+
+TEST: Whole-line (-x) does not match partial line
+CMD: WORK:grep -x hello WORK:test-grep-input.txt
+EXPECT_RC: 5
+
+TEST: Case-insensitive (-i) with -c counts both cases
+CMD: WORK:grep -c -i hello WORK:test-grep-input.txt
+EXPECT: 2
+EXPECT_RC: 0
+
+TEST: -o with multiple matches on one line prints each on own line
+CMD: WORK:grep -o matches WORK:test-grep-input.txt
+EXPECT_CONTAINS: matches
+EXPECT_RC: 0
+
+# -----------------------------------------------------------------------
+# CATEGORY 5: AMIGA-SPECIFIC TESTS
+# -----------------------------------------------------------------------
+
+TEST: Amiga WORK: volume path resolves correctly
 CMD: WORK:grep quick WORK:test-grep-input.txt
 EXPECT: the quick brown fox
+EXPECT_RC: 0
+
+TEST: Amiga path with colon in volume name does not confuse pattern parser
+CMD: WORK:grep "line eight" WORK:test-grep-input.txt
+EXPECT: line eight: special.chars[here]
+EXPECT_RC: 0
+
+TEST: Multiple Amiga WORK: path arguments in one invocation
+CMD: WORK:grep match WORK:test-grep-multifile-a.txt WORK:test-grep-multifile-b.txt
+EXPECT_CONTAINS: match in file A
+EXPECT_RC: 0
+
+TEST: -H flag prints full WORK: path in multi-file output
+CMD: WORK:grep -H match WORK:test-grep-multifile-a.txt WORK:test-grep-multifile-b.txt
+EXPECT_CONTAINS: WORK:test-grep-multifile-a.txt:match in file A
 EXPECT_RC: 0

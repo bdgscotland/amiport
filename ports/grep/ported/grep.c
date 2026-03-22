@@ -33,7 +33,7 @@
 #include "grep.h"
 
 /* amiport: Amiga version string (required for AmigaOS programs) */
-static const char *verstag = "$VER: grep 1.68 (20.03.2026)";
+static const char *verstag = "$VER: grep 1.68 (22.03.2026)";
 
 /* amiport: stack cookie — grep needs more than default 4KB stack */
 long __stack = 32768;
@@ -571,15 +571,18 @@ main(int argc, char *argv[])
 		c = procfile(NULL);
 		/* amiport: memory leak fix — cleanup before all exit paths */
 		cleanup_patterns();
-		if (c)
+		/* amiport: BUG-1 fix — added braces so _exit() is inside the branch,
+		 * not executed unconditionally after the braceless if/else */
+		if (c) {
 			fflush(stdout);
 			_exit(AMIGA_RETURN_OK); /* amiport: _exit to avoid libnix hang */
-		else if (file_err)
+		} else if (file_err) {
 			fflush(stdout);
 			_exit(AMIGA_RETURN_ERROR); /* amiport: _exit to avoid libnix hang */
-		else
+		} else {
 			fflush(stdout);
 			_exit(AMIGA_RETURN_WARN); /* amiport: _exit to avoid libnix hang */
+		}
 	}
 
 	if (Rflag)
@@ -593,19 +596,23 @@ main(int argc, char *argv[])
 	 * Mapping: 0->0 (OK), 1->5 (WARN/no match), 2->10 (ERROR) */
 	/* amiport: memory leak fix — cleanup before all exit paths */
 	cleanup_patterns();
+	/* amiport: BUG-1 fix — added braces so _exit() is inside the branch,
+	 * not executed unconditionally after the braceless if/else */
 	if (c) {
-		if (file_err && !qflag)
+		if (file_err && !qflag) {
 			fflush(stdout);
 			_exit(AMIGA_RETURN_ERROR); /* amiport: _exit to avoid libnix hang */
-		else
+		} else {
 			fflush(stdout);
 			_exit(AMIGA_RETURN_OK); /* amiport: _exit to avoid libnix hang */
+		}
 	} else {
-		if (file_err)
+		if (file_err) {
 			fflush(stdout);
 			_exit(AMIGA_RETURN_ERROR); /* amiport: _exit to avoid libnix hang */
-		else
+		} else {
 			fflush(stdout);
 			_exit(AMIGA_RETURN_WARN); /* amiport: _exit to avoid libnix hang */
+		}
 	}
 }

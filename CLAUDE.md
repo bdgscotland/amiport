@@ -136,7 +136,7 @@ In QA mode, flag any code that doesn't match DESIGN.md.
 - `docs/references/adcd/` — Complete ADCD 2.1 in markdown — HOW to use AmigaOS functions, not just signatures
 - `docs/references/amiga-intern/` — "Amiga Intern" (1992) — 68030 internals, custom chip architecture, memory map, DMA timing, hardware programming
 - `docs/references/libnix-reference.md` — Complete libnix function list (700+ functions) extracted from libc.a, plus runtime behavior docs from libnix.texi
-- `docs/references/M68000PRM.pdf` — Motorola M68000 Family Programmer's Reference Manual (646 pages, official NXP/Motorola PDF) — instruction set, addressing modes, timing. Read with the PDF reader.
+- `docs/references/m68000-prm/` — Motorola M68000 Family Programmer's Reference Manual (646 pages, converted to searchable markdown) — instruction set, addressing modes, timing. Section 4 (integer instructions) split into four files (A-B, B-E, E-N, O-U) for fast lookup.
 - `docs/test-coverage-standard.md` — **Mandatory** test coverage requirements (no happy-path-only testing)
 - `.claude/skills/transform-source/references/transformation-rules.md` — Tier 1 transformation rules
 

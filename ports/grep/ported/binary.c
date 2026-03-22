@@ -43,7 +43,9 @@ isbinary(const char *buf, size_t n)
 int
 bin_file(FILE *f)
 {
-	char		buf[BUFSIZ];
+	/* amiport: static to avoid stack pressure — bin_file() is
+	 * single-threaded and not reentrant on AmigaOS */
+	static char	buf[BUFSIZ];
 	size_t		m;
 	int		ret = 0;
 

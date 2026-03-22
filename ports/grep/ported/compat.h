@@ -27,6 +27,7 @@
 #include <amiport/unistd.h>     /* ssize_t, off_t, u_char, STDIN_FILENO */
 #include <amiport/getopt.h>     /* getopt, optarg, optind */
 #include <amiport/dirent.h>     /* opendir, readdir, closedir */
+#include <amiport/signal.h>     /* amiport_check_break — Ctrl-C handling */
 
 /* amiport: Tier 2 regex emulation */
 #include <amiport-emu/regex.h>
@@ -186,6 +187,13 @@ fts_read(FTS *ftsp)
     struct dirent *dp;
 
     for (;;) {
+        /* amiport: Ctrl-C check — AmigaOS has no SIGINT delivery,
+         * so grep -R on a large tree needs explicit break handling */
+        if (amiport_check_break()) {
+            errno = 0;
+            return NULL;
+        }
+
         /* If we have an open directory, read from it */
         if (ftsp->depth >= 0) {
             DIR *d = ftsp->dir_stack[ftsp->depth];
@@ -214,29 +222,36 @@ fts_read(FTS *ftsp)
                 ftsp->entry.fts_name = dp->d_name;
                 ftsp->entry.fts_errno = 0;
 
-                if (dp->d_type == DT_DIR) {
-                    /* Try to descend into directory */
-                    if (ftsp->depth + 1 < AMIPORT_FTS_MAX_DEPTH) {
-                        DIR *subdir = opendir(ftsp->pathbuf);
-                        if (subdir != NULL) {
+                /* amiport: BUG-2 fix — d_type is always DT_UNKNOWN on AmigaOS
+                 * filesystems (OFS, FFS, SFS), so dp->d_type == DT_DIR is
+                 * always false and subdirectories are silently skipped.
+                 * Use an opendir() probe instead: if opendir() succeeds the
+                 * entry is a directory and should be recursed into.
+                 * amiport: replaced d_type check with opendir() probe for
+                 * AmigaOS filesystem compatibility (-R recursive search) */
+                {
+                    DIR *probe = opendir(ftsp->pathbuf);
+                    if (probe != NULL) {
+                        /* Entry is a directory */
+                        if (ftsp->depth + 1 < AMIPORT_FTS_MAX_DEPTH) {
+                            /* Reuse the probe handle — don't close and reopen */
                             ftsp->depth++;
-                            ftsp->dir_stack[ftsp->depth] = subdir;
+                            ftsp->dir_stack[ftsp->depth] = probe;
                             snprintf(ftsp->path_stack[ftsp->depth],
                                 PATH_MAX, "%s", ftsp->pathbuf);
                             ftsp->entry.fts_info = FTS_D;
                             return &ftsp->entry;
                         } else {
-                            ftsp->entry.fts_info = FTS_DNR;
-                            ftsp->entry.fts_errno = errno;
+                            /* Max depth reached — close probe and report as dir */
+                            closedir(probe);
+                            ftsp->entry.fts_info = FTS_D;
                             return &ftsp->entry;
                         }
+                    } else {
+                        /* opendir() failed — treat as a regular file */
+                        ftsp->entry.fts_info = FTS_DEFAULT;
+                        return &ftsp->entry;
                     }
-                    /* Max depth reached — skip this directory */
-                    ftsp->entry.fts_info = FTS_D;
-                    return &ftsp->entry;
-                } else {
-                    ftsp->entry.fts_info = FTS_DEFAULT;
-                    return &ftsp->entry;
                 }
             }
             /* Directory exhausted, pop */
