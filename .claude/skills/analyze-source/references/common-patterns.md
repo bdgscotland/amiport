@@ -194,3 +194,25 @@ char *path = getenv("PATH");
 **Amiga solution**: Use `amiport_getenv()` which calls `GetVar()`. Note: Amiga environment variables are stored differently (ENV: assign for global, local vars per shell). Some standard vars don't exist — `HOME` has no Amiga equivalent (use `SYS:` or `PROGDIR:`).
 
 **Severity**: needs-shim
+
+---
+
+## Pattern 9: Wildcard/Glob Arguments
+
+**Frequency**: Common in CLI tools that process files
+
+Programs that accept filename arguments from the command line expect the shell to
+have already expanded wildcards (`*.c` → `foo.c bar.c`). AmigaOS shells do NOT
+expand wildcards — they pass them literally.
+
+**Detection**: Check if the program's main() processes argv entries as filenames
+(opens, reads, or stats them). If so, it needs argv expansion.
+
+**Amiga solution**: Add `amiport_expand_argv(&argc, &argv)` at top of `main()` and
+`amiport_free_argv()` before `_exit()`. Include `<amiport/glob.h>`.
+
+**Exception**: Programs that accept regex/pattern arguments (grep, sed, awk, find)
+need `int __nowild = 1;` at file scope to prevent expansion of pattern args.
+Without this, `grep *.c file.txt` would expand `*.c` before grep sees it.
+
+**Severity**: needs-shim
