@@ -621,6 +621,67 @@ When you encounter these, **do not silently remove them**. Stub with a clear mes
 #endif
 ```
 
+## 10. Wildcard/Glob Handling
+
+### argv wildcard expansion
+Every ported program SHOULD call `amiport_expand_argv()` at the top of `main()` and
+`amiport_free_argv()` before `_exit()`. This expands wildcard arguments (*.c, #?.c)
+since AmigaOS shells do not glob-expand like Unix.
+
+```c
+/* RULE: Add argv wildcard expansion to main() */
+
+#include <amiport/glob.h>
+
+int main(int argc, char *argv[])
+{
+    /* amiport: expand wildcard args — Amiga shell doesn't glob */
+    amiport_expand_argv(&argc, &argv);
+
+    /* ... original main body ... */
+
+    /* amiport: free expanded argv before exit */
+    amiport_free_argv();
+    fflush(stdout);
+    _exit(rval);
+}
+```
+
+### __nowild opt-out for pattern-argument programs
+Programs that accept regex or pattern arguments (grep -e PATTERN, sed SCRIPT,
+find -name PATTERN, awk PROGRAM) MUST define `__nowild` to prevent expansion of
+those arguments:
+
+```c
+/* RULE: Suppress argv expansion for programs taking pattern args */
+/* amiport: suppress wildcard expansion — program takes pattern arguments */
+int __nowild = 1;
+```
+
+Programs that need `__nowild`: grep, sed, awk, find, expr, test, and any program
+where a non-option argument is a pattern/regex rather than a filename.
+
+### glob()/globfree() replacement
+```c
+/* RULE: Replace POSIX glob with amiport shim wrapper */
+
+// Before:
+#include <glob.h>
+glob_t g;
+glob("pattern", 0, NULL, &g);
+globfree(&g);
+
+// After:
+#include <amiport/glob.h>
+/* amiport: replaced glob() */
+amiport_glob_t g;
+amiport_glob("pattern", 0, NULL, &g);
+amiport_globfree(&g);
+```
+
+Note: With AMIPORT_NO_GLOB_MACROS not defined, convenience macros allow using
+the original POSIX names. Just include `<amiport/glob.h>`.
+
 ## 11. Long-Running Loops — Ctrl-C Break Check
 
 Any loop that runs indefinitely or for an extended period MUST include a Ctrl-C
