@@ -22,7 +22,17 @@ The porting pipeline has 5 stages, each backed by a Claude skill:
 - `lib/posix-emu/` — Tier 2: Approximate POSIX emulation with documented caveats (`amiport_emu_*` functions)
 - `lib/console-shim/` — Minimal ncurses API mapped to Amiga console.device ANSI escapes (ADR-009)
 - `lib/bsdsocket-shim/` — BSD socket API via bsdsocket.library with auto lifecycle (ADR-010)
-- `site/` — Website source (PHP API, static HTML, CSS, JS) for amiport.platesteel.net
+- `site/` — Website source for amiport.platesteel.net
+  - `site/css/style.css` — MUI warm gray design system (see DESIGN.md)
+  - `site/index.html` — Landing page (hero terminal animation, featured packages, getting started, port request form)
+  - `site/packages.html` — Package browser with search/filter/sort, rich detail view (porting notes, test gauge, limitations)
+  - `site/stats.html` — Stats dashboard with SVG bar charts, category breakdown, publication timeline
+  - `site/amiga.html` — HTML 3.2 page for classic Amiga browsers (IBrowse/AWeb). PHP-generated, table layout, <30KB, 640x480
+  - `site/feed.php` — RSS 2.0 feed of published packages, sorted by publish date
+  - `site/js/packages.js` — Package browser logic + keyboard shortcuts (P/S/Esc//)
+  - `site/js/stats.js` — Stats rendering with SVG chart generation (no charting library)
+  - `site/js/terminal-anim.js` — Hero typing animation (respects prefers-reduced-motion)
+  - `site/api/v1/` — PHP API endpoints (packages, stats, download, vote, request)
 - `toolchain/` — Cross-compiler Docker images, build scripts, target profiles
 - `docs/` — Architecture docs, API mapping tables, porting guide, tier classification
 - `docs/references/adcd/` — Complete ADCD 2.1 in agent-optimized markdown (Libraries, Devices, Hardware, Amiga Mail, Autodocs)
