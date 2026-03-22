@@ -1,0 +1,33 @@
+Short:        Count lines, words, and characters
+Type:         util/cli
+Architecture: m68k-amigaos >= 3.0
+Uploader:     duncan@bowring.us
+Author:       University of California, Berkeley (ported by Duncan Bowring)
+Version:      1.32
+
+wc — Count lines, words, and characters
+
+Port of OpenBSD wc v1.32 to AmigaOS 3.x.
+Original author: University of California, Berkeley
+Ported by Duncan Bowring using amiport (AI-assisted porting toolkit).
+Project: https://github.com/bdgscotland/amiport
+
+Cross-compiled with m68k-amigaos-gcc for AmigaOS 3.x (68000+).
+Tested in FS-UAE with Workbench 3.1.
+
+Usage:
+  wc [file ...]           Count lines, words, and bytes
+  wc -l file              Count lines only
+  wc -w file              Count words only
+  wc -c file              Count bytes only
+  wc -h file              Human-readable byte counts (e.g., 1.2K)
+  wc file1 file2          Count multiple files with total
+
+Notes:
+  - The -m flag (multibyte characters) is accepted but equivalent
+    to -c on AmigaOS (no multibyte locale support).
+  - Exit codes: 0 (success), 10 (error) per AmigaOS convention.
+  - Supports Amiga wildcard expansion in filenames.
+
+Includes full source code (original POSIX and ported Amiga versions)
+and PORT.md documenting every transformation applied.
