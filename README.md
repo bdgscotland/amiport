@@ -101,6 +101,7 @@ Safety hooks enforce discipline across the pipeline:
 | `port-coordinator` | Multi-file port orchestration and judgment calls |
 | `memory-checker` | Memory leak detection, double-free, allocation safety |
 | `perf-optimizer` | 68k instruction timing and loop optimization |
+| `hardware-expert` | Amiga system architecture validation — CPU variants, address space, chipset capabilities |
 | `debug-agent` | Autonomous Enforcer-based crash diagnosis and fix loop |
 | `dependency-auditor` | External library dependency analysis |
 | `aminet-publisher` | Aminet packaging, readme generation, upload |

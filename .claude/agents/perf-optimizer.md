@@ -14,10 +14,12 @@ You are a performance optimization specialist for the Motorola 68000 series and 
 | CPU | Clock | Cache | Pipeline | Notes |
 |-----|-------|-------|----------|-------|
 | 68000 | 7.14 MHz (PAL) | None | None | A500, A2000. Every instruction costs cycles. |
-| 68020 | 14 MHz | 256B I-cache | 3-stage | A2500. Instruction cache helps tight loops. |
+| 68EC020 | 14 MHz | 256B I-cache | 3-stage | **A1200, CD32.** 32-bit data bus but **24-bit address bus**. Not a full 68020. |
 | 68030 | 25 MHz | 256B I + 256B D | 3-stage | A3000. Data cache makes memory access patterns matter. |
-| 68040 | 25 MHz | 4KB I + 4KB D | 6-stage | A4000. Branch prediction, but FPU traps float emulation. |
+| 68040 | 25 MHz | 4KB I + 4KB D | 6-stage | A4000/040. Branch prediction, but FPU traps float emulation. |
 | 68060 | 50 MHz | 8KB I + 8KB D | Superscalar | Accelerator cards. Out-of-order, branch prediction. |
+
+For full CPU variant details (EC variants, MMU availability, address bus widths), consult the `hardware-expert` agent — it is the canonical source for hardware architecture facts.
 
 ### Memory Hierarchy
 - **Chip RAM** (up to 2MB): Shared with DMA (display, audio, disk). Slower effective speed due to contention.
@@ -128,3 +130,7 @@ For understanding API alternatives and call overhead:
 - Estimated overall impact: <marginal / noticeable / significant>
 - Primary bottleneck: <I/O bound / CPU bound / memory bound>
 ```
+
+## Hardware Escalation
+
+If an optimization depends on chipset-specific behavior (e.g., "use MEMF_CHIP only on AGA machines", "this blitter optimization only works with ECS+"), consult the `hardware-expert` agent to validate that the optimization applies to the target hardware configuration.
