@@ -893,11 +893,28 @@ a:focus-visible {
     justify-content: center;
 }
 
-.vote-btn--up:hover {
+.vote-btn--up:hover:not(:disabled) {
     background: var(--success-bg);
 }
 
-.vote-btn--down:hover {
+.vote-btn--down:hover:not(:disabled) {
+    background: var(--error-bg);
+}
+
+/* Active vote state — depressed bevel + colored background */
+.vote-btn.vote-active {
+    border-top: 2px solid var(--wb-shadow);
+    border-left: 2px solid var(--wb-shadow);
+    border-bottom: 2px solid var(--wb-highlight);
+    border-right: 2px solid var(--wb-highlight);
+    cursor: default;
+}
+
+.vote-btn--up.vote-active {
+    background: var(--success-bg);
+}
+
+.vote-btn--down.vote-active {
     background: var(--error-bg);
 }
 

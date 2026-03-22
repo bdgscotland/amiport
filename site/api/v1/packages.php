@@ -89,13 +89,28 @@ try {
     error_log('amiport packages stats query failed: ' . $e->getMessage());
 }
 
-// Merge stats into packages
+// Get this user's existing votes
+$userVotes = [];
+try {
+    if ($pdo !== null) {
+        $stmt = $pdo->prepare('SELECT package_name, vote FROM votes WHERE ip_hash = ?');
+        $stmt->execute([amiport_ip_hash()]);
+        foreach ($stmt->fetchAll() as $row) {
+            $userVotes[$row['package_name']] = (int) $row['vote'];
+        }
+    }
+} catch (PDOException $e) {
+    // Non-critical — user just won't see their existing votes
+}
+
+// Merge stats + user votes into packages
 foreach ($packages as &$pkg) {
     $name = $pkg['name'] ?? '';
     $pkg['downloads'] = $stats[$name]['downloads'] ?? 0;
     $pkg['votes_up'] = $stats[$name]['votes_up'] ?? 0;
     $pkg['votes_down'] = $stats[$name]['votes_down'] ?? 0;
     $pkg['vote_score'] = $stats[$name]['vote_score'] ?? 0;
+    $pkg['your_vote'] = $userVotes[$name] ?? 0;
 }
 unset($pkg);
 

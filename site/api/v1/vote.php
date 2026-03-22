@@ -60,6 +60,7 @@ try {
         'votes_up' => $up,
         'votes_down' => $down,
         'score' => $up - $down,
+        'your_vote' => $vote,
     ]);
 } catch (PDOException $e) {
     error_log('amiport vote failed: ' . $e->getMessage());
