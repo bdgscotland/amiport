@@ -97,8 +97,9 @@
             }
         }
         for (var k = 0; k < packages.length; k++) {
-            if (packages[k].added_at) {
-                var added = new Date(packages[k].added_at);
+            var dateStr = packages[k].added_at || packages[k].published_at;
+            if (dateStr) {
+                var added = new Date(dateStr);
                 var thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
                 packages[k]._isNew = added > thirtyDaysAgo;
             }

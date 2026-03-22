@@ -498,7 +498,7 @@ body {
     font-size: var(--fs-base);
     padding: var(--sp-sm);
     min-height: 44px;
-    background: #FFFFFF;
+    background: var(--light-surface);
     color: var(--text);
     border: none;
     border-radius: 0;
@@ -523,7 +523,7 @@ body {
     font-size: var(--fs-base);
     padding: var(--sp-sm);
     min-height: 44px;
-    background: #FFFFFF;
+    background: var(--light-surface);
     color: var(--text);
     border-radius: 0;
     border-top: 1px solid var(--bevel-shadow);
@@ -544,7 +544,7 @@ body {
     font-family: var(--font);
     font-size: var(--fs-base);
     padding: var(--sp-sm);
-    background: #FFFFFF;
+    background: var(--light-surface);
     color: var(--text);
     border: none;
     border-radius: 0;

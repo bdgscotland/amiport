@@ -33,7 +33,8 @@ function sanitize_package(array $raw): array
     $pkg = [];
     $stringFields = ['name', 'version', 'description', 'category', 'source',
                      'license', 'download', 'aminet', 'sha256', 'readme', 'status',
-                     'published_at'];
+                     'published_at', 'porting_notes', 'known_limitations',
+                     'added_at', 'publish_date'];
     foreach ($stringFields as $field) {
         if (isset($raw[$field]) && is_string($raw[$field])) {
             $pkg[$field] = $raw[$field];
@@ -44,7 +45,7 @@ function sanitize_package(array $raw): array
     if (isset($pkg['readme'])) {
         $pkg['readme'] = mask_emails($pkg['readme']);
     }
-    $intFields = ['size', 'stack', 'revision'];
+    $intFields = ['size', 'stack', 'revision', 'test_count', 'test_pass'];
     foreach ($intFields as $field) {
         if (isset($raw[$field]) && is_numeric($raw[$field])) {
             $pkg[$field] = (int) $raw[$field];
