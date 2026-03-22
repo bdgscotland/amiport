@@ -1,0 +1,94 @@
+<?php
+/**
+ * amiga.html — Classic Amiga browser page
+ *
+ * HTML 3.2 compatible, <30KB, 640x480, table layout.
+ * For IBrowse 2.x, AWeb 3.x, NetSurf-Amiga.
+ * PHP-generated from data/packages/*.json.
+ */
+
+$dataDir = __DIR__ . '/data/packages';
+$packages = [];
+
+foreach (glob($dataDir . '/*.json') as $file) {
+    $data = json_decode(file_get_contents($file), true);
+    if ($data && isset($data['name'])) {
+        $packages[] = $data;
+    }
+}
+
+usort($packages, function($a, $b) {
+    return strcasecmp($a['name'], $b['name']);
+});
+
+function formatSizeSimple($bytes) {
+    if (!$bytes) return '--';
+    if ($bytes < 1024) return $bytes . ' B';
+    return round($bytes / 1024) . ' KB';
+}
+?>
+<html>
+<head>
+<title>amiport - POSIX tools for AmigaOS 3.x</title>
+</head>
+<body bgcolor="#AAAAAA" text="#000000" link="#0000AA" vlink="#660066">
+
+<table width="620" cellpadding="4" cellspacing="0" align="center">
+
+<tr><td>
+<h2>amiport</h2>
+<p>POSIX tools ported to AmigaOS 3.x by AI-assisted pipeline.<br>
+Each tool is cross-compiled for 68000+ and tested on real AmigaOS.</p>
+</td></tr>
+
+<tr><td>
+<p><b>Install:</b> Download the .lha file, transfer to your Amiga, extract with:<br>
+<tt>lha x filename.lha SYS:</tt></p>
+</td></tr>
+
+<tr><td>
+<table width="100%" border="1" cellpadding="4" cellspacing="0">
+<tr bgcolor="#505050">
+<th><font color="#E0D0B8">Package</font></th>
+<th><font color="#E0D0B8">Version</font></th>
+<th><font color="#E0D0B8">Category</font></th>
+<th><font color="#E0D0B8">Size</font></th>
+<th><font color="#E0D0B8">Description</font></th>
+</tr>
+<?php foreach ($packages as $i => $pkg):
+    $bg = ($i % 2 === 0) ? '#BBBBBB' : '#CCCCCC';
+    $name = htmlspecialchars($pkg['name'], ENT_QUOTES, 'UTF-8');
+    $ver = htmlspecialchars($pkg['version'] ?? '', ENT_QUOTES, 'UTF-8');
+    $cat = htmlspecialchars($pkg['category'] ?? '', ENT_QUOTES, 'UTF-8');
+    $size = formatSizeSimple($pkg['size'] ?? 0);
+    $desc = htmlspecialchars($pkg['description'] ?? '', ENT_QUOTES, 'UTF-8');
+    $download = $pkg['download'] ?? '';
+?>
+<tr bgcolor="<?php echo $bg; ?>">
+<td><?php if ($download): ?><a href="https://amiport.platesteel.net/api/v1/download.php?name=<?php echo urlencode($pkg['name']); ?>"><?php echo $name; ?></a><?php else: echo $name; endif; ?></td>
+<td><tt><?php echo $ver; ?></tt></td>
+<td><?php echo $cat; ?></td>
+<td align="right"><?php echo $size; ?></td>
+<td><?php echo $desc; ?></td>
+</tr>
+<?php endforeach; ?>
+</table>
+</td></tr>
+
+<tr><td>
+<p><?php echo count($packages); ?> packages available.</p>
+</td></tr>
+
+<tr><td>
+<hr>
+<p><small>
+Full site: <a href="https://amiport.platesteel.net">amiport.platesteel.net</a><br>
+Source: <a href="https://github.com/bdgscotland/amiport">github.com/bdgscotland/amiport</a><br>
+Also on <a href="https://aminet.net/">Aminet</a>
+</small></p>
+</td></tr>
+
+</table>
+
+</body>
+</html>

@@ -33,9 +33,15 @@ CREATE TABLE IF NOT EXISTS port_requests (
     id INT AUTO_INCREMENT PRIMARY KEY,
     tool_name VARCHAR(128) NOT NULL,
     tool_url VARCHAR(512),
+    tool_why VARCHAR(500),
+    tool_setup VARCHAR(200),
     ip_hash VARCHAR(64) NOT NULL,
     status ENUM('pending', 'accepted', 'rejected', 'completed') DEFAULT 'pending',
     admin_notes TEXT,
     requested_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     INDEX idx_status (status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Migration: add tool_why and tool_setup to existing port_requests table
+-- ALTER TABLE port_requests ADD COLUMN tool_why VARCHAR(500) AFTER tool_url;
+-- ALTER TABLE port_requests ADD COLUMN tool_setup VARCHAR(200) AFTER tool_why;
