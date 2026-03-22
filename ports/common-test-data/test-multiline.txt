@@ -1,0 +1,10 @@
+hello world
+foo bar baz
+12345
+UPPERCASE LINE
+
+hello world
+line with	tabs
+special: !@#$%
+the quick brown fox
+last line

@@ -1,0 +1,5 @@
+line	with	tabs
+line with trailing spaces   
+"quoted string"
+line with 'single quotes'
+backslash\\path
