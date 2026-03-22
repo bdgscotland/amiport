@@ -90,6 +90,57 @@ Superseded by the autonomous debug agent design (ADR-016). The serial→TCP mech
 
 ---
 
+### Runtime Profiler: ReadEClock-based function timing for ported programs
+
+**What:** Add `<amiport/profile.h>` with `AMIPORT_PROFILE_BEGIN(name)` / `AMIPORT_PROFILE_END(name)` macros that use `timer.device/ReadEClock()` to measure function execution time at sub-microsecond resolution, and print a sorted summary at exit.
+
+**Why:** The perf-optimizer agent does static analysis only — it can't measure actual runtime. On 7MHz 68000, the difference between fgetc-per-char and fgets-per-line is 3-5x, but we can only estimate this. A real profiler would let us verify optimizations and find bottlenecks we miss.
+
+**Design (informed by ADCD timer.device docs):**
+```c
+#include <amiport/profile.h>
+
+/* In ported source — zero overhead when AMIPORT_PROFILE is not defined */
+AMIPORT_PROFILE_BEGIN("readhash");
+/* ... function body ... */
+AMIPORT_PROFILE_END("readhash");
+```
+
+Implementation:
+1. Open `timer.device` UNIT_ECLOCK once at startup via `amiport_profile_init()`
+2. `ReadEClock()` returns a 64-bit tick count + E-Clock frequency (tics/sec)
+3. Each BEGIN/END pair computes `(time2.ev_lo - time1.ev_lo)` and accumulates into a static table
+4. `amiport_profile_summary()` (registered via atexit) prints: function name, call count, total ticks, avg ticks, % of total
+5. Sort by total ticks descending — hottest function first
+6. When `AMIPORT_PROFILE` is not defined, macros expand to nothing (zero overhead)
+
+Key ADCD references:
+- `autodocs-3.5/timer-device-readeclock-2.md` — ReadEClock API ("low overhead function designed so that very short intervals may be timed")
+- `devices/13-timer-device-e-clock-time-and-its-relationship-to-actual.md` — EClockVal subtraction pattern
+- `autodocs-3.5/timer-device-background-2.md` — UNIT_ECLOCK details, 2μs precision
+- `examples/devices/13-timer-device-e-clock-time-and-its-relationship-to-actual.c` — canonical usage example
+
+E-Clock frequency: ~709,379 Hz (PAL) or ~715,909 Hz (NTSC). Each tick ≈ 1.4μs. ReadEClock itself costs ~10μs per call, so profiling overhead is ~20μs per instrumented function call — acceptable for functions called <100K times, but will distort tight inner loops. For inner loops, profile the outer function instead.
+
+**Output format:**
+```
+=== amiport profiler summary ===
+Function         Calls    Total(ms)  Avg(us)  %
+readhash         2000     1234.5     617.2    42.3%
+check            1000     890.1      890.1    30.5%
+skipline         200      234.5      1172.5   8.0%
+...
+Total measured: 2918.3ms
+```
+
+**Scope:** New header `lib/posix-shim/include/amiport/profile.h`, new source `lib/posix-shim/src/profile.c`. Link with `-lamiport` (already in all port Makefiles). Build with `make build-shim`. Enable per-port via `CFLAGS += -DAMIPORT_PROFILE` in the port's Makefile.
+
+**Priority:** P2
+
+**Effort:** M (human: ~4 hours / CC: ~1 hour)
+
+---
+
 ### FS-UAE Integration Testing in CI
 
 **What:** Run `make test-fsemu` in GitHub Actions for every push.
