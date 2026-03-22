@@ -26,6 +26,9 @@ VERSION ?= 1.0
 # Aminet category (override per port if needed)
 AMINET_CAT ?= util/cli
 
+# Port category (1=CLI, 2=Scripting, 3=Console, 4=Network, 5=GUI)
+CATEGORY ?= 1
+
 .PHONY: all clean test package compare
 
 all: $(TARGET)
