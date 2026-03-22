@@ -212,24 +212,7 @@ scrape-adcd:
 	python3 scripts/scrape-adcd.py all --output docs/references/adcd/
 
 check-docs:
-	@echo "=== Checking doc consistency ==="
-	@AGENTS=$$(ls .claude/agents/*.md 2>/dev/null | xargs -I{} basename {} .md | sort); \
-	FAIL=0; \
-	for agent in $$AGENTS; do \
-		for doc in CLAUDE.md README.md docs/architecture.md; do \
-			if ! grep -q "$$agent" "$$doc" 2>/dev/null; then \
-				echo "MISSING: '$$agent' not found in $$doc"; \
-				FAIL=1; \
-			fi; \
-		done; \
-	done; \
-	if [ "$$FAIL" -eq 0 ]; then \
-		echo "All $$(echo "$$AGENTS" | wc -w | tr -d ' ') agents referenced in all docs."; \
-	else \
-		echo ""; \
-		echo "FAIL: Agent references missing. Update docs per .claude/rules/documentation.md"; \
-		exit 1; \
-	fi
+	@bash scripts/check-docs.sh
 
 check-agents:
 	@echo "=== Checking agent/skill frontmatter ==="

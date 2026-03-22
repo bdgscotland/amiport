@@ -36,6 +36,10 @@ The porting pipeline has 5 stages, each backed by a Claude skill:
 
 The `/port-project` skill has GATE checks — it will not proceed to the next stage until the current stage's agent has returned successfully.
 
+**Post-port quality skills:**
+- `/extend-shim <function-name>` — Add a missing POSIX function to the shim library
+- `/review-amiga <path>` — Amiga-specific code review (stack safety, BPTR handling, conventions)
+
 **Available agents:**
 | Agent | When to dispatch |
 |-------|-----------------|
