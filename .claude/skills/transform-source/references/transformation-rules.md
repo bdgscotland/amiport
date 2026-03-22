@@ -188,8 +188,25 @@ LONG pos = amiport_lseek(fd, 0, SEEK_END);
 
 ### File I/O
 ```c
-/* RULE: Replace POSIX file I/O with amiport shim calls */
+/* RULE: Replace POSIX file I/O with amiport shim calls.
+ *
+ * CRITICAL: amiport_open() returns fds from amiport's internal fd table.
+ * These are NOT libnix fds. NEVER pass an amiport fd to fdopen(), fprintf(),
+ * or any libnix stdio function — the FILE* will silently fail to read/write.
+ *
+ * When you need a FILE*: use fopen() (which goes through libnix).
+ * When you need raw fd I/O: use amiport_open/read/write/close consistently.
+ * See crash-patterns.md #12.
+ */
 
+// PATTERN A: Need FILE* (most common — stdio, fprintf, fgets, etc.)
+// Before:
+int fd = open("file.txt", O_RDONLY);
+FILE *fp = fdopen(fd, "r");
+// After:
+FILE *fp = fopen("file.txt", "r"); /* amiport: fopen, not amiport_open+fdopen */
+
+// PATTERN B: Need raw fd I/O (read/write/lseek on binary data)
 // Before:
 int fd = open("file.txt", O_RDONLY);
 // After:

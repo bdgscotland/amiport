@@ -307,3 +307,34 @@ test:
 - **General rule:** For any POSIX macro used in conditionals (`MB_CUR_MAX`, `PATH_MAX`, `BUFSIZ`), check the actual expansion in bebbo-gcc — it may be a function call, not a constant.
 - **Port:** wc (OpenBSD v1.32)
 - **Date:** 2026-03-22
+
+## 12. Silent Empty Output from amiport_open() + fdopen() Mismatch
+
+### amiport fd Table Is a Separate Namespace from libnix fds
+
+- **Signature:** No crash — program exits RC=0 (success) but produces **no stdout output** when given file arguments. Piped stdin works correctly. The `-o` flag (direct file output via fopen) may also work, making the bug intermittent-looking.
+- **Root cause:** `amiport_open()` returns file descriptors from amiport's **internal fd table** (backed by AmigaDOS `Open()` BPTRs). `fdopen()` is a **libnix function** that expects libnix file descriptors (a completely separate fd table). Passing an amiport fd to `fdopen()` creates a `FILE*` that does not read from or write to the actual file — it silently operates on the wrong (or no) underlying handle.
+- **Diagnostic clue:** Program works with stdin piping but not with file arguments. No error messages. RC=0. The `fdopen()` call itself may appear to succeed (returns non-NULL) but the resulting FILE* is broken.
+- **Why it's hard to spot:** vamos may mask this if testing only with piped stdin. FS-UAE tests with file arguments will expose it (empty actual output for all output-checking tests, but RC-only tests pass).
+- **Fix:** Never combine `amiport_open()` with `fdopen()`. Use `fopen()` (which goes through libnix's own fd management) for any code that needs a `FILE*`:
+  ```c
+  /* WRONG — amiport fd + libnix fdopen = broken FILE* */
+  int fd = amiport_open(path, O_RDONLY);
+  FILE *fp = fdopen(fd, "r");  /* fp reads from wrong/no handle */
+
+  /* RIGHT — fopen goes through libnix, correctly maps to AmigaDOS */
+  FILE *fp = fopen(path, "r");  /* works correctly */
+  ```
+  For output files:
+  ```c
+  /* WRONG */
+  int fd = amiport_open(path, O_WRONLY|O_CREAT|O_TRUNC);
+  FILE *fp = fdopen(fd, "w");
+
+  /* RIGHT */
+  FILE *fp = fopen(path, "w");
+  ```
+- **When amiport_open() IS correct:** When using raw fd I/O (`amiport_read()`, `amiport_write()`, `amiport_close()`) — these all use the amiport fd table consistently. The bug only occurs when crossing the boundary into libnix stdio.
+- **Scope:** This affects **any port** that uses the pattern `amiport_open()` + `fdopen()`. Check all existing ports.
+- **Port:** sort (Plan 9)
+- **Date:** 2026-03-22
