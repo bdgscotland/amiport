@@ -30,11 +30,11 @@ Implemented both POSIX `glob()`/`globfree()` (Tier 1) and automatic argv wildcar
 
 ---
 
-### Retrofit __nowild to existing pattern-argument ports
+### Re-port grep and sed with __nowild support
 
-**What:** Add `int __nowild = 1;` to grep and sed ports.
+**What:** Re-run grep and sed through `/port-project` so the code-transformer emits `int __nowild = 1;` automatically.
 
-**Why:** With argv expansion now in libamiport, these ports will incorrectly expand pattern arguments unless suppressed. E.g., `grep *.c file.txt` would expand `*.c` before grep sees it as a regex.
+**Why:** With argv expansion now in libamiport, these ports will incorrectly expand pattern arguments unless suppressed. E.g., `grep *.c file.txt` would expand `*.c` before grep sees it as a regex. Rather than manually patching, re-porting lets the pipeline handle it correctly.
 
 **Priority:** High — required before next libamiport release.
 
