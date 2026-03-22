@@ -396,7 +396,7 @@
         }
         detailVersion.textContent = verText;
         detailCategory.textContent = pkg.category || '';
-        detailInstall.textContent = 'amiget install ' + pkg.name;
+        detailInstall.textContent = 'amiget install ' + pkg.name + '  (coming soon)';
         // Show readme if available, otherwise just description
         if (pkg.readme) {
             var pre = document.createElement('pre');

@@ -119,37 +119,29 @@
             <div class="window__gadget window__gadget--resize" aria-hidden="true"></div>
         </div>
         <div class="window__body">
-            <p class="mb-md">Install tools on your Amiga in three steps.</p>
-
-            <div class="alert alert--info mb-md">
-                Requires a TCP/IP stack: Miami, AmiTCP, or Roadshow.
-            </div>
+            <p class="mb-md">Download and install tools on your Amiga.</p>
 
             <ol class="steps">
                 <li class="steps__item">
-                    <span class="steps__label">Download amiget</span>
-                    Get <a href="packages/amiget.lha">amiget.lha</a> from this site. Transfer to your Amiga via network, CF card, or serial.
-                    <code class="steps__code">lha x amiget.lha SYS:</code>
+                    <span class="steps__label">Browse packages</span>
+                    Find what you need on the <a href="packages.html">Packages</a> page.
                 </li>
                 <li class="steps__item">
-                    <span class="steps__label">Browse packages</span>
-                    See what's available:
-                    <code class="steps__code">amiget list</code>
+                    <span class="steps__label">Download</span>
+                    Grab the .lha archive. Transfer to your Amiga via network, CF card, or serial.
                 </li>
                 <li class="steps__item">
                     <span class="steps__label">Install</span>
-                    Pick a tool and install it:
-                    <div class="install-cmd mt-sm">
-                        <span class="install-cmd__text">amiget install grep</span>
-                        <button class="install-cmd__copy" onclick="copyCmd(this, 'amiget install grep')" aria-label="Copy install command">Copy</button>
-                    </div>
+                    Extract the archive to your system:
+                    <code class="steps__code">lha x grep-1.68.lha SYS:</code>
                 </li>
             </ol>
 
-            <p class="mt-md text-muted">
-                No networking? Download individual .lha packages from the
-                <a href="packages.html">Packages</a> page and extract manually.
-            </p>
+            <div class="alert alert--info mt-md">
+                <strong>Coming soon: amiget</strong> &mdash; a CLI package manager for AmigaOS.
+                <code>amiget install grep</code> will handle downloads and installation
+                automatically. Requires a TCP/IP stack (Miami, AmiTCP, or Roadshow).
+            </div>
         </div>
     </section>
 
