@@ -61,6 +61,9 @@ static const char verstag[] __attribute__((used)) = "$VER: sed 1.47 (20.03.2026)
 /* amiport: stack cookie — sed processes large files, especially with regex */
 long __stack = 65536;
 
+/* amiport: suppress wildcard expansion — sed takes pattern arguments */
+int __nowild = 1;
+
 /*
  * Linked list of units (strings and files) to be compiled
  */

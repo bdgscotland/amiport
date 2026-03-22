@@ -115,88 +115,9 @@ typedef int bool;
 #define SLIST_FIRST(head)       ((head)->slh_first)
 #define SLIST_NEXT(elm, field)  ((elm)->field.sle_next)
 
-/* ====================================================================
- * getopt_long() — not in libnix, needed for grep's option parsing
- * amiport: Minimal implementation supporting required_argument,
- * optional_argument, and no_argument.
- * ==================================================================== */
-
-#ifndef no_argument
-#define no_argument        0
-#define required_argument  1
-#define optional_argument  2
-#endif
-
-struct option {
-    const char *name;
-    int         has_arg;
-    int        *flag;
-    int         val;
-};
-
-static int
-amiport_getopt_long(int argc, char * const argv[], const char *optstring,
-    const struct option *longopts, int *longindex)
-{
-    /* Handle -- long options */
-    if (amiport_optind < argc &&
-        argv[amiport_optind] != NULL &&
-        argv[amiport_optind][0] == '-' &&
-        argv[amiport_optind][1] == '-' &&
-        argv[amiport_optind][2] != '\0') {
-
-        const char *arg = argv[amiport_optind] + 2;
-        const char *eq = strchr(arg, '=');
-        size_t namelen = eq ? (size_t)(eq - arg) : strlen(arg);
-        int i;
-
-        for (i = 0; longopts[i].name != NULL; i++) {
-            if (strncmp(longopts[i].name, arg, namelen) == 0 &&
-                strlen(longopts[i].name) == namelen) {
-
-                if (longindex)
-                    *longindex = i;
-                amiport_optind++;
-
-                if (longopts[i].has_arg == required_argument) {
-                    if (eq) {
-                        amiport_optarg = (char *)(eq + 1);
-                    } else if (amiport_optind < argc) {
-                        amiport_optarg = argv[amiport_optind++];
-                    } else {
-                        return '?';
-                    }
-                } else if (longopts[i].has_arg == optional_argument) {
-                    amiport_optarg = eq ? (char *)(eq + 1) : NULL;
-                } else {
-                    amiport_optarg = NULL;
-                }
-
-                if (longopts[i].flag != NULL) {
-                    *longopts[i].flag = longopts[i].val;
-                    return 0;
-                }
-                return longopts[i].val;
-            }
-        }
-
-        /* Unknown long option */
-        amiport_optind++;
-        return '?';
-    }
-
-    /* Fall through to short option processing.
-     * amiport: skip leading '+' in optstring (GNU extension for
-     * POSIX argument ordering — our getopt does this by default) */
-    if (optstring[0] == '+')
-        optstring++;
-    return amiport_getopt(argc, argv, optstring);
-}
-
-/* amiport: override getopt macros for getopt_long support */
-#undef getopt
-#define getopt      amiport_getopt
-#define getopt_long amiport_getopt_long
+/* amiport: struct option, no_argument/required_argument/optional_argument,
+ * and getopt_long are now provided by amiport/getopt.h (included above).
+ * Removed local copies that conflicted with the shim definitions. */
 
 /* amiport: getline() now provided by amiport/stdio_ext.h (promoted from inline) */
 #include <amiport/stdio_ext.h>
