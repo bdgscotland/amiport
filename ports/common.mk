@@ -39,15 +39,37 @@ $(TARGET): $(SOURCES) $(SHIM_LIB)
 # Package for Aminet distribution (includes binary, readme, docs, and source)
 # Requires a hand-crafted <name>.readme — see ports/templates/readme.template
 # Uses Docker lha since macOS lhasa is extraction-only
-LHA_CMD = docker run --rm -v $(shell cd ../.. && pwd):/work -w /work/ports/$(TARGET) amigadev/crosstools:m68k-amigaos lha
+#
+# Staging layout under .pkg/:
+#   .pkg/<name>          — stripped binary (stored as <name> in archive)
+#   .pkg/<name>.readme   — Aminet readme
+#   .pkg/PORT.md         — porting log
+#   .pkg/TEST-REPORT.md  — FS-UAE test results (if present)
+#   .pkg/original/       — upstream source
+#   .pkg/ported/         — transformed source
+# lha is run from inside .pkg/ so no path prefix appears in the archive.
+LHA_CMD = docker run --rm -v $(shell cd ../.. && pwd):/work -w /work/ports/$(TARGET)/.pkg amigadev/crosstools:m68k-amigaos lha
 STRIP = $(TOOLCHAIN_BIN)/m68k-amigaos-strip
 
 package: $(TARGET)
 	@test -s $(TARGET).readme || (echo "ERROR: $(TARGET).readme missing or empty — create from ports/templates/readme.template" && exit 1)
-	@mkdir -p .pkg
+	@rm -rf .pkg && mkdir -p .pkg
 	$(STRIP) --strip-debug -o .pkg/$(TARGET) $(TARGET)
-	$(LHA_CMD) a $(TARGET)-$(VERSION).lha .pkg/$(TARGET) $(TARGET).readme PORT.md original/ ported/
+	@cp $(TARGET).readme .pkg/
+	@cp PORT.md .pkg/
+	@if [ -f TEST-REPORT.md ]; then cp TEST-REPORT.md .pkg/; fi
+	@cp -r original/ .pkg/original/
+	@cp -r ported/ .pkg/ported/
+	@if [ -f TEST-REPORT.md ]; then \
+		$(LHA_CMD) a ../$(TARGET)-$(VERSION).lha $(TARGET) $(TARGET).readme PORT.md TEST-REPORT.md original/ ported/; \
+	else \
+		$(LHA_CMD) a ../$(TARGET)-$(VERSION).lha $(TARGET) $(TARGET).readme PORT.md original/ ported/; \
+	fi
 	@rm -rf .pkg
+	@cp $(TARGET).readme $(TARGET)-$(VERSION).readme
+	@echo "Package ready:"
+	@echo "  $(TARGET)-$(VERSION).lha     — upload to ftp://main.aminet.net/new/"
+	@echo "  $(TARGET)-$(VERSION).readme  — upload alongside the .lha"
 
 clean:
 	rm -f $(TARGET) $(TARGET)-*.lha $(TARGET).map
