@@ -56,7 +56,7 @@ On 68000, `strlen()` in a loop condition is devastating — it rescans the entir
 - **Sequential access** is faster than random (especially with 68030+ data cache)
 - **Word-aligned access** is required on 68000, faster on all models
 - **Minimize pointer chasing** — flat arrays > linked lists on cache-equipped CPUs
-- **Stack allocation > heap** for small temporaries (but watch stack size limits!)
+- **Stack allocation > heap** for small temporaries — BUT see Stack Safety Rule below
 
 ### 4. String Operations
 - **Custom `memcpy` for small fixed sizes** — inline rather than function call overhead
@@ -78,6 +78,20 @@ On 68000, `strlen()` in a loop condition is devastating — it rescans the entir
 - **Reduce Forbid/Permit scope** — `Forbid()` stops multitasking. Keep the critical section minimal.
 - **Batch dos.library calls** — each AmigaDOS call has context switch overhead.
 - **Use PIPE: sparingly** — inter-process communication on AmigaOS is heavier than Unix pipes.
+
+## Stack Safety Rule — CRITICAL
+
+**NEVER add local arrays larger than 256 bytes without checking `__stack`.**
+
+On real AmigaOS (not vamos), the call chain from user code through dos.library, filesystem handler, and device drivers adds 2-4KB of hidden stack depth that vamos does not simulate. A 4KB local buffer that works on vamos can cause ACPU_LineF (Guru Meditation 0x8000000B) on real hardware.
+
+**Rule:** If you add or enlarge a local buffer:
+1. Check the current `__stack` value in the source
+2. Calculate: `__stack` must be >= `buffer_size + 8192` (8KB safety margin for real AmigaOS library calls)
+3. If the buffer exceeds 512 bytes, prefer `static` (safe if the function is not recursive) or heap allocation
+4. If you change `__stack`, document why
+
+This rule exists because of a real crash: head.c had `char buf[4096]` with `__stack=16384`. Worked on vamos, Guru Meditation on FS-UAE. Root cause: dos.library Read() call chain added ~3KB of stack that vamos didn't simulate. See crash-patterns.md #10.
 
 ## What NOT to Optimize
 

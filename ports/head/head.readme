@@ -1,0 +1,33 @@
+Short:        Print first lines of files (OpenBSD)
+Type:         util/cli
+Architecture: m68k-amigaos >= 3.0
+Uploader:     duncan@bowring.us
+Author:       Bill Joy / UC Berkeley (ported by Duncan Bowring)
+Version:      1.24
+
+head — Print first lines of files
+
+Original author: Bill Joy / UC Berkeley (OpenBSD head.c,v 1.24)
+Ported by Duncan Bowring using amiport (AI-assisted porting toolkit).
+Project: https://github.com/bdgscotland/amiport
+
+Cross-compiled with m68k-amigaos-gcc for AmigaOS 3.x (68000+).
+Tested in vamos emulator.
+
+Usage:
+  head [file ...]             Print first 10 lines of each file
+  head -n 5 file.txt          Print first 5 lines
+  head -20 file.txt           Print first 20 lines (legacy syntax)
+  head file1.txt file2.txt    Multiple files with ==> headers <==
+
+Features:
+  - Default: 10 lines
+  - -n count: specify line count
+  - Legacy -count syntax supported
+  - Multiple files get ==> filename <== headers
+  - Reads stdin when no files given
+  - AmigaOS wildcard expansion (#? patterns)
+  - Proper exit codes: 0=OK, 10=ERROR
+
+Includes full source code (original POSIX and ported Amiga versions)
+and PORT.md documenting every transformation applied.

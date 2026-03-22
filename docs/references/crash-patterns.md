@@ -254,3 +254,24 @@ test:
 - **Impact:** An `amiport_exit()` shim was created and `#include <amiport/stdlib.h>` transformation added. Both are harmless (amiport_exit calls _exit which works identically to exit on this system) and remain in place to avoid churn. No port functionality was affected.
 - **Lesson:** Always verify crash patterns empirically with minimal test programs before building infrastructure to work around them. The ARexx harness failure was misattributed to exit() because the timeout diagnosis heuristic matched ("source has exit() without _exit()").
 - **Date:** 2026-03-21 (original), 2026-03-22 (debunked)
+
+---
+
+## 10. ACPU_LineF from Hidden Stack Overflow via Large Local Buffer
+
+### Stack Budget vs Real AmigaOS Call Depth
+
+- **Enforcer signature:** `ACPU_LineF` alert `0x8000000B` on FS-UAE/real AmigaOS. Program works correctly on vamos with SAME or SMALLER stack. No Enforcer hits (crash is a CPU exception, not an Enforcer-monitored memory access).
+- **Root cause:** A large local array (e.g., `char buf[4096]`) in a frequently-called function creates a large stack frame. On vamos, call chains are shorter (vamos implements AmigaOS APIs directly without real library dispatch layers). On real AmigaOS, the same call chain consumes significantly more stack due to:
+  - dos.library dispatching through the filesystem handler (packet passing, handler process interaction)
+  - console.device buffer management
+  - AmigaOS library vector dispatch overhead
+  - The difference is typically 2-4KB of additional hidden stack depth not visible from static analysis.
+  When the real stack exhausts, a saved return address is corrupted. If the corrupt address points to data bytes beginning with `0xF`, the 68000 executes an F-line trap (exception vector 11), which AmigaOS catches and reports as `Alert(ACPU_LineF) = 0x8000000B`.
+- **Why vamos doesn't crash:** vamos ignores the `__stack` cookie and uses a hardcoded 8KB stack (crash-patterns #7). On vamos, `fgets → getc → ___srget → read()` never calls real AmigaOS filesystem code — vamos intercepts at the system call level with minimal stack usage.
+- **Diagnostic clue:** Program crashes on FS-UAE but passes on vamos. The crash alert is `ACPU_LineF (0x8000000B)`. The binary has no F-line instructions (verified via `m68k-amigaos-objdump -d`). The crash location is in a function with a large local array.
+- **Fix applied:** Two-part fix:
+  1. Change `char buf[N]` (stack) to `static char buf[N]` (BSS). Safe when the function is not called recursively or from multiple threads (AmigaOS is single-threaded per process). The GCC frame shrinks from `link.w a5,#-N` to `link.w a5,#0`.
+  2. Increase `__stack` from `16384` to `65536` as insurance against other hidden stack consumers.
+- **Port:** head (OpenBSD v1.24)
+- **Date:** 2026-03-22
