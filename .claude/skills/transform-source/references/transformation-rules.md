@@ -50,6 +50,14 @@ Each rule specifies: pattern to match, replacement, and when to apply.
 #include <amiport/signal.h>
 
 // Before:
+#include <stdlib.h>
+// After:
+#include <amiport/stdlib.h>
+// Note: This activates the exit() → amiport_exit() macro which prevents
+// the libnix exit() hang (crash-patterns #9). Every ported program MUST
+// include this header.
+
+// Before:
 #include <sys/time.h>
 // After:
 #include <amiport/sys/time.h>

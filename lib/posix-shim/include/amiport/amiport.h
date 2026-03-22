@@ -8,6 +8,7 @@
 #ifndef AMIPORT_H
 #define AMIPORT_H
 
+#include <amiport/stdlib.h>
 #include <amiport/unistd.h>
 #include <amiport/dirent.h>
 #include <amiport/getopt.h>
