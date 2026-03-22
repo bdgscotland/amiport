@@ -14,6 +14,7 @@ Programs ported to AmigaOS 3.x using the amiport pipeline.
 | [tee](ports/tee/) | 1.15 | Duplicate standard input | CLI | OpenBSD tee v1.15 (BSD 3-Clause) | Built & tested | Submitted 2026-03-22 |
 | [head](ports/head/) | 1.24 | Print first lines of files | CLI | OpenBSD head v1.24 (BSD 3-Clause) | Built & tested | Submitted 2026-03-22 |
 | [wc](ports/wc/) | 1.32 | Count lines, words, and characters | CLI | OpenBSD wc v1.32 (BSD 3-Clause) | Built & tested | Not submitted |
+| [sort](ports/sort/) | 1.0 | Sort lines of text files | CLI | Plan 9 from User Space (Lucent Public License 1.02) | Built & tested | Not submitted |
 | [yes](ports/yes/) | 1.9 | Repeatedly output a string | CLI | OpenBSD yes v1.9 (BSD 3-Clause) | Built & tested | Submitted 2026-03-22 |
 
 ## Aminet Publication Tracking
@@ -30,6 +31,7 @@ Programs ported to AmigaOS 3.x using the amiport pipeline.
 | tail | — | — | — |
 | tee | 2026-03-22 | util/cli/tee-1.15 (pending moderation) | — |
 | wc | — | — | — |
+| sort | — | — | — |
 | yes | 2026-03-22 | util/cli/yes-1.9 (pending moderation) | — |
 
 Run `make check-aminet` to verify publication status.
@@ -50,6 +52,7 @@ Each port exercises different parts of the posix-shim library:
 | tee | `open`, `read`, `write`, `close`, `signal`, `check_break`, `getopt`, `expand_argv`, `err/warn` |
 | head | `getopt`, `err/errx/warn`, `strtonum`, `expand_argv`, `free_argv` |
 | wc | `open`, `read`, `close`, `fstat`, `getopt`, `err/warn`, `expand_argv`, `free_argv` |
+| sort | `fopen`, `signal`, `check_break`, `getpid` |
 | yes | `err`, `check_break` |
 
 ## How to Build

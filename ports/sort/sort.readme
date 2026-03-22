@@ -1,0 +1,44 @@
+Short:        POSIX sort utility — sort lines of text files
+Type:         util/cli
+Architecture: m68k-amigaos >= 3.0
+Uploader:     duncan@bowring.us
+Author:       Plan 9 / Lucent Technologies (ported by Duncan Bowring)
+Version:      1.0
+
+sort — POSIX sort utility — sort lines of text files
+
+Original author: Plan 9 from User Space (Lucent Technologies)
+Ported by Duncan Bowring using amiport (AI-assisted porting toolkit).
+Project: https://github.com/bdgscotland/amiport
+
+Cross-compiled with m68k-amigaos-gcc for AmigaOS 3.x (68000+).
+Tested in vamos emulator and FS-UAE (18/18 tests passed).
+
+Usage:
+  sort [options] [file ...]
+
+Options:
+  -r          Reverse sort order
+  -n          Numeric sort
+  -g          Floating-point numeric sort
+  -f          Case-insensitive sort (fold case)
+  -d          Dictionary order (alphanumeric and whitespace only)
+  -i          Ignore non-printable characters
+  -b          Skip leading blanks
+  -M          Month sort (JAN, FEB, etc.)
+  -u          Remove duplicate lines
+  -c          Check if input is sorted
+  -k m[,n]    Sort by key field m through n
+  -t char     Use char as field separator
+  -o file     Write output to file
+  -T dir      Use dir for temporary files (default: T:)
+
+Examples:
+  sort myfile.txt                   Sort alphabetically
+  sort -n numbers.txt               Sort numerically
+  sort -t, -k2,2 data.csv          Sort CSV by second column
+  sort -r -u names.txt              Unique names, reverse order
+  sort -o sorted.txt unsorted.txt   Sort to output file
+
+Includes full source code (original POSIX and ported Amiga versions)
+and PORT.md documenting every transformation applied.
