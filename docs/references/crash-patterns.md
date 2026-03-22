@@ -275,3 +275,35 @@ test:
   2. Increase `__stack` from `16384` to `65536` as insurance against other hidden stack consumers.
 - **Port:** head (OpenBSD v1.24)
 - **Date:** 2026-03-22
+
+## 11. Silent Wrong Output from MB_CUR_MAX Runtime Expansion
+
+### Multibyte Guard Must Cover the Conditional, Not Just the Code Path
+
+- **Signature:** No crash — program produces wrong output (typically all zeros) for a specific flag. Only manifests when the multibyte code path is compiled out with `#ifndef __AMIGA__` but the flag that enables it is still evaluated at runtime.
+- **Root cause:** In bebbo-gcc libnix, `MB_CUR_MAX` is defined as `__locale_mb_cur_max()` — a **runtime function call**, not a compile-time constant. It may return >1 even without locale support. When source code has:
+  ```c
+  if (MB_CUR_MAX > 1)
+      multibyte = 1;
+  /* ... later ... */
+  if (!multibyte) {
+      /* single-byte counting logic */
+  }
+  #ifndef __AMIGA__
+  else {
+      /* multibyte logic using wchar.h — compiled out */
+  }
+  #endif
+  ```
+  The `MB_CUR_MAX > 1` check fires at runtime, setting `multibyte = 1`. The `if (!multibyte)` block is skipped. The `else` block is compiled out. **Neither path executes** — output is zero.
+- **Diagnostic clue:** One flag produces wrong output (zeros) while a different flag with identical code path works. The broken flag has an `MB_CUR_MAX` conditional before it. vamos and FS-UAE both show the bug.
+- **Fix:** Guard the `MB_CUR_MAX` check itself, not just the multibyte code path:
+  ```c
+  #ifndef __AMIGA__
+  if (MB_CUR_MAX > 1)
+      multibyte = 1;
+  #endif
+  ```
+- **General rule:** For any POSIX macro used in conditionals (`MB_CUR_MAX`, `PATH_MAX`, `BUFSIZ`), check the actual expansion in bebbo-gcc — it may be a function call, not a constant.
+- **Port:** wc (OpenBSD v1.32)
+- **Date:** 2026-03-22
