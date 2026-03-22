@@ -33,12 +33,12 @@ Platform context: AmigaOS 3.x on 68EC020+ (project default). Note: stock A1200 u
 
 ## 2. Amiga Memory Map
 
-Stock A1200 (68020, 2MB Chip) / A4000 (68040, 2MB Chip + Fast):
+Stock A1200 (68EC020, 2MB Chip) / A4000 (68040, 2MB Chip + Fast):
 
 | Address Range | Size | What's There |
 |---|---|---|
 | `0x000000–0x0003FF` | 1KB | Exception vector table (68k trap vectors) |
-| `0x000400–0x1FFFFF` | ~2MB | Chip RAM (DMA-accessible by custom chips) |
+| `0x000400–0x1FFFFF` | ~2MB | Chip RAM (DMA-accessible by custom chips; 2MB max with AGA Alice, 1MB with Fat Agnus, 512KB with Thin Agnus) |
 | `0x200000–0x9FFFFF` | 8MB | Ranger/slow RAM or Zorro II expansion memory |
 | `0xA00000–0xBEFFFF` | ~2MB | Slow I/O space |
 | `0xBFD000` | — | CIA-B (8520) — even addresses only |
@@ -56,8 +56,9 @@ Stock A1200 (68020, 2MB Chip) / A4000 (68040, 2MB Chip + Fast):
 
 | Address Range | What's There |
 |---|---|
-| `0x40000000–0x7FFFFFFF` | Zorro III Fast RAM and expansion |
 | `0x10000000–0x3FFFFFFF` | Zorro III I/O space |
+| `0x40000000–0x7FFFFFFF` | Zorro III Fast RAM and expansion |
+| `0xFF000000` | Zorro III autoconfig space (different protocol from Zorro II $E80000) |
 
 **Key addresses for crash diagnosis:**
 - `0x00000004` — ExecBase pointer (always valid, every program reads this)
@@ -75,10 +76,13 @@ Stock A1200 (68020, 2MB Chip) / A4000 (68040, 2MB Chip + Fast):
 | 68000 / 68010 | A500, A2000 | 24-bit | Upper 8 bits ignored. `0xFFFF0044` = `0x00FF0044`. |
 | **68EC020** | **A1200 (stock)** | **24-bit** | EC variant — same 24-bit wrapping as 68000 despite 32-bit internals. |
 | 68020 (full) | Accelerator cards | 32-bit | Full 32-bit addressing. No wrapping. |
-| 68030 | A3000, accelerators | 32-bit | Full 32-bit addressing. MMU available. |
-| 68040 / 68060 | A4000, accelerators | 32-bit | Full 32-bit addressing. MMU available. |
+| 68030 (full) | A3000, accelerators | 32-bit | Full 32-bit addressing. MMU available. |
+| **68EC030** | **A4000/030** | **32-bit** | Full 32-bit addressing. **No MMU** — Enforcer won't work. |
+| 68040 / 68060 | A4000/040, accelerators | 32-bit | Full 32-bit addressing. MMU available. |
 
-**Critical:** The stock A1200 uses a 68EC020 (cost-reduced), NOT a full 68020. The "EC" suffix means the address bus is truncated to 24 bits. The 24-bit wrapping problem affects A500, A2000, AND stock A1200.
+**Critical:** The "EC" suffix means cost-reduced with material capability loss:
+- **68EC020** (stock A1200, CD32) = 24-bit address bus (same wrapping as 68000)
+- **68EC030** (A4000/030) = no MMU (Enforcer cannot run)
 
 ### The 24-bit wrapping trap
 
@@ -217,14 +221,14 @@ Alerts are 32-bit codes: `0xATDDDDEE`
 
 ### How Enforcer intercepts
 
-Enforcer patches the MMU page tables (68030+) to make unmapped or protected regions trigger a bus error. When a bus error occurs, Enforcer's handler:
+Enforcer patches the MMU page tables to make unmapped or protected regions trigger a bus error. **Requires an MMU** — works on 68030 (full, not EC), 68040, 68060. Does NOT work on 68EC030 (A4000/030). When a bus error occurs, Enforcer's handler:
 
 1. Captures the faulting address, access type (read/write/word/long), PC, and all registers
 2. Looks up the PC in loaded segment lists to identify the program and offset
 3. Logs the hit (serial port, file, or memory buffer)
 4. Resumes execution (does NOT halt like a Guru)
 
-On 68000 (no MMU), Enforcer cannot run. Use Mungwall (heap sentinel checking) instead.
+On 68000, 68EC020, 68020, or 68EC030 (no MMU), Enforcer cannot run. Use Mungwall (heap sentinel checking) instead.
 
 ---
 
