@@ -9,6 +9,9 @@ set -e
 echo "=== Pre-commit: checking documentation consistency ==="
 make check-docs
 
+echo "=== Pre-commit: checking port metadata consistency ==="
+make check-port-metadata
+
 echo "=== Pre-commit: checking for stray root files ==="
 # Check for test/build artifacts that shouldn't be in the project root
 STRAY=$(git diff --cached --name-only | grep -E '^(test_|gmon\.out|.*_native$|.*\.o$)' || true)
