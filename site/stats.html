@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="amiport download statistics and community activity.">
+    <title>Statistics — amiport</title>
+    <link rel="stylesheet" href="css/style.css?v=3">
+</head>
+<body>
+
+<a href="#main" class="skip-link">Skip to content</a>
+
+<header class="screen-bar" role="banner">
+    <a href="/" class="screen-bar__brand">amiport</a>
+    <nav aria-label="Main navigation">
+        <ul class="screen-bar__nav">
+            <li><a href="packages.html">Packages</a></li>
+            <li><a href="stats.html" aria-current="page">Stats</a></li>
+            <li><a href="index.html#about">About</a></li>
+            <li><a href="https://github.com/bdgscotland/amiport" target="_blank" rel="noopener">GitHub</a></li>
+        </ul>
+    </nav>
+    <div class="screen-bar__depth" aria-hidden="true"></div>
+</header>
+
+<main id="main" class="content">
+
+    <h1 class="sr-only">amiport Statistics</h1>
+
+    <!-- Total + Trends -->
+    <section class="window" aria-labelledby="stats-heading">
+        <div class="window__title">
+            <div class="window__gadget window__gadget--close" aria-hidden="true"></div>
+            <span class="window__title-text" id="stats-heading" role="heading" aria-level="2">Statistics</span>
+            <div class="window__gadget window__gadget--resize" aria-hidden="true"></div>
+        </div>
+        <div class="window__body">
+            <div id="stats-overview" class="stats-overview">
+                <div class="stats-big-number" id="stats-total">
+                    <span class="stats-big-number__value">...</span>
+                    <span class="stats-big-number__label">downloads</span>
+                </div>
+                <div class="stats-bar" id="stats-trends" role="status">
+                    <span class="stats-bar__item">7d: <span class="stats-bar__value" id="trend-7d">...</span></span>
+                    <span class="stats-bar__sep" aria-hidden="true">|</span>
+                    <span class="stats-bar__item">30d: <span class="stats-bar__value" id="trend-30d">...</span></span>
+                    <span class="stats-bar__sep" aria-hidden="true">|</span>
+                    <span class="stats-bar__item">90d: <span class="stats-bar__value" id="trend-90d">...</span></span>
+                </div>
+            </div>
+
+            <!-- Error state -->
+            <div id="stats-error" class="alert alert--error hidden" role="alert">
+                Stats unavailable. Try again later.
+            </div>
+
+            <!-- Empty state -->
+            <div id="stats-empty" class="state-msg hidden">
+                No downloads recorded yet. Share amiport.platesteel.net with the Amiga community!
+            </div>
+        </div>
+    </section>
+
+    <!-- Downloads by Package (bar chart) -->
+    <section class="window" aria-labelledby="chart-heading">
+        <div class="window__title">
+            <div class="window__gadget window__gadget--close" aria-hidden="true"></div>
+            <span class="window__title-text" id="chart-heading" role="heading" aria-level="2">Downloads by Package</span>
+            <div class="window__gadget window__gadget--resize" aria-hidden="true"></div>
+        </div>
+        <div class="window__body">
+            <div id="bar-chart" class="bar-chart"></div>
+        </div>
+    </section>
+
+    <!-- Top Voted -->
+    <section class="window" aria-labelledby="voted-heading">
+        <div class="window__title">
+            <div class="window__gadget window__gadget--close" aria-hidden="true"></div>
+            <span class="window__title-text" id="voted-heading" role="heading" aria-level="2">Top Voted</span>
+            <div class="window__gadget window__gadget--resize" aria-hidden="true"></div>
+        </div>
+        <div class="window__body">
+            <div class="wb-table-wrap">
+                <table class="wb-table" id="voted-table">
+                    <thead>
+                        <tr>
+                            <th scope="col">Package</th>
+                            <th scope="col">Up</th>
+                            <th scope="col">Down</th>
+                            <th scope="col">Score</th>
+                        </tr>
+                    </thead>
+                    <tbody id="voted-tbody"></tbody>
+                </table>
+            </div>
+            <p id="voted-empty" class="state-msg hidden">No votes yet. Vote on packages to see them here!</p>
+        </div>
+    </section>
+
+</main>
+
+<footer class="footer content" role="contentinfo">
+    <span>
+        <a href="https://github.com/bdgscotland/amiport" target="_blank" rel="noopener">GitHub</a>
+        &middot;
+        <a href="https://aminet.net/" target="_blank" rel="noopener">Aminet</a>
+    </span>
+    <span>Built with <a href="https://claude.ai/claude-code" target="_blank" rel="noopener">Claude Code</a>.</span>
+</footer>
+
+<script src="js/stats.js?v=3"></script>
+
+</body>
+</html>

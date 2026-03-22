@@ -57,6 +57,7 @@ The `/port-project` skill has GATE checks — it will not proceed to the next st
 | `hardware-expert` | Hardware architecture validation — on-demand consultant + proactive doc auditor. Dispatch when agents need hardware facts (address space, CPU variants, chipset capabilities). |
 | `test-designer` | Designs comprehensive FS-UAE test suites by analyzing source code, flags, exit codes, and error paths |
 | `aminet-publisher` | Publishing — curated, never automatic |
+| `site-manager` | Website operations — deployment, manifest generation, security scanning, testing |
 
 ## Documentation Rules — IMPORTANT
 

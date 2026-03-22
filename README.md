@@ -118,6 +118,7 @@ Safety hooks enforce discipline across the pipeline:
 | `dependency-auditor` | External library dependency analysis |
 | `test-designer` | Comprehensive FS-UAE test suite generation from source analysis |
 | `aminet-publisher` | Aminet packaging, readme generation, upload |
+| `site-manager` | Website deployment, manifest generation, security scanning, testing |
 
 Every architectural decision is recorded in ADRs and product decisions in PDRs — see [docs/adr/](docs/adr/) and [docs/pdr/](docs/pdr/).
 

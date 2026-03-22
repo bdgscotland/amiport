@@ -860,6 +860,128 @@ a:focus-visible {
     width: 60%;
 }
 
+/* --- Vote Group --- */
+.vote-group {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-xs);
+    margin-top: var(--sp-xs);
+    font-size: var(--fs-sm);
+}
+
+.vote-score {
+    font-weight: bold;
+    color: var(--wb-blue);
+    min-width: 30px;
+    text-align: right;
+}
+
+.dl-count {
+    color: var(--wb-darkgray);
+    margin-right: var(--sp-sm);
+}
+
+.vote-btn {
+    width: 24px;
+    height: 24px;
+    min-height: 24px;
+    padding: 0;
+    font-size: 10px;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.vote-btn--up:hover {
+    background: var(--success-bg);
+}
+
+.vote-btn--down:hover {
+    background: var(--error-bg);
+}
+
+/* --- Blue Badge (POPULAR) --- */
+.badge--blue {
+    background: var(--wb-blue);
+    color: var(--wb-text-inv);
+}
+
+/* --- NEW Badge --- */
+.badge--new {
+    background: var(--wb-orange);
+    color: var(--wb-text);
+}
+
+/* --- Bar Chart --- */
+.bar-chart {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-xs);
+}
+
+.bar-chart__row {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-sm);
+    min-height: 28px;
+}
+
+.bar-chart__label {
+    width: 60px;
+    font-size: var(--fs-sm);
+    text-align: right;
+    flex-shrink: 0;
+    font-weight: bold;
+}
+
+.bar-chart__bar-wrap {
+    flex: 1;
+    height: 20px;
+    background: var(--wb-surface);
+    border-top: 1px solid var(--wb-shadow);
+    border-left: 1px solid var(--wb-shadow);
+    border-bottom: 1px solid var(--wb-highlight);
+    border-right: 1px solid var(--wb-highlight);
+}
+
+.bar-chart__bar {
+    height: 100%;
+    background: var(--wb-blue);
+    min-width: 2px;
+}
+
+.bar-chart__count {
+    width: 40px;
+    font-size: var(--fs-sm);
+    color: var(--wb-darkgray);
+    flex-shrink: 0;
+}
+
+/* --- Stats Big Number --- */
+.stats-overview {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-md);
+    align-items: center;
+}
+
+.stats-big-number {
+    text-align: center;
+}
+
+.stats-big-number__value {
+    font-size: var(--fs-3xl);
+    font-weight: bold;
+    color: var(--wb-blue);
+    display: block;
+}
+
+.stats-big-number__label {
+    font-size: var(--fs-base);
+    color: var(--wb-darkgray);
+}
+
 /* --- Utility --- */
 .text-center { text-align: center; }
 .text-muted  { color: var(--wb-darkgray); }

@@ -200,6 +200,15 @@ ifndef TARGET
 endif
 	@bash scripts/test-fsemu.sh $(TARGET)
 
+test-site:
+	@bash site/test-site.sh http://amiport.platesteel.net
+
+test-site-local:
+	@bash site/test-site.sh
+
+deploy-site:
+	@rsync -avz --delete --exclude '.env' --exclude 'data/counters/*.txt' -e ssh site/ amiport-deploy:amiport.platesteel.net/
+
 emu: install-emu
 	@if ! command -v fs-uae >/dev/null 2>&1; then \
 		echo "FS-UAE not found. Install with: brew install fs-uae"; \
