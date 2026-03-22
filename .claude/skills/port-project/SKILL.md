@@ -177,7 +177,9 @@ Fix all memory safety issues before proceeding.
 
 If 6b or 6c makes changes, **rebuild (Stage 4) and retest (Stage 5)** before proceeding.
 
-**6d. Knowledge capture:** Review `PORT.md` for novel transformation patterns, pitfalls, or workarounds discovered during this port that aren't yet in the canonical references. For each novel finding:
+**6d. Runtime profiling (OPTIONAL):** For performance-critical ports, dispatch the `profiler` agent to empirically measure function timing using ReadEClock. This validates the perf-optimizer's static analysis with real data. The profiler instruments code with `AMIPORT_PROFILE_BEGIN/END` macros, builds with `-DAMIPORT_PROFILE`, and runs on vamos or FS-UAE.
+
+**6e. Knowledge capture:** Review `PORT.md` for novel transformation patterns, pitfalls, or workarounds discovered during this port that aren't yet in the canonical references. For each novel finding:
 1. Check if the pattern exists in `transformation-rules.md`, `known-pitfalls.md`, or `posix-tiers.md`
 2. If novel, present it to the user and ask whether to update the canonical reference
 3. Update the reference file if approved

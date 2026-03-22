@@ -99,7 +99,17 @@ For CPU internals, memory map, custom chips, and DMA timing:
 
 ```
 Read file_path="docs/references/68k-hardware.md"                    # Quick reference
+Read file_path="docs/references/M68000PRM.pdf" pages="1-5"          # Motorola M68000 PRM (646 pages — use page ranges)
 Glob pattern="docs/references/amiga-intern/*.md"                     # Full Amiga Intern book
+```
+
+The M68000 PRM contains the authoritative instruction set reference: encoding, condition codes, and timing for 68000/68010/68020/68030/68040. Section 4 (Integer Instructions) is ~400 pages of individual instruction descriptions.
+
+## C Runtime Reference
+
+```
+Read file_path="docs/references/libnix-reference.md"                # Complete libnix function list (700+ functions)
+Read file_path="docs/references/newlib-availability.md"             # Curated availability with shim status
 ```
 
 ## Common Lookup Patterns
