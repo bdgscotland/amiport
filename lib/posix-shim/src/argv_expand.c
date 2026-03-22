@@ -17,6 +17,15 @@ extern int amiport_glob_has_magic(const char *pattern);
 #include <stdlib.h>
 #include <string.h>
 
+/*
+ * __progname — OpenBSD programs use this for error messages.
+ * bebbo-gcc libnix does NOT provide it, so we define it here and
+ * initialize it from argv[0] inside amiport_expand_argv().
+ * GCC weak attribute: if the port defines its own __progname,
+ * the port's definition takes precedence.
+ */
+char *__progname __attribute__((weak)) = "?";
+
 /* Maximum expanded arguments — prevent runaway expansion */
 #define MAX_EXPANDED_ARGS 4096
 
@@ -61,6 +70,18 @@ amiport_expand_argv(int *argc_p, char ***argv_p)
 
 	if (argc_p == NULL || argv_p == NULL)
 		return;
+
+	/*
+	 * Initialize __progname from argv[0].
+	 * Strip path prefix (/ for Unix, : for Amiga volume separator).
+	 * This runs before __nowild check so progname is always set.
+	 */
+	if (*argc_p > 0 && (*argv_p)[0] != NULL) {
+		char *p = strrchr((*argv_p)[0], '/');
+		if (p == NULL)
+			p = strrchr((*argv_p)[0], ':');
+		__progname = (p != NULL) ? p + 1 : (*argv_p)[0];
+	}
 
 	/* Check __nowild opt-out — SAS/C convention */
 	if (__nowild != 0)
