@@ -4,6 +4,8 @@
  * Provides sleep, getcwd, chdir, getenv, and getpid.
  */
 
+#undef exit
+#include <amiport/stdlib.h>
 #include <amiport/unistd.h>
 #include <amiport/errno_map.h>
 
@@ -16,6 +18,22 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+/*
+ * amiport_exit — Safe exit that avoids libnix atexit hang.
+ *
+ * libnix's exit() calls atexit handlers that deadlock when stdout is
+ * connected to a console (CON: or RAW:). We flush stdio ourselves
+ * and call _exit() to bypass atexit entirely.
+ *
+ * See docs/references/crash-patterns.md #9.
+ */
+void amiport_exit(int status)
+{
+    fflush(stdout);
+    fflush(stderr);
+    _exit(status);
+}
 
 unsigned int amiport_sleep(unsigned int seconds)
 {
