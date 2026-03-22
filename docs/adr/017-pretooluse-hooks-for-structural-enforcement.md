@@ -28,7 +28,7 @@ Use PreToolUse hooks in `.claude/settings.json` to enforce structural rules at t
 | `block-original-edits.sh` | Edit/Write to paths containing `/original/` | Upstream source is read-only reference |
 | `block-root-files.sh` | Edit/Write of non-config files in project root | Prevents agent debris accumulation |
 | `block-direct-gcc.sh` | Direct `m68k-amigaos-gcc`/`ld`/`as` in Bash | Forces use of `make` or toolchain wrappers |
-| `enforce-agents.sh` | Edit/Write to `ported/*.c` files | Forces code-transformer or debug-agent dispatch |
+| `enforce-agents.sh` | Edit/Write to `ported/*.c` files | Warns to use code-transformer or debug-agent (warn-only — subagents share the same tool interface, so blocking breaks the pipeline) |
 
 Hook scripts live in `scripts/hooks/` and are configured in `.claude/settings.json` under `hooks.preToolUse`. Each script receives the tool name and parameters as JSON on stdin, inspects the relevant field (file path or command), and exits 0 (allow) or 2 (deny with message).
 

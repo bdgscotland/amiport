@@ -32,7 +32,7 @@ The porting pipeline has 5 stages, each backed by a Claude skill:
 
 ## Using the Pipeline — CRITICAL (ENFORCED BY HOOKS)
 
-**Agent dispatch is MANDATORY. A PreToolUse hook (`enforce-agents.sh`) blocks direct edits to `ported/*.c` files. You MUST use the pipeline agents — there is no manual path.**
+**Agent dispatch is MANDATORY.** A PreToolUse hook (`enforce-agents.sh`) warns on direct edits to `ported/*.c` files as a reminder to use pipeline agents. The real enforcement is via CLAUDE.md rules and `/port-project` GATE checks.
 
 The `/port-project` skill has GATE checks — it will not proceed to the next stage until the current stage's agent has returned successfully.
 
@@ -140,7 +140,7 @@ The project enforces structural safety via hooks in `.claude/settings.json`:
 - **`block-original-edits.sh`** — Blocks Edit/Write to `/original/`. Upstream source is read-only.
 - **`block-root-files.sh`** — Blocks Edit/Write of non-config files in the project root.
 - **`block-direct-gcc.sh`** — Blocks direct `m68k-amigaos-gcc`/`ld`/`as` calls. Forces use of `make` or toolchain scripts.
-- **`enforce-agents.sh`** — Blocks direct Edit/Write to `ported/*.c` files. Forces use of code-transformer or debug-agent.
+- **`enforce-agents.sh`** — Warns on Edit/Write to `ported/*.c` files. Reminds to use code-transformer or debug-agent (warn-only — subagents use the same tools, so blocking would break the pipeline).
 - **`verify-before-stop.sh`** — Reminds Claude to verify work before stopping.
 - **`save-port-context.sh`** — On auto-compaction, injects active port names into context.
 - **`check-toolchain.sh`** — Warns if Docker, vamos, lha, or jq are missing at session start.

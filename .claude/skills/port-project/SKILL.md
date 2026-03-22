@@ -65,7 +65,7 @@ Read `ports/templates/STRUCTURE.md` for the full directory layout specification.
 
 ### Stage 3: Transform — MANDATORY AGENT DISPATCH
 
-**YOU MUST dispatch the `code-transformer` agent.** Do not manually edit ported source files. The agent applies transformation rules consistently, adds `/* amiport: */` comments, checks shim availability, and runs stub value impact analysis. A PreToolUse hook (`enforce-agents.sh`) will block direct edits to `ported/*.c` files.
+**YOU MUST dispatch the `code-transformer` agent.** Do not manually edit ported source files. The agent applies transformation rules consistently, adds `/* amiport: */` comments, checks shim availability, and runs stub value impact analysis. A PreToolUse hook (`enforce-agents.sh`) warns on direct edits to `ported/*.c` files.
 
 ```
 Agent(subagent_type="code-transformer", prompt="Transform <port>/ported/ source files for AmigaOS...")
@@ -172,7 +172,7 @@ This creates `<name>-<version>.lha` containing the binary, readme, and PORT.md �
 
 **Every stage MUST dispatch its designated agent.** There is no "small project" exemption. The agents run stub value impact analysis, crash pattern detection, and transformation rule enforcement that inline work skips.
 
-A PreToolUse hook (`enforce-agents.sh`) blocks direct edits to `ported/*.c` files. A PreToolUse hook (`block-direct-gcc.sh`) blocks direct compiler calls.
+A PreToolUse hook (`enforce-agents.sh`) warns on direct edits to `ported/*.c` files (warn-only — subagents use the same tools). A PreToolUse hook (`block-direct-gcc.sh`) blocks direct compiler calls.
 
 Sequential pipeline — each stage depends on the previous:
 1. `aminet-researcher` → check prior art (Stage 0)
