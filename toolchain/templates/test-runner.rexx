@@ -160,9 +160,9 @@ DO i = 1 TO testcount
     /* Check exit code if EXPECT_RC: was specified */
     rc_ok = 1
     trc = expect_rc.i
-    IF trc \= 'EXPECT_RC.' || i THEN DO
+    IF trc ~= 'EXPECT_RC.' || i THEN DO
         /* EXPECT_RC was set -- verify the command's return code */
-        IF cmdrc \= trc THEN rc_ok = 0
+        IF cmdrc ~= trc THEN rc_ok = 0
     END
 
     IF match = 1 & rc_ok = 1 THEN DO
