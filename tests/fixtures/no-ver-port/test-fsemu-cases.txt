@@ -1,0 +1,3 @@
+TEST: basic test
+CMD: WORK:no-ver-port
+EXPECT_RC: 0

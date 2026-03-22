@@ -1,0 +1,3 @@
+TEST: basic test
+CMD: WORK:bad-port
+EXPECT_RC: 0
