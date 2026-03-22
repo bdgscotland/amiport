@@ -62,6 +62,43 @@ usort($packages, function (array $a, array $b): int {
     return strcasecmp($a['name'] ?? '', $b['name'] ?? '');
 });
 
+// --- Augment with MySQL download counts and vote scores ---
+require_once dirname(__DIR__, 2) . '/db.php';
+$stats = [];
+try {
+    $pdo = amiport_db();
+    if ($pdo !== null) {
+        // Download counts
+        $rows = $pdo->query(
+            'SELECT package_name, COUNT(*) as downloads FROM downloads GROUP BY package_name'
+        )->fetchAll();
+        foreach ($rows as $row) {
+            $stats[$row['package_name']]['downloads'] = (int) $row['downloads'];
+        }
+        // Vote scores
+        $rows = $pdo->query(
+            'SELECT package_name, SUM(CASE WHEN vote=1 THEN 1 ELSE 0 END) as up, SUM(CASE WHEN vote=-1 THEN 1 ELSE 0 END) as down FROM votes GROUP BY package_name'
+        )->fetchAll();
+        foreach ($rows as $row) {
+            $stats[$row['package_name']]['votes_up'] = (int) $row['up'];
+            $stats[$row['package_name']]['votes_down'] = (int) $row['down'];
+            $stats[$row['package_name']]['vote_score'] = (int) $row['up'] - (int) $row['down'];
+        }
+    }
+} catch (PDOException $e) {
+    error_log('amiport packages stats query failed: ' . $e->getMessage());
+}
+
+// Merge stats into packages
+foreach ($packages as &$pkg) {
+    $name = $pkg['name'] ?? '';
+    $pkg['downloads'] = $stats[$name]['downloads'] ?? 0;
+    $pkg['votes_up'] = $stats[$name]['votes_up'] ?? 0;
+    $pkg['votes_down'] = $stats[$name]['votes_down'] ?? 0;
+    $pkg['vote_score'] = $stats[$name]['vote_score'] ?? 0;
+}
+unset($pkg);
+
 // --- Single package request: filter from already-loaded list ---
 if (isset($_GET['name'])) {
     $requestedName = (string) $_GET['name'];

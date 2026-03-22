@@ -86,22 +86,22 @@ if ($realPath === false || $realPkgDir === false || strpos($realPath, $realPkgDi
     exit;
 }
 
-// Increment download counter (best-effort, non-blocking)
-// Counter filename derived from trusted package name, not user input
-$counterFile = $counterDir . '/' . $pkgName . '.txt';
-if (is_dir($counterDir)) {
-    $fp = fopen($counterFile, 'c+');
-    if ($fp !== false) {
-        if (flock($fp, LOCK_EX)) {
-            $count = (int) fread($fp, 32);
-            $count++;
-            ftruncate($fp, 0);
-            rewind($fp);
-            fwrite($fp, (string) $count);
-            flock($fp, LOCK_UN);
-        }
-        fclose($fp);
+// Track download in MySQL (best-effort — file still serves if DB is down)
+require_once dirname(__DIR__, 2) . '/db.php';
+try {
+    $pdo = amiport_db();
+    if ($pdo !== null) {
+        $stmt = $pdo->prepare(
+            'INSERT INTO downloads (package_name, ip_hash, user_agent) VALUES (?, ?, ?)'
+        );
+        $stmt->execute([
+            $pkgName,
+            amiport_ip_hash(),
+            substr($_SERVER['HTTP_USER_AGENT'] ?? '', 0, 255)
+        ]);
     }
+} catch (PDOException $e) {
+    error_log('amiport download tracking failed: ' . $e->getMessage());
 }
 
 // Serve the LHA file

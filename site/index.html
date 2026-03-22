@@ -30,6 +30,7 @@
     <nav aria-label="Main navigation">
         <ul class="screen-bar__nav">
             <li><a href="packages.html">Packages</a></li>
+            <li><a href="stats.html">Stats</a></li>
             <li><a href="#about">About</a></li>
             <li><a href="https://github.com/bdgscotland/amiport" target="_blank" rel="noopener">GitHub</a></li>
         </ul>
@@ -205,6 +206,37 @@ Package ---- .lha archive, Aminet readme, amiport index</pre>
         </div>
     </section>
 
+    <!-- Request a Port -->
+    <section class="window" id="request" aria-labelledby="request-heading">
+        <div class="window__title">
+            <div class="window__gadget window__gadget--close" aria-hidden="true"></div>
+            <span class="window__title-text" id="request-heading" role="heading" aria-level="2">Request a Port</span>
+            <div class="window__gadget window__gadget--resize" aria-hidden="true"></div>
+        </div>
+        <div class="window__body">
+            <p class="mb-md">Want a Unix tool ported to your Amiga? Tell us what you need.</p>
+
+            <form id="request-form">
+                <label for="tool-name">Tool name:</label>
+                <input type="text" id="tool-name" name="tool_name" class="wb-input mb-sm" placeholder="e.g. less, awk, bc" required>
+
+                <label for="tool-url">URL (optional):</label>
+                <input type="text" id="tool-url" name="tool_url" class="wb-input mb-md" placeholder="https://github.com/...">
+
+                <!-- Honeypot — hidden from humans, bots fill it -->
+                <div style="position:absolute;left:-9999px" aria-hidden="true">
+                    <label for="website">Website:</label>
+                    <input type="text" id="website" name="website" tabindex="-1" autocomplete="off">
+                </div>
+
+                <button type="submit" class="btn btn--primary" id="request-submit">Submit Request</button>
+            </form>
+
+            <div id="request-success" class="alert alert--success mt-md hidden" role="alert"></div>
+            <div id="request-error" class="alert alert--error mt-md hidden" role="alert"></div>
+        </div>
+    </section>
+
 </main>
 
 <!-- Footer -->
@@ -254,6 +286,59 @@ function copyCmd(btn, text) {
         });
     }
 }
+
+// Port request form submission
+(function() {
+    var form = document.getElementById('request-form');
+    var submitBtn = document.getElementById('request-submit');
+    var successEl = document.getElementById('request-success');
+    var errorEl = document.getElementById('request-error');
+
+    if (!form) return;
+
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        successEl.classList.add('hidden');
+        errorEl.classList.add('hidden');
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Submitting...';
+
+        var data = {
+            tool_name: form.tool_name.value,
+            tool_url: form.tool_url.value,
+            website: form.website.value
+        };
+
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', 'api/v1/request.php', true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.onload = function() {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Submit Request';
+            try {
+                var resp = JSON.parse(xhr.responseText);
+                if (resp.ok) {
+                    successEl.textContent = resp.message;
+                    successEl.classList.remove('hidden');
+                    form.reset();
+                } else {
+                    errorEl.textContent = resp.error || 'Could not submit request.';
+                    errorEl.classList.remove('hidden');
+                }
+            } catch (ex) {
+                errorEl.textContent = 'Could not submit request. Try again.';
+                errorEl.classList.remove('hidden');
+            }
+        };
+        xhr.onerror = function() {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Submit Request';
+            errorEl.textContent = 'Could not submit request. Try again.';
+            errorEl.classList.remove('hidden');
+        };
+        xhr.send(JSON.stringify(data));
+    });
+})();
 </script>
 
 </body>

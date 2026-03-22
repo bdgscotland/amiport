@@ -8,7 +8,7 @@
 (function() {
     'use strict';
 
-    var API_URL = 'api/v1/packages.json';
+    var API_URL = 'api/v1/packages.php';
     var packages = [];
     var currentSort = { key: 'name', dir: 'asc' };
 
@@ -61,6 +61,7 @@
                 try {
                     var data = JSON.parse(xhr.responseText);
                     packages = data.packages || [];
+                    computeBadges();
                     populateCategories();
                     render();
                     checkUrlForDetail();
@@ -82,6 +83,65 @@
         table.classList.add('hidden');
         errorEl.classList.remove('hidden');
         countEl.textContent = '';
+    }
+
+    // --- Compute badges ---
+
+    function computeBadges() {
+        // POPULAR: top 3 by download count
+        var byDownloads = packages.slice().sort(function(a, b) {
+            return (b.downloads || 0) - (a.downloads || 0);
+        });
+        for (var i = 0; i < packages.length; i++) {
+            packages[i]._isPopular = false;
+            packages[i]._isNew = false;
+        }
+        for (var j = 0; j < Math.min(3, byDownloads.length); j++) {
+            if ((byDownloads[j].downloads || 0) > 0) {
+                byDownloads[j]._isPopular = true;
+            }
+        }
+        // NEW: we check added_at field if present, otherwise skip
+        // (server-side filemtime check not available in browser)
+        for (var k = 0; k < packages.length; k++) {
+            if (packages[k].added_at) {
+                var added = new Date(packages[k].added_at);
+                var thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+                packages[k]._isNew = added > thirtyDaysAgo;
+            }
+        }
+    }
+
+    // --- Submit vote ---
+
+    function submitVote(packageName, vote, btn) {
+        btn.disabled = true;
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', 'api/v1/vote.php', true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.onload = function() {
+            btn.disabled = false;
+            try {
+                var resp = JSON.parse(xhr.responseText);
+                if (resp.ok) {
+                    // Update package data and re-render
+                    for (var i = 0; i < packages.length; i++) {
+                        if (packages[i].name === packageName) {
+                            packages[i].votes_up = resp.votes_up;
+                            packages[i].votes_down = resp.votes_down;
+                            packages[i].vote_score = resp.score;
+                            break;
+                        }
+                    }
+                    computeBadges();
+                    render();
+                }
+            } catch (e) {
+                // silently fail
+            }
+        };
+        xhr.onerror = function() { btn.disabled = false; };
+        xhr.send(JSON.stringify({package: packageName, vote: vote}));
     }
 
     // --- Populate category dropdown ---
@@ -161,6 +221,27 @@
             var strong = document.createElement('strong');
             strong.textContent = pkg.name;
             tdName.appendChild(strong);
+
+            // NEW badge (package JSON modified in last 30 days)
+            if (pkg._isNew) {
+                var newBadge = document.createElement('span');
+                newBadge.className = 'badge badge--new';
+                newBadge.textContent = 'NEW';
+                newBadge.setAttribute('aria-label', 'New package');
+                tdName.appendChild(document.createTextNode(' '));
+                tdName.appendChild(newBadge);
+            }
+
+            // POPULAR badge (top 3 by downloads)
+            if (pkg._isPopular) {
+                var popBadge = document.createElement('span');
+                popBadge.className = 'badge badge--blue';
+                popBadge.textContent = 'POPULAR';
+                popBadge.setAttribute('aria-label', 'Popular package');
+                tdName.appendChild(document.createTextNode(' '));
+                tdName.appendChild(popBadge);
+            }
+
             tr.appendChild(tdName);
 
             var tdVer = document.createElement('td');
@@ -169,6 +250,43 @@
 
             var tdDesc = document.createElement('td');
             tdDesc.textContent = pkg.description || '';
+
+            // Vote UI + download count below description
+            var voteRow = document.createElement('div');
+            voteRow.className = 'vote-group';
+            voteRow.setAttribute('role', 'group');
+            voteRow.setAttribute('aria-label', 'Vote on ' + pkg.name);
+
+            var dlCount = document.createElement('span');
+            dlCount.className = 'dl-count';
+            dlCount.textContent = (pkg.downloads || 0) + ' dl';
+            voteRow.appendChild(dlCount);
+
+            var scoreSpan = document.createElement('span');
+            scoreSpan.className = 'vote-score';
+            var score = pkg.vote_score || 0;
+            scoreSpan.textContent = (score >= 0 ? '+' : '') + score;
+            voteRow.appendChild(scoreSpan);
+
+            var btnUp = document.createElement('button');
+            btnUp.className = 'btn btn--sm vote-btn vote-btn--up';
+            btnUp.textContent = '\u25B2';
+            btnUp.setAttribute('aria-label', 'Vote up');
+            btnUp.addEventListener('click', (function(name) {
+                return function(ev) { ev.stopPropagation(); submitVote(name, 1, ev.target); };
+            })(pkg.name));
+            voteRow.appendChild(btnUp);
+
+            var btnDown = document.createElement('button');
+            btnDown.className = 'btn btn--sm vote-btn vote-btn--down';
+            btnDown.textContent = '\u25BC';
+            btnDown.setAttribute('aria-label', 'Vote down');
+            btnDown.addEventListener('click', (function(name) {
+                return function(ev) { ev.stopPropagation(); submitVote(name, -1, ev.target); };
+            })(pkg.name));
+            voteRow.appendChild(btnDown);
+
+            tdDesc.appendChild(voteRow);
             tr.appendChild(tdDesc);
 
             var tdCat = document.createElement('td');

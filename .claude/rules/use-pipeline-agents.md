@@ -21,6 +21,7 @@
 | Check memory safety | `memory-checker` agent | Don't skip memory audit — AmigaOS has no memory protection |
 | Hardware validation | `hardware-expert` agent | Don't guess at hardware architecture facts |
 | Add missing shim fn | `/extend-shim` | Don't manually add shim functions |
+| Website operations | `site-manager` agent | Don't manually rsync or debug PHP |
 
 ## How to Dispatch
 
@@ -40,6 +41,7 @@ subagent_type: "perf-optimizer"         # Stage 6c: performance (optional)
 subagent_type: "debug-agent"            # On crash: autonomous fix loop
 subagent_type: "port-coordinator"       # Complex multi-file ports (5+ files)
 subagent_type: "aminet-publisher"       # Publishing (never automatic)
+subagent_type: "site-manager"           # Website deployment and testing
 ```
 
 ## Entry Point
