@@ -38,7 +38,7 @@
 /* amiport: <err.h> provided by amiport/err.h via compat.h */
 /* amiport: <regex.h> provided by amiport-emu/regex.h via compat.h */
 #include <stdio.h>
-#include <stdlib.h>
+#include <amiport/stdlib.h> /* amiport: exit() override prevents libnix hang */
 #include <string.h>
 #include <stdarg.h>
 

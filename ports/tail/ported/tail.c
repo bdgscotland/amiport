@@ -51,7 +51,7 @@
  * and IsInteractive(Input()) directly for the stdin pipe-detection path. */
 /* amiport: added proto/dos.h for IsInteractive() used in stdin pipe detection */
 #include <proto/dos.h>
-#include <stdlib.h>
+#include <amiport/stdlib.h> /* amiport: exit() override prevents libnix hang */
 #include <string.h>
 /* amiport: replaced #include <unistd.h> with amiport wrapper */
 #include <amiport/unistd.h>

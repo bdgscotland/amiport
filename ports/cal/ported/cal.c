@@ -38,7 +38,7 @@
 #include <ctype.h>
 #include <amiport/err.h>		/* amiport: replaced <err.h> — provides err/errx/strtonum */
 #include <stdio.h>
-#include <stdlib.h>
+#include <amiport/stdlib.h>		/* amiport: replaced <stdlib.h> — exit() override prevents libnix hang */
 #include <string.h>
 #include <time.h>
 #include <amiport/unistd.h>		/* amiport: replaced <unistd.h> */

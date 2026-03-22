@@ -42,7 +42,7 @@
 #include <limits.h>
 /* amiport: <regex.h> provided by amiport-emu/regex.h via compat.h */
 #include <stdio.h>
-#include <stdlib.h>
+#include <amiport/stdlib.h> /* amiport: exit() override prevents libnix hang */
 #include <string.h>
 
 #include "defs.h"
