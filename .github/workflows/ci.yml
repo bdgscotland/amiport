@@ -81,6 +81,9 @@ jobs:
       - name: Check test coverage standard
         run: make check-test-coverage
 
+      - name: Check port metadata consistency
+        run: make check-port-metadata
+
       - name: Check fix propagation (informational)
         continue-on-error: true
         run: make check-fix-propagation
