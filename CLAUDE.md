@@ -53,7 +53,8 @@ The `/port-project` skill has GATE checks — it will not proceed to the next st
 | `dependency-auditor` | Before complex ports — audit external library dependencies |
 | `debug-agent` | When a port crashes at runtime — autonomous Enforcer-based crash diagnosis and fix loop |
 | `memory-checker` | **Mandatory** Stage 6b — memory leak detection, double-free, allocation safety |
-| `perf-optimizer` | Optional Stage 6c — 68k instruction timing and loop optimization |
+| `perf-optimizer` | **Mandatory** Stage 6c — 68k static analysis and optimization recommendations |
+| `profiler` | Optional Stage 6d — empirical ReadEClock-based runtime measurement. Validates perf-optimizer findings |
 | `hardware-expert` | Hardware architecture validation — on-demand consultant + proactive doc auditor. Dispatch when agents need hardware facts (address space, CPU variants, chipset capabilities). |
 | `test-designer` | Designs comprehensive FS-UAE test suites by analyzing source code, flags, exit codes, and error paths |
 | `aminet-publisher` | Publishing — curated, never automatic |
@@ -138,6 +139,7 @@ In QA mode, flag any code that doesn't match DESIGN.md.
 
 **Skills for on-demand context loading:**
 - `/amiga-api-lookup` — **Invoke this skill** when writing or reviewing code that uses AmigaOS APIs (exec.library, dos.library, timer.device, etc.). Loads the ADCD reference library with function signatures, struct layouts, usage patterns, and code examples. Do NOT guess at AmigaOS APIs — look them up via this skill.
+- `/c89-reference` — **Invoke this skill** when writing or reviewing C code. Loads the C89/ANSI C constraint set — what C99+ features are NOT available, libnix function availability, printf format restrictions, and common agent mistakes. Prevents generating code that won't compile.
 - `/write-arexx` — Invoke when writing or modifying ARexx scripts. Loads ARexx syntax reference and known gotchas.
 - `/extend-shim` — Invoke when adding new POSIX functions to the shim library.
 - `/review-amiga` — Invoke for Amiga-specific code review.

@@ -55,7 +55,8 @@ Agents define **who** does the work — model selection, tool access, persona, a
 - **build-manager**: Uses Sonnet for iterative build-fix cycles. Bash + edit access.
 - **test-runner**: Uses Haiku for lightweight test execution. Bash + read only.
 - **memory-checker**: Uses Sonnet for memory safety analysis. **Mandatory** (Stage 6b). Read-only tools.
-- **perf-optimizer**: Uses Sonnet for 68k hardware performance optimization. Optional (Stage 6c). Read + analysis tools.
+- **perf-optimizer**: Uses Sonnet for 68k hardware performance optimization. **Mandatory** (Stage 6c). Read + analysis tools.
+- **profiler**: Uses Sonnet for empirical runtime measurement. Instruments code with ReadEClock-based AMIPORT_PROFILE_BEGIN/END macros, builds profiled binary, runs on vamos/FS-UAE, analyzes timing output. Optional (Stage 6d). Full tool access.
 - **hardware-expert**: Uses Sonnet for Amiga system architecture validation. Dual-role: on-demand consultant (other agents escalate hardware questions) + proactive auditor (reviews reference docs for hardware accuracy). Baked-in knowledge covers CPU variants, chipset generations, address space, bus arbitration. Read + edit tools.
 - **port-coordinator**: Dispatched by /port-project for complex multi-file ports. Uses worktree isolation. Full tool access.
 - **debug-agent**: Uses Sonnet for autonomous crash debugging. Parses Enforcer hits, maps to source, classifies crashes, applies fixes, and iterates until clean (max 5 iterations). Bash + edit + agent access (can escalate to hardware-expert).
