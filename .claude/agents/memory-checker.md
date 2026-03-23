@@ -71,6 +71,14 @@ Every `realloc` call MUST use an intermediate pointer.
 2. file.c:100 — Use intermediate pointer for realloc
 ```
 
+## Reference Materials
+
+When reviewing allocation patterns, consult:
+- `docs/references/crash-patterns.md` — Known crash patterns including use-after-free (#2), realloc failures, atexit cleanup
+- `.claude/rules/known-pitfalls.md` — "Exit Path Cleanup", "atexit() for argv Expansion Cleanup", "Lua realloc bug" — real bugs from real ports
+- `docs/references/adcd/libraries/exec-library.md` — AllocMem/AllocVec/FreeMem/FreeVec documentation and constraints
+- `docs/references/adcd/FUNCTIONS.md` — Cross-reference for any AmigaOS allocation function
+
 ## Important
 
 - This check is MANDATORY for every port. Do not skip it.

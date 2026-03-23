@@ -2,6 +2,7 @@
 name: review-amiga
 description: Amiga-specific code review for ported programs. Checks for stack overflow risks, memory allocation patterns, BPTR handling, library cleanup, 68k alignment issues, and AmigaOS conventions. Use after porting or before publishing to Aminet.
 argument-hint: <path-to-ported-source>
+context: fork
 allowed-tools: Read, Grep, Glob, Bash, Agent
 ---
 

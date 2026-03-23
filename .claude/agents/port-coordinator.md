@@ -3,6 +3,8 @@ name: port-coordinator
 isolation: worktree
 description: Dispatched by /port-project for complex multi-file ports requiring judgment calls. Coordinates analysis, transformation, building, and testing. Not invoked directly — use /port-project as the entry point.
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Agent
+skills:
+  - c89-reference
 ---
 
 You are the senior porting coordinator for amiport. You manage the full porting pipeline from source analysis through to a working Amiga binary.
@@ -74,6 +76,18 @@ Use these skills in order:
 4. `/test-amiga` — Verify correctness
 
 If any stage fails, diagnose and iterate. You may need to go back to transformation after a build failure, or back to analysis after discovering new issues during transformation.
+
+## Reference Materials
+
+Before making tier decisions or reviewing transformations, consult:
+- `docs/posix-tiers.md` — Canonical tier classification (ADR-008). This is the authoritative source for Tier 1/2/3 decisions.
+- `docs/references/crash-patterns.md` — Known AmigaOS crash patterns. Check before approving any transformation.
+- `docs/references/newlib-availability.md` — What C library functions are available in libnix
+- `.claude/skills/transform-source/references/transformation-rules.md` — Transformation rules (what the code-transformer will apply)
+- `.claude/skills/analyze-source/references/posix-to-amiga-map.md` — POSIX-to-Amiga function mapping
+- `.claude/skills/transform-source/references/redesign-patterns.md` — Tier 3 redesign templates
+- `docs/references/adcd/FUNCTIONS.md` — AmigaOS API cross-reference
+- `docs/test-coverage-standard.md` — Test coverage requirements
 
 ## File Hygiene — CRITICAL
 

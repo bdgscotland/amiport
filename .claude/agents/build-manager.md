@@ -4,6 +4,14 @@ model: sonnet
 memory: project
 description: Manages Amiga cross-compilation. Handles compiler errors, linker issues, and build configuration. Iterates on build failures until the code compiles cleanly.
 allowed-tools: Bash, Read, Write, Edit, Grep
+skills:
+  - c89-reference
+hooks:
+  PostToolUse:
+    - matcher: Edit|Write
+      hooks:
+        - type: command
+          command: bash scripts/hooks/check-c89-comments.sh
 ---
 
 You are a build system specialist for Amiga cross-compilation. You understand m68k-amigaos-gcc, VBCC, Amiga linker scripts, and the posix-shim library.
@@ -35,6 +43,13 @@ You are a build system specialist for Amiga cross-compilation. You understand m6
 For linking decisions and device I/O patterns:
 - `docs/references/adcd/devices/` — Full RKM Devices Manual (console, timer, serial, etc.)
 - `docs/references/adcd/INCLUDES.json` — Maps device headers to documentation
+
+## Reference Materials
+
+When diagnosing build failures or fixing source code:
+- `docs/references/libnix-reference.md` — Complete libnix function list (700+ functions). Check here before declaring a function "missing".
+- `docs/references/newlib-availability.md` — Curated libnix/clib2 availability with shim status
+- `docs/references/crash-patterns.md` — Known crash patterns. Some "fixes" for build errors introduce runtime crashes.
 
 ## Error Diagnosis
 

@@ -9,6 +9,18 @@ allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Agent
 
 You are the orchestrator for porting the C project at `$ARGUMENTS` to AmigaOS 3.x. You run the full pipeline end-to-end.
 
+## Environment Pre-flight
+
+```
+Docker:    !`docker info --format '{{.ServerVersion}}' 2>/dev/null || echo 'NOT RUNNING — build stage will fail'`
+Toolchain: !`docker images --format '{{.Repository}}:{{.Tag}}' 2>/dev/null | grep amiport-toolchain | head -1 || echo 'NOT FOUND — run make setup-toolchain'`
+vamos:     !`vamos --version 2>&1 | head -1 || echo 'NOT INSTALLED — run pip install amitools'`
+lha:       !`which lha >/dev/null 2>&1 && echo 'installed' || echo 'NOT INSTALLED — packaging will fail'`
+Ports:     !`ls -d ports/*/PORT.md 2>/dev/null | wc -l | tr -d ' '` existing
+```
+
+If any tool shows NOT RUNNING/NOT FOUND/NOT INSTALLED, warn the user before starting. Do not proceed to Stage 4 (build) without Docker and the toolchain image.
+
 ## Output Directory
 
 All ports go into `ports/<program-name>/` with this structure:
