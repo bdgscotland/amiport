@@ -103,7 +103,7 @@ These are in libc.a but might be unexpected:
 
 - `strlcpy()` / `strlcat()` — BSD extensions, available!
 - `reallocarray()` — OpenBSD extension, available!
-- `getopt_long()` — GNU extension, available!
+- `getopt_long()` — GNU extension, symbol exists in libnix BUT BROKEN: returns '?' for all options. Use `#include <amiport/getopt.h>` instead. See crash-patterns.md #16.
 - `strcasecmp()` / `strncasecmp()` — POSIX, available!
 - `strsep()` — BSD, available!
 - `strtok_r()` — POSIX, available!

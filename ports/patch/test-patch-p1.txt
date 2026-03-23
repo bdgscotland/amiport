@@ -1,0 +1,9 @@
+--- a/test-patch-base.txt
++++ b/test-patch-base.txt
+@@ -1,5 +1,5 @@
+ The quick brown fox jumps over the lazy dog.
+-This is line two of the base file.
++This is line two of the P1-STRIPPED file.
+ Line three has some content here.
+ Fourth line for testing purposes.
+ Fifth line is the last one.

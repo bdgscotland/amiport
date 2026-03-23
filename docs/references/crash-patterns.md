@@ -441,7 +441,7 @@ The flag was originally added to fix exit code 252 on vamos (libnix init list pl
 
 ---
 
-## 16. libnix getopt_long Returns '?' for All Options
+## 17. libnix getopt_long Returns '?' for All Options
 
 ### System getopt_long Is Broken — Use amiport/getopt.h
 
@@ -462,7 +462,7 @@ The flag was originally added to fix exit code 252 on vamos (libnix init list pl
 
 ---
 
-## 17. dirname() Corrupts Its Input Buffer In-Place
+## 18. dirname() Corrupts Its Input Buffer In-Place
 
 ### POSIX dirname() Modifies the Argument String — Save a Copy First
 
@@ -494,5 +494,29 @@ The flag was originally added to fix exit code 252 on vamos (libnix init list pl
   free(tmp);   /* NOTE: origdir is now invalid — use before freeing! */
   ```
 - **Detection grep:** `dirname(<variable>)` where the variable is used again after the call.
+- **Port:** patch (OpenBSD v1.78)
+- **Date:** 2026-03-23
+
+---
+
+## 19. AmigaOS Exclusive Write Lock Prevents Double-Open
+
+### fopen("w") Fails with ERROR_OBJECT_IN_USE on Already-Open Files
+
+- **Enforcer signature:** No Enforcer hits — `fopen()` returns NULL, program exits via pfatal with "Text file busy" (misleading errno string for ERROR_OBJECT_IN_USE).
+- **Symptom:** A temp file created earlier in the program cannot be opened again for writing. `fopen(path, "w")` fails even though the file exists and the program owns it. The error message says "Text file busy" (ETXTBSY) which is a Unix concept that doesn't exist on AmigaOS — the real AmigaDOS error is ERROR_OBJECT_IN_USE (202).
+- **Root cause:** AmigaDOS `Open(path, MODE_NEWFILE)` acquires an exclusive write lock on the file. If another file handle (from an earlier `fopen` or `amiport_open`) still holds the file open, the second open fails. On Unix, multiple processes/handles can open the same file for writing simultaneously. On AmigaOS, only one exclusive lock is allowed at a time.
+- **Common trigger:** Programs that open a temp file for output early (e.g., `init_output(TMPOUTNAME)`), then a subroutine opens the same file again (e.g., `write_lines(TMPOUTNAME)` in ed mode). The first handle is still open when the second open is attempted.
+- **Fix:** Close the first handle before opening the second:
+  ```c
+  /* amiport: close ofp before do_ed_script — AmigaOS MODE_NEWFILE
+   * requires exclusive lock. Double-open causes ERROR_OBJECT_IN_USE. */
+  if (ofp != NULL) {
+      fclose(ofp);
+      ofp = NULL;
+  }
+  do_ed_script();  /* write_lines() will fopen the same file */
+  ```
+- **Detection grep:** Look for two `fopen(..., "w")` calls on the same path variable without an intervening `fclose()`. Also check `init_output`/`init_reject` patterns followed by subroutines that re-open the same file.
 - **Port:** patch (OpenBSD v1.78)
 - **Date:** 2026-03-23

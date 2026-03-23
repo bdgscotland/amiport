@@ -1,0 +1,3 @@
+This is not a valid patch file.
+It has no diff headers or hunk markers.
+Just plain text that will confuse patch.

@@ -111,6 +111,9 @@ These won't cause build failures but produce **wrong results** at runtime:
 - **st_dev/st_ino comparison**: Programs that compare `stat.st_dev` and `stat.st_ino` to detect same-file (e.g., diff, cmp, cp). The shim populates these from `fib_DiskKey` and `GetDeviceProc`, but flag the usage so the review-amiga step can verify correctness. Search for: `st_ino`, `st_dev`, `same_file`, `files_differ`.
 - **Hardlink/symlink assumptions**: AmigaOS has hardlinks but no symlinks. Code that calls `lstat()`, `readlink()`, or checks `S_ISLNK()` will silently skip symlink handling.
 - **Case-sensitive filename comparisons**: AmigaOS filesystem is case-insensitive. `strcmp()` on filenames will miss matches that `strcasecmp()` would catch.
+- **libnix getopt_long is broken** (crash-patterns #17): `#include <getopt.h>` provides a broken `getopt_long` that returns `'?'` for ALL options. Flag any use of `getopt_long` and recommend `#include <amiport/getopt.h>`. Search for: `getopt_long`, `<getopt.h>`, `struct option`.
+- **dirname() corrupts its input** (crash-patterns #18): libnix `dirname()` modifies the string in-place. Code that calls `dirname(buffer)` and then uses `buffer` again will find it corrupted. Search for: `dirname(`.
+- **Double fopen("w") on same file** (crash-patterns #19): AmigaDOS `MODE_NEWFILE` acquires an exclusive lock. If a temp file is opened for writing in one place (e.g., `init_output()`), then a subroutine opens the same file (e.g., `write_lines()`), the second open fails with ERROR_OBJECT_IN_USE. Search for: two fopen("w") calls on the same path variable.
 
 ## 68k Platform Compatibility (crash-patterns #15, #16)
 

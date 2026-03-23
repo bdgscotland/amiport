@@ -19,8 +19,12 @@ struct amiport_stat {
     ULONG st_ino;       /* Inode number (from fib_DiskKey — unique per file on a volume) */
 };
 
-/* POSIX compatibility alias */
+/* POSIX compatibility alias — suppressed when system stat.h already declares
+ * int stat() as a function (e.g. pulled in transitively via fcntl.h).
+ * Define AMIPORT_NO_STAT_MACROS before including this header in that case. */
+#ifndef AMIPORT_NO_STAT_MACROS
 typedef struct amiport_stat stat;
+#endif
 
 /* Mode flags */
 #define AMIPORT_S_IFMT   0170000  /* Mask for file type bits */
