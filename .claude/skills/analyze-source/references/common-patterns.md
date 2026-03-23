@@ -209,7 +209,7 @@ expand wildcards — they pass them literally.
 (opens, reads, or stats them). If so, it needs argv expansion.
 
 **Amiga solution**: Add `amiport_expand_argv(&argc, &argv)` at top of `main()` and
-`amiport_free_argv()` before `_exit()`. Include `<amiport/glob.h>`.
+`amiport_free_argv()` via `atexit()`. Include `<amiport/glob.h>`.
 
 **Exception**: Programs that accept regex/pattern arguments (grep, sed, awk, find)
 need `int __nowild = 1;` at file scope to prevent expansion of pattern args.

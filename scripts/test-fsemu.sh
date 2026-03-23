@@ -555,11 +555,29 @@ parse_results() {
     cat "$tap_file"
     echo ""
 
-    # Parse pass/fail counts
+    # Parse pass/fail counts from actual test lines
     local total passed failed
     total=$(grep -cE "^ok |^not ok" "$tap_file" 2>/dev/null) || total=0
     passed=$(grep -c "^ok " "$tap_file" 2>/dev/null) || passed=0
     failed=$(grep -c "^not ok" "$tap_file" 2>/dev/null) || failed=0
+
+    # Check TAP plan line (1..N) for expected test count — if fewer tests
+    # ran than planned, the harness crashed mid-suite (e.g., Guru Meditation).
+    # Report the missing tests so they aren't silently swallowed.
+    local planned=0
+    local plan_line
+    plan_line=$(grep -E "^1\.\.[0-9]+" "$tap_file" 2>/dev/null | head -1)
+    if [ -n "$plan_line" ]; then
+        planned=${plan_line#1..}
+        if [ "$total" -lt "$planned" ]; then
+            local missing=$(( planned - total ))
+            echo -e "${YELLOW}WARNING: $missing tests did not run (planned $planned, got $total)${NC}"
+            echo "  The ARexx harness likely crashed mid-suite (Guru Meditation on a test command)."
+            echo "  Re-run with --debug to capture Enforcer data."
+            # Count missing tests as failures so the overall result is FAIL
+            failed=$(( failed + missing ))
+        fi
+    fi
 
     if [ "$failed" -gt 0 ]; then
         echo -e "${RED}RESULT: $passed/$total passed, $failed FAILED${NC}"

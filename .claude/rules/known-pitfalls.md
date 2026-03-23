@@ -123,6 +123,27 @@ The `d_type` field in `struct dirent` is never populated by AmigaOS filesystems 
 
 The `__progname` variable is declared as a weak symbol in `argv_expand.o` (inside `libamiport.a`). Even though the object is linked (because `amiport_expand_argv()` is called), the weak data symbol `__progname` may not survive in the final binary — bebbo-gcc's linker can strip unreferenced weak data symbols from archive members. The result: `__progname` resolves to address 0 (or garbage), and any `fprintf(stderr, "%s", __progname)` in `usage()` crashes with an invalid memory access. On FS-UAE this manifests as garbled output flooding the console before a Guru Meditation. **Fix:** Define `__progname` directly in the ported source: `char *__progname = "progname";`. The `amiport_expand_argv()` function writes to it via the extern declaration, so it will be updated from argv[0] at runtime. Discovered in the uniq 1.33 port.
 
-## Braceless Multi-Statement if/else With _exit()
+## Braceless Multi-Statement if/else Blocks
 
-When adding Amiga exit code blocks (`fflush(stdout); _exit(RC);`), forgetting braces around two-statement if/else branches is a common and subtle bug. In C, only the first statement belongs to the branch — `_exit()` executes unconditionally. The program appears to work but always exits with the wrong code. **Fix:** Always use braces when a branch has more than one statement. This was discovered in the grep 1.68 port where the exit-code logic always returned 0 regardless of match/error status.
+When adding multi-statement blocks to if/else branches (e.g., `fflush(stdout); exit(RC);`), forgetting braces is a common and subtle bug. In C, only the first statement belongs to the branch — the second executes unconditionally. The program appears to work but always exits with the wrong code. **Fix:** Always use braces when a branch has more than one statement. This was discovered in the grep 1.68 port where the exit-code logic always returned 0 regardless of match/error status.
+
+Note: the `_exit()` pattern referenced in older code was based on a debunked exit hang theory (crash-patterns #9). Use `exit()` with `atexit()` cleanup instead.
+
+## obsolete() Argv Rewrite Leaks Memory
+
+Many OpenBSD utilities have an `obsolete()` function that rewrites old-style numeric options (`+2` → `-s2`, `-3` → `-f3`) by malloc'ing new strings and assigning them to `*argv`. These strings are never freed because the pointers are stored in argv (which is not tracked for cleanup). On AmigaOS with `-noixemul`, this is a permanent leak per invocation. Affected ports: grep, tail, uniq, and any OpenBSD tool with `obsolete()`.
+
+**Fix:** Track allocations in a static array and free them in the atexit cleanup function:
+```c
+#define MAX_OBSOLETE_ALLOCS 4
+static char *obsolete_allocs[MAX_OBSOLETE_ALLOCS];
+static int obsolete_alloc_count;
+
+/* In obsolete(), after malloc: */
+if (obsolete_alloc_count < MAX_OBSOLETE_ALLOCS)
+    obsolete_allocs[obsolete_alloc_count++] = start;
+
+/* In cleanup(), before amiport_free_argv(): */
+for (i = 0; i < obsolete_alloc_count; i++)
+    free(obsolete_allocs[i]);
+```

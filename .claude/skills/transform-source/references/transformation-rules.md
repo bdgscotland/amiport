@@ -558,21 +558,14 @@ See `redesign-patterns.md` in this same directory for all available patterns.
 Every POSIX exit code must be remapped to Amiga conventions. Apply these systematically
 across ALL source files after all other transformations are complete.
 
-**IMPORTANT:** The final `exit()` call in `main()` MUST use `_exit()` instead of `exit()`.
-libnix's `exit()` atexit handlers hang on real AmigaOS when stdio is connected to a
-console. Always do explicit cleanup + `fflush(stdout)` + `_exit(rval)`.
+**NOTE:** The libnix exit() hang (crash-patterns #9) was **DEBUNKED** — it was caused by
+ARexx syntax errors in the test harness, not by exit() itself. Use regular `exit()`
+everywhere. Do NOT use `_exit()` — it bypasses atexit handlers, defeating cleanup
+patterns like `amiport_free_argv()` and `fflush(stdout)` that are critical on AmigaOS
+(no automatic process memory cleanup with -noixemul).
 
 ```c
 /* RULE: Replace POSIX exit codes with Amiga equivalents */
-
-/* Final exit in main() — use _exit() to avoid libnix atexit hang */
-// Before:
-exit(rval);
-// After:
-fflush(stdout);          /* amiport: explicit flush — libnix exit() hangs on AmigaOS console */
-_exit(rval);             /* amiport: _exit() bypasses atexit handlers that hang on AmigaOS */
-
-/* Other exit() calls (error paths, usage) — keep as exit() for cleanup */
 // Before:
 exit(1);
 // After:
@@ -672,7 +665,7 @@ When you encounter these, **do not silently remove them**. Stub with a clear mes
 
 ### argv wildcard expansion
 Every ported program SHOULD call `amiport_expand_argv()` at the top of `main()` and
-`amiport_free_argv()` before `_exit()`. This expands wildcard arguments (*.c, #?.c)
+`amiport_free_argv()` via atexit(). This expands wildcard arguments (*.c, #?.c)
 since AmigaOS shells do not glob-expand like Unix.
 
 ```c
@@ -680,17 +673,21 @@ since AmigaOS shells do not glob-expand like Unix.
 
 #include <amiport/glob.h>
 
+static void cleanup(void) {
+    amiport_free_argv();
+    (void)fflush(stdout);
+}
+
 int main(int argc, char *argv[])
 {
     /* amiport: expand wildcard args — Amiga shell doesn't glob */
     amiport_expand_argv(&argc, &argv);
+    /* amiport: register cleanup for all exit paths including err()/errx() */
+    atexit(cleanup);
 
     /* ... original main body ... */
 
-    /* amiport: free expanded argv before exit */
-    amiport_free_argv();
-    fflush(stdout);
-    _exit(rval);
+    exit(rval); /* atexit cleanup handles amiport_free_argv + fflush */
 }
 ```
 
@@ -769,30 +766,18 @@ while (1) {
 Rules derived from `docs/references/crash-patterns.md`. Apply these AFTER all other
 transformations to prevent known AmigaOS-specific bugs.
 
-### exit() → _exit() at end of main() (crash-patterns #9)
+### ~~exit() → _exit() at end of main()~~ DEBUNKED (crash-patterns #9)
 
-libnix's `exit()` calls atexit handlers that deadlock when closing console-connected
-stdio streams. `_exit()` bypasses atexit and goes straight to AmigaDOS `Exit()`.
+The libnix exit() hang was **DEBUNKED** — it was caused by ARexx syntax errors in the
+FS-UAE test harness (UTF-8 characters and `\=` operator), not by exit() itself. Testing
+with minimal programs on FS-UAE + Workbench 3.1 confirmed that `exit(0)` returns
+immediately. See known-pitfalls.md "exit() Hangs on AmigaOS — DEBUNKED".
 
-**IMPORTANT:** Only change `exit()` at the final return point of `main()`. Do NOT change
-`exit()` in error paths, `err()`/`errx()` calls, or helper functions — those still need
-atexit cleanup for proper resource release.
+**Do NOT use `_exit()` in ported code.** `_exit()` bypasses atexit handlers, which
+defeats cleanup patterns (`amiport_free_argv()`, memory freeing) that are critical on
+AmigaOS where there is no automatic process memory cleanup with `-noixemul`.
 
-```c
-/* RULE: Replace exit() with _exit() at end of main() */
-
-// Before (at end of main()):
-exit(0);
-// After:
-fflush(stdout); /* amiport: flush before _exit — no atexit handlers */
-_exit(0); /* amiport: _exit to avoid libnix exit() hang (crash-patterns #9) */
-
-// Before (with variable):
-exit(rval);
-// After:
-fflush(stdout);
-_exit(rval); /* amiport: _exit to avoid libnix exit() hang (crash-patterns #9) */
-```
+Use `exit()` normally. Register cleanup via `atexit()` at the top of main().
 
 ### Missing __stack cookie (crash-patterns #7)
 
