@@ -5,8 +5,8 @@
 | Field | Value |
 |-------|-------|
 | Port | diff |
-| Date | 2026-03-22 15:03:53 |
-| Duration | 62s |
+| Date | 2026-03-22 22:11:10 |
+| Duration | 54s |
 | Platform | FS-UAE 3.2.35 (A1200, Kickstart 3.1) |
 | Binary | `WORK:diff` (59K) |
 | Test method | ARexx harness → TAP output |

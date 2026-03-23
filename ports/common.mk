@@ -80,4 +80,4 @@ package: $(TARGET)
 	@echo "  $(TARGET)-$(PKG_SUFFIX).readme  — upload alongside the .lha"
 
 clean:
-	rm -f $(TARGET) $(TARGET)-*.lha $(TARGET).map
+	rm -f ported/*.o $(TARGET).map
