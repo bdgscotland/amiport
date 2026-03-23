@@ -34,6 +34,13 @@
 static bc_array_node *copy_tree (bc_array_node *ary_node, int depth);
 static bc_array *copy_array (bc_array *ary);
 
+/* amiport: free-list pools to eliminate malloc/free churn on 68000.
+   Every arithmetic instruction pushes/pops estack_rec; every function
+   call pushes/pops fstack_rec. On AmigaOS malloc walks the free list
+   at 200-400 cycles per call. Pooling eliminates this from hot paths. */
+static estack_rec *_estack_free = NULL;
+static fstack_rec *_fstack_free = NULL;
+
 
 /* Initialize the storage at the beginning of the run. */
 
@@ -239,7 +246,9 @@ fpop(void)
       temp = fn_stack;
       fn_stack = temp->s_next;
       retval = temp->s_val;
-      free (temp);
+      /* amiport: return to pool instead of free */
+      temp->s_next = _fstack_free;
+      _fstack_free = temp;
     }
   else
     {
@@ -257,7 +266,13 @@ fpush (int val)
 {
   fstack_rec *temp;
   
-  temp = bc_malloc (sizeof (fstack_rec));
+  /* amiport: allocate from pool if available */
+  if (_fstack_free != NULL) {
+    temp = _fstack_free;
+    _fstack_free = temp->s_next;
+  } else {
+    temp = bc_malloc (sizeof (fstack_rec));
+  }
   temp->s_next = fn_stack;
   temp->s_val = val;
   fn_stack = temp;
@@ -276,7 +291,9 @@ pop (void)
       temp = ex_stack;
       ex_stack = temp->s_next;
       bc_free_num (&temp->s_num);
-      free (temp);
+      /* amiport: return to pool instead of free */
+      temp->s_next = _estack_free;
+      _estack_free = temp;
     }
 }
 
@@ -288,7 +305,13 @@ push_copy (bc_num num)
 {
   estack_rec *temp;
 
-  temp = bc_malloc (sizeof (estack_rec));
+  /* amiport: allocate from pool if available */
+  if (_estack_free != NULL) {
+    temp = _estack_free;
+    _estack_free = temp->s_next;
+  } else {
+    temp = bc_malloc (sizeof (estack_rec));
+  }
   temp->s_num = bc_copy_num (num);
   temp->s_next = ex_stack;
   ex_stack = temp;
@@ -302,7 +325,13 @@ push_num (bc_num num)
 {
   estack_rec *temp;
 
-  temp = bc_malloc (sizeof (estack_rec));
+  /* amiport: allocate from pool if available */
+  if (_estack_free != NULL) {
+    temp = _estack_free;
+    _estack_free = temp->s_next;
+  } else {
+    temp = bc_malloc (sizeof (estack_rec));
+  }
   temp->s_num = num;
   temp->s_next = ex_stack;
   ex_stack = temp;
