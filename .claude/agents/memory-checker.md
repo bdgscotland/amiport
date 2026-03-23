@@ -81,9 +81,38 @@ When reviewing allocation patterns, consult:
 - `docs/references/adcd/libraries/exec-library.md` — AllocMem/AllocVec/FreeMem/FreeVec documentation and constraints
 - `docs/references/adcd/FUNCTIONS.md` — Cross-reference for any AmigaOS allocation function
 
+### 7. Pointer Ownership Analysis (CRITICAL — prevents fix-induced crashes)
+
+Before recommending `free(ptr)` for any allocation, you MUST verify three things:
+
+**a) Is the pointer exclusively owned?**
+If two data structures hold the same pointer (e.g., `f_names[i]` AND `name_tree->id` both point to the same `strdup` result), freeing one creates a dangling pointer in the other. This causes Guru `0100 0009` (AN_BadFreeAddr) or `8100 0005` (AN_MemCorrupt).
+- Trace where `strdup`/`malloc` results are stored
+- Check if `lookup()` or similar functions copy the pointer into multiple locations
+- If shared: document the leak as UNFIXABLE without restructuring, don't recommend free()
+
+**b) Are all array entries initialized?**
+Programs that grow arrays with realloc (`more_functions()`, `more_variables()` patterns) often leave new entries uninitialized. Iterating `for (i = 0; i < count; i++) free(array[i])` will free garbage pointers.
+- Check the growth function — does it `memset` or NULL-initialize new entries?
+- If not: only recommend freeing the array header, NOT individual entries
+- Flag as: "LEAK (unfixable — growth function leaves uninitialized slots)"
+
+**c) Could this be a double-free?**
+If you recommend freeing the same allocation in both an `atexit` cleanup AND an inline cleanup path, that's a double-free.
+- Check if `amiport_getenv()` results are freed inline AND tracked for atexit
+- Check if strdup results passed to functions are consumed (freed) by those functions on some paths but not others
+
+**Severity classification for fix recommendations:**
+- **SAFE:** Single-owner allocation, always initialized, no sharing → recommend free()
+- **RISKY:** Shared pointer or uninitialized array entries → document leak, do NOT recommend free()
+- **TRADEOFF:** Small leak (~200 bytes) vs complex ownership → recommend accepting the leak
+
+When in doubt, recommend accepting a small leak over risking a crash. A 200-byte leak per invocation is annoying. A Guru Meditation is unusable.
+
 ## Important
 
 - This check is MANDATORY for every port. Do not skip it.
 - Be thorough — a missed leak on AmigaOS causes permanent memory loss until reboot.
+- BUT: be conservative with fix recommendations. An incorrect free() is WORSE than a leak. See Section 7.
 - Focus on the ported code in `ports/<name>/ported/`, not the original in `original/`.
 - Check shim wrapper usage too — ensure amiport_* calls are properly balanced.
