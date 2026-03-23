@@ -17,6 +17,7 @@ Programs ported to AmigaOS 3.x using the amiport pipeline.
 | [sort](ports/sort/) | 1.0 | Sort lines of text files | CLI | Plan 9 from User Space (Lucent Public License 1.02) | Built & tested | Not submitted |
 | [uniq](ports/uniq/) | 1.33 | Filter/report repeated lines in files | CLI | OpenBSD uniq v1.33 (BSD 3-Clause) | Built & tested (29/29 FS-UAE) | Not submitted |
 | [yes](ports/yes/) | 1.9 | Repeatedly output a string | CLI | OpenBSD yes v1.9 (BSD 3-Clause) | Built & tested | Submitted 2026-03-22 |
+| [jq](ports/jq/) | 1.7.1 | Lightweight command-line JSON processor | CLI | jqlang jq 1.7.1 (MIT) | Built & tested (50/50 FS-UAE) | Not submitted |
 | [patch](ports/patch/) | 1.78 | Apply diff patches to source files | CLI | OpenBSD patch v1.78 (ISC + BSD) | Built & tested (42/42 FS-UAE) | Not submitted |
 
 ## Aminet Publication Tracking

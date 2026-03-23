@@ -30,6 +30,7 @@ amiport combines POSIX compatibility libraries, AI-powered build agents, and a c
 | [tail](ports/tail/) | 1.24 | CLI | Display last part of a file with follow mode (OpenBSD) | Built & tested |
 | [tee](ports/tee/) | 1.15 | CLI | Duplicate standard input (OpenBSD) | [Live on Aminet](https://aminet.net/package/util/cli/tee-1.15) |
 | [wc](ports/wc/) | 1.32 | CLI | Count lines, words, and characters (OpenBSD) | Built & tested |
+| [jq](ports/jq/) | 1.7.1 | CLI | Lightweight command-line JSON processor (jqlang) | Built & tested |
 | [patch](ports/patch/) | 1.78 | CLI | Apply diff patches to source files (OpenBSD) | Built & tested |
 | [uniq](ports/uniq/) | 1.33 | CLI | Filter/report repeated lines in files (OpenBSD) | Built & tested |
 | [yes](ports/yes/) | 1.9 | CLI | Repeatedly output a string (OpenBSD) | [Live on Aminet](https://aminet.net/package/util/cli/yes-1.9) |
