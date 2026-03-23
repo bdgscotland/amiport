@@ -1,13 +1,12 @@
-Short:        OpenBSD grep pattern search for AmigaOS
+Short:        OpenBSD grep pattern search utility
 Type:         util/cli
 Architecture: m68k-amigaos >= 3.0
 Uploader:     duncan@bowring.us
 Author:       James Howard / Dag-Erling Smorgrav (ported by Duncan Bowring)
 Version:      1.68
-Replaces:     util/cli/grep.lha
 URL:          https://github.com/bdgscotland/amiport
 
-grep — OpenBSD grep (pattern search) for AmigaOS
+grep — OpenBSD grep pattern search utility
 
 Original author: James Howard / Dag-Erling Smorgrav
 Ported by Duncan Bowring using amiport (AI-assisted porting toolkit).

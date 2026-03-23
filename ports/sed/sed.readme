@@ -1,11 +1,11 @@
-Short:        Stream editor (text transformation) for AmigaOS
+Short:        OpenBSD stream editor (sed) for AmigaOS
 Type:         util/cli
 Architecture: m68k-amigaos >= 3.0
 Uploader:     duncan@bowring.us
 Author:       Diomidis Spinellis / University of California, Berkeley (ported by Duncan Bowring)
 Version:      1.47
 
-sed — Stream editor (text transformation) for AmigaOS
+sed — OpenBSD stream editor (sed) for AmigaOS
 
 Original author: Diomidis Spinellis / University of California, Berkeley
 Ported by Duncan Bowring using amiport (AI-assisted porting toolkit).

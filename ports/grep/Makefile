@@ -4,7 +4,7 @@ include ../common.mk
 TARGET      = grep
 SOURCES     = ported/grep.c ported/util.c ported/file.c ported/queue.c ported/binary.c
 VERSION     = 1.68
-DESCRIPTION = OpenBSD grep (pattern search) for AmigaOS
+DESCRIPTION = OpenBSD grep pattern search utility
 AUTHOR      = James Howard / Dag-Erling Smorgrav
 
 # Category 1 CLI tool — uses Tier 2 regex emulation and Tier 1 posix-shim

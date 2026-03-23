@@ -1,11 +1,11 @@
-Short:        POSIX sort utility — sort lines of text files
+Short:        Sort lines of text files (Plan 9)
 Type:         util/cli
 Architecture: m68k-amigaos >= 3.0
 Uploader:     duncan@bowring.us
 Author:       Plan 9 / Lucent Technologies (ported by Duncan Bowring)
 Version:      1.0
 
-sort — POSIX sort utility — sort lines of text files
+sort — Sort lines of text files (Plan 9)
 
 Original author: Plan 9 from User Space (Lucent Technologies)
 Ported by Duncan Bowring using amiport (AI-assisted porting toolkit).

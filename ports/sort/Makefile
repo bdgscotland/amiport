@@ -2,7 +2,7 @@
 TARGET      = sort
 SOURCES     = ported/sort.c
 VERSION     = 1.0
-DESCRIPTION = POSIX sort utility — sort lines of text files
+DESCRIPTION = Sort lines of text files (Plan 9)
 AUTHOR      = Plan 9 from User Space (Lucent Technologies)
 
 include ../common.mk

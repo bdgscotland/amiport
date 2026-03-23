@@ -125,11 +125,32 @@ if [ "$DESC_LEN" -gt 40 ]; then
     echo "       \"$DESCRIPTION\""
     echo "       Shorten the DESCRIPTION in $PORT_DIR/Makefile"
     ERRORS=$((ERRORS + 1))
+else
+    echo "${GREEN}[OK]${RESET} Short description ($DESC_LEN chars): \"$DESCRIPTION\""
+fi
+
+# Validate Short description is ASCII-only (Aminet requirement)
+if echo "$DESCRIPTION" | LC_ALL=C grep -qP '[^\x00-\x7F]' 2>/dev/null; then
+    echo "${RED}[FAIL]${RESET} Short description contains non-ASCII characters"
+    echo "       Aminet requires pure ASCII. Replace em-dashes, smart quotes, etc."
+    ERRORS=$((ERRORS + 1))
+fi
+
+# Check for hallucinated Replaces: in existing .readme
+if [ -f "$PORT_DIR/${PORT_NAME}.readme" ]; then
+    REPLACES=$(grep -E '^Replaces:' "$PORT_DIR/${PORT_NAME}.readme" 2>/dev/null || true)
+    if [ -n "$REPLACES" ]; then
+        echo "${YELLOW}[WARN]${RESET} Existing .readme has Replaces: line"
+        echo "       $REPLACES"
+        echo "       Only valid if that exact path exists on Aminet."
+        echo "       For first-time uploads, Replaces: causes an upload error."
+    fi
 fi
 
 if [ "$ERRORS" -gt 0 ]; then
     echo ""
     echo "${RED}$ERRORS issue(s) must be fixed before publishing.${RESET}"
+    echo "See: https://wiki.aminet.net/Uploading_instructions"
     exit 1
 fi
 
@@ -197,6 +218,31 @@ and PORT.md documenting every transformation applied.
 READMEEOF
 
 echo "${GREEN}[OK]${RESET} Generated $README_FILE"
+
+# --- Validate generated .readme ---
+
+# Check line lengths (Aminet max: 78 chars per line)
+LONG_LINES=$(awk 'length > 78 { count++ } END { print count+0 }' "$README_FILE")
+if [ "$LONG_LINES" -gt 0 ]; then
+    echo "${YELLOW}[WARN]${RESET} .readme has $LONG_LINES lines > 78 chars (Aminet limit)"
+fi
+
+# Ensure LF-only line endings (no CR+LF)
+if grep -qP '\r' "$README_FILE" 2>/dev/null; then
+    echo "${YELLOW}[WARN]${RESET} .readme has Windows CR+LF line endings — converting to LF"
+    sed -i '' $'s/\r$//' "$README_FILE" 2>/dev/null || sed -i $'s/\r$//' "$README_FILE"
+fi
+
+# Validate archive filename length (Aminet max: 30 chars including extension)
+ARCHIVE_BASENAME="${ARCHIVE_NAME}.lha"
+ARCHIVE_NAMELEN=${#ARCHIVE_BASENAME}
+if [ "$ARCHIVE_NAMELEN" -gt 30 ]; then
+    echo "${RED}[FAIL]${RESET} Archive filename too long ($ARCHIVE_NAMELEN chars, max 30): $ARCHIVE_BASENAME"
+    echo "       See: https://wiki.aminet.net/Uploading_instructions"
+    exit 1
+else
+    echo "${GREEN}[OK]${RESET} Archive filename ($ARCHIVE_NAMELEN chars): $ARCHIVE_BASENAME"
+fi
 
 # --- Build archive ---
 
