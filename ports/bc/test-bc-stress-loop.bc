@@ -1,0 +1,7 @@
+/* Stress: 10000 iterations exercising stack push/pop pools */
+x = 0
+for (i = 0; i < 10000; i++) {
+  x = x + i
+}
+x
+quit

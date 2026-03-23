@@ -5,17 +5,17 @@
 | Field | Value |
 |-------|-------|
 | Port | bc |
-| Date | 2026-03-23 19:10:17 |
-| Duration | 37s |
+| Date | 2026-03-23 19:24:45 |
+| Duration | 77s |
 | Platform | FS-UAE 3.2.35 (A1200, Kickstart 3.1) |
 | Binary | `WORK:bc` (105K) |
 | Test method | ARexx harness → TAP output |
-| Result | **PASS** — 31/31 passed |
+| Result | **PASS** — 37/37 passed |
 
 ## Test Results
 
 ```
-1..31
+1..37
 ok 1 - Version flag (-v) prints version to stdout
 ok 2 - Help flag (-h) prints usage to stdout
 ok 3 - Quiet flag (-q) suppresses welcome banner
@@ -47,7 +47,13 @@ ok 28 - Large exponent -- 2^10 integer result fits in output
 ok 29 - Amiga WORK: path resolves correctly for script file
 ok 30 - Math library loads correctly from Amiga binary path
 ok 31 - Compile-only mode works on Amiga without executing bytecode
-# passed: 31 failed: 0 total: 31
+ok 32 - Real-world -- factorial of 50 (large integer multiplication)
+ok 33 - Real-world -- fibonacci(100) (loop iteration + large integer growth)
+ok 34 - Stress -- 10000 loop iterations (exercises stack push/pop pools)
+ok 35 - Precision -- e(1) to 50 digits matches known constant
+ok 36 - Nested functions -- oct(1) = 16 (exercises fpush/fpop pool)
+ok 37 - Precision -- pi to 100 digits (math library stress + precision validation)
+# passed: 37 failed: 0 total: 37
 ```
 
 ### Breakdown
@@ -85,6 +91,12 @@ ok 31 - Compile-only mode works on Amiga without executing bytecode
 | 29 | Amiga WORK: path resolves correctly for script file | PASS | |
 | 30 | Math library loads correctly from Amiga binary path | PASS | |
 | 31 | Compile-only mode works on Amiga without executing bytecode | PASS | |
+| 32 | Real-world -- factorial of 50 (large integer multiplication) | PASS | |
+| 33 | Real-world -- fibonacci(100) (loop iteration + large integer growth) | PASS | |
+| 34 | Stress -- 10000 loop iterations (exercises stack push/pop pools) | PASS | |
+| 35 | Precision -- e(1) to 50 digits matches known constant | PASS | |
+| 36 | Nested functions -- oct(1) = 16 (exercises fpush/fpop pool) | PASS | |
+| 37 | Precision -- pi to 100 digits (math library stress + precision validation) | PASS | |
 
 ## Environment
 
@@ -286,6 +298,40 @@ TEST: Compile-only mode works on Amiga without executing bytecode
 CMD: WORK:bc -c -q WORK:test-bc-add.bc
 EXPECT_CONTAINS: @r
 EXPECT_RC: 0
+
+# ===========================================================================
+# CATEGORY 6: Real-world and stress tests
+# ===========================================================================
+
+TEST: Real-world -- factorial of 50 (large integer multiplication)
+CMD: WORK:bc -q WORK:test-bc-factorial.bc
+EXPECT: 30414093201713378043612608166064768844377641568960512000000000000
+EXPECT_RC: 0
+
+TEST: Real-world -- fibonacci(100) (loop iteration + large integer growth)
+CMD: WORK:bc -q WORK:test-bc-fibonacci.bc
+EXPECT: 354224848179261915075
+EXPECT_RC: 0
+
+TEST: Stress -- 10000 loop iterations (exercises stack push/pop pools)
+CMD: WORK:bc -q WORK:test-bc-stress-loop.bc
+EXPECT: 49995000
+EXPECT_RC: 0
+
+TEST: Precision -- e(1) to 50 digits matches known constant
+CMD: WORK:bc -q -l WORK:test-bc-precision.bc
+EXPECT: 2.71828182845904523536028747135266249775724709369995
+EXPECT_RC: 0
+
+TEST: Nested functions -- oct(1) = 16 (exercises fpush/fpop pool)
+CMD: WORK:bc -q WORK:test-bc-nested-func.bc
+EXPECT: 16
+EXPECT_RC: 0
+
+TEST: Precision -- pi to 100 digits (math library stress + precision validation)
+CMD: WORK:bc -q -l WORK:test-bc-pi1000.bc
+EXPECT_CONTAINS: 3.14159265358979323846264338327950288419716939937510
+EXPECT_RC: 0
 ```
 
 ## Emulator Log
@@ -300,9 +346,9 @@ Written by the ARexx harness when all tests complete:
 
 ```
 TESTS_COMPLETE
-passed=31
+passed=37
 failed=0
-total=31
+total=37
 ```
 
 ---

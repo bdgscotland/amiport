@@ -46,13 +46,17 @@ Follow `docs/test-coverage-standard.md` "Deriving Test Cases" section:
 
 ## Required Test Categories
 
-Every test suite MUST include all five categories:
+Every test suite MUST include all six categories:
 
 1. **Functional tests** — at least one per documented flag/option
 2. **Error path tests** — at least one test with `EXPECT_RC: 10` (bad args, missing file)
 3. **Exit code tests** — at least one each of `EXPECT_RC: 0` and `EXPECT_RC: 10`; include `EXPECT_RC: 5` if the program has a warning exit (like grep no-match or diff files-differ)
 4. **Edge case tests** — empty file, long lines, binary file detection (where applicable)
 5. **Amiga-specific tests** — verify Amiga path handling works (WORK: volume paths)
+6. **Real-world and stress tests** — at least 5 tests that exercise the program under realistic or heavy workloads. These validate correctness beyond trivial inputs AND stress-test the optimized code paths (free-list pools, shift-based arithmetic, etc.). Minimum breakdown:
+   - **Real-world (2+):** use the program the way a real user would — multi-step scripts, complex pipelines, known reference outputs. Think "what would someone actually do with this tool?" not "what does the manual say it can do?"
+   - **Stress (2+):** large inputs, deep recursion, many iterations (10K+ loop iterations, large file processing, recursive function calls 10+ deep). These catch stack overflows, memory pool exhaustion, and performance regressions.
+   - **Precision (1+):** where applicable, verify output against known mathematical constants or reference implementations to catch arithmetic regressions from optimization (e.g., pi to N digits, known checksums, sort stability)
 
 ## Shared Test Data
 

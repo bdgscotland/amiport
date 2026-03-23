@@ -135,7 +135,7 @@ For Category 4 (Network): vamos cannot test networking. Build verification only.
 **5b. Test suite generation (MANDATORY):**
 Dispatch the `test-designer` agent to generate a comprehensive `test-fsemu-cases.txt`:
 
-The test-designer reads the ported source, man pages, and crash-patterns.md to generate a complete test suite meeting `docs/test-coverage-standard.md`. It produces test-fsemu-cases.txt with 8+ tests (CLI) or 10+ tests (scripting), covering all five required categories: functional, error path, exit code, edge case, and Amiga-specific.
+The test-designer reads the ported source, man pages, and crash-patterns.md to generate a complete test suite meeting `docs/test-coverage-standard.md`. It produces test-fsemu-cases.txt with 8+ tests (CLI) or 10+ tests (scripting), covering all six required categories: functional, error path, exit code, edge case, Amiga-specific, and real-world/stress.
 
 It runs BEFORE `make test-fsemu`. The test-designer has the `write-arexx` skill injected and understands ARexx constraints (ASCII-only files, no $ in CMD lines, ~= not \=).
 
@@ -187,7 +187,9 @@ Fix all memory safety issues before proceeding.
 - Memory access patterns (sequential vs random, alignment)
 - Stack-heavy recursion patterns that crash on real hardware but pass on vamos
 
-If 6b or 6c makes changes, **rebuild (Stage 4) and retest (Stage 5)** before proceeding.
+**Apply all CRITICAL and HIGH findings from 6b and 6c immediately.** Do not document them for follow-up — implement them now.
+
+If 6b or 6c makes changes, **rebuild (Stage 4) and retest (Stage 5)**, then **re-run 6b and 6c on the updated code**. Repeat until no CRITICAL or HIGH findings remain. This convergence loop ensures each optimization round doesn't introduce new issues and catches findings that were deprioritized when higher-severity items were present. MEDIUM and LOW findings may be documented in PORT.md without implementation.
 
 **6d. Runtime profiling (OPTIONAL):** For performance-critical ports, dispatch the `profiler` agent to empirically measure function timing using ReadEClock. This validates the perf-optimizer's static analysis with real data. The profiler instruments code with `AMIPORT_PROFILE_BEGIN/END` macros, builds with `-DAMIPORT_PROFILE`, and runs on vamos or FS-UAE.
 

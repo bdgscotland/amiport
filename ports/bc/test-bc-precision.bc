@@ -1,0 +1,4 @@
+/* Precision: e(1) to 50 digits — known value */
+scale=50
+e(1)
+quit
