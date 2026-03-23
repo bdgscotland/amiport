@@ -5,7 +5,7 @@ Uploader:     duncan@bowring.us
 Author:       Todd C. Miller, OpenBSD contributors (ported by Duncan Bowring)
 Version:      1.95
 
-diff — OpenBSD diff file comparison tool
+diff - OpenBSD diff file comparison tool
 
 Original author: University of California, Berkeley
 Ported by Duncan Bowring using amiport (AI-assisted porting toolkit).

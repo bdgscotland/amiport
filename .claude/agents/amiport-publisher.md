@@ -44,7 +44,21 @@ FAIL if tests exist and any fail. Report failures but allow user override.
 ### Gate 4: Memory checker has run
 Check PORT.md for evidence of memory-checker audit. WARN if no audit found.
 
-### Gate 5: User approval
+### Gate 5: Package JSON metadata freshness
+
+If `site/data/packages/<name>.json` already exists, verify ALL fields are current:
+
+1. **`size` + `sha256`** — recompute from the actual LHA file. FAIL if they don't match.
+2. **`stack`** — must match the `__stack` value in the ported source. FAIL if stale.
+3. **`readme`** — must match the current `.readme` file content (with email masking). FAIL if stale.
+4. **`test_count` + `test_pass`** — must match the latest FS-UAE test run. FAIL if stale.
+5. **`porting_notes`** — must reference the current test count and any significant changes since last publish (removed flags, added optimizations, crash fixes). WARN if it looks stale (e.g., references old test counts or missing known crash-pattern findings).
+6. **`known_limitations`** — must match the current state. WARN if stale.
+7. **`description`** — must match the .readme Short field. WARN if mismatched.
+
+If ANY field is stale, update it BEFORE presenting the approval gate. Do NOT deploy with stale metadata — fix it first, then ask for approval.
+
+### Gate 6: User approval
 Present the gate results summary and ask for explicit approval:
 ```
 GATE RESULTS for <name> v<version>:
@@ -52,6 +66,7 @@ GATE RESULTS for <name> v<version>:
   Gate 2 (vamos):      PASS/FAIL
   Gate 3 (FS-UAE):     PASS/FAIL/SKIP
   Gate 4 (memory):     PASS/WARN
+  Gate 5 (metadata):   PASS/UPDATED (list what was updated)
 
 Publish to amiport.platesteel.net? [y/n]
 ```

@@ -5,26 +5,14 @@ Uploader:     duncan@bowring.us
 Author:       Todd C. Miller, OpenBSD contributors (ported by Duncan Bowring)
 Version:      1.95
 
-diff — OpenBSD diff file comparison tool
+diff - OpenBSD diff file comparison tool
 
-Original author: University of California, Berkeley
+Original author: Todd C. Miller, OpenBSD contributors
 Ported by Duncan Bowring using amiport (AI-assisted porting toolkit).
 Project: https://github.com/bdgscotland/amiport
 
 Cross-compiled with m68k-amigaos-gcc for AmigaOS 3.x (68000+).
-Tested in vamos emulator.
-
-Usage:
-  diff file1 file2              Compare two files
-  diff -u file1 file2           Unified diff format
-  diff -c file1 file2           Context diff format
-  diff -r dir1 dir2             Recursive directory comparison
-  diff -i file1 file2           Ignore case differences
-
-Exit codes (Amiga-native):
-  0  = files identical (RETURN_OK)
-  5  = files differ (RETURN_WARN)
-  10 = error (RETURN_ERROR)
+Tested in vamos emulator and FS-UAE.
 
 Includes full source code (original POSIX and ported Amiga versions)
 and PORT.md documenting every transformation applied.

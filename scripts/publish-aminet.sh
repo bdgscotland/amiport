@@ -204,7 +204,7 @@ Uploader:     $UPLOADER_EMAIL
 Author:       $AUTHOR (ported by $UPLOADER_NAME)
 Version:      $VERSION
 
-$PORT_NAME — $DESCRIPTION
+$PORT_NAME - $DESCRIPTION
 
 Original author: $AUTHOR
 Ported by $UPLOADER_NAME using amiport (AI-assisted porting toolkit).

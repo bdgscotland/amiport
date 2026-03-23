@@ -77,4 +77,4 @@ test: $(TARGET)
 	@echo "=== $(TARGET) tests complete ==="
 
 clean:
-	rm -f $(TARGET) ported/*.o $(TARGET)-*.lha
+	rm -f ported/*.o
