@@ -1,0 +1,6 @@
+/* Nested function calls — exercises fpush/fpop pool */
+define double(x) { return 2*x }
+define quad(x) { return double(double(x)) }
+define oct(x) { return quad(quad(x)) }
+oct(1)
+quit
