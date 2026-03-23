@@ -137,22 +137,25 @@ body {
     align-items: center;
     justify-content: space-between;
     padding: var(--sp-xs) var(--sp-md);
-    height: 28px;
-    min-height: 28px;
+    height: 32px;
+    min-height: 32px;
     border-top: 1px solid var(--title-bar-shine);
     border-bottom: 1px solid var(--title-bar-shadow);
 }
 
 .screen-bar__brand {
-    font-size: var(--fs-lg);
-    font-weight: bold;
-    color: var(--amber-light);
     text-decoration: none;
-    letter-spacing: 1px;
+    display: flex;
+    align-items: center;
+    line-height: 0;
 }
 
-.screen-bar__brand:hover {
-    color: var(--amber);
+.screen-bar__brand svg {
+    display: block;
+}
+
+.screen-bar__brand:hover svg text {
+    fill: var(--amber);
 }
 
 .screen-bar__nav {
