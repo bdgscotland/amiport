@@ -20,8 +20,13 @@ CFLAGS += -std=gnu99
 CFLAGS := $(subst -O2,-O0,$(CFLAGS))
 
 # Stack: jq's recursive descent JSON parser and filter evaluator
-# need significant stack depth for nested structures
-VAMOS_STACK = 262144
+# need significant stack depth for nested structures.
+# VAMOS_STACK is in KB (vamos -s flag). 256 KB = 262144 bytes = __stack value.
+# The FS-UAE test runner uses "Stack 262144" (bytes) separately.
+VAMOS_STACK = 256
+# RAM: jq's 377KB binary + builtin library compilation needs ~8MB.
+# vamos default is 1MB which is insufficient to even load the binary.
+VAMOS_MEM = 8192
 
 # Internal include path for jq headers
 CFLAGS += -I ported
@@ -118,6 +123,9 @@ SOURCES = \
 
 test: $(TARGET)
 	@echo "=== Testing $(TARGET) ==="
-	echo '{"name":"amiga","year":1985}' | ../../toolchain/scripts/vamos ./$(TARGET) '.name'
-	echo '[1,2,3]' | ../../toolchain/scripts/vamos ./$(TARGET) '.[] | . * 2'
+	@# vamos defaults to 8 KiB stack and 1 MB RAM; the libnix __stack cookie is not read at runtime.
+	@# jq's recursive evaluator and builtin compilation need 256 KiB stack and ~8 MB RAM.
+	@# VAMOS_MEM is passed as an env var to avoid conflicting with program flags (-m).
+	echo '{"name":"amiga","year":1985}' | VAMOS_MEM=$(VAMOS_MEM) ../../toolchain/scripts/vamos -s $(VAMOS_STACK) -- ./$(TARGET) '.name'
+	echo '[1,2,3]' | VAMOS_MEM=$(VAMOS_MEM) ../../toolchain/scripts/vamos -s $(VAMOS_STACK) -- ./$(TARGET) '.[] | . * 2'
 	@echo "=== $(TARGET) tests complete ==="
