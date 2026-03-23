@@ -404,3 +404,95 @@ The flag was originally added to fix exit code 252 on vamos (libnix init list pl
 
 - **Port:** lua (5.4.7)
 - **Date:** 2026-03-22
+
+## 15. 68k Alignment=2 Corrupts Custom Allocator Data
+
+### offsetof-Based Alignment Gives 2 on 68k Instead of 4/8
+
+- **Signature:** Assertion failures with corrupted struct fields. The first byte (type tag, kind field, flags) reads as 0 while later fields contain valid-looking but shifted data. Crash is deterministic at a specific call number (e.g., always the 14th call). May appear to be a struct-by-value ABI issue but is actually allocator corruption.
+- **Root cause:** Code uses `offsetof(struct { char x; union { int; double; } u; }, u)` to calculate alignment for a custom allocator or slab stack. On x86/ARM this returns 4 or 8. **On 68k this returns 2** because the 68000 only requires 2-byte alignment for word/long access. The allocator packs blocks at 2-byte boundaries. When `int`/`long`/pointer values are stored before each block (e.g., a next-pointer or stack linkage), they land at 2-byte-aligned addresses. Reading these values back produces corrupted data due to how the allocator indexes into the memory.
+- **Diagnostic clue:** `ALIGNMENT` or similar alignment constant is 2. Custom stack/arena/slab allocator stores metadata (int-sized fields) interleaved with user data. Corruption manifests as wrong type tags or kind fields — the struct appears partially valid but the first byte is wrong.
+- **Fix:** Force minimum 4-byte alignment:
+  ```c
+  #include <amiport/compat.h>
+  enum {ALIGNMENT = AMIPORT_ALIGN(offsetof(struct determine_alignment, u))};
+  ```
+  Or directly: `((x) < 4) ? 4 : (x)`
+- **Detection:** Source-analyzer should flag any `offsetof` used in alignment calculations for allocators, arenas, or stack structures.
+- **Port:** jq (1.7.1) — `exec_stack.h` ALIGNMENT=2 corrupted VM stack
+- **Date:** 2026-03-23
+
+## 16. bebbo-gcc -O1/-O2 Corrupts Large Struct-by-Value Returns
+
+### GCC 6.5.0b Code Generation Bug for Structs > 8 Bytes on 68k
+
+- **Signature:** Functions that return structs > 8 bytes by value produce corrupted results at `-O1` or `-O2`. The struct's first byte (type tag, kind field) reads as 0 in the caller, despite being set correctly inside the returning function. Works correctly at `-O0`.
+- **Root cause:** bebbo-gcc 6.5.0b generates incorrect register/stack management for struct return values larger than 8 bytes at optimization levels >= -O1. The hidden pointer mechanism for struct returns interacts badly with register allocation when the return value is immediately consumed in an expression.
+- **Diagnostic clue:** (1) Struct type tag = 0 assertion, (2) struct > 8 bytes, (3) functions work in isolation, (4) crash disappears with `-O0`, (5) crash location varies with `-O1` vs `-O2`.
+- **Fix:** Compile with `-O0`. No source-level fix exists.
+  ```makefile
+  CFLAGS := $(subst -O2,-O0,$(CFLAGS))
+  ```
+- **Impact:** ~12% larger binary. Acceptable for complex ports.
+- **Detection:** Source-analyzer should flag functions returning structs > 8 bytes by value.
+- **NOT affected:** Simple ports returning int/pointer/char*.
+- **Port:** jq (1.7.1) — `jv` struct (16 bytes)
+- **Date:** 2026-03-23
+
+---
+
+## 16. libnix getopt_long Returns '?' for All Options
+
+### System getopt_long Is Broken — Use amiport/getopt.h
+
+- **Enforcer signature:** No Enforcer hits — program exits cleanly with RC=10. No crash.
+- **Symptom:** ALL functional tests return RC=10. Error-path tests that expect RC=10 appear to pass, but for the wrong reason. Debug output shows `ch=63` ('?') on the FIRST valid option.
+- **Root cause:** `<getopt.h>` from the bebbo/crosstools system include path provides a newlib-based `getopt_long` that does NOT correctly parse short options from the optstring. It returns `'?'` for every option, even ones present in the options string. The `'?'` return triggers the `default:` case → `usage()` → exit with RC=10.
+- **Detection:** Add `fprintf(stdout, "ch=%d\n", ch)` inside the getopt_long while loop. If `ch=63` appears for valid flags, this is the issue.
+- **Fix:** Replace `#include <getopt.h>` with `#include <amiport/getopt.h>`:
+  ```c
+  /* amiport: replaced <getopt.h> with amiport/getopt.h — libnix getopt_long
+   * returns '?' for all options (broken implementation). */
+  #include <amiport/getopt.h>
+  ```
+  The amiport implementation (`amiport_getopt_long()`) works correctly and is aliased
+  via macros to `getopt_long`, `optarg`, `optind`, etc. so no other changes are needed.
+- **Port:** patch (OpenBSD v1.78)
+- **Date:** 2026-03-23
+
+---
+
+## 17. dirname() Corrupts Its Input Buffer In-Place
+
+### POSIX dirname() Modifies the Argument String — Save a Copy First
+
+- **Enforcer signature:** No Enforcer hits — program fails with "can't find FILENAME" or
+  "can't open file : Operation not permitted" (empty filename) after `dirname()` is called.
+- **Symptom:** A filename argument stored in `filearg[0]` (or any buffer) is corrupted after
+  `dirname(filearg[0])` is called. Subsequent use of `filearg[0]` as a filename fails because
+  the string has been truncated or emptied by `dirname` modifying it in-place.
+- **Root cause:** POSIX specifies that `dirname()` is permitted to modify the input string.
+  OpenBSD's `dirname` uses a thread-local static buffer and does NOT modify the input, making
+  the OpenBSD source safe to call `dirname(filearg[0])`. The libnix `dirname` from `libgen.h`
+  DOES modify the input in-place (returns a pointer into the same buffer), corrupting it.
+  The faulting address in "can't open file : Operation not permitted" shows an empty string
+  because the truncated path `WORK:` has no file component.
+- **Fix option 1 (preferred when dirname result not needed):** Remove the `dirname()` call
+  entirely if its only purpose is to pass the result to another no-op (e.g., `unveil()` on
+  AmigaOS is always a no-op):
+  ```c
+  /* amiport: debug-agent — removed dirname(filearg[0]) + unveil(origdir).
+   * unveil() is a no-op on AmigaOS, so the whole block is dead code. */
+  if (unveil(filearg[0], "rwc") == -1) { ... }
+  ```
+- **Fix option 2 (when dirname result IS needed):** Pass a copy to dirname, keep it alive
+  until after origdir is consumed, then free it:
+  ```c
+  char *tmp = strdup(filearg[0]);
+  char *origdir = dirname(tmp);
+  /* use origdir here */
+  free(tmp);   /* NOTE: origdir is now invalid — use before freeing! */
+  ```
+- **Detection grep:** `dirname(<variable>)` where the variable is used again after the call.
+- **Port:** patch (OpenBSD v1.78)
+- **Date:** 2026-03-23

@@ -29,6 +29,7 @@ ADRs capture significant technical and architectural decisions with their contex
 | [ADR-019](019-agent-persona-and-tool-matrix.md) | Agent persona and tool matrix | Accepted | 2026-03-21 |
 | [ADR-020](020-git-hooks-for-doc-and-hygiene-validation.md) | Git hooks for documentation and hygiene validation | Accepted | 2026-03-21 |
 | [ADR-021](021-design-system-mui-warm-gray.md) | Website design system — Amiga MUI on warm gray | Accepted | 2026-03-22 |
+| [ADR-022](022-c99-compiler-support.md) | C99 compiler support for complex ports | Accepted | 2026-03-22 |
 
 ## Template
 

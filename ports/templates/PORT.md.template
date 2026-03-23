@@ -57,6 +57,13 @@
 |------|---------|-------|----------|--------|
 | | | | | |
 
+## Platform Compatibility Notes
+
+<!-- Document any 68k-specific issues encountered:
+- offsetof() alignment (crash-patterns #15): Did the port use custom allocators needing AMIPORT_ALIGN()?
+- Struct-by-value returns (crash-patterns #16): Did any functions need -O0 compilation?
+- Leave blank if no platform compatibility issues were found. -->
+
 ## Known Limitations
 
 <!-- Documented gaps with rationale. Not bugs — architectural constraints. -->

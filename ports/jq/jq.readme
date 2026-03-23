@@ -1,0 +1,34 @@
+Short:        Lightweight command-line JSON processor
+Type:         util/cli
+Architecture: m68k-amigaos >= 3.0
+Uploader:     duncan@bowring.us
+Author:       Stephen Dolan / jqlang (ported by Duncan Bowring)
+Version:      1.7.1
+
+jq - Lightweight command-line JSON processor
+
+jq is like sed for JSON data. You can slice, filter, map, and
+transform structured data with the same ease that sed, awk, grep,
+and friends let you manipulate text.
+
+Original author: Stephen Dolan / jqlang contributors
+Ported by Duncan Bowring using amiport (AI-assisted porting toolkit).
+Project: https://github.com/bdgscotland/amiport
+
+Cross-compiled with m68k-amigaos-gcc for AmigaOS 3.x (68020+).
+Tested in vamos emulator and FS-UAE.
+
+Usage:
+  jq [options] <filter> [file ...]
+  echo '{"name":"Amiga"}' | jq '.name'
+  jq '.[] | select(.age > 30)' data.json
+  jq -r '.results[].title' api_response.json
+
+Built without oniguruma regex library. Regex builtins (test,
+match, capture) return a runtime error message. All other jq
+functionality works: select, map, keys, has, add, reduce,
+group_by, sort_by, unique, flatten, range, path, env, debug,
+@base64, @uri, @csv, @tsv, @html, tojson/fromjson, and more.
+
+Includes full source code (original POSIX and ported Amiga versions)
+and PORT.md documenting every transformation applied.

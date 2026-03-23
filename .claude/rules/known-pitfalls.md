@@ -129,6 +129,24 @@ When adding multi-statement blocks to if/else branches (e.g., `fflush(stdout); e
 
 Note: the `_exit()` pattern referenced in older code was based on a debunked exit hang theory (crash-patterns #9). Use `exit()` with `atexit()` cleanup instead.
 
+## libnix getopt_long Is Broken — Use amiport/getopt.h
+
+The system `getopt_long()` from `<getopt.h>` exists as a symbol in libnix but returns `'?'` for ALL options, not just unknown ones. Every ported program using `getopt_long` will exit via usage() with RC=10 on the first option. This can masquerade as "works for error tests" since those expect RC=10.
+
+**Fix:** Replace `#include <getopt.h>` with `#include <amiport/getopt.h>`. The amiport implementation aliases `getopt_long` → `amiport_getopt_long`, so no other source changes are needed. See crash-patterns.md #16.
+
+**Detection:** If all functional tests return RC=10 and debug output shows `ch=63` ('?') for valid flags, this is the cause.
+
+## dirname() Corrupts Its Input Buffer
+
+`dirname(path)` is permitted by POSIX to modify the input string in-place. OpenBSD's `dirname` uses a static buffer and leaves the input alone — but libnix's `dirname` from `<libgen.h>` DOES modify the input. Any code that calls `dirname(filearg[0])` and then uses `filearg[0]` as a filename will find `filearg[0]` corrupted or empty.
+
+**Fix (when dirname result not needed):** Remove the `dirname()` call if the result is only passed to a no-op (e.g., `unveil()` is always a no-op on AmigaOS).
+
+**Fix (when dirname result IS needed):** Pass a `strdup()` copy to `dirname`, use the result, then free the copy AFTER you're done with the result (the result points into the copy's buffer).
+
+See crash-patterns.md #17.
+
 ## obsolete() Argv Rewrite Leaks Memory
 
 Many OpenBSD utilities have an `obsolete()` function that rewrites old-style numeric options (`+2` → `-s2`, `-3` → `-f3`) by malloc'ing new strings and assigning them to `*argv`. These strings are never freed because the pointers are stored in argv (which is not tracked for cleanup). On AmigaOS with `-noixemul`, this is a permanent leak per invocation. Affected ports: grep, tail, uniq, and any OpenBSD tool with `obsolete()`.
@@ -147,3 +165,11 @@ if (obsolete_alloc_count < MAX_OBSOLETE_ALLOCS)
 for (i = 0; i < obsolete_alloc_count; i++)
     free(obsolete_allocs[i]);
 ```
+
+## 68k Alignment Is 2, Not 4 or 8
+
+`offsetof(struct { char x; union { int; double; } u; }, u)` returns **2** on 68k (word alignment). Code that uses this for custom allocator alignment (arenas, slab stacks, memory pools) will pack blocks at 2-byte boundaries. Storing `int`/`long`/pointer metadata between blocks corrupts data when indexed. **Fix:** Use `AMIPORT_ALIGN(offsetof(...))` from `<amiport/compat.h>` to force minimum 4-byte alignment. See crash-patterns #15.
+
+## bebbo-gcc -O1/-O2 Corrupts Large Struct Returns
+
+GCC 6.5.0b for 68k generates incorrect code for functions returning structs > 8 bytes by value at `-O1` or `-O2`. The first byte of the struct reads as 0 in the caller despite being correct inside the function. **Fix:** Compile with `-O0`. Add `CFLAGS := $(subst -O2,-O0,$(CFLAGS))` to the port Makefile. No source-level workaround exists. See crash-patterns #16.

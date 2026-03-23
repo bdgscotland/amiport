@@ -84,6 +84,7 @@ The project provides four libraries, corresponding to the tiered compatibility m
 | `lib/posix-emu/` | Tier 2: Approximate POSIX emulation with caveats | `-lamiport-emu` | `amiport_emu_*` |
 | `lib/console-shim/` | ncurses subset via Amiga console.device ANSI escapes (ADR-009) | `-lamiport-console` | ncurses-compatible |
 | `lib/bsdsocket-shim/` | BSD socket API via bsdsocket.library with auto lifecycle (ADR-010) | `-lamiport-net` | `amiport_*` |
+| `lib/posix-shim/include/amiport/compat.h` | Platform compatibility layer: alignment macros, compiler workarounds (not a tier — cross-cutting) | included via `<amiport/compat.h>` | `AMIPORT_ALIGN()` |
 
 Key design principle: **one wrapper per POSIX function**, so transformations are simple function renames rather than complex inline rewrites.
 

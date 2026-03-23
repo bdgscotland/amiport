@@ -118,6 +118,12 @@ Transformed code should use these includes for shim functions:
 
 Or simply `#include <amiport/amiport.h>` for everything.
 
+For platform compatibility (alignment macros, compiler workarounds):
+```c
+#include <amiport/compat.h>
+```
+Use `AMIPORT_ALIGN(size, align)` when code uses `offsetof()` for memory alignment in custom allocators — 68k `offsetof()` returns 2 instead of 4/8, corrupting allocator metadata (crash-patterns #15).
+
 ## Output
 
 After transformation, report:

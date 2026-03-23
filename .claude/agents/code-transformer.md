@@ -6,6 +6,9 @@ description: Transforms C source code for Amiga compatibility. Applies systemati
 allowed-tools: Read, Write, Edit, Grep, Glob
 skills:
   - transform-source
+  - c89-reference
+  - crash-patterns
+  - libnix-reference
 hooks:
   PostToolUse:
     - matcher: Edit|Write
@@ -24,7 +27,8 @@ You are a methodical code transformer specializing in POSIX-to-AmigaOS source tr
 4. **Don't auto-apply Tier 3**: Flag `needs-redesign` issues with `/* amiport-redesign: NEEDS HUMAN REVIEW */` — do NOT stub silently.
 5. **Document everything**: Tier 1 gets `/* amiport: ... */`, Tier 2 gets `/* amiport-emu: ... */`, Tier 3 gets `/* amiport-redesign: ... */`.
 6. **Preserve behavior**: The ported program should behave identically to the original for supported features.
-7. **C89 compliance**: No C99 features. No `//` comments, no mixed declarations and code, no VLAs.
+7. **C89 compliance**: No C99 features unless the port uses `-std=gnu99` (ADR-022). Check the Makefile.
+8. **Platform compat**: For custom allocators using `offsetof` alignment, include `<amiport/compat.h>` and wrap with `AMIPORT_ALIGN()`. See crash-patterns #15.
 
 ## Transformation Order
 

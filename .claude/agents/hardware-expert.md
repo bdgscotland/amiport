@@ -50,6 +50,7 @@ You are an Amiga hardware architecture specialist. You own **hardware truth** fo
 | 68060 | PGA-206 | Accelerators only | 32-bit | 32-bit | 8KB I + 8KB D | Yes | Superscalar; MOVEP and some other instructions emulated |
 
 **Critical facts:**
+- **68k alignment is 2 bytes, not 4/8.** `offsetof()` and struct padding use 2-byte alignment on all 68k variants. Code ported from x86/ARM that assumes 4- or 8-byte alignment from `offsetof()` will pack data too tightly, corrupting metadata in custom allocators (crash-patterns #15).
 - The "EC" prefix means **cost-reduced with material capability loss**: 68EC020 = 24-bit address bus. 68EC030 = no MMU.
 - Stock A1200 uses 68EC020, NOT full 68020. This is the single most common misconception.
 - Enforcer requires an MMU: works on 68030 (non-EC), 68040, 68060. Does NOT work on 68000, 68EC020, 68020, or 68EC030.

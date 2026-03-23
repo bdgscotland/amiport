@@ -12,12 +12,15 @@ This applies to: shim implementations, new library features (profiler, crash han
 
 ## Language Standard
 
-- **ANSI C89** only. No C99 features unless targeting OS 4.x.
+- **ANSI C89 by default.** New code (shim libraries, examples) must use C89.
+- **`-std=gnu99` permitted for ports** where the upstream source requires C99 (see ADR-022). Add `CFLAGS += -std=gnu99` to the port Makefile and document in PORT.md.
+- C99 **language** features (for-init declarations, `//` comments, mixed declarations, `inline`) are OK when using gnu99. C99 **library** functions are NOT assumed available — libnix is a C89 runtime. Check `docs/references/libnix-reference.md` before using any C99 stdlib addition.
 
 ## Headers
 
 - Use `<proto/*.h>` for Amiga system calls (never `<clib/*.h>` pragmas).
 - Replace `<stdlib.h>` with `<amiport/stdlib.h>` — activates the `exit()` → `amiport_exit()` macro.
+- Use `<amiport/compat.h>` for platform compatibility macros (`AMIPORT_ALIGN()`, compiler workarounds).
 
 ## Types
 
@@ -63,6 +66,11 @@ Document every POSIX-to-Amiga transformation:
 ```c
 /* amiport: replaced POSIX open() with amiport_open() */
 ```
+
+## Platform Compatibility
+
+- **68k alignment (crash-patterns #15):** `offsetof()` returns 2 on 68k, not 4/8. Custom allocators using `offsetof()` for alignment will corrupt metadata. Use `AMIPORT_ALIGN(size, align)` from `<amiport/compat.h>`.
+- **Struct-by-value returns (crash-patterns #16):** bebbo-gcc (GCC 6.5.0b) corrupts struct returns > 8 bytes at `-O1`/`-O2`. Compile with `-O0` or refactor to return via pointer.
 
 ## Cross-Platform
 
