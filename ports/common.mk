@@ -24,6 +24,9 @@ NATIVE_CFLAGS = -O2 -Wall
 VERSION ?= 1.0
 REVISION ?= 1
 
+# vamos memory limit in KiB (default 4MB — increase for large binaries like jq)
+VAMOS_MEM ?= 4096
+
 # Package suffix: version alone for rev 1, version-revision for rev 2+
 ifeq ($(REVISION),1)
 PKG_SUFFIX = $(VERSION)

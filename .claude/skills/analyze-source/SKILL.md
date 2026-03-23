@@ -15,12 +15,13 @@ You are analyzing the C source code at `$ARGUMENTS` to determine what changes ar
 2. **Catalog `#include` directives** — identify which headers are POSIX-specific vs standard C
 3. **Identify system calls** — find all function calls that are POSIX/Linux-specific
 4. **Detect blocking patterns** — fork/exec, mmap, pthreads, sockets, x86 asm
-5. **Check architecture assumptions** (see below)
-6. **Classify each issue** by tier and severity (see ADR-008 and `docs/posix-tiers.md`):
+5. **Count C99 features**: grep for `for (int`, `//` comments, mixed declarations. If >10 occurrences, recommend `-std=gnu99` (ADR-022) to avoid mechanical conversion.
+6. **Check architecture assumptions** (see below)
+7. **Classify each issue** by tier and severity (see ADR-008 and `docs/posix-tiers.md`):
    - **Tier 1 — Shim** (green): `trivial` or `needs-shim` — Direct or near-direct AmigaDOS mapping via `lib/posix-shim/`
    - **Tier 2 — Emulation** (yellow): `needs-emu` — Approximate mapping via `lib/posix-emu/` with documented behavioural differences
    - **Tier 3 — Redesign** (red): `needs-redesign` — No library can bridge this; requires structural rewrite using patterns from `redesign-patterns.md`
-7. **Produce a structured report**
+8. **Produce a structured report**
 
 ## Architecture & Compiler Checks
 

@@ -18,6 +18,16 @@ AUTHOR      = __AUTHOR__
 # Uncomment if the port has struct-by-value returns > 8 bytes (crash-patterns #16):
 # CFLAGS += -O0  # bebbo-gcc corrupts large struct returns at -O1/-O2
 
+# For ports with 5+ source files, consider per-file compilation (each .c -> .o,
+# then link) instead of single-command compilation. This enables per-file
+# optimization levels (e.g., -O0 for one file, -O2 for the rest) and faster
+# rebuild iterations. Example:
+#   OBJECTS = ported/main.o ported/util.o ported/parser.o
+#   ported/parser.o: ported/parser.c
+#   	$(CC) $(CFLAGS) -O0 -c -o $@ $<   # -O0 for this file only
+#   $(TARGET): $(OBJECTS) $(SHIM_LIB)
+#   	$(CC) $(CFLAGS) -o $(TARGET) $(OBJECTS) $(LDFLAGS)
+
 .PHONY: all clean test package compare
 
 test: $(TARGET)

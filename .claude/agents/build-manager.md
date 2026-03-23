@@ -67,6 +67,7 @@ If the build succeeds but the program crashes at runtime with struct corruption 
 
 1. **Check if the program returns structs > 8 bytes by value.** If yes, try `-O0` — bebbo-gcc 6.5.0b has a code generation bug that corrupts large struct returns at `-O1`/`-O2`. See crash-patterns #16.
 2. **Check for custom allocators using `offsetof` alignment.** If ALIGNMENT is 2 (68k default), it corrupts allocator metadata. Fix with `AMIPORT_ALIGN()` from `<amiport/compat.h>`. See crash-patterns #15.
+3. **Auto-retry with `-O0` on struct corruption symptoms.** If assertions fail with `kind=0`, `type=0`, or `flags=0x00` (struct tag/type fields read as zero), this is almost certainly the bebbo-gcc `-O2` struct return bug. AUTOMATICALLY rebuild with `-O0` (or per-file `-O0` for the affected translation unit) before investigating further.
 
 
 ## Shim Modification Rule
