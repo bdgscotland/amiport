@@ -214,6 +214,10 @@ The libnix-reference.md lists `random()` as available, but it is **absent from t
 
 When a port bundles its own GNU getopt (the correct approach — libnix's `getopt_long` is broken, see above), the `getopt`, `getopt_long`, `optarg`, `optind`, `opterr`, and `optopt` symbols clash with libnix's copies at link time. **Fix:** Add `-Wl,--allow-multiple-definition` to LDFLAGS. The bundled version (linked as object files) wins over libnix's archive version, which is the correct behavior. Discovered in bc 1.07.1 port.
 
+## atexit Cleanup Must Not Free Uninitialized Array Entries
+
+When programs use `more_*()` growth functions (realloc pattern: allocate larger array, copy old entries, leave new entries uninitialized), the `atexit` cleanup MUST NOT iterate and free individual entries. The new entries contain garbage pointers, and `free(garbage)` causes Guru `8100 0005` (AN_MemCorrupt — non-recoverable memory list corruption). **Fix:** Only free the array headers (`free(array_ptr)`), not individual entries like `free(array_ptr[i])`. Accept the ~200 byte leak of individual name strings as a tradeoff vs crashing. Discovered in bc 1.07.1 port — aggressive cleanup of `f_names[i]`/`v_names[i]`/`a_names[i]` entries caused AN_MemCorrupt because `more_functions()` leaves uninitialized slots after reallocation.
+
 ## bebbo-gcc -O1/-O2 Corrupts Large Struct Returns
 
 GCC 6.5.0b for 68k generates incorrect code for functions returning structs > 8 bytes by value at `-O1` or `-O2`. The first byte of the struct reads as 0 in the caller despite being correct inside the function. **Fix:** Compile with `-O0`. Add `CFLAGS := $(subst -O2,-O0,$(CFLAGS))` to the port Makefile. No source-level workaround exists. See crash-patterns #16.
