@@ -107,21 +107,45 @@ Verdict: HARD
 |---------|-------|
 | Compiler | m68k-amigaos-gcc 6.5.0 (bebbo) |
 | Target | m68k-amigaos, 68020+ |
-| CFLAGS | `-O2 -noixemul -std=gnu99 -m68000 -Wall` |
+| CFLAGS | `-O0 -noixemul -std=gnu99 -m68000 -Wall` (see crash-patterns #16) |
 | Libraries | `-lamiport -lm` |
-| Binary size | (TBD) |
+| Binary size | 377 KB (unstripped), ~340 KB (stripped) |
 
 ## Test Results
 
-(TBD — filled after Stage 5)
+50/50 FS-UAE tests pass (AmigaOS 3.1, 68020). Test suite covers:
+- 28 functional tests (all flags: -n, -r, -c, -s, -S, -R, -j, -a, -C, -M, -e, -f, --tab, --indent, --arg, --argjson, --args, --jsonargs, --rawfile, --slurpfile, --stream, --seq, --unbuffered, --run-tests, --build-configuration)
+- 5 error path tests (RC 20)
+- 2 exit code tests (RC 10)
+- 7 edge case tests (empty file, nested access, arithmetic, string concat)
+- 3 Amiga-specific tests (WORK: paths)
+- 5 real-world tests (select, group_by, sort_by, unique, add on 7-package dataset)
+
+## Performance
+
+| Workload | vamos (~10MHz) | Est. A1200 (14MHz 68020) |
+|----------|---------------|--------------------------|
+| --version | 0.13s | <1s |
+| Simple filter | 1.28s | ~7-12s |
+| 100 objects select+filter | 1.48s | ~9-14s |
+| 1000 objects | 2.36s | ~15-25s |
+
+87% of runtime is startup (compiling 13KB builtin library). Practical for config file processing on accelerated A1200.
 
 ## Known Limitations
 
 - **No regex:** `test()`, `match()`, `capture()`, `scan()`, `sub()`, `gsub()` return runtime errors (built without oniguruma)
 - **No arbitrary-precision decimals:** Uses IEEE 754 doubles (standard JSON behavior, but `1.1 + 2.2 != 3.3`)
 - **GNU math extensions unavailable:** Bessel functions (j0/j1/yn), tgamma, cbrt, erf, etc. return runtime errors
-- **Big-endian hashes:** Internal hash values differ from little-endian hosts (no correctness impact — hashes are internal-only)
+- **-O0 mandatory:** bebbo-gcc 6.5.0b corrupts struct returns >8 bytes at -O1/-O2 (crash-patterns #16). Binary is ~12% larger than -O2.
+- **Slow startup:** 1.14s on vamos for builtin compilation — architectural to jq, not fixable at source level
 
 ## Review
 
-(TBD — filled after Stage 6)
+Reviewed with 3 specialized agents (2 rounds each):
+- **Memory checker:** All leak paths fixed (14 total across 2 rounds). Safe for -noixemul.
+- **Perf optimizer:** Output buffer (3-5x), vfmt probe, MurmurHash alignment, escape batching. All applied.
+- **Hardware expert:** Stack 128KB, atexit flush, alignment fix verified correct for 68000-68060.
+- **Profiler:** 87% startup, linear scaling, output-bound for large workloads.
+
+Score: **READY** (with -O0 and known limitations documented)
