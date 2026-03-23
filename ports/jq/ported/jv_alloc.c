@@ -178,9 +178,13 @@ void jv_mem_free(void* p) {
 }
 
 void* jv_mem_realloc(void* p, size_t sz) {
-  p = realloc(p, sz);
-  if (!p) {
+  /* amiport: use intermediate pointer to avoid losing original on realloc failure.
+   * memory_exhausted() aborts, so the old pointer leaks permanently on AmigaOS. */
+  void* tmp = realloc(p, sz);
+  if (!tmp) {
     memory_exhausted();
+    /* memory_exhausted calls abort(), but if it somehow returns: */
+    return p;
   }
-  return p;
+  return tmp;
 }
