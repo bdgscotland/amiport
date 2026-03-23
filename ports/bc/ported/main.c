@@ -48,15 +48,25 @@ long __stack = 65536;
 static char *env_allocs[MAX_ENV_ALLOCS];
 static int env_alloc_count;
 
+/* amiport: mathlib strdup tracking removed — f_names[] cleanup handles these.
+   lookup() stores the strdup pointer in f_names[], so freeing f_names[i]
+   in bc_cleanup() covers all math lib function names. Tracking them separately
+   caused a double-free (Guru 0100 0009 = AN_BadFreeAddr). */
+
 /* amiport: cleanup function for atexit() — AmigaOS -noixemul has no process
-   memory cleanup. Free tracked allocations and flush stdout. */
+   memory cleanup. Free tracked allocations and top-level arrays.
+   NOTE: We only free array headers, NOT individual entries. Freeing individual
+   f_names[i]/v_names[i]/a_names[i] entries causes Guru 8100 0005 (AN_MemCorrupt)
+   because more_functions()/more_variables()/more_arrays() leave uninitialized
+   entries and reallocation invalidates old pointers. The ~200 bytes of name
+   string leaks is acceptable vs crashing. */
 static void bc_cleanup(void)
 {
   int i;
   /* Free tracked getenv results */
   for (i = 0; i < env_alloc_count; i++)
     free(env_allocs[i]);
-  /* Free global storage arrays */
+  /* Free global storage array headers only */
   if (f_names) {
     if (f_names[0]) free(f_names[0]); /* "(main)" strdup */
     free(f_names);
@@ -340,6 +350,7 @@ open_new_file (void)
       /* These MUST be in the order of first mention of each function.
 	 That is why "a" comes before "c" even though "a" is defined after
 	 after "c".  "a" is used in "s"! */
+      /* amiport: strdups freed via f_names[] in bc_cleanup() */
       (void) lookup (strdup("e"), FUNCT);
       (void) lookup (strdup("l"), FUNCT);
       (void) lookup (strdup("s"), FUNCT);
