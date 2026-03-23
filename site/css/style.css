@@ -137,8 +137,8 @@ body {
     align-items: center;
     justify-content: space-between;
     padding: var(--sp-xs) var(--sp-md);
-    height: 32px;
-    min-height: 32px;
+    height: 44px;
+    min-height: 44px;
     border-top: 1px solid var(--title-bar-shine);
     border-bottom: 1px solid var(--title-bar-shadow);
 }
