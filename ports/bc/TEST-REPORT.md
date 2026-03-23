@@ -5,7 +5,7 @@
 | Field | Value |
 |-------|-------|
 | Port | bc |
-| Date | 2026-03-23 19:24:45 |
+| Date | 2026-03-23 19:34:00 |
 | Duration | 77s |
 | Platform | FS-UAE 3.2.35 (A1200, Kickstart 3.1) |
 | Binary | `WORK:bc` (105K) |

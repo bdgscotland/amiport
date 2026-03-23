@@ -1,0 +1,1156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1920">
+<title>The Hard Direction — Duncan Bowring, Accenture</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   THE HARD DIRECTION — v4: Dense Strategy Deck
+   Aesthetic: Industrial Command Center × McKinsey
+   ============================================================ */
+
+@font-face {
+  font-family: 'Geist';
+  src: local('Geist'), local('GeistVF');
+  font-weight: 100 900;
+}
+
+:root {
+  --bg: #0C0A08;
+  --bg-panel: #161310;
+  --bg-card: #1C1814;
+  --bg-card-hover: #24201A;
+  --bg-inset: #0A0806;
+  --border: #2E2A24;
+  --border-bright: #4A4438;
+  --border-glow: #6A6050;
+  --text: #EDE6D8;
+  --text-2: #C0B8A8;
+  --text-3: #887E70;
+  --text-dim: #584E40;
+  --amber: #D4A020;
+  --amber-bright: #F0C848;
+  --amber-glow: rgba(212, 160, 32, 0.12);
+  --amber-deep: #8A6810;
+  --red: #D04838;
+  --red-dim: rgba(208, 72, 56, 0.15);
+  --green: #48A848;
+  --green-dim: rgba(72, 168, 72, 0.15);
+  --yellow: #C8A830;
+  --yellow-dim: rgba(200, 168, 48, 0.15);
+  --blue: #4888C8;
+  --ff: 'DM Sans', 'Geist', -apple-system, sans-serif;
+  --mono: 'Geist Mono', 'SF Mono', 'Fira Code', monospace;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+html, body { width:100%; height:100%; overflow:hidden; background:var(--bg); }
+
+/* ---- SLIDE SYSTEM ---- */
+.slide {
+  width:100vw; height:100vh;
+  display:none; flex-direction:column;
+  font-family:var(--ff);
+  color:var(--text);
+  background:var(--bg);
+  position:relative;
+  overflow:hidden;
+}
+.slide.active { display:flex; }
+
+/* Noise texture overlay */
+.slide::before {
+  content:'';
+  position:absolute; inset:0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  opacity:0.4;
+  pointer-events:none;
+  mix-blend-mode:overlay;
+}
+
+/* Subtle grid */
+.slide::after {
+  content:'';
+  position:absolute; inset:0;
+  background:
+    linear-gradient(90deg, var(--border) 1px, transparent 1px),
+    linear-gradient(var(--border) 1px, transparent 1px);
+  background-size: 80px 80px;
+  opacity:0.04;
+  pointer-events:none;
+}
+
+.sc { /* slide-content */
+  flex:1;
+  padding:44px 64px 12px;
+  position:relative; z-index:1;
+  display:flex; flex-direction:column;
+  gap:12px;
+}
+
+/* ---- STATUS BAR ---- */
+.sb {
+  height:36px;
+  background:linear-gradient(90deg, var(--bg-panel), var(--bg));
+  border-top:1px solid var(--border);
+  padding:0 20px;
+  font-family:var(--mono); font-size:11px;
+  color:var(--text-3);
+  display:flex; align-items:center; gap:6px;
+  flex-shrink:0;
+}
+.sb .a { color:var(--amber); }
+.sb .v { color:var(--text-2); }
+.sb .r { color:var(--red); font-weight:600; }
+.sb .s { color:var(--border-bright); }
+.sb .ct { margin-left:auto; }
+
+/* ---- TYPOGRAPHY ---- */
+.t1 { font-size:54px; font-weight:700; line-height:1.05; letter-spacing:-0.03em; color:var(--text); }
+.t1.big { font-size:68px; }
+.t2 { font-size:28px; font-weight:700; line-height:1.15; letter-spacing:-0.02em; color:var(--text); margin-bottom:8px; }
+.t3 { font-size:16px; font-weight:600; color:var(--amber); margin-bottom:6px; text-transform:uppercase; letter-spacing:0.06em; font-family:var(--mono); }
+.t4 { font-size:13px; font-weight:600; color:var(--text); margin-bottom:4px; }
+.sub { font-size:20px; color:var(--text-2); line-height:1.4; }
+.body { font-size:14px; color:var(--text-2); line-height:1.55; }
+.caption { font-size:11px; color:var(--text-3); line-height:1.4; font-family:var(--mono); }
+.label { font-family:var(--mono); font-size:10px; color:var(--amber); text-transform:uppercase; letter-spacing:0.1em; }
+.author { font-family:var(--mono); font-size:14px; color:var(--amber); letter-spacing:0.06em; text-transform:uppercase; }
+.em { color:var(--amber); font-style:italic; font-size:12px; }
+
+/* ---- STAT NUMBERS ---- */
+.n { font-family:var(--ff); font-weight:700; color:var(--amber-bright); letter-spacing:-0.04em; line-height:1; text-shadow:0 0 40px var(--amber-glow); }
+.n.xxl { font-size:110px; }
+.n.xl { font-size:80px; }
+.n.lg { font-size:52px; }
+.n.md { font-size:36px; }
+.n.sm { font-size:24px; }
+.nl { font-size:12px; color:var(--text-3); margin-top:4px; }
+
+/* ---- CARDS & PANELS ---- */
+.card {
+  background:var(--bg-card);
+  border:1px solid var(--border);
+  position:relative;
+  overflow:hidden;
+}
+.card::before {
+  content:'';
+  position:absolute; top:0; left:0; right:0;
+  height:2px;
+  background:linear-gradient(90deg, var(--amber-deep), transparent);
+}
+.card.red::before { background:linear-gradient(90deg, var(--red), transparent); }
+.card.green::before { background:linear-gradient(90deg, var(--green), transparent); }
+
+.card-h {
+  padding:8px 14px;
+  background:var(--bg-panel);
+  border-bottom:1px solid var(--border);
+  font-family:var(--mono); font-size:10px; font-weight:600;
+  color:var(--amber); text-transform:uppercase; letter-spacing:0.1em;
+}
+.card-h.red { color:var(--red); }
+.card-h.green { color:var(--green); }
+.card-b { padding:14px; }
+
+/* ---- TERMINAL ---- */
+.term {
+  background:var(--bg-inset);
+  border:1px solid var(--border);
+  border-top-color:#080604;
+  font-family:var(--mono); font-size:13px;
+  line-height:1.6; padding:12px 14px;
+  color:var(--text-2);
+  box-shadow:inset 0 2px 6px rgba(0,0,0,0.4);
+}
+.term .p { color:var(--amber); }
+.term .c { color:var(--text-dim); }
+.term .g { color:var(--green); }
+.term .r { color:var(--red); }
+.term .y { color:var(--yellow); }
+
+/* ---- TAGS ---- */
+.tag {
+  display:inline-block; font-family:var(--mono); font-size:10px;
+  padding:2px 6px; margin:0 2px 2px 0; border:1px solid;
+}
+.tag.ok { color:var(--green); border-color:rgba(72,168,72,0.3); background:var(--green-dim); }
+.tag.no { color:var(--red); border-color:rgba(208,72,56,0.3); background:var(--red-dim); text-decoration:line-through; }
+
+/* ---- TIER DOTS ---- */
+.dot { width:10px; height:10px; display:inline-block; vertical-align:middle; margin-right:6px; }
+.dot.g { background:var(--green); box-shadow:0 0 6px rgba(72,168,72,0.5); }
+.dot.y { background:var(--yellow); box-shadow:0 0 6px rgba(200,168,48,0.5); }
+.dot.r { background:var(--red); box-shadow:0 0 6px rgba(208,72,56,0.5); }
+
+/* ---- GATE BAR ---- */
+.gate { width:4px; height:36px; background:linear-gradient(180deg,var(--red),#601810); flex-shrink:0; box-shadow:0 0 4px rgba(208,72,56,0.3); }
+
+/* ---- CALLOUT ---- */
+.co {
+  background:linear-gradient(135deg, var(--bg-card), var(--bg-panel));
+  border:1px solid var(--amber);
+  border-left:3px solid var(--amber);
+  padding:12px 18px;
+  font-size:15px; color:var(--text); font-weight:500;
+  line-height:1.4;
+  box-shadow:0 0 16px var(--amber-glow);
+}
+.co strong { color:var(--amber-bright); }
+
+/* ---- LAYOUT ---- */
+.row { display:flex; gap:14px; }
+.col { display:flex; flex-direction:column; gap:8px; }
+.f1 { flex:1; }
+.f2 { flex:2; }
+.g2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.g3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; }
+.g4 { display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:10px; }
+.g5 { display:grid; grid-template-columns:repeat(5,1fr); gap:8px; }
+.vc { justify-content:center; }
+.mt { margin-top:auto; }
+.mb8 { margin-bottom:8px; }
+
+/* ---- IMAGES ---- */
+.slide img { border:1px solid var(--border); box-shadow:0 4px 16px rgba(0,0,0,0.5); }
+
+/* ---- COMPARISON ---- */
+.cmp { display:grid; grid-template-columns:1fr 1fr; border:1px solid var(--border); }
+.cmp-l { padding:18px; background:var(--bg-card); }
+.cmp-r { padding:18px; background:var(--bg-panel); border-left:1px solid var(--border); }
+.cmp ul { list-style:none; font-size:15px; line-height:1.9; }
+.cmp-l ul li { color:var(--amber); }
+.cmp-r ul li { color:var(--text-2); }
+
+/* ---- PILLARS ---- */
+.pillars { display:flex; gap:12px; }
+.pillar {
+  flex:1; padding:16px 20px;
+  background:var(--bg-card);
+  border:1px solid var(--border);
+  border-bottom:3px solid var(--amber);
+  font-size:17px; font-weight:700;
+  text-align:center;
+  box-shadow:0 2px 8px rgba(0,0,0,0.3);
+}
+
+/* ---- PIPELINE SVG ---- */
+.pipe-wrap { display:flex; align-items:center; gap:2px; }
+.pipe-box {
+  background:var(--bg-card); border:1px solid var(--border);
+  padding:8px 12px; text-align:center;
+  font-family:var(--mono); font-size:11px;
+  min-width:72px;
+}
+.pipe-box .pn { color:var(--amber); font-weight:700; display:block; font-size:13px; }
+.pipe-arr { color:var(--amber-deep); font-size:14px; }
+
+/* ---- ANIM ---- */
+@keyframes blink{0%,50%{opacity:1}51%,100%{opacity:0}}
+@keyframes pulse{0%,100%{opacity:0.6}50%{opacity:1}}
+@keyframes slideUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+/* Staggered entrance */
+.sc > * { animation: slideUp 0.4s ease both; }
+.sc > *:nth-child(1) { animation-delay: 0s; }
+.sc > *:nth-child(2) { animation-delay: 0.05s; }
+.sc > *:nth-child(3) { animation-delay: 0.1s; }
+.sc > *:nth-child(4) { animation-delay: 0.15s; }
+.sc > *:nth-child(5) { animation-delay: 0.2s; }
+.sc > *:nth-child(6) { animation-delay: 0.25s; }
+
+/* ---- SLIDE BACKGROUNDS ---- */
+.slide.bg-img {
+  background-size:cover;
+  background-position:center;
+}
+/* Dark overlay so text stays readable over background images */
+.slide.bg-img .sc {
+  background:linear-gradient(90deg, rgba(12,10,8,0.6) 0%, rgba(12,10,8,0.4) 40%, rgba(12,10,8,0.65) 100%);
+}
+.slide.bg-img::after { display:none; } /* hide grid on image slides */
+
+.slide.bg-title { background-image:url('assets/bg-title.png'); }
+.slide.bg-setup { background-image:url('assets/bg-setup.png'); }
+.slide.bg-claim { background-image:url('assets/bg-claim.png'); }
+.slide.bg-villain { background-image:url('assets/bg-villain.png'); }
+.slide.bg-stress { background-image:url('assets/bg-stress.png'); }
+.slide.bg-proof { background-image:url('assets/bg-proof.png'); }
+.slide.bg-insight { background-image:url('assets/bg-insight.png'); }
+.slide.bg-pipeline { background-image:url('assets/bg-pipeline.png'); }
+.slide.bg-holds { background-image:url('assets/bg-holds.png'); }
+.slide.bg-war { background-image:url('assets/bg-war.png'); }
+.slide.bg-human { background-image:url('assets/bg-human.png'); }
+.slide.bg-close { background-image:url('assets/bg-close.png'); }
+.slide.bg-velocity { background-image:url('assets/bg-velocity.png'); background-position: calc(50% - 11px) calc(50% - 59px); background-size: cover; }
+
+/* ---- PRINT ---- */
+@media print { .slide { page-break-after:always; height:auto; min-height:100vh; display:flex!important; } }
+</style>
+</head>
+<body>
+
+<!-- ================================================================ -->
+<!-- S1: TITLE                                                         -->
+<!-- ================================================================ -->
+<div class="slide active bg-img bg-title">
+  <div class="sc">
+    <div class="row f1">
+      <!-- Spacer: lets circuitry breathe on far left -->
+      <div style="flex:0 0 30%;"></div>
+      <!-- Title block: overlaps into the circuit traces -->
+      <div class="col" style="flex:0 0 auto; max-width:420px; justify-content:center; margin-top:-160px;">
+        <div class="t1 big" style="margin-bottom:16px;">The Hard<br>Direction</div>
+        <div class="sub" style="margin-bottom:40px;">If AI Can Port Code to 1992,<br>It Can Modernize Your Legacy Apps Too.</div>
+        <div class="author">Duncan Bowring, Accenture</div>
+      </div>
+      <!-- Amiga 1200 photo -->
+      <div class="col vc" style="flex:0 0 auto; align-items:flex-start; position:relative; margin-top:-170px;">
+        <img src="assets/amiga-1200-wireframe.png" style="max-width:500px; width:100%; border:none; box-shadow:none; mix-blend-mode:lighten; opacity:0.8; animation: amigaPulse 4s ease-in-out infinite; filter: drop-shadow(0 0 20px rgba(212,160,32,0.2));" alt="Commodore Amiga 1200 wireframe">
+        <style>
+          @keyframes amigaPulse {
+            0%, 100% { filter: drop-shadow(0 0 20px rgba(212,160,32,0.15)); opacity:0.75; }
+            50% { filter: drop-shadow(0 0 35px rgba(212,160,32,0.3)); opacity:0.9; }
+          }
+        </style>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- S2: THE SETUP                                                     -->
+<!-- ================================================================ -->
+<div class="slide bg-img bg-setup">
+  <div class="sc" style="justify-content:center; padding:80px 120px;">
+    <div style="max-width:1100px;">
+      <div class="t1" style="font-size:48px; line-height:1.25; margin-bottom:32px;">
+        What if <span style="color:var(--amber-bright);">one person</span> directing an AI<br>
+        could build an entire code migration platform —<br>
+        and then <span style="color:var(--amber-bright);">that platform ships real software?</span>
+      </div>
+      <div style="width:80px; height:3px; background:var(--amber); margin-bottom:32px;"></div>
+      <div class="sub" style="font-size:22px; max-width:900px; line-height:1.6; color:var(--text-2);">
+        Not a tool that suggests code. A production system with 16 specialized agents,
+        mandatory quality gates, automated testing on real hardware, and a knowledge base
+        that gets smarter with every migration. I built one — then I used it to ship
+        14 programs to real users on 30-year-old hardware.
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- S3 ============================================================= -->
+<div class="slide bg-img bg-claim">
+  <style>
+    @keyframes s3up{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+    .s3a{opacity:0;animation:s3up 0.5s ease both}
+    .s3a.d1{animation-delay:0.08s}.s3a.d2{animation-delay:0.16s}
+    .s3a.d3{animation-delay:0.24s}.s3a.d4{animation-delay:0.32s}
+    .s3a.d5{animation-delay:0.4s}
+  </style>
+  <div class="sc">
+    <div class="t2 s3a" style="font-size:clamp(22px,2.5vw,32px); margin-bottom:4px;">I directed one AI to build an entire migration platform. Then the platform shipped real software.</div>
+
+    <!-- The story + the numbers -->
+    <div class="row" style="gap:20px; margin-bottom:12px;">
+      <div class="col f1">
+        <div class="body s3a d1" style="font-size:16px; line-height:1.6;">Claude Code wrote 23,000+ lines of production tooling. 16 specialized AI agents — each with constrained tools and specific responsibilities. Four compatibility libraries totalling 6,556 lines of handwritten C that bridge two platforms sharing zero APIs. An 86MB knowledge base built from 13,455 API reference files, a 646-page CPU manual, and 700+ catalogued runtime functions. 428 automated tests generated by AI from source code analysis. 14 programs compiled, tested on real hardware, and shipped to real users.</div>
+      </div>
+      <div class="col f1">
+        <div class="body s3a d2" style="font-size:16px; line-height:1.6;">I made the architectural decisions. I chose the patterns — three-tier API classification, deterministic transformation rules, mandatory safety gates, closed-loop debugging with rollback. I steered through the problems — the debunked exit hang, the 68k alignment corruption, the libnix getopt_long that silently breaks every program. Claude did the mechanical work: writing every agent, every library, every test harness, every hook script, every line of infrastructure.</div>
+      </div>
+    </div>
+
+    <!-- Rich stat cards with detail inside each -->
+    <div class="g5 s3a d3" style="margin-bottom:10px;">
+      <div class="card"><div class="card-b" style="padding:10px 12px;"><div class="n md" style="margin-bottom:4px;">16</div><div class="nl" style="margin-bottom:6px;">constrained AI agents</div><div class="term" style="font-size:9px; padding:6px 8px; line-height:1.5;"><span class="g">source-analyzer</span> <span class="c">r--</span><br><span class="p">code-transformer</span> <span class="c">rw-</span><br><span class="y">memory-checker</span> <span class="c">r--</span><br><span class="r">debug-agent</span> <span class="c">rwx</span><br><span class="r">aminet-publisher</span> <span class="c">HUMAN</span></div></div></div>
+      <div class="card"><div class="card-b" style="padding:10px 12px;"><div class="n md" style="margin-bottom:4px;">6,556</div><div class="nl" style="margin-bottom:6px;">lines of shim libraries</div><div class="term" style="font-size:9px; padding:6px 8px; line-height:1.5;">posix-shim &nbsp; <span class="p">3,413</span> Tier 1<br>posix-emu &nbsp;&nbsp; <span class="p">1,285</span> Tier 2<br>console &nbsp;&nbsp;&nbsp;&nbsp; <span class="p">1,146</span> ncurses<br>bsdsocket &nbsp;&nbsp; <span class="p">&nbsp;&nbsp;712</span> network</div></div></div>
+      <div class="card"><div class="card-b" style="padding:10px 12px;"><div class="n md" style="margin-bottom:4px;">86<span style="font-size:22px;">MB</span></div><div class="nl" style="margin-bottom:6px;">knowledge base</div><div class="term" style="font-size:9px; padding:6px 8px; line-height:1.5;">ADCD 2.1 &nbsp;&nbsp;&nbsp; <span class="p">13,455</span> files<br>M68000 PRM &nbsp; <span class="p">&nbsp;&nbsp;&nbsp;646</span> pages<br>libnix &nbsp;&nbsp;&nbsp;&nbsp; <span class="p">&nbsp;&nbsp;&nbsp;700+</span> funcs<br>Crash KB &nbsp;&nbsp;&nbsp; <span class="y">&nbsp;&nbsp;&nbsp;&nbsp;19</span> patterns</div></div></div>
+      <div class="card"><div class="card-b" style="padding:10px 12px;"><div class="n md" style="margin-bottom:4px;">428</div><div class="nl" style="margin-bottom:6px;">automated tests</div><div class="term" style="font-size:9px; padding:6px 8px; line-height:1.5;">lua &nbsp;&nbsp; <span class="g">65/65</span> PASS<br>sed &nbsp;&nbsp; <span class="g">59/59</span> PASS<br>grep &nbsp; <span class="g">53/53</span> PASS<br>diff &nbsp; <span class="g">50/50</span> PASS<br><span class="c">+10 more ports...</span></div></div></div>
+      <div class="card"><div class="card-b" style="padding:10px 12px;"><div class="n md" style="margin-bottom:4px;">14</div><div class="nl" style="margin-bottom:6px;">programs shipped</div><div class="term" style="font-size:9px; padding:6px 8px; line-height:1.5;">grep sed diff patch lua<br>jq cal cut head tail<br>tee wc sort uniq yes<br><span class="g">7 live on Aminet</span><br><span class="c">real users, real HW</span></div></div></div>
+    </div>
+
+    <!-- Screenshots + meta-point -->
+    <div class="row s3a d4" style="gap:12px;">
+      <div class="col" style="flex:1;"><div class="label" style="margin-bottom:2px;">FS-UAE &mdash; jq tests on AmigaOS 3.1</div><img src="assets/fsemu-jq-tests.png" style="width:100%; height:120px; object-fit:cover;" alt="jq tests on FS-UAE"></div>
+      <div class="col" style="flex:1;"><div class="label" style="margin-bottom:2px;">amiport.platesteel.net &mdash; package manager</div><img src="assets/amiport-website.png" style="width:100%; height:120px; object-fit:cover;" alt="amiport website"></div>
+      <div class="col" style="flex:1.2;"><div class="card" style="border-color:var(--amber); height:100%;"><div class="card-b" style="display:flex; align-items:center; gap:14px; padding:12px 16px; height:100%;"><div style="font-family:var(--mono); font-size:32px; color:var(--amber); flex-shrink:0;">&gt;_</div><div><div class="t4" style="font-size:15px; margin-bottom:4px;">Claude built the system.<br>The system uses Claude to ship software.</div><div class="body" style="font-size:13px;"><strong style="color:var(--amber);">Human directs, AI builds.</strong></div></div></div></div></div>
+    </div>
+
+    <div class="co s3a d5">The question for this room: <strong>what happens when we apply this approach to the migration engagements we sell to clients?</strong></div>
+  </div>
+</div>
+
+
+
+<!-- S4 ============================================================= -->
+<div class="slide bg-img bg-villain">
+  <style>
+    @keyframes s4Reveal{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes s4TypeBlink{0%,50%{border-color:var(--amber)}51%,100%{border-color:transparent}}
+    .s4-fade{opacity:0;animation:s4Reveal 0.5s ease both}
+    .s4-fade.d1{animation-delay:0.1s}.s4-fade.d2{animation-delay:0.2s}
+    .s4-fade.d3{animation-delay:0.3s}.s4-fade.d4{animation-delay:0.4s}
+    .s4-fade.d5{animation-delay:0.5s}.s4-fade.d6{animation-delay:0.6s}
+    .s4-fade.d7{animation-delay:0.7s}.s4-fade.d8{animation-delay:0.8s}
+    .s4-cursor{border-right:2px solid var(--amber);animation:s4TypeBlink 1s step-end infinite;padding-right:2px}
+  </style>
+  <div class="sc">
+    <div class="t2 s4-fade" style="font-size:clamp(20px,2vw,28px);">The chatbot approach to code migration fails for four specific reasons.</div>
+    <div class="row f1">
+      <!-- Left column: the story -->
+      <div class="col f1">
+        <div class="body s4-fade d1" style="font-size:14px; line-height:1.55; margin-bottom:10px;">The playbook most teams start with: paste legacy code into an LLM. Ask it to convert to Java. Get something that compiles. Ship it. Discover in testing that the business logic is subtly wrong &mdash; and you have no way to trace why.</div>
+        <div class="term s4-fade d2" style="font-size:13px; margin-bottom:12px;">
+<span class="c">Prompt:</span> Convert this COBOL to Java.<br><br>
+<span class="c">AI:</span> <span class="r">import com.ibm.cics.CICSAdapter;</span><br>
+<span class="c">&nbsp; // This class does not exist.</span><br>
+<span class="c">&nbsp; // The AI invented it to be helpful.</span><br>
+<span class="c">&nbsp; // Nobody catches it until UAT.<span class="s4-cursor"></span></span>
+        </div>
+        <div class="body s4-fade d3" style="margin-bottom:10px;">This isn't hypothetical. In the system I built, the target platform's <code style="font-family:var(--mono); color:var(--amber);">getopt_long()</code> function exists &mdash; it links, it compiles &mdash; but it returns <code style="font-family:var(--mono); color:var(--red);">'?'</code> for every single valid option. Every program silently fails. You don't catch it without a test suite that actually runs on the target.</div>
+      </div>
+      <!-- Right column: four red cards -->
+      <div class="col f1">
+        <div class="card red s4-fade d4" style="margin-bottom:8px;">
+          <div class="card-h red">NO CLASSIFICATION</div>
+          <div class="card-b" style="padding:10px 14px;">
+            <div class="body" style="font-size:13px;">Every API call gets the same treatment. <code style="font-family:var(--mono);">stat()</code> has a direct equivalent &mdash; automate it. <code style="font-family:var(--mono);">fork()</code> fundamentally doesn't exist &mdash; it needs human architecture. The chatbot doesn't distinguish between a 5-minute rename and a 5-week redesign.</div>
+          </div>
+        </div>
+        <div class="card red s4-fade d5" style="margin-bottom:8px;">
+          <div class="card-h red">NO VERIFICATION</div>
+          <div class="card-b" style="padding:10px 14px;">
+            <div class="body" style="font-size:13px;">The output isn't compiled. Isn't tested. Isn't run on the target platform. "It looks right" is the only quality gate. We shipped grep to a public archive and it had exit codes always returning 0 &mdash; a bug invisible to anything except a real test suite.</div>
+          </div>
+        </div>
+        <div class="card red s4-fade d6" style="margin-bottom:8px;">
+          <div class="card-h red">NO PLATFORM KNOWLEDGE</div>
+          <div class="card-b" style="padding:10px 14px;">
+            <div class="body" style="font-size:13px;">The LLM doesn't have the target platform's API documentation, its C runtime quirks, or the 19 crash patterns we've documented. It doesn't know that <code style="font-family:var(--mono);">vsnprintf(NULL, 0)</code> crashes the runtime, or that <code style="font-family:var(--mono);">fclose(stdin)</code> takes down the entire operating system desktop.</div>
+          </div>
+        </div>
+        <div class="card red s4-fade d7">
+          <div class="card-h red">NO LEARNING</div>
+          <div class="card-b" style="padding:10px 14px;">
+            <div class="body" style="font-size:13px;">Module 5,000 hits the exact same 68k alignment bug that module 12 hit. Every conversation starts from zero. There's no mechanism for one migration to make the next one better.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- S5 ============================================================= -->
+<div class="slide bg-img bg-stress">
+  <style>
+    @keyframes s5Reveal{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes s5DashFlow{from{stroke-dashoffset:0}to{stroke-dashoffset:-8}}
+    .s5-fade{opacity:0;animation:s5Reveal 0.5s ease both}
+    .s5-fade.d1{animation-delay:0.08s}.s5-fade.d2{animation-delay:0.16s}
+    .s5-fade.d3{animation-delay:0.24s}.s5-fade.d4{animation-delay:0.32s}
+    .s5-fade.d5{animation-delay:0.40s}
+  </style>
+  <div class="sc">
+    <div class="t2 s5-fade" style="font-size:clamp(20px,2vw,28px);">The stress test: modern Linux to a 1992 Commodore Amiga.</div>
+    <div class="body s5-fade d1" style="font-size:clamp(13px,1vw,15px); max-width:900px; margin-bottom:8px;">Two platforms that share zero APIs. Different CPU architecture. Different memory model. Different everything. If the approach works here &mdash; 2MB RAM, 7MHz, no memory protection &mdash; the patterns transfer to enterprise targets where the gap is smaller and the tooling is better.</div>
+
+    <div class="row f1">
+      <div class="col f1 s5-fade d2">
+        <div class="card green" style="flex:1;">
+          <div class="card-h green">SOURCE: POSIX/LINUX 2024</div>
+          <div class="card-b">
+            <div style="font-size:14px; line-height:1.9; color:var(--text);">
+              64GB+ RAM, virtual memory, protected processes<br>
+              Automatic process cleanup on exit<br>
+              open() / read() / stat() / regex / fork()<br>
+              Threads, sockets, dynamic loading built in
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col vc s5-fade d3" style="align-items:center; flex:0 0 100px;">
+        <svg width="80" height="120" viewBox="0 0 80 120">
+          <line x1="40" y1="10" x2="40" y2="45" stroke="#D4A020" stroke-width="2" stroke-dasharray="4,4">
+            <animate attributeName="stroke-dashoffset" from="0" to="-8" dur="1s" repeatCount="indefinite"/>
+          </line>
+          <rect x="4" y="45" width="72" height="36" fill="none" stroke="#D4A020" stroke-width="2"/>
+          <text x="40" y="62" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="9" fill="#D4A020" font-weight="700">30-Year Gap</text>
+          <text x="40" y="74" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="7" fill="#887E70">Zero Shared APIs</text>
+          <line x1="40" y1="81" x2="40" y2="115" stroke="#D4A020" stroke-width="2" stroke-dasharray="4,4">
+            <animate attributeName="stroke-dashoffset" from="0" to="-8" dur="1s" repeatCount="indefinite"/>
+          </line>
+        </svg>
+      </div>
+
+      <div class="col f1 s5-fade d3">
+        <div class="card red" style="flex:1;">
+          <div class="card-h red">TARGET: AMIGAOS 1992</div>
+          <div class="card-b">
+            <div style="font-size:14px; line-height:1.9; color:var(--text);">
+              2MB RAM, 7MHz Motorola 68000<br>
+              <strong style="color:var(--red);">No memory protection &mdash; one bad pointer corrupts the OS</strong><br>
+              No process cleanup &mdash; leaked memory persists until reboot<br>
+              No regex, no threads, no fork(), no sockets
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col f1 s5-fade d4">
+        <div class="card" style="flex:1;">
+          <div class="card-h">Dimension-by-Dimension Gap</div>
+          <div class="card-b" style="padding:8px 14px;">
+            <table style="width:100%; font-size:12px; color:var(--text-2); border-collapse:collapse;">
+              <tr style="border-bottom:1px solid var(--border);"><td style="padding:4px 0; color:var(--text-3);">File I/O</td><td>open()</td><td style="color:var(--amber);">&rarr;</td><td>Open() <span class="caption">different flags, semantics</span></td></tr>
+              <tr style="border-bottom:1px solid var(--border);"><td style="padding:4px 0; color:var(--text-3);">Metadata</td><td>stat()</td><td style="color:var(--amber);">&rarr;</td><td>Lock()+Examine() <span class="caption">via BCPL pointers</span></td></tr>
+              <tr style="border-bottom:1px solid var(--border);"><td style="padding:4px 0; color:var(--text-3);">Epoch</td><td>1970-01-01</td><td style="color:var(--amber);">&rarr;</td><td>1978-01-01 <span class="caption">252M second offset</span></td></tr>
+              <tr style="border-bottom:1px solid var(--border);"><td style="padding:4px 0; color:var(--text-3);">Exit codes</td><td>0/1</td><td style="color:var(--amber);">&rarr;</td><td>0/5/10/20 <span class="caption">exit(1) is invisible</span></td></tr>
+              <tr style="border-bottom:1px solid var(--border);"><td style="padding:4px 0; color:var(--text-3);">Signals</td><td>SIGINT via kernel</td><td style="color:var(--amber);">&rarr;</td><td>Must poll SetSignal() manually</td></tr>
+              <tr style="border-bottom:1px solid var(--border);"><td style="padding:4px 0; color:var(--text-3);">Stack</td><td>8MB+ extensible</td><td style="color:var(--amber);">&rarr;</td><td>4KB default, fixed, no guard pages</td></tr>
+              <tr><td style="padding:4px 0; color:var(--text-3);">Memory</td><td>Virtual, per-process cleanup</td><td style="color:var(--amber);">&rarr;</td><td>Flat physical, no cleanup</td></tr>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="co mt s5-fade d5">Most problems clients face in legacy modernization exist here in a more extreme form. <strong>The engineering patterns that solve them transfer directly.</strong></div>
+  </div>
+</div>
+
+<!-- S5b: THE VELOCITY STORY ========================================== -->
+<div class="slide bg-img bg-velocity">
+  <style>
+    @keyframes s5bUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes s5bDotPulse{0%,100%{r:4;opacity:0.6}50%{r:6;opacity:1}}
+    .s5b{opacity:0;animation:s5bUp 0.6s ease both}
+    .s5b.d1{animation-delay:0.12s}.s5b.d2{animation-delay:0.24s}
+    .s5b.d3{animation-delay:0.36s}.s5b.d4{animation-delay:0.48s}
+  </style>
+  <div class="sc" style="gap:28px; padding-top:44px;">
+
+    <!-- 1. Headline + Amiga -->
+    <div class="row s5b" style="gap:24px; align-items:center;">
+      <div style="flex:1.5;">
+        <div class="t1" style="font-size:clamp(28px,3.2vw,42px); line-height:1.1; margin-bottom:8px;">30 years of manual porting.<br><span style="color:var(--amber-bright);">We matched it in a weekend.</span></div>
+        <div style="font-size:16px; color:var(--text-2); line-height:1.5;">The Commodore Amiga (1985). 500K&ndash;800K active users today. New FPGA hardware still being manufactured. A public software archive with 85,191 packages built up over three decades. The last GNU grep on Aminet was uploaded in 2006 and requires the Geek Gadgets runtime to run.</div>
+      </div>
+      <div style="flex:0 0 auto;">
+        <img src="assets/amiga-1200-wireframe.png" style="width:260px; border:none; box-shadow:none; mix-blend-mode:lighten; opacity:0.7;" alt="Amiga 1200">
+      </div>
+    </div>
+
+    <!-- 2. Timeline SVG — back at the top, glow centered on cluster -->
+    <div class="s5b d1" style="position:relative;">
+      <svg viewBox="0 0 1000 100" style="width:100%; overflow:visible;" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <radialGradient id="timelineGlow" cx="0.875" cy="0.45" r="0.18" fx="0.875" fy="0.45">
+            <stop offset="0%" stop-color="#D4A020" stop-opacity="0.4"/>
+            <stop offset="50%" stop-color="#D4A020" stop-opacity="0.1"/>
+            <stop offset="100%" stop-color="#D4A020" stop-opacity="0"/>
+          </radialGradient>
+        </defs>
+        <rect x="580" y="-60" width="400" height="220" fill="url(#timelineGlow)"/>
+
+        <!-- Baseline -->
+        <line x1="40" y1="40" x2="956" y2="40" stroke="#4A4438" stroke-width="1" opacity="0.4"/>
+
+        <!-- Labels — brighter -->
+        <text x="40" y="16" font-family="var(--mono)" font-size="11" fill="#887E70" font-weight="600">1992</text>
+        <text x="960" y="16" font-family="var(--mono)" font-size="11" fill="#E8A828" font-weight="700" text-anchor="end">2026</text>
+
+        <!-- History dots — brighter fills -->
+        <circle cx="80" cy="40" r="3" fill="#6A6050"/>
+        <text x="80" y="62" font-family="var(--mono)" font-size="8" fill="#6A6050" text-anchor="middle">A500 utils</text>
+        <circle cx="200" cy="40" r="3" fill="#6A6050"/>
+        <text x="200" y="62" font-family="var(--mono)" font-size="8" fill="#6A6050" text-anchor="middle">Geek Gadgets</text>
+        <circle cx="340" cy="40" r="3" fill="#584E40"/>
+        <circle cx="440" cy="40" r="3" fill="#584E40"/>
+        <circle cx="540" cy="40" r="4" fill="#887E70"/>
+        <text x="540" y="62" font-family="var(--mono)" font-size="9" fill="#887E70" text-anchor="middle">GNU grep 2.5</text>
+        <text x="540" y="74" font-family="var(--mono)" font-size="7" fill="#6A6050" text-anchor="middle">2006</text>
+        <circle cx="640" cy="40" r="3" fill="#584E40"/>
+        <circle cx="720" cy="40" r="3" fill="#584E40"/>
+        <circle cx="800" cy="40" r="3" fill="#584E40"/>
+        <circle cx="860" cy="40" r="3" fill="#6A6050"/>
+
+        <!-- Annotation — brighter -->
+        <text x="700" y="14" font-family="var(--ff)" font-size="10" fill="#887E70" text-anchor="middle">~38 uploads / 2 weeks (entire community, all categories)</text>
+
+        <!-- Dense cluster at the end -->
+        <rect x="900" y="22" width="56" height="36" fill="none" stroke="#E8A828" stroke-width="1" stroke-dasharray="3,2" opacity="0.7"/>
+        <circle cx="907" cy="40" r="4" fill="#E8A828"><animate attributeName="r" values="3;5;3" dur="2s" repeatCount="indefinite"/></circle>
+        <circle cx="915" cy="34" r="4" fill="#D09020"><animate attributeName="r" values="3;5;3" dur="2s" begin="0.1s" repeatCount="indefinite"/></circle>
+        <circle cx="923" cy="42" r="4" fill="#E8A828"><animate attributeName="r" values="3;5;3" dur="2s" begin="0.2s" repeatCount="indefinite"/></circle>
+        <circle cx="931" cy="36" r="4" fill="#D09020"><animate attributeName="r" values="3;5;3" dur="2s" begin="0.3s" repeatCount="indefinite"/></circle>
+        <circle cx="917" cy="46" r="4" fill="#C88818"><animate attributeName="r" values="3;5;3" dur="2s" begin="0.15s" repeatCount="indefinite"/></circle>
+        <circle cx="939" cy="40" r="4" fill="#F0B838"><animate attributeName="r" values="3;5;3" dur="2s" begin="0.25s" repeatCount="indefinite"/></circle>
+        <circle cx="925" cy="32" r="4" fill="#D09020"><animate attributeName="r" values="3;5;3" dur="2s" begin="0.35s" repeatCount="indefinite"/></circle>
+        <circle cx="933" cy="44" r="4" fill="#E8A828"><animate attributeName="r" values="3;5;3" dur="2s" begin="0.4s" repeatCount="indefinite"/></circle>
+        <circle cx="945" cy="36" r="4" fill="#F0B838"><animate attributeName="r" values="3;5;3" dur="2s" begin="0.05s" repeatCount="indefinite"/></circle>
+        <circle cx="941" cy="46" r="4" fill="#D09020"><animate attributeName="r" values="3;5;3" dur="2s" begin="0.45s" repeatCount="indefinite"/></circle>
+
+        <text x="928" y="78" font-family="var(--mono)" font-size="10" fill="#F0C848" text-anchor="middle" font-weight="700">3 days</text>
+        <text x="928" y="92" font-family="var(--mono)" font-size="8" fill="#E8A828" text-anchor="middle">10 packages</text>
+      </svg>
+    </div>
+
+    <!-- 3. Context + downloads -->
+    <div class="row s5b d2" style="gap:16px;">
+      <div style="flex:1.8; font-size:15px; color:var(--text-2); line-height:1.6;">
+        Aminet is the Amiga community's public software archive &mdash; <strong style="color:var(--text);">85,191 packages</strong>, active since 1992. The entire global community uploads about <strong style="color:var(--text);">38 packages every two weeks</strong> across all categories. We submitted <strong style="color:var(--amber-bright);">10 in 3 days</strong> &mdash; 26% of the total volume, all in util/cli. Each one went through a 7-stage pipeline: analyzed for portability across 57 deterministic transformation rules, cross-compiled in Docker targeting Motorola 68000, smoke-tested on vamos at ~100ms per test, integration-tested on FS-UAE booting real AmigaOS 3.1 with an ARexx test harness, mandatory memory-safety audit, mandatory 68k performance optimization, and published with complete source and documentation.
+      </div>
+      <div class="card" style="flex:0 0 250px; border-color:var(--amber);">
+        <div class="card-h">Downloads (first 3 days)</div>
+        <div class="card-b" style="padding:8px 12px;">
+          <div class="term" style="font-size:11px; padding:6px 8px; line-height:1.6;">
+<span class="p">cal</span> &nbsp; <span class="g">90</span> &middot; <span class="p">cut</span> &nbsp; <span class="g">77</span> &middot; <span class="p">grep</span> <span class="g">57</span><br>
+<span class="p">sed</span> &nbsp; <span class="g">54</span> &middot; <span class="p">head</span> <span class="g">53</span> &middot; <span class="p">tee</span> &nbsp; <span class="g">47</span><br>
+<span class="p">yes</span> &nbsp; <span class="g">45</span> &middot; <span class="y">+3 pending</span>
+          </div>
+          <div style="font-family:var(--mono); font-size:13px; color:var(--amber-bright); font-weight:700; margin-top:4px; text-align:center;">423+ total</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. Scale stats -->
+    <div class="row s5b d3" style="gap:12px;">
+      <div class="card" style="flex:1;"><div class="card-b" style="padding:12px; text-align:center;"><div class="n lg" style="margin-bottom:2px;">10</div><div style="font-size:13px; color:var(--text-2);">packages submitted</div><div class="caption" style="color:var(--text-3);">grep, sed, diff, patch, lua, jq, cal, cut, head, tee, yes</div></div></div>
+      <div class="card" style="flex:1;"><div class="card-b" style="padding:12px; text-align:center;"><div class="n lg" style="margin-bottom:2px;">28<span style="font-size:28px;">min</span></div><div style="font-size:13px; color:var(--text-2);">fastest port (tee, end-to-end)</div><div class="caption" style="color:var(--text-3);">analyze, transform, build, test, package, publish</div></div></div>
+      <div class="card" style="flex:1;"><div class="card-b" style="padding:12px; text-align:center;"><div class="n lg" style="color:var(--amber-bright); margin-bottom:2px;">26%</div><div style="font-size:13px; color:var(--text-2);">of Aminet's 2-week volume</div><div class="caption" style="color:var(--text-3);">one person, three days, one category</div></div></div>
+    </div>
+
+    <!-- 5. Punchline -->
+    <div class="co s5b d4">The previous best grep for AmigaOS was from <strong>2006</strong>. Ours is from <strong>this week</strong> &mdash; with 53 tests passing, recursive directory support, and full source documentation. That's the velocity change when AI handles the mechanical work and humans direct the architecture.</div>
+
+  </div>
+</div>
+
+<!-- S6 ============================================================= -->
+<div class="slide bg-img bg-proof">
+  <style>
+    @keyframes s6Reveal{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes s6BarGrow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+    .s6-fade{opacity:0;animation:s6Reveal 0.5s ease both}
+    .s6-fade.d1{animation-delay:0.08s}.s6-fade.d2{animation-delay:0.16s}
+    .s6-fade.d3{animation-delay:0.24s}.s6-fade.d4{animation-delay:0.32s}
+    .s6-bar{transform-origin:left center;animation:s6BarGrow 0.6s ease both}
+    .s6-bar.b1{animation-delay:0.3s}.s6-bar.b2{animation-delay:0.35s}
+    .s6-bar.b3{animation-delay:0.4s}.s6-bar.b4{animation-delay:0.45s}
+    .s6-bar.b5{animation-delay:0.5s}.s6-bar.b6{animation-delay:0.55s}
+    .s6-bar.b7{animation-delay:0.6s}.s6-bar.b8{animation-delay:0.65s}
+    .s6-bar.b9{animation-delay:0.7s}.s6-bar.b10{animation-delay:0.75s}
+    .s6-bar.b11{animation-delay:0.8s}.s6-bar.b12{animation-delay:0.85s}
+    .s6-bar.b13{animation-delay:0.9s}.s6-bar.b14{animation-delay:0.95s}
+  </style>
+  <div class="sc">
+    <div class="t2 s6-fade" style="font-size:clamp(20px,2vw,28px);">14 programs. 428 tests. All passing on real hardware.</div>
+    <div class="body s6-fade d1" style="font-size:clamp(13px,1vw,15px); margin-bottom:8px;">These aren't toy programs. grep is 7 source files with regex and recursive directory walking &mdash; 53 tests. Lua is a complete scripting language with coroutines, metatables, and 100KB string handling &mdash; 65 tests. jq is a full JSON processor with a custom memory allocator. Seven are live on Aminet, the public Amiga software archive, where real users download and run them on 30-year-old hardware.</div>
+
+    <div class="row f1">
+      <!-- SVG bar chart -->
+      <div class="col s6-fade d2" style="flex:0 0 280px;">
+        <div class="label" style="margin-bottom:4px;">Test Coverage by Port</div>
+        <svg viewBox="0 0 280 420" style="width:100%; flex:1;" xmlns="http://www.w3.org/2000/svg">
+          <g font-family="'Geist Mono','SF Mono',monospace" font-size="11" fill="#C0B8A8">
+            <text x="54" y="22" text-anchor="end">lua</text>    <rect class="s6-bar b1"  x="58" y="12" width="180" height="16" fill="#D4A020"/><text x="244" y="23" font-size="10" fill="#48A848">65 &#x2713;</text>
+            <text x="54" y="47" text-anchor="end">sed</text>    <rect class="s6-bar b2"  x="58" y="37" width="163" height="16" fill="#D4A020"/><text x="227" y="48" font-size="10" fill="#48A848">59 &#x2713;</text>
+            <text x="54" y="72" text-anchor="end">grep</text>   <rect class="s6-bar b3"  x="58" y="62" width="147" height="16" fill="#D4A020"/><text x="211" y="73" font-size="10" fill="#48A848">53 &#x2713;</text>
+            <text x="54" y="97" text-anchor="end">diff</text>   <rect class="s6-bar b4"  x="58" y="87" width="138" height="16" fill="#D4A020"/><text x="202" y="98" font-size="10" fill="#48A848">50 &#x2713;</text>
+            <text x="54" y="122" text-anchor="end">patch</text> <rect class="s6-bar b5"  x="58" y="112" width="116" height="16" fill="#D4A020"/><text x="180" y="123" font-size="10" fill="#48A848">42 &#x2713;</text>
+            <text x="54" y="147" text-anchor="end">uniq</text>  <rect class="s6-bar b6"  x="58" y="137" width="80" height="16" fill="#D4A020"/><text x="144" y="148" font-size="10" fill="#48A848">29 &#x2713;</text>
+            <text x="54" y="172" text-anchor="end">cal</text>   <rect class="s6-bar b7"  x="58" y="162" width="61" height="16" fill="#D4A020"/><text x="125" y="173" font-size="10" fill="#48A848">22 &#x2713;</text>
+            <text x="54" y="197" text-anchor="end">head</text>  <rect class="s6-bar b8"  x="58" y="187" width="58" height="16" fill="#D4A020"/><text x="122" y="198" font-size="10" fill="#48A848">21 &#x2713;</text>
+            <text x="54" y="222" text-anchor="end">cut</text>   <rect class="s6-bar b9"  x="58" y="212" width="55" height="16" fill="#D4A020"/><text x="119" y="223" font-size="10" fill="#48A848">20 &#x2713;</text>
+            <text x="54" y="247" text-anchor="end">sort</text>  <rect class="s6-bar b10" x="58" y="237" width="50" height="16" fill="#D4A020"/><text x="114" y="248" font-size="10" fill="#48A848">18 &#x2713;</text>
+            <text x="54" y="272" text-anchor="end">wc</text>    <rect class="s6-bar b11" x="58" y="262" width="44" height="16" fill="#D4A020"/><text x="108" y="273" font-size="10" fill="#48A848">16 &#x2713;</text>
+            <text x="54" y="297" text-anchor="end">tail</text>  <rect class="s6-bar b12" x="58" y="287" width="39" height="16" fill="#D4A020"/><text x="103" y="298" font-size="10" fill="#48A848">14 &#x2713;</text>
+            <text x="54" y="322" text-anchor="end">tee</text>   <rect class="s6-bar b13" x="58" y="312" width="30" height="16" fill="#D4A020"/><text x="94" y="323" font-size="10" fill="#48A848">11 &#x2713;</text>
+            <text x="54" y="347" text-anchor="end">yes</text>   <rect class="s6-bar b14" x="58" y="337" width="22" height="16" fill="#D4A020"/><text x="86" y="348" font-size="10" fill="#48A848">8 &#x2713;</text>
+          </g>
+          <line x1="58" y1="365" x2="240" y2="365" stroke="#2E2A24" stroke-width="1"/>
+          <text x="58" y="385" font-family="'DM Sans',sans-serif" font-size="14" font-weight="700" fill="#F0C848">428 total &mdash; ALL PASSING</text>
+          <text x="58" y="400" font-family="'Geist Mono',monospace" font-size="10" fill="#48A848">&#x2713; AI-generated from source analysis</text>
+        </svg>
+      </div>
+
+      <!-- Terminal test results -->
+      <div class="col f1 s6-fade d3">
+        <div class="label">Test Results</div>
+        <div class="term" style="font-size:12px; flex:1;">
+<span class="p">&gt;</span> <span class="c">Platform: AmigaOS 3.1 (68020)</span><br>
+<span class="p">&gt;</span> grep:  <span class="g">53/53 PASS</span><br>
+<span class="p">&gt;</span> lua:   <span class="g">65/65 PASS</span><br>
+<span class="p">&gt;</span> sed:   <span class="g">59/59 PASS</span><br>
+<span class="p">&gt;</span> diff:  <span class="g">50/50 PASS</span><br>
+<span class="p">&gt;</span> patch: <span class="g">42/42 PASS</span><br>
+<span class="p">&gt;</span> uniq:  <span class="g">29/29 PASS</span><br>
+<span class="p">&gt;</span> cal:   <span class="g">22/22 PASS</span><br>
+<span class="p">&gt;</span> head:  <span class="g">21/21 PASS</span><br>
+<span class="p">&gt;</span> cut:   <span class="g">20/20 PASS</span><br>
+<span class="p">&gt;</span> sort:  <span class="g">18/18 PASS</span><br>
+<span class="p">&gt;</span> wc:    <span class="g">16/16 PASS</span><br>
+<span class="p">&gt;</span> tail:  <span class="g">14/14 PASS</span><br>
+<span class="p">&gt;</span> tee:   <span class="g">11/11 PASS</span><br>
+<span class="p">&gt;</span> yes:   <span class="g"> 8/8  PASS</span><br>
+<br>
+<span class="g">&gt; ALL 428 TESTS PASSED</span>
+        </div>
+      </div>
+
+      <!-- Screenshots -->
+      <div class="col f1 s6-fade d4" style="gap:6px;">
+        <div class="label">FS-UAE &mdash; jq tests on AmigaOS 3.1</div>
+        <img src="assets/fsemu-jq-tests.png" style="width:100%; object-fit:cover; flex:1; min-height:0;" alt="jq tests on FS-UAE">
+        <div class="label">amiport.platesteel.net</div>
+        <img src="assets/amiport-website.png" style="width:100%; object-fit:cover; flex:1; min-height:0;" alt="amiport website">
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- S7 ============================================================= -->
+<div class="slide bg-img bg-insight">
+  <style>
+    @keyframes s7Reveal{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+    .s7-fade{opacity:0;animation:s7Reveal 0.5s ease both}
+    .s7-fade.d1{animation-delay:0.08s}.s7-fade.d2{animation-delay:0.15s}
+    .s7-fade.d3{animation-delay:0.25s}.s7-fade.d4{animation-delay:0.35s}
+    .s7-fade.d5{animation-delay:0.45s}
+  </style>
+  <div class="sc">
+    <div class="t2 s7-fade" style="font-size:clamp(18px,2vw,24px);">The difference between AI that ships and AI that hallucinates is not the model. It's the system around the model.</div>
+    <div class="body s7-fade d1" style="font-size:clamp(12px,1vw,14px); margin-bottom:8px;">Every failure from slide 4 &mdash; no classification, no verification, no knowledge, no learning &mdash; is a system problem. A better model still hallucinates <code style="font-family:var(--mono); color:var(--amber);">getopt_long()</code> as working. A better prompt still loses context at module 500. The fix is not a smarter LLM. It's an engineering platform that constrains the LLM, gives it ground truth, and verifies every output against the real target.</div>
+
+    <div class="g2 f1">
+      <div class="card green s7-fade d2">
+        <div class="card-h green">1. CLASSIFY BEFORE YOU CODE</div>
+        <div class="card-b">
+          <div class="body" style="margin-bottom:6px;"><span class="dot g"></span><strong>Tier 1</strong> (green): 90 functions with direct equivalents &mdash; <code style="font-family:var(--mono); font-size:12px;">stat()&rarr;Lock()+Examine()</code>. Fully automated.</div>
+          <div class="body" style="margin-bottom:6px;"><span class="dot y"></span><strong>Tier 2</strong> (yellow): ~10 functions approximated with documented caveats &mdash; regex rebuilt in pure C.</div>
+          <div class="body" style="margin-bottom:6px;"><span class="dot r"></span><strong>Tier 3</strong> (red): No equivalent exists &mdash; fork(), pthreads. Pipeline physically stops. Human decides.</div>
+          <div class="em">Enterprise: classify every EXEC CICS, VSAM, DB2 call before rewriting. Don't waste AI effort on things that need human architecture.</div>
+        </div>
+      </div>
+      <div class="card green s7-fade d3">
+        <div class="card-h green">2. INJECT DOMAIN KNOWLEDGE</div>
+        <div class="card-b">
+          <div class="body" style="margin-bottom:6px;">86MB of machine-readable platform reference: 13,455 AmigaOS API files. 646-page Motorola CPU manual converted to searchable markdown. 700+ C runtime functions catalogued with availability status. Agents query these on demand via skills like <code style="font-family:var(--mono); font-size:12px;">/amiga-api-lookup</code> &mdash; loaded when needed, not crammed into context.</div>
+          <div class="em">Enterprise: your COBOL runtime quirks, packed decimal edge cases, JCL patterns. Captured once, queryable by every agent on every engagement.</div>
+        </div>
+      </div>
+      <div class="card green s7-fade d4">
+        <div class="card-h green">3. VERIFY EVERY OUTPUT</div>
+        <div class="card-b">
+          <div class="body" style="margin-bottom:6px;">Compiled in a Docker cross-compiler. Smoke-tested on a virtual AmigaOS runtime at ~100ms per test. Integration-tested on FS-UAE booting real AmigaOS 3.1 with an ARexx test harness. Mandatory memory-checker traces every malloc/free across all exit paths. Mandatory perf-optimizer checks 68k instruction timing against the 646-page Motorola PRM.</div>
+          <div class="em">Enterprise: compile, unit test, integration test against the real target system, memory audit, compliance check. Mandatory gates &mdash; not optional suggestions.</div>
+        </div>
+      </div>
+      <div class="card green s7-fade d5">
+        <div class="card-h green">4. ACCUMULATE LEARNING</div>
+        <div class="card-b">
+          <div class="body" style="margin-bottom:6px;">Every fix becomes a permanent pattern. Debug agent fixes a crash &rarr; pattern added to the crash KB &rarr; source-analyzer detects it at the analysis stage for all future ports. 19 crash patterns and growing. 20+ known pitfalls. <code style="font-family:var(--mono); font-size:12px;">fclose(stdin)</code> crashing the desktop was caught once &mdash; now flagged before any code is written. Port 14 avoids every mistake ports 1 through 13 made.</div>
+          <div class="em">Enterprise: module 5,000 in a client engagement benefits from everything modules 1&ndash;4,999 discovered. The pipeline gets smarter with every migration.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- S8 ============================================================= -->
+<div class="slide bg-img bg-pipeline">
+  <style>
+    @keyframes s8Reveal{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes s8PipeSlide{from{opacity:0;transform:translateX(-20px)}to{opacity:1;transform:translateX(0)}}
+    .s8-fade{opacity:0;animation:s8Reveal 0.5s ease both}
+    .s8-fade.d1{animation-delay:0.08s}.s8-fade.d2{animation-delay:0.16s}
+    .s8-fade.d3{animation-delay:0.24s}.s8-fade.d4{animation-delay:0.32s}
+    .s8-fade.d5{animation-delay:0.40s}.s8-fade.d6{animation-delay:0.48s}
+    .s8-pipe{opacity:0;animation:s8PipeSlide 0.4s ease both;animation-delay:0.3s}
+  </style>
+  <div class="sc">
+    <div class="t2 s8-fade" style="font-size:clamp(18px,2vw,22px);">Classify. Bridge. Pipeline.</div>
+    <div class="row f1">
+      <!-- Left: Adapter layer -->
+      <div class="col f1">
+        <div class="label s8-fade d1">ADAPTER LAYER (SELF-EXTENDING)</div>
+        <div class="body s8-fade d1" style="font-size:13px; margin-bottom:6px;">6,556 lines across four compatibility libraries. One wrapper per POSIX function &mdash; transformations are deterministic renames, not creative rewrites. Every change is annotated and auditable.</div>
+
+        <div class="g2 s8-fade d2" style="gap:6px; margin-bottom:8px;">
+          <div class="card"><div class="card-b" style="padding:8px;"><div style="font-family:var(--mono); font-size:12px; color:var(--amber); font-weight:700;">posix-shim</div><div class="caption">3,413 lines &middot; ~90 fn &middot; Tier 1</div></div></div>
+          <div class="card"><div class="card-b" style="padding:8px;"><div style="font-family:var(--mono); font-size:12px; color:var(--amber); font-weight:700;">posix-emu</div><div class="caption">1,285 lines &middot; regex, mmap &middot; Tier 2</div></div></div>
+          <div class="card"><div class="card-b" style="padding:8px;"><div style="font-family:var(--mono); font-size:12px; color:var(--amber); font-weight:700;">console-shim</div><div class="caption">1,146 lines &middot; ncurses API</div></div></div>
+          <div class="card"><div class="card-b" style="padding:8px;"><div style="font-family:var(--mono); font-size:12px; color:var(--amber); font-weight:700;">bsdsocket-shim</div><div class="caption">712 lines &middot; BSD sockets</div></div></div>
+        </div>
+
+        <div class="term s8-fade d3" style="font-size:12px; margin-bottom:8px;">
+<span class="c">/* Before (POSIX): */</span><br>
+stat(path, &amp;sb);<br>
+exit(1);<br>
+<br>
+<span class="c">/* After (via amiport): */</span><br>
+<span class="g">amiport_stat</span>(path, &amp;sb); <span class="c">/* Lock()+Examine() */</span><br>
+exit(<span class="g">10</span>); <span class="c">/* RETURN_ERROR */</span>
+        </div>
+
+        <div class="caption s8-fade d4">Started at ~20 functions with port 1. Now 90 after port 14. When a port needs a missing function, /extend-shim writes one.</div>
+        <div class="em s8-fade d4">Enterprise: your adapter layer for CICS/DB2/VSAM calls. Build once, compound across engagements. 20 rules at engagement 1, 200 by engagement 10.</div>
+      </div>
+
+      <!-- Right: Pipeline -->
+      <div class="col f1">
+        <div class="label s8-fade d3">7-STAGE PIPELINE WITH 3 FEEDBACK LOOPS</div>
+
+        <!-- Pipeline SVG -->
+        <div class="s8-pipe" style="margin-bottom:10px;">
+          <svg viewBox="0 0 700 180" style="width:100%;" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <marker id="s8arrow" markerWidth="6" markerHeight="4" refX="5" refY="2" orient="auto">
+                <path d="M0,0 L6,2 L0,4" fill="none" stroke="#887E70" stroke-width="0.8"/>
+              </marker>
+            </defs>
+            <!-- Stage boxes -->
+            <g font-family="'Geist Mono',monospace">
+              <rect x="10" y="30" width="72" height="44" fill="#1C1814" stroke="#2E2A24" stroke-width="1"/>
+              <text x="46" y="48" text-anchor="middle" font-size="12" fill="#D4A020" font-weight="700">0</text>
+              <text x="46" y="62" text-anchor="middle" font-size="8" fill="#C0B8A8">Research</text>
+
+              <!-- Gate -->
+              <rect x="90" y="38" width="4" height="28" fill="#D04838"/>
+
+              <rect x="102" y="30" width="72" height="44" fill="#1C1814" stroke="#2E2A24" stroke-width="1"/>
+              <text x="138" y="48" text-anchor="middle" font-size="12" fill="#D4A020" font-weight="700">1</text>
+              <text x="138" y="62" text-anchor="middle" font-size="8" fill="#C0B8A8">Analyze</text>
+
+              <rect x="182" y="38" width="4" height="28" fill="#D04838"/>
+
+              <rect x="194" y="30" width="72" height="44" fill="#1C1814" stroke="#2E2A24" stroke-width="1"/>
+              <text x="230" y="48" text-anchor="middle" font-size="12" fill="#D4A020" font-weight="700">3</text>
+              <text x="230" y="62" text-anchor="middle" font-size="8" fill="#C0B8A8">Transform</text>
+
+              <rect x="274" y="38" width="4" height="28" fill="#D04838"/>
+
+              <rect x="286" y="30" width="72" height="44" fill="#1C1814" stroke="#2E2A24" stroke-width="1"/>
+              <text x="322" y="48" text-anchor="middle" font-size="12" fill="#D4A020" font-weight="700">4</text>
+              <text x="322" y="62" text-anchor="middle" font-size="8" fill="#C0B8A8">Build</text>
+
+              <rect x="366" y="38" width="4" height="28" fill="#D04838"/>
+
+              <rect x="378" y="30" width="72" height="44" fill="#1C1814" stroke="#2E2A24" stroke-width="1"/>
+              <text x="414" y="48" text-anchor="middle" font-size="12" fill="#D4A020" font-weight="700">5</text>
+              <text x="414" y="62" text-anchor="middle" font-size="8" fill="#C0B8A8">Test</text>
+
+              <rect x="458" y="38" width="4" height="28" fill="#D04838"/>
+
+              <rect x="470" y="30" width="72" height="44" fill="#1C1814" stroke="#2E2A24" stroke-width="1"/>
+              <text x="506" y="48" text-anchor="middle" font-size="12" fill="#D4A020" font-weight="700">6</text>
+              <text x="506" y="62" text-anchor="middle" font-size="8" fill="#C0B8A8">Review</text>
+
+              <rect x="550" y="38" width="4" height="28" fill="#D04838"/>
+
+              <rect x="562" y="30" width="72" height="44" fill="#1C1814" stroke="#48A848" stroke-width="1"/>
+              <text x="598" y="48" text-anchor="middle" font-size="12" fill="#48A848" font-weight="700">7</text>
+              <text x="598" y="62" text-anchor="middle" font-size="8" fill="#48A848">Ship</text>
+            </g>
+
+            <!-- Feedback loops (dashed arrows below) -->
+            <path d="M322,74 Q322,110 230,110 L230,74" fill="none" stroke="#887E70" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#s8arrow)"/>
+            <text x="276" y="120" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="7" fill="#887E70">Build&rarr;Transform</text>
+
+            <path d="M414,74 Q414,135 322,135 L322,74" fill="none" stroke="#887E70" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#s8arrow)"/>
+            <text x="368" y="145" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="7" fill="#887E70">Test&rarr;Build</text>
+
+            <path d="M506,74 Q506,160 322,160 L322,74" fill="none" stroke="#887E70" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#s8arrow)"/>
+            <text x="414" y="170" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="7" fill="#887E70">Review&rarr;Build</text>
+          </svg>
+        </div>
+
+        <!-- Loop description cards -->
+        <div class="card s8-fade d4" style="margin-bottom:6px;">
+          <div class="card-b" style="padding:8px 12px;">
+            <div class="t4" style="color:var(--amber);">LOOP 1: BUILD FAILS &rarr; TRANSFORM</div>
+            <div class="body" style="font-size:12px;">Missing header, undefined symbol, type mismatch &mdash; routes back to the transform stage. If a shim function is missing, /extend-shim writes one. Up to 5 iterations.</div>
+          </div>
+        </div>
+        <div class="card s8-fade d5" style="margin-bottom:6px;">
+          <div class="card-b" style="padding:8px 12px;">
+            <div class="t4" style="color:var(--amber);">LOOP 2: CRASH &rarr; DEBUG AGENT &rarr; BUILD</div>
+            <div class="body" style="font-size:12px;">Guru Meditation on FS-UAE &rarr; debug-agent auto-dispatched. Parses Enforcer hit data, maps crash address to source line via addr2line, queries the 19-pattern crash KB, applies fix with git stash rollback safety, rebuilds, retests. Up to 5 iterations, no human.</div>
+          </div>
+        </div>
+        <div class="card s8-fade d6" style="margin-bottom:6px;">
+          <div class="card-b" style="padding:8px 12px;">
+            <div class="t4" style="color:var(--amber);">LOOP 3: REVIEW CHANGES &rarr; BUILD</div>
+            <div class="body" style="font-size:12px;">Memory-checker finds a leak or perf-optimizer changes a hot loop &rarr; code goes back through build and test. Every change is re-verified. The grep re-port: fgetc()&rarr;fgets() was a 3-5x speedup on the 68000.</div>
+          </div>
+        </div>
+
+        <div class="em s8-fade d6">Enterprise: automated regression, rollback, and fix loops. Not a waterfall that fails silently in UAT.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- S9 ============================================================= -->
+<div class="slide bg-img bg-holds">
+  <style>
+    @keyframes s9Reveal{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+    .s9-fade{opacity:0;animation:s9Reveal 0.5s ease both}
+    .s9-fade.d1{animation-delay:0.08s}.s9-fade.d2{animation-delay:0.16s}
+    .s9-fade.d3{animation-delay:0.24s}.s9-fade.d4{animation-delay:0.32s}
+    .s9-fade.d5{animation-delay:0.40s}
+  </style>
+  <div class="sc">
+    <div class="t2 s9-fade" style="font-size:clamp(18px,2vw,24px);">Why it doesn't fall apart at scale: agents, enforcement, knowledge.</div>
+    <div class="body s9-fade d1" style="font-size:clamp(12px,1vw,14px); margin-bottom:8px;">A pipeline that works for one migration isn't interesting. A pipeline that works for the 14th &mdash; and gets better each time &mdash; is what a practice is built on.</div>
+
+    <div class="g3 f1">
+      <!-- Column 1: 16 constrained agents -->
+      <div class="col s9-fade d2">
+        <div class="t3" style="font-size:11px;">16 CONSTRAINED AGENTS</div>
+        <div class="body" style="font-size:13px; margin-bottom:6px;">Not one God Prompt &mdash; 16 specialists with only the tools each one needs.</div>
+        <div class="term" style="font-size:11px; margin-bottom:8px;">
+<span class="c">source-analyzer</span>    <span class="g">r--</span><br>
+<span class="c">code-transformer</span>   <span class="g">rw-</span><br>
+<span class="c">build-manager</span>      <span class="g">rwx</span><br>
+<span class="c">test-runner</span>        <span class="g">r-x</span><br>
+<span class="y">memory-checker</span>     <span class="y">r-- (mandatory)</span><br>
+<span class="y">perf-optimizer</span>     <span class="y">r-- (mandatory)</span><br>
+<span class="c">debug-agent</span>        <span class="g">rwx</span> <span class="c">(5 iter cap)</span><br>
+<span class="r">aminet-publisher</span>   <span class="r">HUMAN APPROVAL</span>
+        </div>
+        <div class="body" style="font-size:12px; margin-bottom:4px;">Enforced by infrastructure hooks &mdash; <code style="font-family:var(--mono); font-size:11px;">block-original-edits.sh</code>, <code style="font-family:var(--mono); font-size:11px;">block-direct-gcc.sh</code>, <code style="font-family:var(--mono); font-size:11px;">enforce-agents.sh</code> &mdash; that fire on every tool call. The AI physically cannot bypass them.</div>
+        <div class="em">Your security auditor shouldn't fix code. Your migration agent shouldn't bypass compliance.</div>
+      </div>
+
+      <!-- Column 2: 3-layer enforcement -->
+      <div class="col s9-fade d3">
+        <div class="t3" style="font-size:11px;">3-LAYER ENFORCEMENT</div>
+
+        <div class="card" style="margin-bottom:6px;">
+          <div class="card-h">LAYER 1: RUNTIME</div>
+          <div class="card-b" style="padding:8px 12px;">
+            <div class="body" style="font-size:12px;">Hooks fire on every Edit/Write/Bash call. Block edits to upstream source, block direct compiler calls, validate C89 compliance on every file save.</div>
+          </div>
+        </div>
+        <div class="card" style="margin-bottom:6px;">
+          <div class="card-h">LAYER 2: GIT</div>
+          <div class="card-b" style="padding:8px 12px;">
+            <div class="body" style="font-size:12px;">Pre-commit validates doc consistency, port metadata, 40-char Aminet limit, version alignment. Pre-push builds shim library and compiles all tests.</div>
+          </div>
+        </div>
+        <div class="card" style="margin-bottom:6px;">
+          <div class="card-h">LAYER 3: CI</div>
+          <div class="card-b" style="padding:8px 12px;">
+            <div class="body" style="font-size:12px;">GitHub Actions builds all 4 libraries, runs all tests via vamos, builds + tests all 14 ports, validates docs + metadata + coverage on every push.</div>
+          </div>
+        </div>
+
+        <div class="em">Three chances to catch every violation. No single point of failure.</div>
+      </div>
+
+      <!-- Column 3: Living knowledge base -->
+      <div class="col s9-fade d4">
+        <div class="t3" style="font-size:11px;">LIVING KNOWLEDGE BASE</div>
+        <div class="body" style="font-size:13px; margin-bottom:6px;"><strong style="color:var(--text);">Static:</strong> 13,455 API docs + 646-page CPU manual + 700+ function catalog. Always available, never stale.</div>
+        <div class="body" style="font-size:13px; margin-bottom:6px;"><strong style="color:var(--text);">Living:</strong> 19 crash patterns + 20+ known pitfalls &mdash; growing with every migration. Debug agent fixes crash &rarr; new entry. <code style="font-family:var(--mono); font-size:12px;">getopt_long</code> returns '?' for all options &rarr; Pattern #17 &rarr; custom shim &rarr; all future ports auto-shimmed.</div>
+        <div class="body" style="font-size:13px; margin-bottom:6px;"><strong style="color:var(--amber-bright);">Port 14 avoids every mistake ports 1&ndash;13 made.</strong></div>
+        <div class="em">Your 100th client engagement avoids the first 99's incidents.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- S10 ============================================================ -->
+<div class="slide bg-img bg-war">
+  <style>
+    @keyframes s10Reveal{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+    .s10-fade{opacity:0;animation:s10Reveal 0.5s ease both}
+    .s10-fade.d1{animation-delay:0.08s}.s10-fade.d2{animation-delay:0.16s}
+    .s10-fade.d3{animation-delay:0.24s}.s10-fade.d4{animation-delay:0.32s}
+    .s10-fade.d5{animation-delay:0.40s}
+  </style>
+  <div class="sc">
+    <div class="t2 s10-fade" style="font-size:clamp(18px,2vw,24px);">When the system gets it wrong, it marks its own mistakes.</div>
+    <div class="body s10-fade d1" style="font-size:clamp(12px,1vw,14px); margin-bottom:8px;">Every migration system makes mistakes. The question is whether it buries them or learns from them. Three real stories.</div>
+
+    <div class="g3 f1">
+      <!-- Column 1: The debunked pattern -->
+      <div class="col s10-fade d2">
+        <div class="card red" style="flex:1;">
+          <div class="card-h red">THE DEBUNKED PATTERN</div>
+          <div class="card-b">
+            <div class="body" style="font-size:12px; margin-bottom:6px;">We spent weeks building workarounds for exit() "hanging" on AmigaOS. Restructured cleanup code across all 14 ports. Built a custom _exit() pattern that bypassed atexit handlers.</div>
+            <div class="body" style="font-size:12px; margin-bottom:6px;">The actual cause: a single non-ASCII byte in a test script. ARexx &mdash; a 1987 scripting language &mdash; crashes on any UTF-8 character, including inside comments. The <code style="font-family:var(--mono); font-size:11px;">\=</code> not-equal operator isn't recognized either &mdash; must use <code style="font-family:var(--mono); font-size:11px;">~=</code>.</div>
+            <div class="body" style="font-size:12px; margin-bottom:6px;">Pattern #9 is now marked <strong style="color:var(--red);">DEBUNKED</strong> in the knowledge base with a full post-mortem. The _exit() pattern was retired. exit() with atexit() cleanup was restored as the correct approach.</div>
+            <div class="em">The system corrected its own mistake and updated its rules.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Column 2: The grep re-port -->
+      <div class="col s10-fade d3">
+        <div class="card" style="flex:1;">
+          <div class="card-h">THE GREP RE-PORT</div>
+          <div class="card-b">
+            <div class="body" style="font-size:12px; margin-bottom:6px;">grep shipped to Aminet. Real users downloaded it. Two critical bugs discovered post-publication:</div>
+            <div class="body" style="font-size:12px; margin-bottom:6px;"><strong style="color:var(--red);">BUG-1:</strong> Exit codes always 0. Missing braces in an if/else block &mdash; exit() executed unconditionally. Shell scripts using IF WARN got wrong results.</div>
+            <div class="body" style="font-size:12px; margin-bottom:6px;"><strong style="color:var(--red);">BUG-2:</strong> grep -R silently skipped subdirectories. <code style="font-family:var(--mono); font-size:11px;">d_type == DT_DIR</code> check &mdash; but AmigaOS never populates d_type. Always DT_UNKNOWN.</div>
+            <div class="body" style="font-size:12px;">Both patterns added to known-pitfalls. Source-analyzer now flags braceless multi-statement if/else AND d_type checks. Caught at analysis for all future ports.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Column 3: The desktop killer -->
+      <div class="col s10-fade d4">
+        <div class="card" style="flex:1;">
+          <div class="card-h">THE DESKTOP KILLER</div>
+          <div class="card-b">
+            <div class="body" style="font-size:12px; margin-bottom:6px;">A ported program called <code style="font-family:var(--mono); font-size:11px;">fclose(stdin)</code> after processing input. On Linux, harmless. On AmigaOS, it closes the shell's console handler and crashes the entire Workbench desktop. Not just the program &mdash; the operating system. User reboots.</div>
+            <div class="body" style="font-size:12px; margin-bottom:6px;">Now in known-pitfalls. Source-analyzer flags every fclose() that could receive stdin. Caught at analysis, before any code is written.</div>
+            <div class="em">Caught at analysis. Before any code is written.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="co mt s10-fade d5">In a chatbot engagement, these are $200K production incidents discovered in UAT. In a pipeline, they're patterns caught at analysis &mdash; <strong>before the first line of code is written.</strong></div>
+  </div>
+</div>
+
+<!-- S11 ============================================================ -->
+<div class="slide bg-img bg-human">
+  <style>
+    @keyframes s11Reveal{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+    .s11-fade{opacity:0;animation:s11Reveal 0.5s ease both}
+    .s11-fade.d1{animation-delay:0.08s}.s11-fade.d2{animation-delay:0.16s}
+    .s11-fade.d3{animation-delay:0.24s}.s11-fade.d4{animation-delay:0.32s}
+    .s11-fade.d5{animation-delay:0.40s}
+  </style>
+  <div class="sc">
+    <div class="t2 s11-fade" style="font-size:clamp(18px,2vw,24px);">Human on the loop. Not in the loop.</div>
+    <div class="body s11-fade d1" style="font-size:clamp(12px,1vw,14px); margin-bottom:8px;">The pipeline runs 90 automated transforms, five build-fix iterations, generates 15&ndash;65 tests per program from source code analysis, diagnoses and repairs crashes autonomously, and updates the knowledge base &mdash; all without asking permission. It stops for exactly three things.</div>
+
+    <div class="row f1">
+      <!-- Left: runs at machine speed -->
+      <div class="col f1 s11-fade d2">
+        <div class="label" style="margin-bottom:4px;">RUNS AT MACHINE SPEED</div>
+        <div class="card green" style="margin-bottom:4px;"><div class="card-b" style="padding:6px 12px;"><div class="body" style="font-size:12px;">Tier 1 transforms &mdash; 90 functions, fully automated</div></div></div>
+        <div class="card green" style="margin-bottom:4px;"><div class="card-b" style="padding:6px 12px;"><div class="body" style="font-size:12px;">Build-fix recovery loops &mdash; up to 5 iterations per cycle</div></div></div>
+        <div class="card green" style="margin-bottom:4px;"><div class="card-b" style="padding:6px 12px;"><div class="body" style="font-size:12px;">Test generation &mdash; extracts getopt OPTIONS from source, generates 428 tests across 14 ports</div></div></div>
+        <div class="card green" style="margin-bottom:4px;"><div class="card-b" style="padding:6px 12px;"><div class="body" style="font-size:12px;">Crash diagnosis &mdash; Enforcer hit &rarr; addr2line &rarr; crash KB &rarr; fix &rarr; rebuild &rarr; retest</div></div></div>
+        <div class="card green" style="margin-bottom:4px;"><div class="card-b" style="padding:6px 12px;"><div class="body" style="font-size:12px;">Memory safety audit &mdash; traces every malloc/free across all exit paths (mandatory)</div></div></div>
+        <div class="card green" style="margin-bottom:4px;"><div class="card-b" style="padding:6px 12px;"><div class="body" style="font-size:12px;">Performance optimization &mdash; 68k timing analysis from 646-page Motorola PRM (mandatory)</div></div></div>
+        <div class="card green"><div class="card-b" style="padding:6px 12px;"><div class="body" style="font-size:12px;">Knowledge base updates &mdash; every fix feeds back into canonical rules</div></div></div>
+      </div>
+
+      <!-- Right: human decides -->
+      <div class="col f1 s11-fade d3">
+        <div class="label" style="margin-bottom:4px;">HUMAN DECIDES</div>
+        <div class="card" style="border-color:var(--amber); margin-bottom:8px;">
+          <div class="card-h">TIER 3: ARCHITECTURAL REDESIGN</div>
+          <div class="card-b">
+            <div class="body" style="font-size:13px;">Pipeline stops, presents options, waits for a decision. The AI does not silently stub fork() or pthreads. It explains the tradeoffs and lets the human choose.</div>
+          </div>
+        </div>
+        <div class="card" style="border-color:var(--amber); margin-bottom:8px;">
+          <div class="card-h">PUBLISHING TO PRODUCTION</div>
+          <div class="card-b">
+            <div class="body" style="font-size:13px;">Never automatic. aminet-publisher and amiport-publisher require explicit human sign-off for every release to the public archive.</div>
+          </div>
+        </div>
+        <div class="card" style="border-color:var(--amber); margin-bottom:8px;">
+          <div class="card-h">ESCALATION AFTER 5 ATTEMPTS</div>
+          <div class="card-b">
+            <div class="body" style="font-size:13px;">Build, debug, and fix loops cap at 5 iterations. Then the system admits it needs help and escalates with a summary of what it tried.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="co mt s11-fade d5">For clients: your migration team isn't doing mechanical work. They're doing the work that actually needs judgment &mdash; <strong>architectural decisions, compliance sign-off, production readiness. Everything else moves at machine speed.</strong></div>
+  </div>
+</div>
+
+<!-- S12 ============================================================ -->
+<div class="slide bg-img bg-close">
+  <style>
+    @keyframes s12Reveal{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes s12PillarRise{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+    .s12-fade{opacity:0;animation:s12Reveal 0.5s ease both}
+    .s12-fade.d1{animation-delay:0.1s}.s12-fade.d2{animation-delay:0.2s}
+    .s12-fade.d3{animation-delay:0.3s}.s12-fade.d4{animation-delay:0.4s}
+    .s12-fade.d5{animation-delay:0.5s}
+    .s12-pillar{opacity:0;animation:s12PillarRise 0.6s ease both}
+    .s12-pillar:nth-child(1){animation-delay:0.35s}
+    .s12-pillar:nth-child(2){animation-delay:0.45s}
+    .s12-pillar:nth-child(3){animation-delay:0.55s}
+  </style>
+  <div class="sc" style="justify-content:center;">
+    <div class="t2 s12-fade" style="font-size:clamp(22px,2.5vw,30px); text-align:center; margin-bottom:16px;">Your clients' migrations are the easy version of this problem.</div>
+
+    <div class="cmp s12-fade d1" style="max-width:1000px; margin:0 auto 16px;">
+      <div class="cmp-l">
+        <div class="t4" style="color:var(--amber); margin-bottom:8px;">What I built for (the hard way)</div>
+        <ul><li>Target has fewer APIs &mdash; had to invent 90 shims</li><li>2MB RAM, no garbage collection, no memory protection</li><li>Custom crash detection pipeline built from scratch</li><li>Platform docs scattered across 30-year-old manuals &mdash; converted by hand to 13,455 markdown files</li></ul>
+      </div>
+      <div class="cmp-r">
+        <div class="t4" style="margin-bottom:8px;">What your clients need (the easy way)</div>
+        <ul><li>Target has more APIs &mdash; rich Java/Spring/Cloud mapping available</li><li>64GB+ RAM, garbage collection, virtual memory, crash recovery</li><li>AddressSanitizer, Valgrind, JVM debuggers built in natively</li><li>Modern, structured, searchable API references</li></ul>
+      </div>
+    </div>
+
+    <div class="body s12-fade d2" style="text-align:center; font-size:clamp(14px,1.1vw,16px); max-width:900px; margin:0 auto 16px; line-height:1.5;">
+      The three-tier classification becomes your COBOL triage framework. The adapter library becomes your CICS/DB2/VSAM mapping layer &mdash; 20 rules at engagement 1, 200 by engagement 10. The crash patterns KB becomes your production incident knowledge base. The enforcement hooks become your compliance gates.
+    </div>
+
+    <div class="pillars s12-fade d3" style="max-width:900px; margin:0 auto 16px;">
+      <div class="pillar s12-pillar">Constrain the agents.</div>
+      <div class="pillar s12-pillar">Inject the domain knowledge.</div>
+      <div class="pillar s12-pillar">Enforce the quality gates.</div>
+    </div>
+
+    <div class="co s12-fade d4" style="max-width:900px; margin:0 auto; text-align:center; font-size:clamp(16px,1.4vw,20px); border-left-width:1px;">
+      <strong>Stop selling chatbot migrations. Build the pipeline.</strong>
+    </div>
+
+    <div class="author s12-fade d5" style="text-align:center; margin-top:16px;">Duncan Bowring, Accenture</div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var cur=0, slides=[];
+  function init(){
+    slides=Array.from(document.querySelectorAll('.slide'));
+    var h=parseInt(location.hash.replace('#',''),10);
+    if(h>=1&&h<=slides.length)cur=h-1;
+    show(cur);
+  }
+  function show(i){
+    slides.forEach(function(s,j){s.classList.toggle('active',j===i);});
+    location.hash='#'+(i+1);
+  }
+  function next(){if(cur<slides.length-1){cur++;show(cur);}}
+  function prev(){if(cur>0){cur--;show(cur);}}
+  document.addEventListener('keydown',function(e){
+    if(e.key==='ArrowRight'||e.key===' '||e.key==='PageDown'){e.preventDefault();next();}
+    if(e.key==='ArrowLeft'||e.key==='PageUp'){e.preventDefault();prev();}
+    if(e.key==='Home'){e.preventDefault();cur=0;show(cur);}
+    if(e.key==='End'){e.preventDefault();cur=slides.length-1;show(cur);}
+    if(e.key==='f'||e.key==='F'){if(!document.fullscreenElement)document.documentElement.requestFullscreen();else document.exitFullscreen();}
+  });
+  document.addEventListener('click',function(e){if(e.clientX>window.innerWidth/2)next();else prev();});
+  window.addEventListener('hashchange',function(){var h=parseInt(location.hash.replace('#',''),10);if(h>=1&&h<=slides.length&&h-1!==cur){cur=h-1;show(cur);}});
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+})();
+</script>
+</body>
+</html>
