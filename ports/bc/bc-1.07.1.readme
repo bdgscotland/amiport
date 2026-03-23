@@ -12,7 +12,7 @@ Ported by Duncan Bowring using amiport (AI-assisted porting toolkit).
 Project: https://github.com/bdgscotland/amiport
 
 Cross-compiled with m68k-amigaos-gcc for AmigaOS 3.x (68000+).
-Tested on FS-UAE with Workbench 3.1 (31/31 tests pass).
+Tested on FS-UAE with Workbench 3.1 (37/37 tests pass).
 
 bc is an arbitrary precision calculator language supporting variables,
 functions, and a C-like syntax. The -l flag loads a math library with
