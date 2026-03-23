@@ -1,0 +1,37 @@
+Short:        GNU arbitrary precision calculator
+Type:         util/cli
+Architecture: m68k-amigaos >= 3.0
+Uploader:     duncan@bowring.us
+Author:       Philip A. Nelson (ported by Duncan Bowring)
+Version:      1.07.1
+
+bc - GNU arbitrary precision calculator
+
+Original author: Philip A. Nelson
+Ported by Duncan Bowring using amiport (AI-assisted porting toolkit).
+Project: https://github.com/bdgscotland/amiport
+
+Cross-compiled with m68k-amigaos-gcc for AmigaOS 3.x (68000+).
+Tested on FS-UAE with Workbench 3.1 (31/31 tests pass).
+
+bc is an arbitrary precision calculator language supporting variables,
+functions, and a C-like syntax. The -l flag loads a math library with
+transcendental functions (sin, cos, arctan, ln, exp, bessel).
+
+Usage:
+  bc [-hlqswv] [file ...]
+
+  bc                   Interactive calculator
+  bc -l                Load math library (e, l, s, c, a, j functions)
+  bc -q script.bc      Run script without welcome banner
+  bc -c script.bc      Compile to bytecode (don't execute)
+
+Examples:
+  echo "2^10" | bc               Result: 1024
+  echo "scale=10; 4*a(1)" | bc -l   Pi to 10 places: 3.1415926532
+
+Replaces the ixemul-dependent bc 1.6 on Aminet (dev/gg/bc-1.6)
+with a standalone noixemul binary. No runtime library dependencies.
+
+Includes full source code (original POSIX and ported Amiga versions)
+and PORT.md documenting every transformation applied.

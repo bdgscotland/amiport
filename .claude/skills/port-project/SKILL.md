@@ -191,12 +191,18 @@ If 6b or 6c makes changes, **rebuild (Stage 4) and retest (Stage 5)** before pro
 
 **6d. Runtime profiling (OPTIONAL):** For performance-critical ports, dispatch the `profiler` agent to empirically measure function timing using ReadEClock. This validates the perf-optimizer's static analysis with real data. The profiler instruments code with `AMIPORT_PROFILE_BEGIN/END` macros, builds with `-DAMIPORT_PROFILE`, and runs on vamos or FS-UAE.
 
-**6e. Knowledge capture:** Review `PORT.md` for novel transformation patterns, pitfalls, or workarounds discovered during this port that aren't yet in the canonical references. For each novel finding:
-1. Check if the pattern exists in `transformation-rules.md`, `known-pitfalls.md`, or `posix-tiers.md`
-2. If novel, present it to the user and ask whether to update the canonical reference
-3. Update the reference file if approved
+**6e. Knowledge capture (MANDATORY — do not ask, just do it):** Review `PORT.md` for novel transformation patterns, pitfalls, or workarounds discovered during this port that aren't yet in the canonical references. For each novel finding:
+1. Check if the pattern exists in `transformation-rules.md`, `known-pitfalls.md`, `crash-patterns.md`, or `posix-tiers.md`
+2. If novel, **immediately update the canonical reference** — do not ask the user for permission, just add it
+3. If the finding affects agent behavior (e.g., the code-transformer should catch a new pattern), update the relevant transformation rules too
 
-This step ensures lessons learned flow back into the toolkit for future ports.
+This step ensures lessons learned flow back into the toolkit for future ports. Novel findings from every port must be captured — this is how the pipeline gets smarter.
+
+**GATE:** Before proceeding to Stage 7, verify knowledge capture by running:
+```
+grep -c '<port-name>' .claude/rules/known-pitfalls.md .claude/skills/transform-source/references/transformation-rules.md docs/references/crash-patterns.md 2>/dev/null
+```
+If zero hits AND the port encountered any of these: (a) a new workaround not in known-pitfalls, (b) a shim/libnix behavior difference, (c) a build trick (linker flags, bootstrap steps), (d) a test harness gap — then knowledge capture was skipped. Go back and add the findings. If the port was truly routine with no novel findings, document that explicitly in PORT.md under a "Knowledge Capture: No novel findings" line.
 
 Fix any CRITICAL issues before packaging. WARN issues should be documented in PORT.md.
 

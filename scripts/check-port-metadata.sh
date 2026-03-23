@@ -231,6 +231,18 @@ for dir in "$PORTS_DIR"/*/; do
     fi
 
     # ----------------------------------------------------------
+    # Check 4b: README.md ports table entry
+    # ----------------------------------------------------------
+    if [ -f "README.md" ]; then
+        if grep -qE "^\|[[:space:]]*\[${name}\]" "README.md" 2>/dev/null; then
+            echo "PASS  $name: README.md ports table entry"
+        else
+            echo "FAIL  $name: README.md ports table entry — not found"
+            port_failed=1
+        fi
+    fi
+
+    # ----------------------------------------------------------
     # Check 5: TEST-REPORT.md quality
     # ----------------------------------------------------------
     if [ -f "$dir/TEST-REPORT.md" ]; then

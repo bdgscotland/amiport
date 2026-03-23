@@ -178,6 +178,42 @@ for (i = 0; i < obsolete_alloc_count; i++)
 
 `offsetof(struct { char x; union { int; double; } u; }, u)` returns **2** on 68k (word alignment). Code that uses this for custom allocator alignment (arenas, slab stacks, memory pools) will pack blocks at 2-byte boundaries. Storing `int`/`long`/pointer metadata between blocks corrupts data when indexed. **Fix:** Use `AMIPORT_ALIGN(offsetof(...))` from `<amiport/compat.h>` to force minimum 4-byte alignment. See crash-patterns #15.
 
+## amiport_getenv() Returns malloc'd Strings — Caller MUST Free
+
+POSIX `getenv()` returns a pointer to static internal storage — the caller must NOT free it. `amiport_getenv()` returns a `malloc()`'d copy (necessary because AmigaOS `GetVar()` requires a caller-provided buffer). Every `getenv()` → `amiport_getenv()` transformation silently introduces a memory leak unless the caller frees the result.
+
+**Patterns that leak:**
+```c
+/* Pattern 1: result stored but never freed */
+env_value = amiport_getenv("FOO");
+if (env_value != NULL) { use(env_value); }
+/* LEAK: env_value never freed */
+
+/* Pattern 2: result used only for NULL check — pointer lost */
+if (amiport_getenv("BAR") != NULL) { ... }
+/* LEAK: malloc'd string discarded immediately */
+```
+
+**Fix:** Track results and free them, or free immediately after use:
+```c
+/* For NULL-check only: */
+char *tmp = amiport_getenv("BAR");
+if (tmp != NULL) { flag = TRUE; free(tmp); }
+
+/* For value needed later: track in static array, free in atexit cleanup */
+env_allocs[env_alloc_count++] = amiport_getenv("FOO");
+```
+
+Discovered in bc 1.07.1 port — 3 getenv calls leaked ~768 bytes per invocation.
+
+## random() Missing from libnix — Use rand()
+
+The libnix-reference.md lists `random()` as available, but it is **absent from the actual libnix archive** in current bebbo-gcc. Linking fails with `undefined reference to _random`. **Fix:** `#define random() rand()`. Both return `int` from `<stdlib.h>` and are equivalent for non-cryptographic use. Discovered in bc 1.07.1 port (execute.c used `random()` for the bc `random` built-in).
+
+## Bundled getopt Clashes with libnix Symbols
+
+When a port bundles its own GNU getopt (the correct approach — libnix's `getopt_long` is broken, see above), the `getopt`, `getopt_long`, `optarg`, `optind`, `opterr`, and `optopt` symbols clash with libnix's copies at link time. **Fix:** Add `-Wl,--allow-multiple-definition` to LDFLAGS. The bundled version (linked as object files) wins over libnix's archive version, which is the correct behavior. Discovered in bc 1.07.1 port.
+
 ## bebbo-gcc -O1/-O2 Corrupts Large Struct Returns
 
 GCC 6.5.0b for 68k generates incorrect code for functions returning structs > 8 bytes by value at `-O1` or `-O2`. The first byte of the struct reads as 0 in the caller despite being correct inside the function. **Fix:** Compile with `-O0`. Add `CFLAGS := $(subst -O2,-O0,$(CFLAGS))` to the port Makefile. No source-level workaround exists. See crash-patterns #16.

@@ -1,0 +1,182 @@
+# test-fsemu-cases.txt -- FS-UAE test suite for GNU bc 1.07.1
+# Category 1 CLI tool -- minimum 15 tests required
+# All tests use pre-built .bc script files (ARexx ADDRESS COMMAND has no stdin piping)
+#
+# Exit codes: 0 = success, 10 = error (bad flag, missing file)
+# Error messages go to stderr (not captured) -- error path tests use EXPECT_RC only
+# Use -q flag to suppress the welcome banner in most tests
+
+# ===========================================================================
+# CATEGORY 1: Functional tests -- one per flag/option
+# Flags from getopt_long: -c, -h, -i, -l, -q, -s, -w, -v
+# ===========================================================================
+
+TEST: Version flag (-v) prints version to stdout
+CMD: WORK:bc -v
+EXPECT_CONTAINS: bc
+EXPECT_RC: 0
+
+TEST: Help flag (-h) prints usage to stdout
+CMD: WORK:bc -h
+EXPECT_CONTAINS: usage
+EXPECT_RC: 0
+
+TEST: Quiet flag (-q) suppresses welcome banner
+CMD: WORK:bc -q WORK:test-bc-add.bc
+EXPECT: 5
+EXPECT_RC: 0
+
+TEST: Math library flag (-l) enables trigonometric functions
+CMD: WORK:bc -q -l WORK:test-bc-mathlib.bc
+EXPECT: 0
+EXPECT_RC: 0
+
+TEST: Compile-only flag (-c) prints bytecode instead of executing
+CMD: WORK:bc -c -q WORK:test-bc-add.bc
+EXPECT_CONTAINS: @i
+EXPECT_RC: 0
+
+TEST: Standard mode flag (-s) rejects non-POSIX extensions
+CMD: WORK:bc -q -s WORK:test-bc-add.bc
+EXPECT: 5
+EXPECT_RC: 0
+
+TEST: Warn mode flag (-w) accepts file and processes it
+CMD: WORK:bc -q -w WORK:test-bc-add.bc
+EXPECT: 5
+EXPECT_RC: 0
+
+TEST: Interactive flag (-i) is accepted without error (non-tty falls back to file mode)
+CMD: WORK:bc -q -i WORK:test-bc-add.bc
+EXPECT: 5
+EXPECT_RC: 0
+
+# ===========================================================================
+# CATEGORY 2: Functional tests -- arithmetic operations and bc features
+# ===========================================================================
+
+TEST: Basic addition -- 2+3 = 5
+CMD: WORK:bc -q WORK:test-bc-add.bc
+EXPECT: 5
+EXPECT_RC: 0
+
+TEST: Power operator -- 2^10 = 1024
+CMD: WORK:bc -q WORK:test-bc-power.bc
+EXPECT: 1024
+EXPECT_RC: 0
+
+TEST: Scale sets decimal precision -- 10/3 to 5 places
+CMD: WORK:bc -q WORK:test-bc-scale.bc
+EXPECT: 3.33333
+EXPECT_RC: 0
+
+TEST: Variables and mixed arithmetic from script file
+CMD: WORK:bc -q WORK:test-bc-script.bc
+EXPECT: 50
+EXPECT_RC: 0
+
+TEST: User-defined function -- double(21) = 42
+CMD: WORK:bc -q WORK:test-bc-function.bc
+EXPECT: 42
+EXPECT_RC: 0
+
+TEST: For loop -- sum 1 to 5 = 15
+CMD: WORK:bc -q WORK:test-bc-control.bc
+EXPECT: 15
+EXPECT_RC: 0
+
+TEST: While loop -- double n until > 4, result is 8
+CMD: WORK:bc -q WORK:test-bc-while.bc
+EXPECT: 8
+EXPECT_RC: 0
+
+TEST: Comparison operator -- 5 > 3 prints 1
+CMD: WORK:bc -q WORK:test-bc-compare.bc
+EXPECT: 1
+EXPECT_RC: 0
+
+TEST: Multiple expressions on one line separated by semicolons
+CMD: WORK:bc -q WORK:test-bc-multiexpr.bc
+EXPECT: 2
+EXPECT_RC: 0
+
+TEST: ibase -- hex input FF = 255
+CMD: WORK:bc -q WORK:test-bc-ibase.bc
+EXPECT: 255
+EXPECT_RC: 0
+
+TEST: obase -- decimal 255 in hex = FF
+CMD: WORK:bc -q WORK:test-bc-obase.bc
+EXPECT: FF
+EXPECT_RC: 0
+
+TEST: Math library e() function -- e(1) with scale=0 = 2
+CMD: WORK:bc -q -l WORK:test-bc-mathlib-e.bc
+EXPECT: 2
+EXPECT_RC: 0
+
+TEST: Math library a() function -- 4*a(1) = pi to 10 decimal places
+CMD: WORK:bc -q -l WORK:test-bc-mathlib-pi.bc
+EXPECT: 3.1415926532
+EXPECT_RC: 0
+
+# ===========================================================================
+# CATEGORY 3: Error path tests (EXPECT_RC: 10)
+# Note: all error text goes to stderr -- not captured by harness
+# ===========================================================================
+
+TEST: Invalid flag exits with RETURN_ERROR
+CMD: WORK:bc -Z WORK:test-bc-add.bc
+EXPECT_RC: 10
+
+TEST: Missing input file exits with RETURN_ERROR
+CMD: WORK:bc -q WORK:test-bc-nonexistent.bc
+EXPECT_RC: 10
+
+# ===========================================================================
+# CATEGORY 4: Exit code tests
+# ===========================================================================
+
+TEST: Successful execution returns RC 0
+CMD: WORK:bc -q WORK:test-bc-add.bc
+EXPECT_RC: 0
+
+TEST: quit command exits immediately with RC 0
+CMD: WORK:bc -q WORK:test-bc-script.bc
+EXPECT_RC: 0
+
+TEST: Minimal script file (quit only) exits cleanly with RC 0
+CMD: WORK:bc -q WORK:test-bc-empty.bc
+EXPECT_RC: 0
+
+# ===========================================================================
+# CATEGORY 5: Edge case tests
+# ===========================================================================
+
+TEST: Minimal bc file produces no output and exits cleanly
+CMD: WORK:bc -q WORK:test-bc-empty.bc
+EXPECT_RC: 0
+
+TEST: Large exponent -- 2^10 integer result fits in output
+CMD: WORK:bc -q WORK:test-bc-power.bc
+EXPECT: 1024
+EXPECT_RC: 0
+
+# ===========================================================================
+# CATEGORY 6: Amiga-specific tests -- WORK: volume paths
+# ===========================================================================
+
+TEST: Amiga WORK: path resolves correctly for script file
+CMD: WORK:bc -q WORK:test-bc-add.bc
+EXPECT: 5
+EXPECT_RC: 0
+
+TEST: Math library loads correctly from Amiga binary path
+CMD: WORK:bc -q -l WORK:test-bc-mathlib-pi.bc
+EXPECT: 3.1415926532
+EXPECT_RC: 0
+
+TEST: Compile-only mode works on Amiga without executing bytecode
+CMD: WORK:bc -c -q WORK:test-bc-add.bc
+EXPECT_CONTAINS: @r
+EXPECT_RC: 0
