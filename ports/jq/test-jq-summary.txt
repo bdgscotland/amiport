@@ -1,0 +1,1 @@
+{total: length, published: [.[] | select(.status == "published")] | length, total_tests: [.[].tests] | add}

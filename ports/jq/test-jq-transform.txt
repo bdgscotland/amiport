@@ -1,0 +1,1 @@
+[.[] | {name, tests}] | sort_by(.tests) | reverse | .[0].name

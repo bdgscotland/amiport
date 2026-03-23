@@ -1,0 +1,9 @@
+[
+  {"name":"grep","version":"1.68","category":"util/cli","status":"published","tests":18},
+  {"name":"sed","version":"4.9","category":"util/cli","status":"published","tests":22},
+  {"name":"jq","version":"1.7.1","category":"util/cli","status":"testing","tests":45},
+  {"name":"lua","version":"5.4.7","category":"dev/lang","status":"published","tests":15},
+  {"name":"diff","version":"1.95","category":"util/cli","status":"submitted","tests":20},
+  {"name":"head","version":"1.28","category":"util/cli","status":"published","tests":16},
+  {"name":"uniq","version":"1.33","category":"util/cli","status":"published","tests":12}
+]
