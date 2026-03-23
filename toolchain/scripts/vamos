@@ -3,33 +3,49 @@
 # works around vamos's 8KB default stack (vamos ignores __stack cookies).
 #
 # Default stack: 128KB (sufficient for most ported programs).
-# Override with: vamos -s <KB> ./program
+# Override stack with: vamos -s <KB> ./program
+# Override RAM with env var: VAMOS_MEM=8192 vamos ./program
+#
+# NOTE: -m is intentionally NOT intercepted here because it conflicts with
+# program flags (e.g., grep -m 2). Use the VAMOS_MEM env var instead.
 # See crash-patterns.md #7 for details.
 
-# Remove -C "" if present, detect if user passed -s
-args=()
-skip_next=0
-has_stack=0
+# Parse arguments:
+#   -C <arg>  -- strip the flag and its value (color mode, not needed)
+#   -s <val>  -- extract as stack size in KB, strip from program args
+#   --        -- end-of-options separator, rest is program + program args
+#   everything else passes through as program args
+
+prog_args=()
+stack_val=""
+skip_next=""   # set to "C" or "s" to indicate which flag's value to consume
+past_sep=0
 
 for arg in "$@"; do
-  if [ $skip_next -eq 1 ]; then
-    skip_next=0
+  if [ $past_sep -eq 1 ]; then
+    prog_args+=("$arg")
     continue
   fi
-  if [ "$arg" = "-C" ]; then
-    skip_next=1
+  if [ -n "$skip_next" ]; then
+    case "$skip_next" in
+      s) stack_val="$arg" ;;
+      # -C value is discarded
+    esac
+    skip_next=""
     continue
   fi
-  if [ "$arg" = "-s" ]; then
-    has_stack=1
-  fi
-  args+=("$arg")
+  case "$arg" in
+    -C) skip_next="C" ;;
+    -s) skip_next="s" ;;
+    --) past_sep=1 ;;
+    *)  prog_args+=("$arg") ;;
+  esac
 done
 
-# If no -s flag was passed, default to 128KB stack
-# vamos ignores __stack cookies in binaries — its default is only 8KB
-if [ $has_stack -eq 0 ]; then
-  /Users/duncan/.pyenv/shims/vamos -s 128 -- "${args[@]}"
-else
-  /Users/duncan/.pyenv/shims/vamos -- "${args[@]}"
-fi
+# Stack: use provided value or default 128KB
+stack_arg="${stack_val:-128}"
+
+# RAM: use VAMOS_MEM env var if set, otherwise default 1024KB
+mem_arg="${VAMOS_MEM:-1024}"
+
+/Users/duncan/.pyenv/shims/vamos -s "$stack_arg" -m "$mem_arg" -- "${prog_args[@]}"
