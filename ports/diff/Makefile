@@ -4,7 +4,7 @@ include ../common.mk
 TARGET      = diff
 SOURCES     = ported/diff.c ported/diffreg.c ported/diffdir.c ported/xmalloc.c
 VERSION     = 1.95
-DESCRIPTION = File comparison utility (OpenBSD diff port)
+DESCRIPTION = OpenBSD diff file comparison tool
 AUTHOR      = Todd C. Miller, OpenBSD contributors
 AMINET_CAT  = util/cli
 

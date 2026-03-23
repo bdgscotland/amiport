@@ -6,6 +6,9 @@ set -euo pipefail
 # For each port in ports/*/:
 #   1. Required files exist (Makefile, PORT.md, .readme, test-fsemu-cases.txt, source files)
 #   2. No template placeholders remain (__PLACEHOLDER__ patterns)
+#   2b. Short description <= 40 chars (Aminet requirement)
+#   2c. No hallucinated Replaces: lines in .readme
+#   2d. Short description is ASCII-only
 #   3. Version consistency across Makefile, .readme, PORT.md, $VER string
 #   4. PORTS.md entry exists
 #   5. TEST-REPORT.md quality (if present)
@@ -81,6 +84,56 @@ for dir in "$PORTS_DIR"/*/; do
         port_failed=1
     else
         echo "PASS  $name: no placeholders"
+    fi
+
+    # ----------------------------------------------------------
+    # Check 2b: Short description length (Aminet max: 40 chars)
+    # ----------------------------------------------------------
+    desc=$(grep -E '^DESCRIPTION\s*=' "$dir/Makefile" 2>/dev/null | head -1 | sed 's/^DESCRIPTION[[:space:]]*=[[:space:]]*//' || true)
+    if [ -n "$desc" ]; then
+        desc_len=${#desc}
+        if [ "$desc_len" -gt 40 ]; then
+            echo "FAIL  $name: description — $desc_len chars (max 40): \"$desc\""
+            port_failed=1
+        else
+            echo "PASS  $name: description ($desc_len chars)"
+        fi
+    else
+        echo "WARN  $name: description — no DESCRIPTION in Makefile"
+        port_warned=1
+    fi
+
+    # ----------------------------------------------------------
+    # Check 2c: No hallucinated Replaces: in .readme
+    # ----------------------------------------------------------
+    # Replaces: must ONLY be used when upgrading an EXISTING Aminet package.
+    # First-time uploads must NOT have a Replaces: line.
+    replaces_line=$(grep -E '^Replaces:' "$dir/${name}.readme" 2>/dev/null || true)
+    if [ -n "$replaces_line" ]; then
+        echo "WARN  $name: .readme has Replaces: line — verify this package exists on Aminet"
+        port_warned=1
+    fi
+
+    # ----------------------------------------------------------
+    # Check 2c2: Description consistency (Makefile vs .readme Short:)
+    # ----------------------------------------------------------
+    if [ -n "$desc" ] && [ -f "$dir/${name}.readme" ]; then
+        readme_short=$(grep -E '^Short:' "$dir/${name}.readme" 2>/dev/null | head -1 | sed 's/^Short:[[:space:]]*//' || true)
+        if [ -n "$readme_short" ] && [ "$readme_short" != "$desc" ]; then
+            echo "WARN  $name: description mismatch — Makefile=\"$desc\" vs .readme=\"$readme_short\""
+            port_warned=1
+        fi
+    fi
+
+    # ----------------------------------------------------------
+    # Check 2d: Short description is ASCII-only (Aminet requirement)
+    # ----------------------------------------------------------
+    if [ -n "$desc" ]; then
+        non_ascii=$(echo "$desc" | LC_ALL=C grep -P '[^\x00-\x7F]' 2>/dev/null || true)
+        if [ -n "$non_ascii" ]; then
+            echo "FAIL  $name: description — contains non-ASCII characters (Aminet requires ASCII)"
+            port_failed=1
+        fi
     fi
 
     # ----------------------------------------------------------

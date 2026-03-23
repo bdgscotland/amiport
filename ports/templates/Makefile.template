@@ -5,7 +5,7 @@ TARGET      = __TARGET__
 SOURCES     = ported/__TARGET__.c
 VERSION     = __VERSION__
 REVISION    = 1
-DESCRIPTION = __DESCRIPTION__
+DESCRIPTION = __DESCRIPTION__  # Max 40 chars, ASCII only (Aminet requirement)
 AUTHOR      = __AUTHOR__
 
 # Override if not util/cli (e.g., util/misc, text/edit)

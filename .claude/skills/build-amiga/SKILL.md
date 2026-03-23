@@ -8,9 +8,15 @@ allowed-tools: Bash, Read, Write, Edit, Grep, Glob
 
 You are cross-compiling transformed C source code for AmigaOS using the Docker-based toolchain.
 
+## Toolchain Status
+
+```
+!`toolchain/scripts/detect-toolchain.sh 2>/dev/null || echo 'DETECTION FAILED — run make setup-toolchain'`
+```
+
 ## Process
 
-1. **Detect toolchain** — run `toolchain/scripts/detect-toolchain.sh` to find available compilers
+1. **Verify toolchain** — check the status above. If detection failed, stop and tell the user to run `make setup-toolchain`.
 2. **Select target profile** — default is `amiga-68020.mk` (AmigaOS 3.x, 68020+)
 3. **Build posix-shim** if not already built — `make build-shim`
 4. **Compile** the source using the appropriate cross-compiler
@@ -101,11 +107,14 @@ After successful build:
 lha a program.lha program program.readme
 ```
 
-The `.readme` file follows Aminet format:
+The `.readme` file follows Aminet format (see https://wiki.aminet.net/Uploading_instructions):
 ```
-Short:    One-line description
-Uploader: amiport (automated)
-Author:   Original author
-Type:     util/cli
+Short:        <max 40 chars, ASCII only>
+Type:         util/cli
 Architecture: m68k-amigaos >= 3.0
+Uploader:     <email>
+Author:       Original author
+Version:      <version>
 ```
+**Rules:** Short: max 40 chars, all lines max 78 chars, LF endings only, pure ASCII.
+**Never add Replaces:** unless upgrading an existing Aminet package.
