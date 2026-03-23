@@ -659,8 +659,8 @@ _bc_simp_mul (bc_num n1, int n1len, bc_num n2, int n2len, bc_num *prod)
       n2ptr = (char *) (n2end - MIN(indx, n2len-1));
       while ((n1ptr >= n1->n_value) && (n2ptr <= n2end))
 	sum += *n1ptr-- * *n2ptr++;
-      *pvptr-- = sum % BASE;
-      sum = sum / BASE;
+      /* amiport: replace 2 DIVUs with 1 DIVU + shifts (76-140 cycles each on 68000) */
+      { int q = sum / BASE; *pvptr-- = sum - ((q << 3) + (q << 1)); sum = q; }
     }
   *pvptr = sum;
 }
@@ -886,8 +886,9 @@ _one_mult (unsigned char *num, int size, int digit, unsigned char *result)
 	  while (size-- > 0)
 	    {
 	      value = *nptr-- * digit + carry;
-	      *rptr-- = value % BASE;
+	      /* amiport: replace 2 DIVUs with 1 DIVU + shifts */
 	      carry = value / BASE;
+	      *rptr-- = value - ((carry << 3) + (carry << 1));
 	    }
 
 	  if (carry != 0) *rptr = carry;
@@ -1541,7 +1542,7 @@ bc_num2long (bc_num num)
   val = 0;
   nptr = num->n_value;
   for (i=num->n_len; (i>0) && (val<=(LONG_MAX/BASE)); i--)
-    val = val*BASE + *nptr++;
+    val = (val << 3) + (val << 1) + *nptr++; /* amiport: val*10 via shifts — avoids MULS */
 
   /* Check for overflow.  If overflow, return zero. */
   if (i>0) val = 0;
@@ -1574,14 +1575,13 @@ bc_int2num (bc_num *num, int val)
 
   /* Get things going. */
   bptr = buffer;
-  *bptr++ = val % BASE;
-  val = val / BASE;
+  /* amiport: replace 2 DIVUs per digit with 1 DIVU + shifts */
+  { int q = val / BASE; *bptr++ = val - ((q << 3) + (q << 1)); val = q; }
 
   /* Extract remaining digits. */
   while (val != 0)
     {
-      *bptr++ = val % BASE;
-      val = val / BASE;
+      int q = val / BASE; *bptr++ = val - ((q << 3) + (q << 1)); val = q;
       ix++; 		/* Count the digits. */
     }
 
