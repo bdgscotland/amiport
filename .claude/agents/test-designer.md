@@ -85,7 +85,9 @@ AmigaDOS treats certain characters specially in command arguments. These cause s
 
 ## Dollar Signs in CMD Lines
 
-CMD lines go through AmigaDOS `Execute` which expands `$` as variable substitution. **Never use `$` in CMD lines.** For sed `$` addresses (last line), use a script file with `-f` instead:
+CMD lines go through AmigaDOS `Execute` which expands `$` as variable substitution. **Never use `$` in CMD lines.** This applies to ANY program whose arguments use `$` — jq filters (`$var`), awk (`$1`, `$NF`), perl (`$_`), sed (`$` address), shell expressions, etc. Put the filter/expression in a file and use the program's `-f` flag instead.
+
+For sed `$` addresses (last line), use a script file with `-f` instead:
 
 ```
 # BAD -- $ gets expanded by AmigaDOS
