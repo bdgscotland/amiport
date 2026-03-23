@@ -71,8 +71,9 @@ Verdict: **MODERATE** — 55 of 61 source files need zero changes. All issues ar
 | Target | m68k-amigaos, 68000+ |
 | CFLAGS | `-O2 -noixemul -m68000 -Wall` |
 | Libraries | `-lamiport` (posix-shim), `-lm` |
-| Binary size | ~258KB |
-| Stack | 65536 bytes (via `__stack` cookie) |
+| Binary size | ~247KB |
+| Stack | 262144 bytes (via `__stack` cookie) |
+| Note | `-fbaserel` must NOT be used — corrupts A4-relative addressing for Lua's global state (crash-patterns #13) |
 
 ## Test Results
 
@@ -151,3 +152,18 @@ Notes:
 Audited by `memory-checker` agent (2026-03-21). Verdict: **CLEAN**.
 
 Lua's default allocator (`l_alloc` in lauxlib.c) uses bare `realloc()` which loses the pointer on failure — however, this is correct per Lua's allocator contract: the VM retains the original pointer and retries after GC. `lua_close()` is always called on all exit paths (main/pmain), freeing all Lua state. File handles properly balanced. No AmigaOS-specific memory issues.
+
+## FS-UAE Testing (Stage 5b)
+
+**65/65 tests passing** on FS-UAE with Workbench 3.1 (2026-03-22).
+
+Test suite covers: all CLI flags (-v, -e, -E, -W, -l, --), script file execution, all Lua 5.4 features (floor division, 6 bitwise operators, to-be-closed `<close>` variables, generational GC), string/table/coroutine/metatable operations, file I/O via T: volume, error paths (bad flags, missing args, syntax/runtime errors, nonexistent files), exit codes (RC=0/5/10), known-limitation stubs (io.popen, package.loadlib), and stress tests (fib(20), large tables, deep recursion).
+
+Enforcer analysis: 0 hits from Lua code. All 199 detected hits were ROM interrupt handler false positives (`LONG-WRITE to 00F0FFFC` from exec interrupt handler).
+
+### Key Findings
+
+- **`-fbaserel` crashes Lua on real AmigaOS** — removed. See crash-patterns #13.
+- **AmigaDOS `*` in arguments** — treated as wildcard by shell, breaks `-e "x*2"`. Tests use `x+x` instead.
+- **`--` without trailing script** — causes Lua to read from stdin (hang). Tests pass `--` with a script file.
+- **vamos exit code 252** — libnix locale/math init failure on vamos (locale.library unavailable). Not a code bug. Binary works correctly on real AmigaOS.

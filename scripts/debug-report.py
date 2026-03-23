@@ -313,6 +313,39 @@ def parse_enforcer_log(filepath):
     }
 
 
+def is_rom_false_positive(hit):
+    """Detect known ROM interrupt handler false positives.
+
+    The Kickstart ROM interrupt handler writes to 0xF0FFFC (CIAB ICR)
+    from PC 0xF00408. This fires hundreds of times per test run and
+    is NOT a bug in user code. Enforcer flags it because the address
+    is outside the normal RAM range, but it's a legitimate hardware
+    register write from supervisor mode.
+
+    See crash-patterns.md "ROM Interrupt Handler False Positives".
+    """
+    addr = hit.get("address", "")
+    pc = hit.get("pc", "")
+    name = hit.get("task_name", "") or ""
+
+    # Classic pattern: LONG-WRITE to 00F0FFFC from PC 00F00408
+    if addr.upper() == "00F0FFFC" and pc.upper() == "00F00408":
+        return True
+
+    # Broader: any hit where BOTH address and PC are in ROM range (0xF00000+)
+    # and the task is an interrupt handler
+    if "Interrupt" in name or "interrupt" in name:
+        try:
+            addr_int = int(addr, 16) if addr else 0
+            pc_int = int(pc, 16) if pc else 0
+            if addr_int >= 0xF00000 and pc_int >= 0xF00000:
+                return True
+        except ValueError:
+            pass
+
+    return False
+
+
 def filter_app_hits(result, app_name):
     """Filter Enforcer hits to only those involving a specific application.
 
@@ -323,14 +356,21 @@ def filter_app_hits(result, app_name):
 
     ROM/system hits (from interrupt handlers, Kickstart, etc.) are excluded
     unless the app appears in their SegTracker or stack trace references.
+    Known ROM false positives (interrupt handler writes to CIAB) are always excluded.
 
     Enforcer has no built-in filtering — this post-processing step is the
     standard practice per Amiga developer documentation.
     """
     app_lower = app_name.lower()
     filtered = []
+    rom_filtered = 0
 
     for hit in result["hits"]:
+        # Always exclude known ROM false positives
+        if is_rom_false_positive(hit):
+            rom_filtered += 1
+            continue
+
         # Check SegTracker name
         seg = hit.get("segtracker")
         if seg and app_lower in seg.get("name", "").lower():
@@ -364,6 +404,7 @@ def filter_app_hits(result, app_name):
             "crash_types": list(dict.fromkeys(crash_types)),
         },
         "filtered_from": result["summary"]["total_hits"],
+        "rom_false_positives": rom_filtered,
     }
 
 

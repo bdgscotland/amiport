@@ -6,7 +6,7 @@ amiport combines POSIX compatibility libraries, AI-powered build agents, and a c
 
 [![CI](https://github.com/bdgscotland/amiport/actions/workflows/ci.yml/badge.svg)](https://github.com/bdgscotland/amiport/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Aminet](https://img.shields.io/badge/Aminet-6_ports_submitted-blue)](https://aminet.net)
+[![Aminet](https://img.shields.io/badge/Aminet-7_ports_live-blue)](https://aminet.net)
 [![GitHub stars](https://img.shields.io/github/stars/bdgscotland/amiport?style=social)](https://github.com/bdgscotland/amiport/stargazers)
 
 > If you find this project useful or interesting, please give it a star! It helps others discover amiport and motivates continued development.
@@ -22,15 +22,15 @@ amiport combines POSIX compatibility libraries, AI-powered build agents, and a c
 | [cal](ports/cal/) | 1.32 | CLI | Unix calendar display (OpenBSD) | [Live on Aminet](https://aminet.net/package/util/cli/cal-1.0) |
 | [cut](ports/cut/) | 1.28 | CLI | Extract fields/columns from text (OpenBSD) | [Live on Aminet](https://aminet.net/package/util/cli/cut-1.0) |
 | [diff](ports/diff/) | 1.95 | CLI | File comparison utility (OpenBSD) | Known issues |
-| [head](ports/head/) | 1.24 | CLI | Print first lines of files (OpenBSD) | Submitted to Aminet |
-| [grep](ports/grep/) | 1.68 | CLI | Pattern search — regex, fixed, recursive (OpenBSD) | Submitted to Aminet |
-| [sed](ports/sed/) | 1.47 | CLI | Stream editor — text transformation (OpenBSD) | Submitted to Aminet |
+| [grep](ports/grep/) | 1.68 | CLI | Pattern search — regex, fixed, recursive (OpenBSD) | [Live on Aminet](https://aminet.net/package/util/cli/grep-1.68) |
+| [head](ports/head/) | 1.24 | CLI | Print first lines of files (OpenBSD) | [Live on Aminet](https://aminet.net/package/util/cli/head-1.24) |
 | [lua](ports/lua/) | 5.4.7 | Scripting | Lua 5.4 scripting language (PUC-Rio) | Built & tested |
-| [tail](ports/tail/) | 1.24 | CLI | Display last part of a file with follow mode (OpenBSD) | Built & tested |
-| [tee](ports/tee/) | 1.15 | CLI | Duplicate standard input (OpenBSD) | Submitted to Aminet |
-| [wc](ports/wc/) | 1.32 | CLI | Count lines, words, and characters (OpenBSD) | Built & tested |
+| [sed](ports/sed/) | 1.47 | CLI | Stream editor — text transformation (OpenBSD) | [Live on Aminet](https://aminet.net/package/util/cli/sed-1.47) |
 | [sort](ports/sort/) | 1.0 | CLI | Sort lines of text files (Plan 9) | Built & tested |
-| [yes](ports/yes/) | 1.9 | CLI | Repeatedly output a string (OpenBSD) | Submitted to Aminet |
+| [tail](ports/tail/) | 1.24 | CLI | Display last part of a file with follow mode (OpenBSD) | Built & tested |
+| [tee](ports/tee/) | 1.15 | CLI | Duplicate standard input (OpenBSD) | [Live on Aminet](https://aminet.net/package/util/cli/tee-1.15) |
+| [wc](ports/wc/) | 1.32 | CLI | Count lines, words, and characters (OpenBSD) | Built & tested |
+| [yes](ports/yes/) | 1.9 | CLI | Repeatedly output a string (OpenBSD) | [Live on Aminet](https://aminet.net/package/util/cli/yes-1.9) |
 
 Pre-built Amiga binaries are included in each port directory. See **[PORTS.md](PORTS.md)** for the full catalog.
 
@@ -67,7 +67,7 @@ make smoke-test         # Full end-to-end: build shim -> build examples -> test 
 
 Most porting failures come from the POSIX gap — AmigaOS predates POSIX and provides none of its APIs natively. A typical Unix utility calls dozens of POSIX functions that simply do not exist on the Amiga. amiport bridges this with a three-tier compatibility model:
 
-- **Tier 1 — posix-shim:** Direct POSIX-to-AmigaOS wrappers for ~50 functions where the semantics map cleanly (`open`, `read`, `stat`, `opendir`, `getopt`, etc.). Drop-in replacements with no caveats.
+- **Tier 1 — posix-shim:** Direct POSIX-to-AmigaOS wrappers for ~90 functions where the semantics map cleanly (`open`, `read`, `stat`, `opendir`, `getopt`, `glob`, `fnmatch`, `scandir`, etc.). Drop-in replacements with no caveats.
 - **Tier 2 — posix-emu:** Approximate emulation for functions that have no direct Amiga equivalent but can be faked well enough for most use cases (`regex`, `pipe`, `select`, `mmap`). Each comes with documented limitations.
 - **Tier 3 — Redesign required:** Functions that cannot be emulated and require architectural changes to the ported program (`fork`/`exec`, `pthreads`, X11/GTK/Qt). The pipeline flags these during analysis so you know up front.
 
@@ -82,7 +82,7 @@ See [docs/posix-tiers.md](docs/posix-tiers.md) for the complete function classif
 
 ### AI Pipeline
 
-The porting pipeline is 10 specialized AI agents, each with a defined role and constrained tools. Claude Code sits at the center, dispatching agents sequentially as each stage completes.
+The porting pipeline is 16 specialized AI agents, each with a defined role and constrained tools. Claude Code sits at the center, dispatching agents sequentially as each stage completes.
 
 ```mermaid
 graph TD
@@ -90,10 +90,15 @@ graph TD
     CC --> A[aminet-researcher]
     A --> B[source-analyzer]
     B --> C[code-transformer]
-    C --> D[build-manager]
-    D --> E[test-runner]
-    E --> F["memory-checker (mandatory)"]
-    F --> G[perf-optimizer]
+    C --> HW["hardware-expert\n(Cat 3+ only)"]
+    HW --> D[build-manager]
+    C --> D
+    D --> TD[test-designer]
+    TD --> E[test-runner]
+    E --> DBG["debug-agent\n(on crash)"]
+    DBG --> D
+    E --> F["memory-checker\n(mandatory)"]
+    F --> G["perf-optimizer\n(mandatory)"]
     G --> H[aminet-publisher]
 ```
 
@@ -124,30 +129,33 @@ Safety hooks enforce discipline across the pipeline:
 
 Every architectural decision is recorded in ADRs and product decisions in PDRs — see [docs/adr/](docs/adr/) and [docs/pdr/](docs/pdr/).
 
-The pipeline is currently driven by `/port-project`, which dispatches agents sequentially as a human-in-the-loop workflow. Full agent-to-agent orchestration is planned. Individual stages are also available directly as `/analyze-source`, `/transform-source`, `/build-amiga`, `/test-amiga`, `/review-amiga`, and `/debug-amiga`.
+The pipeline is driven by `/port-project`, which dispatches agents sequentially with human-in-the-loop approval at Tier 2/3 decision points. Individual stages are also available directly as `/analyze-source`, `/transform-source`, `/build-amiga`, `/test-amiga`, `/review-amiga`, and `/debug-amiga`.
 
 **Context-loading skills** (invoked on demand to load reference documentation):
 | Skill | Loads |
 |-------|-------|
 | `/amiga-api-lookup` | ADCD 2.1 reference library — function signatures, struct layouts, code examples for exec/dos/timer/intuition/graphics |
-| `/c89-reference` | C89/ANSI C constraints — what C99+ features are NOT available, libnix function availability, common agent mistakes |
+| `/c89-reference` | C89/ANSI C constraints — GCC 6.5.0b extensions, libnix runtime behavior, what C99+ features are NOT available |
 | `/write-arexx` | ARexx language reference, FS-UAE test harness patterns, known gotchas |
+| `/extend-shim` | Add a missing POSIX function to the shim library — research, classify, implement, test |
+| `/review-amiga` | Amiga-specific code review — stack safety, BPTR handling, memory patterns, logic bugs |
+| `/debug-amiga` | Debug crashed ports — Enforcer hit capture, autonomous fix loop |
 
 ### Testing
 
 Two automated testing paths cover different port categories, so every port gets validated without manual intervention.
 
-**vamos** — fast, headless testing for CLI tools and scripting interpreters (Categories 1-2). A virtual AmigaOS runtime that runs in milliseconds with no emulator setup required.
+**vamos** — fast, headless smoke testing for quick iteration. A virtual AmigaOS runtime that runs in milliseconds with no emulator setup required.
 
 ```bash
-make test TARGET=ports/grep         # Test a specific port
+make test TARGET=ports/grep         # Quick smoke test via vamos
 make smoke-test                     # Full end-to-end validation
 ```
 
-**FS-UAE** — automated testing via ARexx harness for console UI and network apps (Categories 3-4). Test cases run unattended with TAP output and UAEQuit for automatic emulator shutdown. See [ADR-014](docs/adr/014-fs-uae-automated-testing.md) for the design.
+**FS-UAE** — mandatory for every port. Automated testing via ARexx harness inside real AmigaOS 3.1, with TAP output and UAEQuit for automatic emulator shutdown. vamos doesn't simulate real AmigaOS behavior — programs that pass on vamos can crash on real hardware. See [ADR-014](docs/adr/014-fs-uae-automated-testing.md) for the design.
 
 ```bash
-make test-fsemu TARGET=ports/less   # Automated FS-UAE test with ARexx harness
+make test-fsemu TARGET=ports/grep   # Automated FS-UAE test with ARexx harness
 ```
 
 **Interactive testing** — for manual exploration on a full Amiga desktop:
@@ -159,6 +167,35 @@ make emu                # Launch FS-UAE — ports mounted as WORK:
 ```
 
 Requires [FS-UAE](https://fs-uae.net) and a Kickstart 3.1 ROM (~$10 from [amigaforever.com](https://www.amigaforever.com)).
+
+**How FS-UAE testing works:**
+
+```
+make test-fsemu TARGET=ports/cal
+        |
+        v
+FS-UAE boots AmigaOS 3.1 (Kickstart 3.1 ROM + Workbench HDF)
+        |
+        v
+User-Startup launches ARexx: RexxMast -> rx test-runner.rexx
+        |
+        v
+ARexx harness: parse test cases -> execute commands -> capture output -> compare expected -> TAP results
+        |
+        v
+UAEQuit shuts down emulator -> host reads TAP from shared volume -> TEST-REPORT.md generated
+```
+
+**Test results from real ports:**
+
+- **cal** — 22/22 tests passing
+- **cut** — 20/20 tests passing
+- **grep** — 22/22 tests passing (regex, fixed string, recursive, error paths)
+- **sed** — 15/15 tests passing
+- **head** — 15/15 tests passing
+- **tee** — 15/15 tests passing
+
+Test suites are AI-generated — the `test-designer` agent analyzes ported source code (control flow, error paths, boundary conditions) and generates comprehensive test cases automatically. When tests hang, the harness diagnoses the failure mode rather than just reporting "timeout."
 
 ### AmigaOS Knowledge Base
 
@@ -185,44 +222,6 @@ The project also includes **Amiga Intern** (1992, Abacus) — a 992-page hardwar
 
 Regenerate with `python3 scripts/convert-amiga-intern.py`.
 
-## Automated FS-UAE Testing
-
-Every port is tested inside a real AmigaOS environment — not a mock, not a stub, but actual AmigaOS 3.1 booting from a Kickstart ROM and Workbench HDF inside FS-UAE. A single `make` command handles the entire cycle: boot the emulator, run the test suite, capture results, shut down.
-
-```
-make test-fsemu TARGET=ports/cal
-        |
-        v
-FS-UAE boots AmigaOS 3.1 (Kickstart 3.1 ROM + Workbench HDF)
-        |
-        v
-User-Startup launches ARexx: RexxMast -> rx test-runner.rexx
-        |
-        v
-ARexx harness: parse test cases -> execute commands -> capture output -> compare expected -> TAP results
-        |
-        v
-UAEQuit shuts down emulator -> host reads TAP from shared volume -> TEST-REPORT.md generated
-```
-
-**Test results from real ports:**
-
-- **cal** — 22/22 tests passing (functional output, error paths, exit codes, edge cases)
-- **cut** — 20/20 tests passing
-
-**AI-generated test suites.** The `test-designer` agent analyzes ported source code — control flow, error paths, boundary conditions — and generates comprehensive test cases automatically. No manual test writing required.
-
-**Timeout diagnosis.** When tests hang, the harness does not just report "timeout." It diagnoses the failure mode: ARexx interpreter failed to start, binary crashed before producing output, or a specific test case froze. This turns opaque hangs into actionable debugging information.
-
-```bash
-make test-fsemu TARGET=ports/cal       # Run full FS-UAE test suite for a port
-make check-test-coverage               # Validate test suite completeness across all ports
-make check-fix-propagation             # Scan ports for known crash patterns
-make check-port-metadata               # Validate port metadata consistency
-```
-
-See [ADR-014](docs/adr/014-fs-uae-automated-testing.md) for the full design.
-
 ## Website
 
 The project website at [amiport.platesteel.net](https://amiport.platesteel.net) serves as both a package index and a showcase of the porting pipeline. It uses an Amiga MUI (Magic User Interface) design system — warm gray base, amber/brown/red Commodore accents, 1px bevels, no blue, no rounded corners. See [DESIGN.md](DESIGN.md) for the full spec.
@@ -243,27 +242,42 @@ Each package JSON in `site/data/packages/` includes enriched fields (`porting_no
 
 ```bash
 # Setup
+make setup                          # Configure git hooks (run after cloning)
 make doctor                         # Check prerequisites
 make setup-toolchain                # Pull cross-compiler Docker image
 make fetch-ndk                      # Download AmigaOS NDK 3.2 R4
+make setup-debug-tools              # Install Enforcer, Mungwall, SegTracker
 
-# Build & Test
+# Build
 make build-shim                     # Build POSIX shim library (Tier 1)
 make build-emu                      # Build POSIX emulation library (Tier 2)
+make build-console                  # Build console shim (ncurses)
+make build-net                      # Build BSD socket shim
 make build TARGET=ports/grep        # Build a specific port
+make build-ports                    # Build all ports
+
+# Test
 make test TARGET=ports/grep         # Test via vamos
+make test-shim                      # Run shim library tests
+make test-ports                     # Test all ports via vamos
+make test-fsemu TARGET=...          # Automated FS-UAE test
 make smoke-test                     # Full end-to-end validation
-make setup-debug-tools              # Install Enforcer, Mungwall, SegTracker
+
+# Validation
 make check-docs                     # Validate doc consistency
+make check-agents                   # Validate agent/skill frontmatter
 make check-test-coverage            # Validate FS-UAE test suite completeness
 make check-fix-propagation          # Scan ports for known crash patterns
 make check-port-metadata            # Validate port metadata consistency
+make check-aminet                   # Check Aminet publication status
 
 # Emulator
 make setup-emu                      # Install FS-UAE
 make install-emu                    # Copy binaries to emulator
 make emu                            # Launch FS-UAE
-make test-fsemu TARGET=...          # Automated FS-UAE test
+
+# Publish
+make publish TARGET=ports/grep      # Package and upload to Aminet
 ```
 
 Run `make help` for the full list.
@@ -282,7 +296,7 @@ See [CLAUDE.md](CLAUDE.md) for the full contributor guide, coding conventions, a
 ## Acknowledgments
 
 - [amigadev/m68k-amigaos-gcc](https://hub.docker.com/r/amigadev/m68k-amigaos-gcc) — pre-built cross-compiler
-- [bebbo/amiga-gcc](https://github.com/bebbo/amiga-gcc) — m68k cross-compiler (upstream)
+- [bebbo/amiga-gcc](https://codeberg.org/bebbo/amiga-gcc) — m68k cross-compiler (upstream, GCC 6.5.0b)
 - [VBCC](http://sun.hasenbraten.de/vbcc/) — portable C compiler with Amiga targets
 - [amitools/vamos](https://github.com/cnvogelg/amitools) — virtual AmigaOS runtime
 - [FS-UAE](https://fs-uae.net) — Amiga emulator for interactive testing

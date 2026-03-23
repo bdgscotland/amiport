@@ -69,6 +69,19 @@ Use these for generic edge case tests. Create port-specific files as `ports/<nam
 
 If the source reads from stdin when no file argument is given (grep for `read(STDIN_FILENO`, `fgets(.*stdin`, `getline`, `scanf`, `getchar` without preceding `fopen`), create a pre-built input file and pass it as a file argument. Comment: `# Uses input file instead of piping (ARexx limitation)`.
 
+## AmigaDOS Shell Metacharacters in CMD Lines
+
+AmigaDOS treats certain characters specially in command arguments. These cause silent test failures:
+
+| Character | Problem | Fix |
+|-----------|---------|-----|
+| `*` | Wildcard expansion — `x*2` becomes a glob pattern | Use `x+x` or put in a `.lua`/script file |
+| `$` | Variable substitution — `$RC` expands to return code | Use script files (see below) |
+| `"` | Quoting works differently than Unix — nested quotes fail | Avoid multiple quoted `-e` args; combine with `;` |
+| `--` alone | Lua/programs read stdin if no script follows `--` | Always follow `--` with a file argument |
+
+**Multiple `-e` flags with separate quoted strings** often fail because AmigaDOS parses all quotes at the top level. Instead of `lua -e "x=10" -e "print(x)"`, use `lua -e "x=10; print(x)"`.
+
 ## Dollar Signs in CMD Lines
 
 CMD lines go through AmigaDOS `Execute` which expands `$` as variable substitution. **Never use `$` in CMD lines.** For sed `$` addresses (last line), use a script file with `-f` instead:

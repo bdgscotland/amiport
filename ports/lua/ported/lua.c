@@ -18,7 +18,9 @@
 /* amiport: AmigaOS version string and stack cookie */
 #ifdef __AMIGA__
 static const char *verstag = "$VER: lua 5.4.7 (21.03.2026)";
-long __stack = 65536;  /* Lua needs substantial stack for recursive parsing */
+long __stack = 262144;  /* Lua needs substantial stack for recursive parsing,
+                           module loading (findfile 1KB + luaL_gsub 528B frames),
+                           and <close> protected calls. 256KB matches test harness. */
 #endif
 
 #include "lua.h"

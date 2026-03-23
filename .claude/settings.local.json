@@ -2,7 +2,19 @@
   "permissions": {
     "allow": [
       "Bash(gh auth:*)",
-      "Bash(gh repo:*)"
+      "Bash(gh repo:*)",
+      "Bash(rm -f lua ported/*.o)",
+      "Bash(ls ported/*.o)",
+      "Bash(ls /Users/duncan/Developer/amiport/ports/lua/ported/*.o)",
+      "Bash(bash scripts/test-fsemu.sh ports/lua)",
+      "Bash(LC_ALL=C grep '[^[:print:][:space:]]' ports/lua/lua.readme)",
+      "Bash(python3:*)",
+      "Bash(head -1 grep \"^Version:\" ports/lua/lua.readme echo \"ASCII check:\" python3 -c \":*)",
+      "WebFetch(domain:wiki.aminet.net)",
+      "Bash(for id:*)",
+      "Bash(do file=/private/tmp/claude-501/-Users-duncan-Developer-amiport/e9de9699-744b-4154-90c7-47c0cf37d462/tasks/$id.output echo '=== Agent $id:0:8 ===' tail -2000 $file)",
+      "Bash(python3 -c \":*)",
+      "Bash(/dev/null echo:*)"
     ]
   }
 }

@@ -426,7 +426,9 @@ static const char *classend (MatchState *ms, const char *p) {
 
 static int match_class (int c, int cl) {
   int res;
-  switch (tolower(cl)) {
+  /* amiport: perf-optimizer — bitwise OR is 2 cycles vs tolower() JSR ~20 cycles.
+     Pattern class chars (%d, %s, %a, etc.) are always ASCII letters, so safe. */
+  switch (cl | 0x20) {
     case 'a' : res = isalpha(c); break;
     case 'c' : res = iscntrl(c); break;
     case 'd' : res = isdigit(c); break;

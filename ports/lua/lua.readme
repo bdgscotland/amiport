@@ -5,7 +5,7 @@ Uploader:     duncan@bowring.us
 Author:       Roberto Ierusalimschy, PUC-Rio (ported by Duncan Bowring)
 Version:      5.4.7
 
-lua — Lua 5.4.7 scripting language for AmigaOS
+lua - Lua 5.4.7 scripting language for AmigaOS
 
 Original authors: Roberto Ierusalimschy, Luiz Henrique de Figueiredo,
 Waldemar Celes (PUC-Rio). MIT License.
@@ -17,7 +17,7 @@ First port of Lua 5.4 to any Amiga platform. Previous ports (5.2.1, 2012)
 are 14 years old and two major versions behind.
 
 Cross-compiled with m68k-amigaos-gcc for AmigaOS 3.x (68000+).
-Tested in vamos emulator. Standalone binary, no ixemul required.
+Tested on FS-UAE (65/65 tests passing). Standalone binary, no ixemul required.
 
 New in Lua 5.4 (vs old Amiga port at 5.2):
   - Native integer type with bitwise operators (&, |, ~, <<, >>)
@@ -39,8 +39,8 @@ Known limitations:
   - 32-bit integers (range: -2147483648 to 2147483647)
   - os.execute() uses AmigaDOS Execute()
 
-Stack: 64KB (set via __stack cookie)
-Binary size: ~256KB
+Stack: 256KB (set via __stack cookie)
+Binary size: ~253KB
 
 Includes full source code (original POSIX and ported Amiga versions)
 and PORT.md documenting every transformation applied.

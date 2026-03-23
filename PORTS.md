@@ -21,18 +21,18 @@ Programs ported to AmigaOS 3.x using the amiport pipeline.
 
 | Port | Submitted | Aminet URL | Last Checked |
 |------|-----------|-----------|-------------|
-| cal | 2026-03-20 | [util/cli/cal-1.0](https://aminet.net/package/util/cli/cal-1.0) | 2026-03-21 — Live, uploaded as 1.0 (now 1.32 locally) |
-| cut | 2026-03-20 | [util/cli/cut-1.0](https://aminet.net/package/util/cli/cut-1.0) | 2026-03-21 — Live, 29 downloads, uploaded as 1.0 (now 1.28 locally) |
+| cal | 2026-03-20 | [util/cli/cal-1.0](https://aminet.net/package/util/cli/cal-1.0) | 2026-03-22 — Live, 72 downloads, uploaded as 1.0 (now 1.32 locally) |
+| cut | 2026-03-20 | [util/cli/cut-1.0](https://aminet.net/package/util/cli/cut-1.0) | 2026-03-22 — Live, 60 downloads, uploaded as 1.0 (now 1.28 locally) |
 | diff | — | — | — |
-| grep | 2026-03-22 | util/cli/grep-1.68 (pending moderation) | — |
-| sed | 2026-03-22 | util/cli/sed-1.47 (pending moderation) | — |
+| grep | 2026-03-22 | [util/cli/grep-1.68](https://aminet.net/package/util/cli/grep-1.68) | 2026-03-22 — Live, 6 downloads |
+| sed | 2026-03-22 | [util/cli/sed-1.47](https://aminet.net/package/util/cli/sed-1.47) | 2026-03-22 — Live, 4 downloads |
 | lua | — | — | — |
-| head | 2026-03-22 | util/cli/head-1.24 (pending moderation) | — |
+| head | 2026-03-22 | [util/cli/head-1.24](https://aminet.net/package/util/cli/head-1.24) | 2026-03-22 — Live |
 | tail | — | — | — |
-| tee | 2026-03-22 | util/cli/tee-1.15 (pending moderation) | — |
+| tee | 2026-03-22 | [util/cli/tee-1.15](https://aminet.net/package/util/cli/tee-1.15) | 2026-03-22 — Live |
 | wc | — | — | — |
 | sort | — | — | — |
-| yes | 2026-03-22 | util/cli/yes-1.9 (pending moderation) | — |
+| yes | 2026-03-22 | [util/cli/yes-1.9](https://aminet.net/package/util/cli/yes-1.9) | 2026-03-22 — Live |
 
 Run `make check-aminet` to verify publication status.
 

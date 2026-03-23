@@ -31,7 +31,9 @@ SYSTEM_DIR="$PROJECT_DIR/build/system"
 AMIGA_DIR="$PROJECT_DIR/build/amiga"
 TOOLCHAIN_DIR="$PROJECT_DIR/toolchain"
 KICKSTART="$HOME/Documents/FS-UAE/Kickstarts/kick3.1.rom"
-TIMEOUT_SECONDS=60
+TIMEOUT_SECONDS=600  # 10 minutes — generous fallback for crash detection. Normal runs
+                      # exit via sentinel file + kill (see run_emulator), so this timeout
+                      # only fires when a test actually hangs (Guru Meditation, infinite loop).
 DEBUG_MODE=false
 SERIAL_PID=""
 ENFORCER_LOG=""
@@ -155,8 +157,9 @@ build_boot_volume() {
     generate_test_cases "$port_dir"
     cp "$RESULTS_DIR/test-cases.txt" "$AMIGA_DIR/test-cases.txt"
 
-    # Copy any test data files (test-*.txt, test-*.dat, test-*.sed, test-*.rexx) from the port directory to WORK:
-    for datafile in "$port_dir"/test-*.txt "$port_dir"/test-*.dat "$port_dir"/test-*.sed "$port_dir"/test-*.rexx; do
+    # Copy any test data files (test-*.txt, test-*.dat, test-*.sed, test-*.rexx, test-*.lua)
+    # from the port directory to WORK:. The .lua extension is needed for Lua scripting ports.
+    for datafile in "$port_dir"/test-*.txt "$port_dir"/test-*.dat "$port_dir"/test-*.sed "$port_dir"/test-*.rexx "$port_dir"/test-*.lua; do
         if [ -f "$datafile" ] && [ "$(basename "$datafile")" != "test-fsemu-cases.txt" ]; then
             cp "$datafile" "$AMIGA_DIR/"
         fi
@@ -344,6 +347,14 @@ run_emulator() {
 
         # Check timeout
         if [ "$elapsed" -ge "$TIMEOUT_SECONDS" ]; then
+            # Before killing, check if tests actually completed (sentinel exists)
+            # This catches the common case where all tests pass but UAEQuit hangs
+            if [ -f "$RESULTS_DIR/tests-complete" ]; then
+                echo -e "${YELLOW}  TIMEOUT: Tests completed but FS-UAE did not exit (UAEQuit hang)${NC}"
+                kill "$fsuae_pid" 2>/dev/null || true
+                wait "$fsuae_pid" 2>/dev/null || true
+                return 0  # Tests passed — UAEQuit hang is not a test failure
+            fi
             echo -e "${RED}  TIMEOUT: FS-UAE did not exit within ${TIMEOUT_SECONDS}s${NC}"
             kill "$fsuae_pid" 2>/dev/null || true
             wait "$fsuae_pid" 2>/dev/null || true
@@ -359,6 +370,13 @@ run_emulator() {
                 echo "  Tests completed and FS-UAE exited after ${elapsed}s"
                 return 0
             fi
+            # UAEQuit didn't work (common on FS-UAE 3.x — the UAELIB trap
+            # at 0xF0FF3C is not always supported). Kill FS-UAE directly.
+            # Results are already saved via the shared RESULTS: volume.
+            echo "  Tests completed — killing FS-UAE (UAEQuit not supported)"
+            kill "$fsuae_pid" 2>/dev/null || true
+            wait "$fsuae_pid" 2>/dev/null || true
+            return 0
         fi
 
         sleep 1
@@ -745,6 +763,23 @@ main() {
     # Debug mode defaults to 90s timeout (3x normal) unless explicitly set
     if [ "$DEBUG_MODE" = true ] && [ "$timeout_set" = false ]; then
         TIMEOUT_SECONDS=90
+    fi
+
+    # Auto-scale timeout by test count if not explicitly set.
+    # Each test needs ~2-3s on average (boot + run + capture).
+    # Minimum 60s for boot overhead, then 3s per test.
+    if [ "$timeout_set" = false ]; then
+        local test_count=0
+        local cases_file="$PROJECT_DIR/$port_dir/test-fsemu-cases.txt"
+        if [ -f "$cases_file" ]; then
+            test_count=$(grep -c '^TEST:' "$cases_file" 2>/dev/null || echo "0")
+        fi
+        if [ "$test_count" -gt 0 ]; then
+            local auto_timeout=$(( 60 + test_count * 3 ))
+            if [ "$auto_timeout" -gt "$TIMEOUT_SECONDS" ]; then
+                TIMEOUT_SECONDS=$auto_timeout
+            fi
+        fi
     fi
 
     if [ -z "$port_dir" ]; then
