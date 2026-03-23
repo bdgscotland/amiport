@@ -58,3 +58,11 @@
   - Impact: ~1.6 KB permanent memory loss per invocation on AmigaOS
   - Root cause: Ported for Unix where process exit auto-frees; amiport_getenv() ABI mismatch (returns malloc'd strings, not static storage)
   - Fix complexity: Medium — add atexit cleanup pattern, track getenv results, requires main.c and bc_exit() changes
+
+- [memory-audit-bc-recheck.md](memory-audit-bc-recheck.md) - ports/bc 1.07.1 re-audit after partial fixes (2026-03-23)
+  - Status: PARTIAL FIXES APPLIED — 3 of 8 issues REMAIN UNFIXED
+  - Issues: 4 fixed, 4 remaining critical
+  - Verdict: Still cannot ship — 5 fixes still needed
+  - Fixes applied: BC_ENV_ARGS tracking (env_allocs[]), strdup("BC_ENV_ARGS") freed, POSIXLY_CORRECT freed, BC_LINE_LENGTH freed ✓
+  - Fixes still needed: Math lib strdups leak, f_names/v_names/a_names individual entries leak, function bodies not freed, global constants (_zero_/_one_/_two_) not freed, _bc_Free_list cache not freed
+  - Remaining leak: 150+ bytes per invocation, up to 1+ KB for complex programs

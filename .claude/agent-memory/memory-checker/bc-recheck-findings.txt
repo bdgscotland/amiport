@@ -1,0 +1,242 @@
+================================================================================
+GNU bc 1.07.1 Memory Safety Re-Audit (Second Pass) — 2026-03-23
+================================================================================
+
+EXECUTIVE SUMMARY
+=================
+
+Status: PARTIAL FIXES APPLIED, MULTIPLE CRITICAL LEAKS REMAIN
+
+Fixes Applied (4):
+  ✓ amiport_getenv("BC_ENV_ARGS") now tracked in env_allocs[], freed in bc_cleanup()
+  ✓ strdup("BC_ENV_ARGS") freed at main.c:243 after parse_args()
+  ✓ POSIXLY_CORRECT getenv result freed immediately at main.c:254
+  ✓ BC_LINE_LENGTH getenv result freed after atoi() at main.c:263
+
+Unfixed (4 CRITICAL):
+  ✗ Math library strdups (6× strdup("e"/"l"/"s"/"a"/"c"/"j")) — 12+ bytes/invocation
+  ✗ f_names/v_names/a_names individual entry strings — 10-100+ bytes/invocation
+  ✗ Global constants _zero_, _one_, _two_ — 120 bytes (reference-counted, never freed)
+  ✗ _bc_Free_list cache of reused bc_num nodes — 10-1000+ bytes per complex program
+
+VERDICT: CANNOT SHIP — Remaining leaks total 150+ bytes per invocation
+
+
+DETAILED FINDINGS BY ISSUE
+===========================
+
+1. FIXED: amiport_getenv("BC_ENV_ARGS") Tracking
+   Location: main.c:219-244, cleanup at main.c:57-58
+   Fix: env_value now tracked in env_allocs[] and freed by bc_cleanup()
+   Status: ✓ COMPLETE
+
+2. FIXED: strdup("BC_ENV_ARGS") in env_argv[0]
+   Location: main.c:225 (allocated), main.c:243 (freed)
+   Fix: free(env_argv[0]) added after parse_args()
+   Status: ✓ COMPLETE
+
+3. FIXED: POSIXLY_CORRECT getenv result
+   Location: main.c:251-255
+   Fix: free(env_value) added at line 254, right after NULL check
+   Status: ✓ COMPLETE
+
+4. FIXED: BC_LINE_LENGTH getenv result
+   Location: main.c:257-264
+   Fix: free(env_value) added at line 263 after atoi()
+   Status: ✓ COMPLETE
+
+5. UNFIXED: Math Library Function Name strdups (6× critical leak)
+   Location: main.c:343-348 in open_new_file()
+   Problem: lookup(strdup("e"), FUNCT) and 5 others — no tracking or cleanup
+   Impact: 6× 2-byte strings = 12 bytes per "bc -l" invocation
+   Root Cause: Strings allocated but pointers stored inside lookup()'s internal data,
+     not returned for caller to track. bc_cleanup() doesn't iterate lookup()
+     structures to free individual allocated strings.
+   Why Not Fixed: The first pass audit identified this, but the fix wasn't applied.
+     The strdups are still in open_new_file() at lines 343-348, with NO
+     corresponding free calls in bc_cleanup().
+   How to Fix: Track strdups in an array (math_strdups[MAX_MATH_STRDUPS]) and
+     free them in bc_cleanup(). See detailed fix below.
+
+6. UNFIXED: Global Storage Array Name Entries (moderate-to-critical leak)
+   Location: storage.c allocation, cleanup at main.c:60-68
+   Problem: bc_cleanup() frees f_names, v_names, a_names ARRAYS but NOT the
+     individual string pointers STORED IN each array. Each entry was allocated
+     via lookup()->strcopyof() and should be freed.
+   Code Issue:
+     Line 61:  if (f_names[0]) free(f_names[0]); /* Only frees f_names[0] */
+     Line 62:  free(f_names);  /* Frees ARRAY, not entries [1..n] */
+   Impact: 10-100+ bytes per invocation (depends on function/variable/array count)
+   Root Cause: The cleanup function partially addresses this (frees f_names[0] the
+     "(main)" entry) but leaves f_names[1..f_count-1] with live malloc'd pointers.
+   How to Fix: Iterate and free each entry before freeing the array:
+     for (i = 0; i < f_count; i++)
+       if (f_names[i]) free(f_names[i]);
+     free(f_names);
+   Same pattern needed for v_names[0..v_count-1] and a_names[0..a_count-1].
+
+7. UNFIXED: Function Body Buffers (moderate leak)
+   Location: storage.c:105 allocations, cleanup missing
+   Problem: Each bc_function has an f_body buffer allocated at startup
+     (via more_functions() -> bc_malloc()). These are never freed at exit.
+   Impact: 50-200+ bytes per invocation (depends on function count)
+   Root Cause: The bc_cleanup() function frees the functions ARRAY but not the
+     contents of each function struct. Each functions[i].f_body is malloc'd but
+     never freed.
+   How to Fix: In bc_cleanup(), before freeing functions array:
+     for (i = 0; i < f_count; i++)
+       if (functions[i].f_body) free(functions[i].f_body);
+     free(functions);
+
+8. UNFIXED: Global Constants _zero_, _one_, _two_ (critical leak)
+   Location: number.c:55-57 (globals), number.c:109-113 (initialization),
+     cleanup missing
+   Problem: These reference-counted bc_num objects are allocated at startup and
+     never freed. The reference-counting system prevents normal bc_free_num()
+     cleanup because these globals are copied many times throughout execution,
+     leaving n_refs > 1 at exit.
+   Code Issue:
+     Line 109: _zero_ = bc_new_num(1, 0);  /* Allocates bc_struct + data */
+     /* Never freed despite bc_cleanup() being called */
+   bc_free_num() logic (number.c:90-101):
+     (*num)->n_refs--;
+     if ((*num)->n_refs == 0) { free data }  /* Only frees if n_refs==0 */
+   Impact: 40 bytes per constant × 3 = 120 bytes minimum, plus any intermediate
+     bc_num objects still referencing these
+   Root Cause: bc_cleanup() was added but no code to handle reference-counted
+     objects. Can't just call bc_free_num() — would need to reset n_refs first.
+   How to Fix: Force-free in bc_cleanup():
+     if (_zero_ != NULL) {
+       if (_zero_->n_ptr) free(_zero_->n_ptr);
+       free(_zero_);
+     }
+     /* Same for _one_, _two_ */
+
+9. UNFIXED: _bc_Free_list Cache (critical variable leak)
+   Location: number.c:59 (static cache), cleanup missing
+   Problem: bc_free_num() maintains a linked list cache of freed bc_num objects
+     for reuse. This cache is never walked and freed at exit.
+   Code Issue:
+     Line 97-98 (in bc_free_num):
+       (*num)->n_next = _bc_Free_list;
+       _bc_Free_list = *num;  /* Freed nodes go to cache */
+     /* Cache never freed at exit */
+   Impact: Variable, depends on program. Could be 10-1000+ bytes for complex
+     bc programs (each cached node is ~40 bytes + 1-100 bytes data buffer)
+   Root Cause: The cache is an optimization detail in number.c, not exposed
+     to main.c cleanup code. No mechanism to cleanup the cache.
+   How to Fix: Either add cleanup function to number.c or make _bc_Free_list
+     accessible to main.c. Then in bc_cleanup():
+     while (_bc_Free_list != NULL) {
+       node = _bc_Free_list;
+       _bc_Free_list = node->n_next;
+       if (node->n_ptr) free(node->n_ptr);
+       free(node);
+     }
+
+
+ALLOCATION SUMMARY TABLE
+========================
+
+Allocation Type          | First Pass | Current | Issue
+------------------------|-----------|---------|-------
+BC_ENV_ARGS env value    | LEAK      | FIXED   | Now tracked and freed ✓
+BC_ENV_ARGS strdup       | LEAK      | FIXED   | Free added after use ✓
+POSIXLY_CORRECT env      | LEAK      | FIXED   | Free added immediately ✓
+BC_LINE_LENGTH env       | LEAK      | FIXED   | Free added after atoi ✓
+Math lib strdups (6×)    | LEAK      | UNFIXED | Still in code, no cleanup ✗
+f_names array header     | LEAK      | PARTIAL | Array freed, entries not ✗
+f_names[0] ("main")      | LEAK      | FIXED   | Freed in cleanup ✓
+f_names[1..n] entries    | UNKNOWN   | UNFIXED | Not freed, lost pointers ✗
+functions array header   | LEAK      | PARTIAL | Array freed, contents not ✗
+functions[].f_body       | UNKNOWN   | UNFIXED | Never freed ✗
+v_names array header     | LEAK      | PARTIAL | Array freed, entries not ✗
+v_names[*] entries       | UNKNOWN   | UNFIXED | Not freed ✗
+variables array header   | LEAK      | PARTIAL | Array freed, contents not ✗
+a_names array header     | LEAK      | PARTIAL | Array freed, entries not ✗
+a_names[*] entries       | UNKNOWN   | UNFIXED | Not freed ✗
+arrays array header      | LEAK      | PARTIAL | Array freed, contents not ✗
+_zero_ constant          | LEAK      | UNFIXED | Reference-counted, never freed ✗
+_one_ constant           | LEAK      | UNFIXED | Reference-counted, never freed ✗
+_two_ constant           | LEAK      | UNFIXED | Reference-counted, never freed ✗
+_bc_Free_list cache      | UNFIXED   | UNFIXED | Cache nodes never freed ✗
+
+
+ESTIMATED MEMORY LEAK
+=====================
+
+Per invocation (minimal use):
+  Math lib strdups (if -l): 12 bytes
+  Name array entries: 10-50 bytes
+  Function bodies: 50-100 bytes
+  Global constants: 120 bytes
+  Free list cache: 10-100 bytes
+  ─────────────────────────────
+  Subtotal: 202-382 bytes/invocation
+
+Per complex program (with functions/variables/arrays):
+  Math lib strdups: 12 bytes
+  Name array entries: 50-200 bytes (scale with variable count)
+  Function bodies: 200-1000+ bytes (scale with function count)
+  Global constants: 120 bytes
+  Free list cache: 100-1000+ bytes (scale with computation complexity)
+  ─────────────────────────────
+  Subtotal: 482-2332 bytes/invocation
+
+On AmigaOS with -noixemul:
+  100 runs × 400 bytes avg = 40 KB memory loss
+  1000 runs × 400 bytes avg = 400 KB memory loss (approaching Amiga 512KB-2MB limit)
+
+
+CRITICAL ASSESSMENT
+===================
+
+SEVERITY: CRITICAL
+- Unable to ship in current state
+- Partial fixes were applied (4 of 8 issues), but 4 critical leaks remain
+- The partial fixes are correct but incomplete
+
+COMPLEXITY OF REMAINING FIXES: MEDIUM
+- All fixes are localized to main.c (bc_cleanup function) and number.c
+- No changes needed to bc core algorithm or parsing logic
+- Straightforward iteration patterns (for loops) for array cleanup
+- Estimated 2-3 hours to apply and test
+
+RECOMMENDED ACTIONS:
+1. Apply fixes 1-5 immediately (math lib strdups, name arrays, function bodies,
+   global constants, free list)
+2. Build and test: make clean && make build TARGET=ports/bc
+3. Run memory test: make test TARGET=ports/bc
+4. Re-run memory audit to confirm all leaks fixed
+5. Then proceed to perf-optimizer stage
+
+
+FILES AFFECTED
+==============
+
+main.c:
+  - bc_cleanup() function (lines 53-70) — ADD fixes for math strdups,
+    name array iteration, global constants
+  - open_new_file() (lines 343-348) — Track strdups in array
+
+number.c:
+  - Need access to _bc_Free_list cleanup OR new cleanup function
+  - _bc_Free_list is static — may need to export or wrap
+
+storage.c:
+  - No changes needed (but might need to ensure f_count/v_count/a_count
+    are accessible from bc_cleanup)
+
+global.h:
+  - May need to add extern declarations for f_count, v_count, a_count
+    if not already present
+
+
+NEXT STEPS
+==========
+
+1. Review detailed fixes in memory-audit-bc-recheck.md
+2. Apply remaining 5 fixes to main.c and number.c
+3. Re-audit with memory-checker agent
+4. Proceed with perf-optimizer and test-designer stages
+5. Dispatch amiport-publisher only after all audits pass
