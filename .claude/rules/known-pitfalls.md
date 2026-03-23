@@ -133,7 +133,7 @@ Note: the `_exit()` pattern referenced in older code was based on a debunked exi
 
 The system `getopt_long()` from `<getopt.h>` exists as a symbol in libnix but returns `'?'` for ALL options, not just unknown ones. Every ported program using `getopt_long` will exit via usage() with RC=10 on the first option. This can masquerade as "works for error tests" since those expect RC=10.
 
-**Fix:** Replace `#include <getopt.h>` with `#include <amiport/getopt.h>`. The amiport implementation aliases `getopt_long` → `amiport_getopt_long`, so no other source changes are needed. See crash-patterns.md #16.
+**Fix:** Replace `#include <getopt.h>` with `#include <amiport/getopt.h>`. The amiport implementation aliases `getopt_long` → `amiport_getopt_long`, so no other source changes are needed. See crash-patterns.md #17.
 
 **Detection:** If all functional tests return RC=10 and debug output shows `ch=63` ('?') for valid flags, this is the cause.
 
@@ -145,7 +145,15 @@ The system `getopt_long()` from `<getopt.h>` exists as a symbol in libnix but re
 
 **Fix (when dirname result IS needed):** Pass a `strdup()` copy to `dirname`, use the result, then free the copy AFTER you're done with the result (the result points into the copy's buffer).
 
-See crash-patterns.md #17.
+See crash-patterns.md #18.
+
+## AmigaOS Exclusive Write Lock — No Double-Open for Writing
+
+AmigaDOS `MODE_NEWFILE` (used by `fopen("w")`) acquires an exclusive lock. If a file is already open for writing by the same program, a second `fopen(path, "w")` fails with `ERROR_OBJECT_IN_USE` (reported as "Text file busy" by strerror, which is misleading). On Unix, multiple handles can write to the same file simultaneously.
+
+**Fix:** Close the first handle before opening the second. Check for patterns where `init_output(path)` opens a file globally, then a subroutine like `write_lines(path)` tries to open the same file.
+
+See crash-patterns.md #19.
 
 ## obsolete() Argv Rewrite Leaks Memory
 

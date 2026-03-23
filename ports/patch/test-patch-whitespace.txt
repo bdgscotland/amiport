@@ -1,0 +1,7 @@
+--- test-patch-base.txt
++++ test-patch-base.txt
+@@ -3,3 +3,3 @@
+ Line  three  has  some  content  here.
+-Fourth line for testing purposes.
++Fourth line WHITESPACE PATCHED.
+ Fifth line is the last one.

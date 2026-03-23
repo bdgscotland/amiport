@@ -1,0 +1,53 @@
+Short:        Apply diff patches to source files
+Type:         util/cli
+Architecture: m68k-amigaos >= 3.0
+Uploader:     duncan@bowring.us
+Author:       Larry Wall, OpenBSD contributors (ported by Duncan Bowring)
+Version:      1.78
+
+patch - Apply diff patches to source files
+
+Original author: Larry Wall, OpenBSD contributors
+Ported by Duncan Bowring using amiport (AI-assisted porting toolkit).
+Project: https://github.com/bdgscotland/amiport
+
+Cross-compiled with m68k-amigaos-gcc for AmigaOS 3.x (68020+).
+Tested in FS-UAE with AmigaOS 3.1.
+
+patch takes a patch file containing a difference listing produced by
+the diff program and applies those differences to one or more
+original files, producing patched versions.
+
+Supports unified, context, normal, and ed-style diffs.
+
+Usage:
+  patch [options] [origfile [patchfile]]
+  patch -p0 < changes.diff
+  patch -p1 -i update.patch
+  patch -R -p1 < revert.diff
+
+Options:
+  -b        save original as .orig backup
+  -c        interpret patch as context diff
+  -d dir    change to directory before patching
+  -D sym    mark changes with #ifdef sym
+  -e        interpret patch as ed script
+  -f        force, skip interactive questions
+  -i file   read patch from file instead of stdin
+  -l        loose matching (ignore whitespace)
+  -n        interpret patch as normal diff
+  -N        ignore already applied patches
+  -o file   write output to file
+  -p num    strip num leading path components
+  -R        reverse the patch
+  -t        similar to -f
+  -u        interpret patch as unified diff
+  -V type   backup type (simple, numbered, existing)
+  -z suffix backup suffix (default .orig)
+
+First 68k AmigaOS port of the Unix patch utility. No previous
+standalone patch existed on Aminet. Completes the diff+patch pair
+(diff already available as util/cli/diff-1.95).
+
+Includes full source code (original POSIX and ported Amiga versions)
+and PORT.md documenting every transformation applied.

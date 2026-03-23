@@ -74,6 +74,12 @@ grep 'amiport_free_argv' lib/posix-shim/include/amiport/glob.h
 
 This prevents build failures from wrong argument counts or missing headers.
 
+## Known Traps (check every port)
+
+- **`#include <getopt.h>`** → MUST replace with `#include <amiport/getopt.h>`. libnix's getopt_long is broken — returns `'?'` for all options (crash-patterns #17).
+- **`dirname(buffer)`** → libnix modifies the buffer in-place. If `buffer` is used after the call, it's corrupted. Pass a `strdup()` copy, or remove the call if the result feeds a no-op like `unveil()` (crash-patterns #18).
+- **Double `fopen(path, "w")`** on the same file → AmigaDOS exclusive lock prevents this. If code opens a temp file early (e.g., `init_output()`), then a subroutine re-opens it, close the first handle before the second open (crash-patterns #19).
+
 ## When Unsure
 
 - Check `references/amiga-api-reference.md` for AmigaOS function signatures

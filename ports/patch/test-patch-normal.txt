@@ -1,0 +1,4 @@
+2c2
+< This is line two of the base file.
+---
+> This is line two of the NORMAL file.

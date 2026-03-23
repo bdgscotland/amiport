@@ -1,0 +1,5 @@
+The quick brown fox jumps over the lazy dog.
+This is line two of the base file.
+Line three has some content here.
+Fourth line for testing purposes.
+Fifth line is the last one.
