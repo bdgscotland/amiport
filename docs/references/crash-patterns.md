@@ -342,3 +342,65 @@ test:
 - **Scope:** This affects **any port** that uses the pattern `amiport_open()` + `fdopen()`. Check all existing ports.
 - **Port:** sort (Plan 9)
 - **Date:** 2026-03-22
+
+---
+
+## ROM Interrupt Handler False Positives (NOT a crash pattern)
+
+**Enforcer Signature:** `LONG-WRITE to 00F0FFFC data=00000013 PC: 00F00408`, Name: "Processor Interrupt Level 3"
+
+**This is NOT a bug.** This is the Kickstart ROM interrupt handler writing to the CIAB interrupt control register. It appears on every Amiga system running Enforcer and is harmless. All stack traces will show ROM code (exec, dos, input.device).
+
+**How to identify:** All hits have identical PC (`00F00408`), identical target (`00F0FFFC`), and the Name field says "Processor Interrupt Level 3". There will be dozens or hundreds of these hits per test run.
+
+**What to do:** Filter these out. Only count Enforcer hits where the PC is in user code (the port binary) or where the target address is below `0xF00000`. The `debug-report.py parse` command should filter these automatically.
+
+---
+
+## 13. -fbaserel Corrupts Global State in Large Programs
+
+**Enforcer Signature:** Multiple `LONG-WRITE` hits at seemingly valid memory addresses during module initialization or global state access. Program may pass vamos tests but crash on real AmigaOS (FS-UAE). Hits appear during startup/initialization, not in user code paths.
+
+**Hit Type:** `LONG-WRITE` — writes to wrong memory locations due to corrupted A4-relative addressing.
+
+**Root Cause:** The `-fbaserel` GCC flag switches to A4-relative (small data model) addressing for global and static variables. This works for small programs but breaks programs with extensive global state (Lua has global registries, string caches, module tables, and function pointer arrays). The A4-relative offset table overflows or misaligns, causing writes to land at wrong addresses.
+
+The flag was originally added to fix exit code 252 on vamos (libnix init list placement), but the real cause of exit 252 was a vamos-specific locale/math library initialization failure — unrelated to `-fbaserel`.
+
+**Diagnosis Shortcut:** If a program:
+1. Has many global/static variables or large global arrays
+2. Passes vamos tests but crashes on FS-UAE with LONG-WRITE Enforcer hits
+3. Was compiled with `-fbaserel`
+
+→ Remove `-fbaserel` and retest. This is almost certainly the cause.
+
+**Fix:** Remove `-fbaserel` from CFLAGS. If exit code 252 on vamos was the reason it was added, investigate the real cause (usually vamos library initialization, not init list placement).
+
+**Scope:** Any program with >50 global/static variables or large global arrays. Small utilities (grep, sed, cal) are unlikely to be affected. Interpreters, compilers, and applications are high-risk.
+
+- **Port:** lua (5.4.7)
+- **Date:** 2026-03-22
+
+---
+
+## 14. Float Math Generates Line F Traps on 68000
+
+**Enforcer Signature:** Guru Meditation `#8000000B` (ACPU_LineF). No Enforcer hits — this is a CPU trap, not a memory access violation.
+
+**Hit Type:** Line F emulator exception. The 68000 encounters an opcode in the `$Fxxx` range (FPU instruction) and has no FPU to execute it.
+
+**Root Cause:** Switching C `float` math functions (`sqrtf`, `powf`, `fmodf`, `floorf`, etc.) into a program compiled with `-m68000`. The 68000 has no FPU. AmigaOS provides software IEEE math only for `double` precision via `mathieeedoubbas.library` and `mathieeedoubtrans.library`. There is no `float`-precision equivalent. The GCC soft-float fallback for `float` still generates Line F traps in some code paths.
+
+**Diagnosis Shortcut:** If a program:
+1. Uses floating-point math
+2. Is compiled with `-m68000` (no FPU)
+3. Crashes with Guru `#8000000B` after changing float precision settings
+
+→ Check for `float` vs `double` usage. Stick with `double` on 68000 targets.
+
+**Fix:** Use `double` for all floating-point. On AmigaOS 68000 targets, do NOT enable `LUA_32BITS`, `-fsingle-precision-constant`, or any option that switches to `float` math.
+
+**Exception:** Programs targeting 68020+ with 68881/68882 FPU can use `float` safely (`-m68020 -m68881`).
+
+- **Port:** lua (5.4.7)
+- **Date:** 2026-03-22

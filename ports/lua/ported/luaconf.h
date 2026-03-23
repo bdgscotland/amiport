@@ -47,6 +47,14 @@
    selects 'long'/'double' number types instead of 'long long'/'double' */
 #ifdef __AMIGA__
 #define LUA_USE_C89
+/* amiport: perf-optimizer — LUA_32BITS NOT usable on 68000.
+   float math functions (sqrtf, powf, etc.) generate Line F FPU traps
+   that cause Guru #8000000B on 68000 without FPU. AmigaOS IEEE math
+   libraries only provide double-precision functions.
+   Keep using double (LUA_32BITS=0). */
+/* amiport: perf-optimizer — eliminate localeconv() call on every number
+   format/parse. AmigaOS CLI always uses C locale, so decimal point is '.'. */
+#define lua_getlocaledecpoint()	('.')
 #endif
 
 
@@ -128,7 +136,10 @@
 /*
 @@ LUA_32BITS enables Lua with 32-bit integers and 32-bit floats.
 */
+/* amiport: guarded — Amiga override sets LUA_32BITS=1 earlier */
+#ifndef LUA_32BITS
 #define LUA_32BITS	0
+#endif
 
 
 /*

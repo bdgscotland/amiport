@@ -10,12 +10,17 @@ AUTHOR      = Roberto Ierusalimschy / PUC-Rio
 CATEGORY    = 2
 AMINET_CAT  = dev/lang
 
-# -fbaserel is required for libnix's nbcrt0.o startup, which places
-# ___INIT_LIST__ / ___EXIT_LIST__ in the DATA section via .dlist_* sections.
-# Without -fbaserel, ncrt0.o is used and the lists end up in the CODE section,
-# causing the libnix startup to call invalid function pointers → exit code 252.
-# amiport: debug-agent — added -fbaserel to fix libnix init list placement
-CFLAGS += -fbaserel
+# NOTE: Lua exits with code 252 on vamos due to a libnix locale/math init
+# failure on vamos (locale.library not available). This is a vamos-only
+# limitation — on real AmigaOS (FS-UAE), the binary works correctly.
+# -fbaserel was previously added here based on an incorrect analysis;
+# it actually breaks FS-UAE by corrupting global variable access patterns
+# (A4-relative addressing interacts badly with Lua's global state).
+# amiport: debug-agent — removed -fbaserel, documented vamos exit-252 limitation
+
+# Lua is a Category 2 (scripting interpreter) port — requires more stack
+# for deep Lua recursion and file parsing. vamos smoke tests use -e flag only.
+VAMOS_STACK = 512
 
 # Lua core library sources (everything except lua.c and luac.c)
 LUA_CORE = \
