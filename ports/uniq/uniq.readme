@@ -1,0 +1,43 @@
+Short:        Filter/report repeated lines in files
+Type:         util/cli
+Architecture: m68k-amigaos >= 3.0
+Uploader:     duncan@bowring.us
+Author:       OpenBSD Project (ported by Duncan Bowring)
+Version:      1.33
+
+uniq -- Filter/report repeated lines in files
+
+OpenBSD uniq 1.33, ported to AmigaOS 3.x using the amiport toolkit.
+Original author: OpenBSD Project
+Project: https://github.com/bdgscotland/amiport
+
+Cross-compiled with m68k-amigaos-gcc for AmigaOS 3.x (68000+).
+Tested on FS-UAE (A1200, Kickstart 3.1) with 29/29 tests passing.
+
+Usage:
+  uniq [-ci] [-d | -u] [-f fields] [-s chars] [input_file [output_file]]
+
+Flags:
+  -c       Prefix lines with occurrence count
+  -d       Only print duplicate lines
+  -u       Only print unique lines (appear once)
+  -i       Case-insensitive comparison
+  -f num   Skip num fields before comparing
+  -s num   Skip num characters before comparing
+
+Examples:
+  uniq file.txt                   Filter adjacent duplicates
+  uniq -c file.txt                Count occurrences
+  uniq -d file.txt                Show only duplicates
+  uniq -u file.txt                Show only unique lines
+  uniq -i -d file.txt             Case-insensitive duplicates
+  uniq -f 1 file.txt              Skip first field
+  uniq file.txt output.txt        Write to output file
+
+Notes:
+  - No multibyte/locale support (AmigaOS is always C locale)
+  - Old-style +N/-N syntax supported for backward compatibility
+  - Stack cookie: 32KB. Exit codes: 0 (OK), 10 (ERROR).
+
+Includes full source code (original POSIX and ported Amiga versions)
+and PORT.md documenting every transformation applied.

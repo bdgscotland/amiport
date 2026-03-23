@@ -225,8 +225,10 @@ main(int argc, char *argv[])
 			++repeats;
 	}
 	free(thisline);
-	if (ferror(stdin))
+	if (ferror(stdin)) {
+		free(prevline); /* amiport: free before err() — no process cleanup on AmigaOS */
 		err(10, "getline"); /* amiport: RETURN_ERROR */
+	}
 
 	show(prevline);
 	free(prevline);

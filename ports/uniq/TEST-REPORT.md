@@ -5,8 +5,8 @@
 | Field | Value |
 |-------|-------|
 | Port | uniq |
-| Date | 2026-03-22 22:19:10 |
-| Duration | 32s |
+| Date | 2026-03-22 22:25:01 |
+| Duration | 33s |
 | Platform | FS-UAE 3.2.35 (A1200, Kickstart 3.1) |
 | Binary | `WORK:uniq` (41K) |
 | Test method | ARexx harness → TAP output |

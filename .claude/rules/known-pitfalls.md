@@ -119,6 +119,10 @@ AmigaOS filesystems (OFS, FFS, SFS) are case-insensitive. Ported `diff -r`, `fin
 
 The `d_type` field in `struct dirent` is never populated by AmigaOS filesystems (OFS, FFS, SFS). It is always `DT_UNKNOWN` (0). Code that checks `dp->d_type == DT_DIR` to detect directories will silently treat all directories as regular files, breaking recursive operations like `grep -R`, `find`, and `diff -r`. **Fix:** Replace `d_type` checks with an `opendir()` probe — try `opendir(path)` on each entry; if it succeeds, the entry is a directory. This was discovered in the grep 1.68 port where `-R` silently skipped subdirectories.
 
+## __progname Weak Symbol Lost During Linking
+
+The `__progname` variable is declared as a weak symbol in `argv_expand.o` (inside `libamiport.a`). Even though the object is linked (because `amiport_expand_argv()` is called), the weak data symbol `__progname` may not survive in the final binary — bebbo-gcc's linker can strip unreferenced weak data symbols from archive members. The result: `__progname` resolves to address 0 (or garbage), and any `fprintf(stderr, "%s", __progname)` in `usage()` crashes with an invalid memory access. On FS-UAE this manifests as garbled output flooding the console before a Guru Meditation. **Fix:** Define `__progname` directly in the ported source: `char *__progname = "progname";`. The `amiport_expand_argv()` function writes to it via the extern declaration, so it will be updated from argv[0] at runtime. Discovered in the uniq 1.33 port.
+
 ## Braceless Multi-Statement if/else With _exit()
 
 When adding Amiga exit code blocks (`fflush(stdout); _exit(RC);`), forgetting braces around two-statement if/else branches is a common and subtle bug. In C, only the first statement belongs to the branch — `_exit()` executes unconditionally. The program appears to work but always exits with the wrong code. **Fix:** Always use braces when a branch has more than one statement. This was discovered in the grep 1.68 port where the exit-code logic always returned 0 regardless of match/error status.

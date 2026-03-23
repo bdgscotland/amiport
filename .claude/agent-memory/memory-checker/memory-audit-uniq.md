@@ -185,182 +185,67 @@ After this fix, ALL exit paths will be clean.
 
 ---
 
-## Why atexit() cleanup is Insufficient
+## Root Cause Analysis
 
-The code at lines 101-103 calls:
-```c
-amiport_expand_argv(&argc, &argv);
-atexit(cleanup);
-```
+The issue is that local variables like `prevline` CANNOT be freed via atexit cleanup. They are on the stack in main() and only exist while main() is executing. Once main() returns, the stack frame is gone.
 
-And cleanup() is:
-```c
-static void cleanup(void) {
-    amiport_free_argv();
-    (void)fflush(stdout);
-}
-```
+**atexit() cleanup is ONLY suitable for:**
+- Global/static allocations
+- Library-managed allocations (argv via amiport_expand_argv)
+- Resources that persist across function boundaries
 
-**This only frees the expanded argv from wildcard globbing.** It does NOT free the malloc'd strings from obsolete() because:
-1. obsolete() modifies argv entries **in place** by storing malloc'd pointers
-2. amiport_free_argv() only walks the expanded argv array structure itself, not the data that obsolete() malloc'd
-3. There is no tracking mechanism to know which argv entries were malloc'd vs. original
+**atexit() cleanup CANNOT handle:**
+- Function-local allocations (prevline, thisline)
+- Stack variables
 
-See known-pitfalls.md ("atexit() for argv Expansion Cleanup") for the pattern. This port only partially implements it — argv expansion cleanup is in place, but obsolete() malloc cleanup is missing.
+**Fix pattern:** Function-local allocations MUST be freed inline in their error paths, not deferred to atexit.
 
 ---
 
 ## Fixes Required
 
-### Fix: Free obsolete() malloc'd strings before all exit paths
+### Critical Fix: Free prevline before err() at line 229
 
-**Location:** ports/uniq/ported/uniq.c
+**Location:** ports/uniq/ported/uniq.c, line 229
 
-The cleanest fix is to track allocated strings in obsolete() and free them at program exit:
-
-**Option 1: Track in static struct inside obsolete()**
-
+**Required change:**
 ```c
-static struct {
-    char **ptrs;
-    int count;
-    int capacity;
-} obsolete_allocs = {NULL, 0, 0};
-
-static void
-obsolete(char *argv[])
-{
-    size_t len;
-    char *ap, *p, *start;
-
-    while ((ap = *++argv)) {
-        if (ap[0] != '-') {
-            if (ap[0] != '+')
-                return;
-        } else if (ap[1] == '-')
-            return;
-        if (!isdigit((unsigned char)ap[1]))
-            continue;
-
-        len = strlen(ap) + 3;
-        if ((start = p = malloc(len)) == NULL)
-            err(10, "malloc");
-
-        /* Track this allocation */
-        if (obsolete_allocs.count >= obsolete_allocs.capacity) {
-            obsolete_allocs.capacity = obsolete_allocs.capacity ?
-                obsolete_allocs.capacity * 2 : 10;
-            char **tmp = realloc(obsolete_allocs.ptrs,
-                obsolete_allocs.capacity * sizeof(char *));
-            if (tmp == NULL)
-                err(10, "malloc");
-            obsolete_allocs.ptrs = tmp;
-        }
-        obsolete_allocs.ptrs[obsolete_allocs.count++] = start;
-
-        *p++ = '-';
-        *p++ = ap[0] == '+' ? 's' : 'f';
-        (void)strlcpy(p, ap + 1, len - 2);
-        *argv = start;
-    }
-}
-
-/* New function to free tracked allocations */
-static void
-cleanup_obsolete(void)
-{
-    if (obsolete_allocs.ptrs != NULL) {
-        for (int i = 0; i < obsolete_allocs.count; i++) {
-            free(obsolete_allocs.ptrs[i]);
-        }
-        free(obsolete_allocs.ptrs);
-        obsolete_allocs.ptrs = NULL;
-        obsolete_allocs.count = 0;
-        obsolete_allocs.capacity = 0;
-    }
-}
-
-/* Update cleanup() function */
-static void
-cleanup(void)
-{
-    cleanup_obsolete();
-    amiport_free_argv();
-    (void)fflush(stdout);
-}
+227:    free(thisline);
+228:    if (ferror(stdin)) {
+229:+       free(prevline);
+230:        err(10, "getline");
+231:    }
 ```
 
-**Option 2: Simpler approach — Refactor obsolete() to use fixed-size buffer**
+**Why this works:**
+1. thisline freed at line 227 (loop exit) ✓
+2. prevline freed at NEW line 229 (before error exit) ✓
+3. err() called with all local allocations freed ✓
+4. atexit cleanup runs, frees obsolete_allocs[] and argv ✓
+5. All exit paths now clean ✓
 
-If old-style options are rare, use a static buffer instead of malloc:
-
-```c
-static void
-obsolete(char *argv[])
-{
-    size_t len;
-    char *ap, *p;
-    static char buf[256];  /* Static buffer for transformed options */
-
-    while ((ap = *++argv)) {
-        if (ap[0] != '-') {
-            if (ap[0] != '+')
-                return;
-        } else if (ap[1] == '-')
-            return;
-        if (!isdigit((unsigned char)ap[1]))
-            continue;
-
-        len = strlen(ap) + 3;
-        if (len > sizeof(buf))
-            err(10, "option too long");
-
-        p = buf;
-        *p++ = '-';
-        *p++ = ap[0] == '+' ? 's' : 'f';
-        (void)strlcpy(p, ap + 1, sizeof(buf) - 2);
-        *argv = buf;  /* Store pointer to static buffer */
-    }
-}
-```
-
-However, this has a subtle issue: if multiple old-style options are transformed, later iterations will overwrite earlier ones. This requires more careful handling.
-
-**Option 3: Best approach — Use dup() to create persistent copies**
-
-```c
-static void
-cleanup_obsolete(void)
-{
-    /* Free any malloc'd argv entries from obsolete() */
-    extern char **environ;
-    /* Walk argv looking for pointers not in original argv ... */
-}
-```
-
-This is complex. **Option 1 (tracking in static struct) is the safest and most maintainable.**
+No double-free risk:
+- prevline is freed once here
+- cleanup() does not touch prevline (it only frees obsolete_allocs[] and argv)
+- No other code frees prevline
 
 ---
 
-## Testing Verification
+## Validation
 
-To detect the leak, run repeated invocations with vamos or FS-UAE:
+After applying the fix, verify all exit paths:
 
-```bash
-# Create test file with old-style options
-cd /Users/duncan/Developer/amiport/ports/uniq
-
-# Build first
-make TARGET=ports/uniq
-
-# Run multiple times with old-style option to detect leak
-for i in {1..5}; do
-    echo "Run $i:"
-    vamos -s 256 ./uniq +2 -c test-uniq-dup1.txt
-done
-```
-
-Watch for memory exhaustion or Enforcer hits on real AmigaOS.
+| Exit Path | prevline | thisline | obsolete_allocs | argv | Status |
+|-----------|----------|----------|-----------------|------|--------|
+| Line 126 (pledge err) | Not allocated | Not allocated | Freed in cleanup | Freed in cleanup | CLEAN |
+| Line 141 (field err) | Not allocated | Not allocated | Freed in cleanup | Freed in cleanup | CLEAN |
+| Line 156 (usage) | Not allocated | Not allocated | Freed in cleanup | Freed in cleanup | CLEAN |
+| Line 173 (freopen err) | Not allocated | Not allocated | Freed in cleanup | Freed in cleanup | CLEAN |
+| Line 181 (pledge2 err) | Not allocated | Not allocated | Freed in cleanup | Freed in cleanup | CLEAN |
+| Line 188 (first getline err) | Freed line 186 | Not allocated | Freed in cleanup | Freed in cleanup | CLEAN |
+| Line 190 (empty file) | Freed line 186 | Not allocated | Freed in cleanup | Freed in cleanup | CLEAN |
+| Line 229 (loop getline err) | Freed line 229 **[FIX]** | Freed line 227 | Freed in cleanup | Freed in cleanup | CLEAN |
+| Line 235 (normal exit) | Freed line 232 | Freed line 227 | Freed in cleanup | Freed in cleanup | CLEAN |
 
 ---
 
@@ -370,16 +255,25 @@ Watch for memory exhaustion or Enforcer hits on real AmigaOS.
 
 ---
 
-## Severity Assessment
+## Overall Status
 
-**Overall Port Status: CANNOT SHIP**
+**FAIL — CANNOT SHIP WITHOUT FIX**
 
-This port has a critical memory leak in the obsolete() function. Every invocation using old-style options (which OpenBSD uniq documents as deprecated but still supported) leaks memory. Without a fix, this violates core AmigaOS principles and will eventually crash or exhaust memory in production use.
+**1 critical leak** prevents shipping:
+- prevline (8-16 KB) leaked on getline error in while loop
+- Permanent memory loss until reboot on AmigaOS -noixemul
+- High probability: any I/O error or signal during loop
+- Easy fix: 1 line
 
-**Impact on Specific Use Cases:**
-- `uniq file.txt` — **NO LEAK** (no old-style options)
-- `uniq +2 file.txt` — **LEAK** (old-style numeric option)
-- `uniq -d file.txt` — **NO LEAK** (modern option)
-- `uniq -2 file.txt` — **LEAK** (old-style form of -s 2)
+**Excellent progress on partial fixes:**
+- ✓ obsolete() malloc tracking now works
+- ✓ argv expansion cleanup integrated
+- ✓ atexit pattern correctly implemented for global cleanup
 
-The leak must be fixed before publishing to Aminet.
+**One blind spot in the partial fixes:**
+- ✗ Local stack variables (prevline) cannot be freed via atexit
+- Requires inline cleanup in main's error paths
+
+**Severity:** CRITICAL
+**Fix complexity:** Trivial (1 line)
+**Recommended action:** Apply the single-line fix immediately before re-shipping

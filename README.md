@@ -24,7 +24,7 @@ amiport combines POSIX compatibility libraries, AI-powered build agents, and a c
 | [diff](ports/diff/) | 1.95 | CLI | File comparison utility (OpenBSD) | Known issues |
 | [grep](ports/grep/) | 1.68 | CLI | Pattern search — regex, fixed, recursive (OpenBSD) | [Live on Aminet](https://aminet.net/package/util/cli/grep-1.68) |
 | [head](ports/head/) | 1.24 | CLI | Print first lines of files (OpenBSD) | [Live on Aminet](https://aminet.net/package/util/cli/head-1.24) |
-| [lua](ports/lua/) | 5.4.7 | Scripting | Lua 5.4 scripting language (PUC-Rio) | Built & tested |
+| [lua](ports/lua/) | 5.4.7 | Scripting | Lua 5.4 scripting language (PUC-Rio) | Submitted to Aminet |
 | [sed](ports/sed/) | 1.47 | CLI | Stream editor — text transformation (OpenBSD) | [Live on Aminet](https://aminet.net/package/util/cli/sed-1.47) |
 | [sort](ports/sort/) | 1.0 | CLI | Sort lines of text files (Plan 9) | Built & tested |
 | [tail](ports/tail/) | 1.24 | CLI | Display last part of a file with follow mode (OpenBSD) | Built & tested |
