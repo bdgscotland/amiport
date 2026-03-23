@@ -1181,10 +1181,14 @@ static uint32_t jvp_string_hash(jv jstr) {
 
   const uint32_t c1 = 0xcc9e2d51;
   const uint32_t c2 = 0x1b873593;
-  const uint32_t* blocks = (const uint32_t *)(data + nblocks*4);
+  /* amiport: replaced unsafe uint32_t* cast with memcpy for 68k alignment safety.
+   * Original code cast char* to uint32_t* which can bus-error on 68000 if unaligned.
+   * memcpy generates MOVE.L when aligned, byte loop otherwise. (perf-optimizer #2) */
+  const uint8_t* blocks = data;
 
-  for(int i = -nblocks; i; i++) {
-    uint32_t k1 = blocks[i]; //FIXME: endianness/alignment
+  for(int i = 0; i < nblocks; i++) {
+    uint32_t k1;
+    memcpy(&k1, blocks + i * 4, 4);
 
     k1 *= c1;
     k1 = rotl32(k1,15);
@@ -1449,24 +1453,31 @@ jv jv_string_append_str(jv a, const char* str) {
 }
 
 jv jv_string_vfmt(const char* fmt, va_list ap) {
-  int size = 1024;
+  /* amiport: stack probe buffer avoids malloc for short strings (perf-optimizer item #4).
+   * Most jv_string_fmt calls produce < 256 bytes. The probe saves a malloc+free round-trip
+   * on every call. Stack cost: 256 bytes, safe with __stack=65536. */
+  char probe[256];
+  va_list ap2;
+  va_copy(ap2, ap);
+  int n = vsnprintf(probe, sizeof(probe), fmt, ap2);
+  va_end(ap2);
+  if (n >= 0 && n < (int)sizeof(probe)) {
+    return jv_string_sized(probe, n);
+  }
+  /* Fall back to heap for longer strings */
+  int size = (n > 0) ? (n + 1) : 1024;
   while (1) {
     char* buf = jv_mem_alloc(size);
-    va_list ap2;
     va_copy(ap2, ap);
-    int n = vsnprintf(buf, size, fmt, ap2);
+    n = vsnprintf(buf, size, fmt, ap2);
     va_end(ap2);
-    /*
-     * NOTE: here we support old vsnprintf()s that return -1 because the
-     * buffer is too small.
-     */
     if (n >= 0 && n < size) {
       jv ret = jv_string_sized(buf, n);
       jv_mem_free(buf);
       return ret;
     } else {
       jv_mem_free(buf);
-      size = (n > 0) ? /* standard */ (n * 2) : /* not standard */ (size * 2);
+      size = (n > 0) ? (n * 2) : (size * 2);
     }
   }
 }

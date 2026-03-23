@@ -153,11 +153,16 @@ static void usage(int code, int keep_it_short) {
   }
 }
 
-static void die() {
-  fprintf(stderr, "Use %s --help for help with command-line options,\n", progname);
-  fprintf(stderr, "or see the jq manpage, or online docs  at https://jqlang.github.io/jq\n");
-  exit(20); /* amiport: RETURN_FAIL — was exit(2) */
-}
+/* amiport: replaced die() function with macro that gotos cleanup label.
+ * Original die() called exit(20) directly, leaking all allocations
+ * (ARGS, program_arguments, jq state, input_state) on AmigaOS -noixemul.
+ * See crash-patterns: every exit() without cleanup leaks permanently. */
+#define die() do { \
+  fprintf(stderr, "Use %s --help for help with command-line options,\n", progname); \
+  fprintf(stderr, "or see the jq manpage, or online docs  at https://jqlang.github.io/jq\n"); \
+  ret = JQ_ERROR_SYSTEM; \
+  goto out; \
+} while(0)
 
 static int isoptish(const char* text) {
   return text[0] == '-' && (text[1] == '-' || isalpha(text[1]));
