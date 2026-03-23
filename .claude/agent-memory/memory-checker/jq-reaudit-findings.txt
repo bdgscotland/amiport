@@ -1,0 +1,274 @@
+jq 1.7.1 Port — Memory Safety Re-Audit Findings
+================================================
+
+VERDICT: CRITICAL LEAKS REMAIN — Cannot Ship Without Fixes
+
+Audit Date: 2026-03-23
+Previous Audit: 2026-03-22
+File Audited: /Users/duncan/Developer/amiport/ports/jq/ported/
+
+---
+
+EXECUTIVE SUMMARY
+─────────────────
+
+Previous fixes (die() macro, jv_mem_realloc intermediate pointer) were correct.
+However, 5 NEW critical leaks were discovered that STILL bypass cleanup:
+
+1. lib_search_paths jv_array NEVER freed in cleanup section
+2. exit(10) at line 699 bypasses cleanup (strdup failure)
+3. exit(20) at line 720 bypasses cleanup (strdup failure)  
+4. usage() hard exit at line 714 bypasses cleanup (VERY COMMON — most impactful)
+5. unchecked strdup() at linker.c:370 (can NULL deref)
+
+All 5 must be fixed before shipping.
+
+---
+
+CRITICAL ISSUE #1: lib_search_paths Never Freed
+────────────────────────────────────────────────
+
+Location: main.c line 414 (allocation) and cleanup section at line 815
+
+The jv_array lib_search_paths is allocated with:
+  jv lib_search_paths = jv_null();  /* line 414 */
+  ...
+  lib_search_paths = jv_array_append(...);  /* lines 439, 444 */
+
+But cleanup (lines 815-837) frees ARGS, program_arguments, jq, input_state
+but NOT lib_search_paths:
+
+  out:
+    badwrite = ferror(stdout);
+    ...
+    jv_free(ARGS);
+    jv_free(program_arguments);
+    jq_util_input_free(&input_state);
+    jq_teardown(&jq);
+    /* MISSING: jv_free(lib_search_paths); */
+    ...
+    jq_exit(ret);
+
+Impact: Every error invocation leaks 20-100 bytes per -L path.
+
+Fix: Add after line 821:
+  jv_free(lib_search_paths);
+
+---
+
+CRITICAL ISSUE #2: exit(10) at Line 699 Bypasses Cleanup
+─────────────────────────────────────────────────────────
+
+Location: main.c lines 696-700
+
+  char *origin = strdup(argv[0]);
+  if (origin == NULL) {
+    fprintf(stderr, "jq: error: out of memory\n");
+    exit(10);  /* amiport: RETURN_ERROR — was exit(1) */
+  }
+
+Timeline: This occurs AFTER main allocations:
+  - Line 392: ARGS (jv_array)
+  - Line 393: program_arguments (jv_object)
+  - Line 397: jq (jq_state)
+  - Line 407: input_state
+  - Line 414: lib_search_paths (jv_array)
+
+If strdup() fails (rare but possible), all 5 allocations leak permanently.
+
+Trigger: Memory exhaustion, unlikely but possible with large argc or under memory pressure.
+
+Frequency: RARE
+
+Fix: Replace exit(10) with:
+  ret = JQ_ERROR_SYSTEM;
+  goto out;
+
+---
+
+CRITICAL ISSUE #3: exit(20) at Line 720 Bypasses Cleanup
+─────────────────────────────────────────────────────────
+
+Location: main.c lines 716-721
+
+  if (options & FROM_FILE) {
+    char *program_origin = strdup(program);
+    if (program_origin == NULL) {
+      perror("malloc");
+      exit(20);  /* amiport: RETURN_FAIL — was exit(2) */
+    }
+
+Timeline: Same as Issue #2 — occurs AFTER all main allocations.
+
+If strdup() fails, leaks ARGS, program_arguments, lib_search_paths, jq, input_state.
+
+Trigger: Memory exhaustion in FROM_FILE path.
+
+Frequency: RARE
+
+Fix: Replace exit(20) with:
+  ret = JQ_ERROR_SYSTEM;
+  goto out;
+
+---
+
+CRITICAL ISSUE #4: usage() Hard Exit at Line 714 (MOST IMPACTFUL)
+──────────────────────────────────────────────────────────────────
+
+Location: main.c line 714
+
+  if (!program) usage(2, 1);
+
+The usage() function is defined at lines 78-154 and unconditionally calls:
+  exit(ec);  /* line 152 */
+
+Trigger: User runs jq with NO filter argument:
+  $ jq
+  (or)
+  $ jq --help
+
+Timeline: Line 714 is AFTER all main allocations (392-414).
+
+When triggered:
+  ↓ User runs: jq
+  ↓ Allocate ARGS, program_arguments, jq, input_state, lib_search_paths
+  ↓ Parse arguments through loop
+  ↓ Reach line 714: if (!program) usage(2, 1)
+  ↓ Call usage(2, 1)
+  ↓ usage() calls exit(20) [code 2 mapped to 20]
+  ↓ All 5 allocations LEAKED
+
+Frequency: VERY COMMON — This is a normal user interaction.
+  - User runs `jq` to see help
+  - User runs `jq --help`
+  - User runs `jq` without arguments
+
+Leak size: ~150-200 bytes per invocation.
+
+Impact: This is THE most critical leak because it happens on EVERY help/usage invocation.
+
+Fix: Replace the call with:
+  if (!program) {
+    ret = JQ_ERROR_SYSTEM;
+    goto out;
+  }
+
+Or modify usage() to not call exit() but return a code to main().
+The first approach is simpler.
+
+---
+
+CRITICAL ISSUE #5: Unchecked strdup() at linker.c:370
+───────────────────────────────────────────────────────
+
+Location: linker.c line 370
+
+  char *lib_origin = strdup(jv_string_value(lib_path));
+  nerrors += process_dependencies(jq, jq_get_jq_origin(jq),
+                                  jv_string(dirname(lib_origin)),
+                                  &program, lib_state);
+
+The strdup() at line 370 is UNCHECKED. If it fails (malloc OOM), 
+lib_origin is NULL, which is then passed to dirname().
+
+Behavior of dirname(NULL) is undefined and can crash.
+
+Trigger: Memory exhaustion during library import.
+
+Frequency: RARE
+
+Fix: Add NULL check:
+  char *lib_origin = strdup(jv_string_value(lib_path));
+  if (!lib_origin) {
+    fprintf(stderr, "jq: error: memory allocation failed for library path\n");
+    return 1;
+  }
+
+---
+
+ROOT CAUSE ANALYSIS
+───────────────────
+
+The previous audit correctly identified that die() bypasses cleanup.
+The fix applied (converting die() to goto out) was correct and eliminated 9 leak paths.
+
+However, the audit was INCOMPLETE because it only looked for die() calls,
+not for OTHER exit() calls that could occur AFTER allocations.
+
+The new issues are:
+  1. A missing jv_free() in the cleanup section (oversight in writing the cleanup code)
+  2. Two strdup() failure paths that still call exit() instead of goto out
+  3. usage() function that unconditionally exits without cleanup
+  4. Unchecked strdup() that can crash
+
+These represent different failure paths and would not have been caught by 
+just looking at die() replacement.
+
+---
+
+VERIFICATION CHECKLIST
+──────────────────────
+
+After applying all 5 fixes:
+
+  [ ] main.c line 699: exit(10) replaced with goto out
+  [ ] main.c line 714: if (!program) usage() replaced with goto out
+  [ ] main.c line 720: exit(20) replaced with goto out
+  [ ] main.c line 822: jv_free(lib_search_paths) added
+  [ ] linker.c line 370: NULL check added after strdup()
+  [ ] No other exit() calls in main() after line 392
+  [ ] Cleanup at out: label includes jv_free(lib_search_paths)
+  
+  [ ] Test: jq (no args) — returns cleanly
+  [ ] Test: jq --help — returns cleanly
+  [ ] Test: jq -n . — works normally
+  [ ] Test: jq -L /nonexistent .filter — errors gracefully
+  [ ] Re-run memory-checker agent
+  [ ] Confirm: 0 leaks detected
+
+---
+
+PREVIOUS FIXES (VERIFIED CORRECT)
+─────────────────────────────────
+
+✓ die() macro replacement (lines 160-165)
+  All 9 call sites (425, 442, 520, 526, 562, 572, 578, 595, 651) 
+  now use: ret = JQ_ERROR_SYSTEM; goto out;
+  
+✓ jv_mem_realloc() intermediate pointer (jv_alloc.c:180-190)
+  Uses tmp = realloc(); if (!tmp) ... return tmp;
+  Properly preserves old pointer if realloc fails
+  
+✓ strdup() check at linker.c:381 (INCOMPLETE)
+  Added: if (!lib_state->names[state_idx]) fallback to ""
+  This prevents NULL deref but masks the OOM condition
+
+---
+
+STATUS: CANNOT SHIP
+───────────────────
+
+The jq 1.7.1 port cannot be shipped to Aminet in its current state.
+
+The 9 die() paths now reach cleanup correctly, which was the previous 
+critical issue.
+
+However, 5 new critical exit paths bypass cleanup:
+  - 1 cleanup section missing jv_free() (affects all 9 die() paths)
+  - 3 exit() calls that should be goto out (2 rare OOM, 1 very common help)
+  - 1 unchecked strdup() that can crash
+
+All 5 must be fixed before approval.
+
+The usage() leak (Issue 4) is especially critical because it's a 
+normal user interaction that leaks ~150+ bytes every time the user 
+runs `jq` without arguments or asks for help.
+
+---
+
+Next Steps:
+1. Apply all 5 fixes to main.c and linker.c
+2. Rebuild port
+3. Test against all exit conditions
+4. Re-run memory-checker agent
+5. Confirm 0 leaks before submitting to Aminet

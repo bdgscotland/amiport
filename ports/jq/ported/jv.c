@@ -1183,7 +1183,9 @@ static uint32_t jvp_string_hash(jv jstr) {
   const uint32_t c2 = 0x1b873593;
   /* amiport: replaced unsafe uint32_t* cast with memcpy for 68k alignment safety.
    * Original code cast char* to uint32_t* which can bus-error on 68000 if unaligned.
-   * memcpy generates MOVE.L when aligned, byte loop otherwise. (perf-optimizer #2) */
+   * memcpy is safe for all alignments. At -O0 (our build config) this calls libnix
+   * memcpy which uses a byte loop; at -O2+ GCC would emit MOVE.L when aligned.
+   * Correctness is the goal here, not speed. (perf-optimizer #2) */
   const uint8_t* blocks = data;
 
   for(int i = 0; i < nblocks; i++) {

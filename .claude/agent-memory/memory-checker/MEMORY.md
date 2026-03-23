@@ -40,3 +40,12 @@
   - TMP* name strings now freed in my_cleanup() (lines 442-446)
   - ttyfd now closed in my_cleanup() (lines 449-452)
   - No new issues introduced by getopt.h swap, tab stop fix, or dump_line optimization
+
+- [memory-audit-jq-recheck.md](memory-audit-jq-recheck.md) - ports/jq 1.7.1 re-audit after partial fixes (2026-03-23)
+  - Status: CRITICAL LEAKS REMAINING — 5 unfixed paths
+  - Verdict: Cannot ship — fixes incomplete
+  - Previous die() fix correct (9 paths now use goto out)
+  - jv_mem_realloc() intermediate pointer fix correct
+  - But 5 NEW paths found bypassing cleanup: lib_search_paths leak, exit(10) at 699, exit(20) at 720, usage() at 714, unchecked strdup at linker.c:370
+  - Root cause: usage() hard exit and strdup OOM checks not converted to goto out
+  - All 5 fixes required before shipping

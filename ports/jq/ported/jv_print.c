@@ -176,26 +176,13 @@ static void jvp_dump_string(jv str, int ascii_only, FILE* F, jv* S, int T) {
     } else if (c < 0x20 || c == 0x7F) {
       // ASCII control character
       switch (c) {
-      case '\b':
-        put_char('\\', F, S, T);
-        put_char('b', F, S, T);
-        break;
-      case '\t':
-        put_char('\\', F, S, T);
-        put_char('t', F, S, T);
-        break;
-      case '\r':
-        put_char('\\', F, S, T);
-        put_char('r', F, S, T);
-        break;
-      case '\n':
-        put_char('\\', F, S, T);
-        put_char('n', F, S, T);
-        break;
-      case '\f':
-        put_char('\\', F, S, T);
-        put_char('f', F, S, T);
-        break;
+      /* amiport: single put_buf per escape instead of two put_char calls.
+       * Saves one JSR+RTS (12 cycles on 68020) per escaped character. */
+      case '\b': put_buf("\\b", 2, F, S, T); break;
+      case '\t': put_buf("\\t", 2, F, S, T); break;
+      case '\r': put_buf("\\r", 2, F, S, T); break;
+      case '\n': put_buf("\\n", 2, F, S, T); break;
+      case '\f': put_buf("\\f", 2, F, S, T); break;
       default:
         unicode_escape = 1;
         break;
@@ -409,10 +396,22 @@ static void jv_dump_term(struct dtoa_context* C, jv x, int flags, int indent, FI
 
 void jv_dumpf(jv x, FILE *f, int flags) {
   jv_dump_term(tsd_dtoa_context_get(), x, flags, 0, f, 0);
-#ifdef __AMIGA__
-  amiport_flush_print_buf(); /* amiport: flush buffered output after each top-level dump */
-#endif
+  /* amiport: don't flush here — let the caller add trailing newline
+   * to the buffer first, then flush. See amiport_jv_flush(). */
 }
+
+#ifdef __AMIGA__
+/* amiport: public flush for callers that need to write after jv_dump
+ * (e.g., trailing newline) then flush everything in one batch */
+void amiport_jv_flush(void) {
+  amiport_flush_print_buf();
+}
+
+/* amiport: write bytes through the output buffer (for trailing newlines etc.) */
+void amiport_jv_put(const char *s, int len, FILE *fout) {
+  put_buf(s, len, fout, NULL, 0);
+}
+#endif
 
 void jv_dump(jv x, int flags) {
   jv_dumpf(x, stdout, flags);

@@ -20,7 +20,10 @@ extern char *dirname(char *path);
 static const char *verstag = "$VER: jq 1.7.1 (22.03.2026)";
 
 /* amiport: stack cookie — jq's recursive filter evaluator needs deep stack */
-long __stack = 65536;
+/* amiport: increased to 128KB — at -O0, bison parser alloca + dos.library hidden
+ * stack (2-4KB, crash-patterns #10) makes 64KB marginal for deeply nested JSON.
+ * Hardware-expert review recommendation. */
+long __stack = 131072;
 
 /* amiport: suppress wildcard expansion — jq takes filter expressions as arguments,
  * not filenames. AmigaOS shell must not glob-expand '#?' in filter patterns. */
@@ -54,6 +57,12 @@ extern void jv_tsd_dtoa_ctx_init();
 
 #include "compile.h"
 #include "jv.h"
+
+#ifdef __AMIGA__
+/* amiport: buffered output API from jv_print.c */
+extern void amiport_jv_flush(void);
+extern void amiport_jv_put(const char *s, int len, FILE *fout);
+#endif
 #include "jq.h"
 #include "jv_alloc.h"
 #include "util.h"
@@ -272,10 +281,20 @@ static int process(jq_state *jq, jv value, int flags, int dumpopts, int options)
         priv_fwrite("\036", 1, stdout, dumpopts & JV_PRINT_ISATTY);
       jv_dump(result, dumpopts);
     }
+#ifdef __AMIGA__
+    /* amiport: route trailing newline through output buffer to avoid
+     * per-line fwrite syscall (perf-optimizer follow-up) */
+    if (!(options & RAW_NO_LF))
+      amiport_jv_put("\n", 1, stdout);
+    if (options & RAW_OUTPUT0)
+      amiport_jv_put("\0", 1, stdout);
+    amiport_jv_flush();
+#else
     if (!(options & RAW_NO_LF))
       priv_fwrite("\n", 1, stdout, dumpopts & JV_PRINT_ISATTY);
     if (options & RAW_OUTPUT0)
       priv_fwrite("\0", 1, stdout, dumpopts & JV_PRINT_ISATTY);
+#endif
     if (options & UNBUFFERED_OUTPUT)
       fflush(stdout);
   }
@@ -379,6 +398,12 @@ int main(int argc, char* argv[]) {
     perror("pledge");
     exit(JQ_ERROR_SYSTEM);
   }
+#endif
+
+#ifdef __AMIGA__
+  /* amiport: ensure output buffer is flushed on all exit paths.
+   * hardware-expert review: fclose(stdout) doesn't flush our app-level buffer. */
+  atexit(amiport_jv_flush);
 #endif
 
 #ifdef WIN32
@@ -696,7 +721,8 @@ int main(int argc, char* argv[]) {
   char *origin = strdup(argv[0]);
   if (origin == NULL) {
     fprintf(stderr, "jq: error: out of memory\n");
-    exit(10); /* amiport: RETURN_ERROR — was exit(1) */
+    ret = JQ_ERROR_SYSTEM; /* amiport: was exit(10) — goto cleanup instead */
+    goto out;
   }
   jq_set_attr(jq, jv_string("JQ_ORIGIN"), jv_string(dirname(origin)));
   free(origin);
@@ -711,13 +737,25 @@ int main(int argc, char* argv[]) {
     program = ".";
 #endif
 
-  if (!program) usage(2, 1);
+  /* amiport: usage() calls exit() which bypasses cleanup.
+   * Print the short usage hint then goto cleanup instead. */
+  if (!program) {
+    fprintf(stderr, "jq - commandline JSON processor [version %s]\n\n"
+                    "Usage:\t%s [options] <jq filter> [file...]\n\n"
+                    "For a description of the command line options and\n"
+                    "how to write jq filters (much more than is described\n"
+                    "here), see the jq manpage.\n\n",
+                    JQ_VERSION, progname);
+    ret = JQ_ERROR_SYSTEM;
+    goto out;
+  }
 
   if (options & FROM_FILE) {
     char *program_origin = strdup(program);
     if (program_origin == NULL) {
       perror("malloc");
-      exit(20); /* amiport: RETURN_FAIL — was exit(2) */
+      ret = JQ_ERROR_SYSTEM; /* amiport: was exit(20) — goto cleanup */
+      goto out;
     }
 
     jv data = jv_load_file(program, 1);
@@ -821,6 +859,7 @@ out:
 
   jv_free(ARGS);
   jv_free(program_arguments);
+  jv_free(lib_search_paths); /* amiport: was missing — leaked on all error paths */
   jq_util_input_free(&input_state);
   jq_teardown(&jq);
 
