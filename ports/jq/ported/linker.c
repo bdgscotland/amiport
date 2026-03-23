@@ -368,10 +368,15 @@ static int load_library(jq_state *jq, jv lib_path, int is_data, int raw, int opt
     locfile_free(src);
     if (nerrors == 0) {
       char *lib_origin = strdup(jv_string_value(lib_path));
-      nerrors += process_dependencies(jq, jq_get_jq_origin(jq),
-                                      jv_string(dirname(lib_origin)),
-                                      &program, lib_state);
-      free(lib_origin);
+      /* amiport: check strdup for NULL — OOM crashes dirname() */
+      if (!lib_origin) {
+        nerrors++;
+      } else {
+        nerrors += process_dependencies(jq, jq_get_jq_origin(jq),
+                                        jv_string(dirname(lib_origin)),
+                                        &program, lib_state);
+        free(lib_origin);
+      }
       program = block_bind_self(program, OP_IS_CALL_PSEUDO);
     }
   }
