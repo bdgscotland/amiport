@@ -86,7 +86,7 @@
 Top navigation bar:
 - Dark gray background (`#505050`), cream text (`#E0D0B8`)
 - Brand name left (amber `#DDAA44`), nav links right
-- 28px height, 1px bevel (shine top, shadow bottom)
+- 44px height, 1px bevel (shine top, shadow bottom)
 - No depth gadget, no decorative elements
 
 ### MUI Window
