@@ -77,6 +77,7 @@ Most porting failures come from the POSIX gap — AmigaOS predates POSIX and pro
 | `lib/posix-emu/` | Tier 2: Approximate POSIX emulation | `-lamiport-emu` |
 | `lib/console-shim/` | Minimal ncurses API via console.device ANSI escapes | `-lamiport-console` |
 | `lib/bsdsocket-shim/` | BSD socket API via bsdsocket.library | `-lamiport-net` |
+| `lib/posix-shim/include/amiport/compat.h` | Platform compatibility: 68k alignment macros, compiler workarounds | `#include <amiport/compat.h>` |
 
 See [docs/posix-tiers.md](docs/posix-tiers.md) for the complete function classification and [docs/architecture.md](docs/architecture.md) for the system design.
 

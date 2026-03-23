@@ -6,6 +6,8 @@ description: Manages Amiga cross-compilation. Handles compiler errors, linker is
 allowed-tools: Bash, Read, Write, Edit, Grep
 skills:
   - c89-reference
+  - crash-patterns
+  - libnix-reference
 hooks:
   PostToolUse:
     - matcher: Edit|Write
@@ -58,6 +60,13 @@ Common build errors and their fixes:
 - **"undefined reference to"** → Function not in posix-shim; need to add it or stub it
 - **"incompatible types"** → Type mismatch from POSIX→Amiga type conversion
 - **"unknown type name"** → POSIX type not defined; add typedef or replace
+
+## Runtime Crash After Successful Build
+
+If the build succeeds but the program crashes at runtime with struct corruption (type tag / kind field = 0, assertion failures on struct type checks):
+
+1. **Check if the program returns structs > 8 bytes by value.** If yes, try `-O0` — bebbo-gcc 6.5.0b has a code generation bug that corrupts large struct returns at `-O1`/`-O2`. See crash-patterns #16.
+2. **Check for custom allocators using `offsetof` alignment.** If ALIGNMENT is 2 (68k default), it corrupts allocator metadata. Fix with `AMIPORT_ALIGN()` from `<amiport/compat.h>`. See crash-patterns #15.
 
 
 ## Shim Modification Rule

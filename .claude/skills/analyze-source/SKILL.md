@@ -36,6 +36,10 @@ The Amiga's m68k architecture and C89 compilers differ from modern x86/Linux in 
 ### Alignment
 - m68k requires 16-bit alignment for word/longword access. Flag `__attribute__((packed))` structs that are accessed via pointer — these cause bus errors on 68000 (ok on 68020+, but slower).
 - Flag pointer arithmetic that casts between types of different alignment requirements.
+- **offsetof() alignment pitfall (crash-patterns #15):** On 68k, `offsetof()` returns 2-byte alignment for structs, not 4/8 as on x86/ARM. Flag any custom allocator or memory pool that uses `offsetof()` to compute alignment or block headers — blocks will be packed too tightly on 68k, corrupting metadata. Fix: use `AMIPORT_ALIGN()` from `<amiport/compat.h>`.
+
+### Struct-by-Value Returns
+- **bebbo-gcc -O2 struct corruption (crash-patterns #16):** GCC 6.5.0b corrupts struct-by-value returns larger than 8 bytes at `-O1`/`-O2`. Flag any function that returns a struct by value where `sizeof(struct) > 8` — these will need `-O0` compilation or refactoring to return via pointer.
 
 ### GNU Extensions
 - Flag `__attribute__((…))` (except `unused` which is harmless), statement expressions `({…})`, `typeof`, zero-length arrays, `__builtin_*` functions.

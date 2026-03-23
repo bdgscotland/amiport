@@ -255,6 +255,10 @@ These are patterns that agents frequently generate that won't compile or behave 
 14. **Assuming C locale** — libnix loads system locale at startup. Call `setlocale(LC_ALL, "C")` early.
 15. **Assuming SIGINT delivery** — Only polled at stdio calls. CPU-bound loops need `amiport_check_break()`.
 
+### 68k Architecture Errors
+16. **`offsetof()` alignment = 2, not 4/8** — On 68k, struct padding uses 2-byte alignment. Custom allocators using `offsetof()` to compute block alignment will pack blocks too tightly, corrupting metadata. Use `AMIPORT_ALIGN()` from `<amiport/compat.h>` (crash-patterns #15).
+17. **Struct-by-value returns > 8 bytes at -O1/-O2** — bebbo-gcc (GCC 6.5.0b) corrupts struct returns larger than 8 bytes when optimization is enabled. Compile with `-O0` or refactor to return via pointer (crash-patterns #16).
+
 ## Quick Validation
 
 When reviewing ported code, grep for these C99+ patterns:

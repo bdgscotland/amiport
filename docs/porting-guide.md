@@ -154,3 +154,5 @@ Built into the build skill — creates an LHA archive with the binary and docume
 3. **Read the analysis report**: It tells you exactly what's blocking
 4. **Test incrementally**: Build and test after each transformation, not just at the end
 5. **Stack size**: Set `__stack` to at least 32768 — many ported programs need more stack than the Amiga default
+6. **Alignment differs on 68k**: `offsetof()` returns 2-byte alignment, not 4/8 as on x86/ARM. Custom allocators using `offsetof()` for block alignment will corrupt metadata. Use `AMIPORT_ALIGN()` from `<amiport/compat.h>` (crash-patterns #15).
+7. **Use -O0 for struct-heavy code**: bebbo-gcc (GCC 6.5.0b) corrupts struct-by-value returns > 8 bytes at `-O1`/`-O2`. If a port crashes with data corruption after struct-returning functions, rebuild with `-O0` (crash-patterns #16).

@@ -89,6 +89,21 @@ m68k-amigaos-gcc -O2 -noixemul -m68020 \
   -lamiport -lamiport-net
 ```
 
+## -O0 Fallback for Struct Corruption (crash-patterns #16)
+
+bebbo-gcc (GCC 6.5.0b) corrupts struct-by-value returns larger than 8 bytes at `-O1`/`-O2`. If a build succeeds but the binary crashes at runtime with corrupted data (especially after functions that return structs), rebuild with `-O0`:
+
+```bash
+m68k-amigaos-gcc -O0 -noixemul -m68020 ...
+```
+
+In the port Makefile, override the optimization level:
+```makefile
+CFLAGS += -O0  # crash-patterns #16: struct-by-value corruption at -O1/-O2
+```
+
+This overrides any performance optimization recommendations from the perf-optimizer agent — correctness takes priority.
+
 ## Error Handling
 
 When compilation fails:

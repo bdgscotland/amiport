@@ -89,6 +89,17 @@ One wrapper per function. Semantics match POSIX for all common use cases. The tr
 
 -----
 
+-----
+
+## Platform Compatibility Layer (not a tier)
+
+`<amiport/compat.h>` provides cross-cutting macros that address 68k platform differences unrelated to POSIX compatibility. This is NOT a tier — it does not map POSIX functions to AmigaOS equivalents. Instead, it fixes assumptions in portable C code that break on the 68k architecture.
+
+- `AMIPORT_ALIGN(size, align)` — Portable alignment macro. Needed because 68k `offsetof()` returns 2-byte alignment instead of 4/8 (crash-patterns #15).
+- `-O0` compilation flag — Required for ports with struct-by-value returns > 8 bytes due to bebbo-gcc codegen bug (crash-patterns #16).
+
+-----
+
 ## Tier 2 — Emulation (Approximate Mapping)
 
 These require stateful emulation layers that approximate POSIX behaviour with documented divergence. Each lives in `lib/posix-emu/` with its own source file and header. Ported code linking against Tier 2 functions gets `/* amiport-emu: ... */` comments explaining the differences.

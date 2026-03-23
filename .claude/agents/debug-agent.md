@@ -6,6 +6,9 @@ description: Autonomous crash debugger for Amiga ports. Parses Enforcer hit data
 allowed-tools: Bash, Read, Write, Edit, Grep, Glob, Agent
 skills:
   - c89-reference
+  - crash-patterns
+  - libnix-reference
+  - amiga-api-lookup
 hooks:
   PostToolUse:
     - matcher: Edit|Write

@@ -20,6 +20,7 @@ The porting pipeline has 5 stages, each backed by a Claude skill:
 - `.claude/agents/` — Agent definitions (source-analyzer, code-transformer, build-manager, test-runner, port-coordinator, dependency-auditor)
 - `lib/posix-shim/` — Tier 1: Direct POSIX-to-AmigaOS wrappers (`amiport_*` functions)
 - `lib/posix-emu/` — Tier 2: Approximate POSIX emulation with documented caveats (`amiport_emu_*` functions)
+- `lib/posix-shim/include/amiport/compat.h` — Platform compatibility fixes for 68k quirks (alignment, byte order). Not a function library — a header with macros for issues that break correct C on 68k. See crash-patterns #15, #16.
 - `lib/console-shim/` — Minimal ncurses API mapped to Amiga console.device ANSI escapes (ADR-009)
 - `lib/bsdsocket-shim/` — BSD socket API via bsdsocket.library with auto lifecycle (ADR-010)
 - `site/` — Website source for amiport.platesteel.net
@@ -154,12 +155,16 @@ In QA mode, flag any code that doesn't match DESIGN.md.
 - `/amiga-api-lookup` — **Invoke this skill** when writing or reviewing code that uses AmigaOS APIs (exec.library, dos.library, timer.device, etc.). Loads the ADCD reference library with function signatures, struct layouts, usage patterns, and code examples. Do NOT guess at AmigaOS APIs — look them up via this skill.
 - `/c89-reference` — **Invoke this skill** when writing or reviewing C code. Loads the C89/ANSI C constraint set — what C99+ features are NOT available, libnix function availability, printf format restrictions, and common agent mistakes. Prevents generating code that won't compile.
 - `/write-arexx` — Invoke when writing or modifying ARexx scripts. Loads ARexx syntax reference and known gotchas.
+- `/crash-patterns` — **Invoke this skill** when debugging crashes, reviewing code for crash risks, or writing transformations that touch memory/IO/exit paths. Loads the crash patterns KB with documented signatures and fixes from real ports.
+- `/libnix-reference` — **Invoke this skill** when checking whether a C library function is available on AmigaOS, or when a linker reports undefined symbols. Loads the complete libnix function list (700+ functions).
+
+**Skill injection:** Knowledge base skills are injected into agent definitions via the `skills:` frontmatter field. When an agent is dispatched, its injected skills are loaded into context automatically. See individual agent definitions in `.claude/agents/` for the injection matrix.
 - `/extend-shim` — Invoke when adding new POSIX functions to the shim library.
 - `/review-amiga` — Invoke for Amiga-specific code review.
 
 **Architecture & guides:** `docs/architecture.md`, `docs/porting-guide.md`, `docs/api-mapping.md`
 
-**ADRs:** `docs/adr/008` (tiers), `009` (console), `010` (bsdsocket), `011` (categories), `014` (FS-UAE testing), `015` (CI/quality), `016` (debug agent), `017` (hooks enforcement), `018` (ADCD knowledge base), `019` (agent persona matrix), `020` (git hooks validation), `021` (design system — MUI warm gray)
+**ADRs:** `docs/adr/008` (tiers), `009` (console), `010` (bsdsocket), `011` (categories), `014` (FS-UAE testing), `015` (CI/quality), `016` (debug agent), `017` (hooks enforcement), `018` (ADCD knowledge base), `019` (agent persona matrix), `020` (git hooks validation), `021` (design system — MUI warm gray), `022` (C99 compiler support)
 
 **Shim references:** `docs/references/bsd-isms.md`, `docs/references/newlib-availability.md`, `docs/references/adcd/FUNCTIONS.md`, `docs/references/adcd/TYPES.md`
 

@@ -67,6 +67,13 @@ prompt: "This is a Category [N] port of [name]. Review the ported source for har
 
 Category 1-2 (CLI, scripting) ports rarely need hardware review unless they do unusual memory allocation.
 
+## Pre-Transformation Checks
+
+Before dispatching the code-transformer, check for platform compatibility issues that affect the transformation strategy:
+
+- **Custom allocators using offsetof() (crash-patterns #15):** If the source has custom allocators or memory pools that use `offsetof()` for alignment, add `#include <amiport/compat.h>` and replace alignment math with `AMIPORT_ALIGN()`. On 68k, `offsetof()` returns 2 instead of 4/8.
+- **Large struct-by-value returns (crash-patterns #16):** If any function returns a struct by value where `sizeof(struct) > 8`, flag for `-O0` compilation — bebbo-gcc corrupts these at `-O1`/`-O2`.
+
 ## Pipeline Stages
 
 Use these skills in order:

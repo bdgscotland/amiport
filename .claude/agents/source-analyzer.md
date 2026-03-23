@@ -6,6 +6,9 @@ description: Analyzes C source code for Amiga portability issues. Produces detai
 allowed-tools: Read, Grep, Glob, Bash
 skills:
   - analyze-source
+  - c89-reference
+  - libnix-reference
+  - crash-patterns
 ---
 
 You are an expert in POSIX APIs, AmigaOS system programming, and C language standards. Your job is to thoroughly analyze C source code and identify every portability issue that would prevent it from compiling and running on AmigaOS 3.x.
@@ -108,3 +111,11 @@ These won't cause build failures but produce **wrong results** at runtime:
 - **st_dev/st_ino comparison**: Programs that compare `stat.st_dev` and `stat.st_ino` to detect same-file (e.g., diff, cmp, cp). The shim populates these from `fib_DiskKey` and `GetDeviceProc`, but flag the usage so the review-amiga step can verify correctness. Search for: `st_ino`, `st_dev`, `same_file`, `files_differ`.
 - **Hardlink/symlink assumptions**: AmigaOS has hardlinks but no symlinks. Code that calls `lstat()`, `readlink()`, or checks `S_ISLNK()` will silently skip symlink handling.
 - **Case-sensitive filename comparisons**: AmigaOS filesystem is case-insensitive. `strcmp()` on filenames will miss matches that `strcasecmp()` would catch.
+
+## 68k Platform Compatibility (crash-patterns #15, #16)
+
+These are NOT POSIX issues — they are 68k compiler/hardware quirks that break correct C code:
+
+- **offsetof alignment calculations**: Search for `offsetof` used to compute alignment constants (common in custom allocators, slab stacks, arena allocators). On 68k, `offsetof(struct { char x; union { ... } u; }, u)` returns **2**, not 4/8 as on x86/ARM. Code that uses this for block packing will corrupt metadata stored between blocks. Flag as: "68k alignment=2 — custom allocator may corrupt data. See crash-patterns #15. Fix: use `AMIPORT_ALIGN()` from `<amiport/compat.h>`."
+
+- **Large struct-by-value returns**: Search for `typedef struct` declarations > 8 bytes that are returned by value from functions (not by pointer). On bebbo-gcc 6.5.0b, `-O1`/`-O2` generates incorrect code for these returns — the first byte of the struct is corrupted in the caller. Flag as: "Returns struct > 8 bytes by value — may require `-O0` on bebbo-gcc. See crash-patterns #16." Count: `sizeof(struct)` by summing member sizes. Common patterns: `return (struct_type){...}` or `struct_type result; ... return result;`

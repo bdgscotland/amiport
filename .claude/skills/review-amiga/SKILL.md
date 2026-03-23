@@ -56,7 +56,11 @@ You are reviewing the ported C code at `$ARGUMENTS` for AmigaOS-specific correct
 - **Tier classification correct?** Tier 1 functions use `amiport_*`, Tier 2 use `amiport_emu_*`.
 - **fopen/fclose macro collision?** If the ported code implements its own file wrappers, check for the `amiport/stdio.h` macro collision (see CLAUDE.md known pitfalls).
 
-### 9. Logic Bug Patterns (automated checks)
+### 9. Platform Compatibility
+- **Allocator alignment (crash-patterns #15):** Flag any custom allocator, memory pool, or arena that uses `offsetof()` to compute block alignment or header size. On 68k, `offsetof()` returns 2-byte alignment instead of 4/8 — blocks will be packed too tightly, corrupting metadata. Fix: use `AMIPORT_ALIGN()` from `<amiport/compat.h>`.
+- **Struct-by-value returns (crash-patterns #16):** Flag any function returning a struct by value where `sizeof(struct) > 8`. bebbo-gcc (GCC 6.5.0b) corrupts these at `-O1`/`-O2`. Fix: compile with `-O0` or refactor to return via pointer.
+
+### 10. Logic Bug Patterns (automated checks)
 These produce **wrong output**, not crashes. You MUST run these grep commands on the ported source and report all matches found:
 
 **Mandatory automated checks — run ALL of these:**
@@ -117,6 +121,7 @@ When reviewing API usage correctness, consult:
 - Path handling: OK / WARN / FAIL
 - Library cleanup: OK / WARN / FAIL
 - Conventions: OK / WARN / FAIL
-- Logic bugs: OK / WARN / FAIL (from automated checks in §9)
+- Platform compat: OK / WARN / FAIL (from checks in §9)
+- Logic bugs: OK / WARN / FAIL (from automated checks in §10)
 - Overall: READY / NEEDS WORK / NOT READY
 ```

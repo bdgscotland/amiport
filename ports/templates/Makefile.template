@@ -15,6 +15,9 @@ AUTHOR      = __AUTHOR__
 # Category 3 (console UI): LDFLAGS += -lamiport-console
 # Category 4 (network):    LDFLAGS += -lamiport-net
 
+# Uncomment if the port has struct-by-value returns > 8 bytes (crash-patterns #16):
+# CFLAGS += -O0  # bebbo-gcc corrupts large struct returns at -O1/-O2
+
 .PHONY: all clean test package compare
 
 test: $(TARGET)
