@@ -81,9 +81,9 @@ Verdict: **EASY**
 
 ## Test Results
 
-31/31 FS-UAE tests pass (2026-03-23).
+37/37 FS-UAE tests pass (2026-03-23).
 
-Covers all 8 flags (-c, -h, -i, -l, -q, -s, -w, -v), arithmetic operations, math library functions (e, l, s, a, j), user-defined functions, control flow (for, while, if/else), ibase/obase, error paths, and Amiga-specific path handling.
+Covers all 8 flags (-c, -h, -i, -l, -q, -s, -w, -v), arithmetic operations, math library functions (e, l, s, a, j), user-defined functions, control flow (for, while, if/else), ibase/obase, error paths, Amiga-specific path handling, and real-world stress tests (factorial(50), fibonacci(100), 10K loop, pi to 100 digits).
 
 ## Platform Compatibility Notes
 

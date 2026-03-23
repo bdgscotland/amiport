@@ -1,0 +1,22 @@
+{
+    "name": "bc",
+    "version": "1.07.1",
+    "description": "GNU arbitrary precision calculator",
+    "category": "util/cli",
+    "source": "GNU bc 1.07.1 (https://ftp.gnu.org/gnu/bc/)",
+    "license": "GPL-3.0",
+    "size": 325556,
+    "sha256": "80ca723d96c2fa8ae559d513527040a08a902e843a3c0edca4c90bb5de32d211",
+    "download": "/packages/bc-1.07.1.lha",
+    "requires": [],
+    "aminet": "",
+    "stack": 65536,
+    "status": "stable",
+    "revision": 1,
+    "published_at": "2026-03-23T19:55:00Z",
+    "readme": "Short:        GNU arbitrary precision calculator\nType:         util/cli\nArchitecture: m68k-amigaos >= 3.0\nUploader:     duncan (at) bowring (dot) us\nAuthor:       Philip A. Nelson (ported by Duncan Bowring)\nVersion:      1.07.1\n\nbc - GNU arbitrary precision calculator\n\nOriginal author: Philip A. Nelson\nPorted by Duncan Bowring using amiport (AI-assisted porting toolkit).\nProject: https://github.com/bdgscotland/amiport\n\nCross-compiled with m68k-amigaos-gcc for AmigaOS 3.x (68000+).\nTested on FS-UAE with Workbench 3.1 (37/37 tests pass).\n\nbc is an arbitrary precision calculator language supporting variables,\nfunctions, and a C-like syntax. The -l flag loads a math library with\ntranscendental functions (sin, cos, arctan, ln, exp, bessel).\n\nUsage:\n  bc [-hlqswv] [file ...]\n\n  bc                   Interactive calculator\n  bc -l                Load math library (e, l, s, c, a, j functions)\n  bc -q script.bc      Run script without welcome banner\n  bc -c script.bc      Compile to bytecode (don't execute)\n\nExamples:\n  echo \"2^10\" | bc               Result: 1024\n  echo \"scale=10; 4*a(1)\" | bc -l   Pi to 10 places: 3.1415926532\n\nReplaces the ixemul-dependent bc 1.6 on Aminet (dev/gg/bc-1.6)\nwith a standalone noixemul binary. No runtime library dependencies.\n\nIncludes full source code (original POSIX and ported Amiga versions)\nand PORT.md documenting every transformation applied.\n",
+    "test_count": 37,
+    "test_pass": 37,
+    "porting_notes": "GNU bc 1.07.1 is a yacc/lex-generated multi-file port (12 .c files). Key transformations: signal(SIGINT) replaced with amiport_check_break() polling in the execute loop for Ctrl-C support; isatty() replaced with amiport_isatty(); getenv() replaced with amiport_getenv() with tracked cleanup via atexit(); fread()-based YY_INPUT replaces read()/fileno() in the scanner; all bc_exit(1) calls changed to bc_exit(10) for Amiga RETURN_ERROR (8 instances across main.c, scan.c, load.c, util.c); exit(YY_EXIT_FAILURE) changed to bc_exit(20) for RETURN_FAIL; fclose(yyin) guarded against stdin close. Bundled GNU getopt used instead of broken libnix getopt_long (crash-patterns #17). --allow-multiple-definition linker flag needed for bundled getopt vs libnix symbol clash. libmath.h generated via bootstrap. 37/37 FS-UAE tests pass including real-world stress tests: factorial(50), fibonacci(100), 10K loop iterations, pi to 100 digits. Perf-optimizer identified DIVU→shift opportunities and free-list pooling for number.c hot loops (noted, not yet applied).",
+    "known_limitations": "No readline/libedit line editing in interactive mode. BC_ENV_ARGS only works if set in AmigaOS ENV: variable. random() mapped to rand() — adequate for bc's non-cryptographic use."
+}
