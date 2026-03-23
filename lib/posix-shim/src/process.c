@@ -4,8 +4,8 @@
  * Provides sleep, getcwd, chdir, getenv, and getpid.
  */
 
-#undef exit
 #include <amiport/stdlib.h>
+#undef exit  /* undo exit→amiport_exit macro so we can call real exit() below */
 #include <amiport/unistd.h>
 #include <amiport/errno_map.h>
 
@@ -20,23 +20,25 @@
 #include <string.h>
 
 /*
- * amiport_exit — Safe exit that avoids libnix atexit hang.
+ * amiport_exit — Flush stdout and exit.
  *
- * libnix's exit() calls atexit handlers that deadlock when stdout is
- * connected to a console (CON: or RAW:). We flush stdio ourselves
- * and call _exit() to bypass atexit entirely.
+ * The libnix exit() hang (crash-patterns #9) was DEBUNKED — it was caused
+ * by ARexx syntax errors in the test harness, not by exit() itself.
+ * Testing on FS-UAE + Workbench 3.1 confirmed exit(0) returns immediately.
  *
- * See docs/references/crash-patterns.md #9.
+ * This shim now simply flushes stdout and calls exit(). Using _exit()
+ * was wrong — it bypassed atexit handlers, defeating cleanup patterns
+ * like amiport_free_argv() that are critical on AmigaOS (no automatic
+ * process memory cleanup with -noixemul).
+ *
+ * The exit() → amiport_exit() macro in <amiport/stdlib.h> remains for
+ * the explicit fflush, which is still good practice.
  */
 void amiport_exit(int status)
 {
-    /* Note: fflush() can also hang on AmigaOS console handles in some
-     * configurations. Since ported programs typically write all output
-     * before calling exit(), and the ARexx test harness redirects to
-     * files (which auto-flush on close), we skip fflush and go straight
-     * to _exit(). If buffered output is lost, the program should call
-     * fflush() explicitly before exit(). */
-    _exit(status);
+    (void)fflush(stdout);
+    (void)fflush(stderr);
+    exit(status);
 }
 
 unsigned int amiport_sleep(unsigned int seconds)

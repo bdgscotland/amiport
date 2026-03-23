@@ -21,10 +21,16 @@ extern int amiport_glob_has_magic(const char *pattern);
  * __progname — OpenBSD programs use this for error messages.
  * bebbo-gcc libnix does NOT provide it, so we define it here and
  * initialize it from argv[0] inside amiport_expand_argv().
- * GCC weak attribute: if the port defines its own __progname,
- * the port's definition takes precedence.
+ *
+ * NOTE: This was previously a weak symbol, but bebbo-gcc's linker strips
+ * unreferenced weak data symbols from archive members even when other
+ * symbols in the same .o are retained. This caused __progname to resolve
+ * to garbage, crashing usage() in every port. Made strong so it always
+ * survives linking. Ports that define their own __progname will get a
+ * linker "multiple definition" error — they should remove their local
+ * definition and rely on this one. (Discovered in uniq 1.33 port.)
  */
-char *__progname __attribute__((weak)) = "?";
+char *__progname = "?";
 
 /* Maximum expanded arguments — prevent runaway expansion */
 #define MAX_EXPANDED_ARGS 4096

@@ -59,10 +59,8 @@ long __stack = 32768;
 #include <amiport/string.h>
 /* amiport: added <amiport/glob.h> for amiport_expand_argv/free_argv and __progname */
 #include <amiport/glob.h>
-/* amiport: define __progname locally — weak symbol from libamiport.a does not
- * survive linking (bebbo-gcc strips unreferenced weak data symbols even when
- * the containing object is linked). amiport_expand_argv() writes to this. */
-char *__progname = "uniq";
+/* amiport: __progname is now a strong symbol in libamiport.a (argv_expand.o).
+ * amiport_expand_argv() initializes it from argv[0]. No local definition needed. */
 /* amiport: removed <wchar.h> — no wchar support on AmigaOS 3.x; multibyte path guarded below */
 /* amiport: removed <wctype.h> — no wctype support on AmigaOS 3.x */
 
