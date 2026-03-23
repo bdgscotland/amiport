@@ -107,6 +107,7 @@ These are in libc.a but might be unexpected:
 - `strcasecmp()` / `strncasecmp()` — POSIX, available!
 - `strsep()` — BSD, available!
 - `strtok_r()` — POSIX, available!
+- `random()` / `srandom()` — BSD, listed in headers but **MISSING from libc.a** in current bebbo-gcc. Linker fails with `undefined reference to _random`. Use `rand()` / `srand()` instead, or `#define random() rand()`.
 - `arc4random()` — BSD, available!
 - `explicit_bzero()` — OpenBSD, available!
 - `asprintf()` / `vasprintf()` — GNU, available!

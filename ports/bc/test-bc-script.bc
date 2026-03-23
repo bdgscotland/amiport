@@ -1,0 +1,10 @@
+/* test-bc-script.bc -- basic bc script for FS-UAE testing */
+scale=4
+x = 42
+y = 8
+x + y
+x - y
+x * y
+x / y
+x % y
+quit

@@ -49,3 +49,12 @@
   - But 5 NEW paths found bypassing cleanup: lib_search_paths leak, exit(10) at 699, exit(20) at 720, usage() at 714, unchecked strdup at linker.c:370
   - Root cause: usage() hard exit and strdup OOM checks not converted to goto out
   - All 5 fixes required before shipping
+
+- [memory-audit-bc.md](memory-audit-bc.md) - ports/bc 1.07.1 memory safety review (2026-03-23)
+  - Status: CRITICAL LEAKS FOUND
+  - Issues: 4 critical (strdup env vars, math lib names, amiport_getenv results, global arrays)
+  - Verdict: Cannot ship without fixes
+  - Leaks: env_argv[0] never freed, 6× math lib strdups, 3× amiport_getenv() malloc'd strings, storage arrays never freed, global constants never freed
+  - Impact: ~1.6 KB permanent memory loss per invocation on AmigaOS
+  - Root cause: Ported for Unix where process exit auto-frees; amiport_getenv() ABI mismatch (returns malloc'd strings, not static storage)
+  - Fix complexity: Medium — add atexit cleanup pattern, track getenv results, requires main.c and bc_exit() changes

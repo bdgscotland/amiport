@@ -18,6 +18,7 @@ Programs ported to AmigaOS 3.x using the amiport pipeline.
 | [uniq](ports/uniq/) | 1.33 | Filter/report repeated lines in files | CLI | OpenBSD uniq v1.33 (BSD 3-Clause) | Built & tested (29/29 FS-UAE) | Not submitted |
 | [yes](ports/yes/) | 1.9 | Repeatedly output a string | CLI | OpenBSD yes v1.9 (BSD 3-Clause) | Built & tested | Submitted 2026-03-22 |
 | [jq](ports/jq/) | 1.7.1 | Lightweight command-line JSON processor | CLI | jqlang jq 1.7.1 (MIT) | Built & tested (50/50 FS-UAE) | Submitted 2026-03-23 |
+| [bc](ports/bc/) | 1.07.1 | Arbitrary precision calculator | CLI | GNU bc 1.07.1 (GPL-3.0) | Built & tested (31/31 FS-UAE) | Not submitted |
 | [patch](ports/patch/) | 1.78 | Apply diff patches to source files | CLI | OpenBSD patch v1.78 (ISC + BSD) | Built & tested (42/42 FS-UAE) | Not submitted |
 
 ## Aminet Publication Tracking
@@ -59,6 +60,7 @@ Each port exercises different parts of the posix-shim library:
 | sort | `fopen`, `signal`, `check_break`, `getpid` |
 | yes | `err`, `check_break` |
 | patch | `stat/fstat`, `open/read/write/close/lseek`, `unlink/rename/mkdir/chdir/chmod`, `signal`, `getline/mkstemp`, `getopt_long`, `recallocarray`, `opendir/readdir/closedir`, `strtonum/warnc`, `emu_mmap/emu_munmap` |
+| bc | `signal`, `isatty`, `getenv`, `check_break` |
 | jq | `stat/fstat`, `isatty`, `realpath`, `gettimeofday` |
 
 ## How to Build

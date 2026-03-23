@@ -251,6 +251,10 @@ amiport_closedir(dir); /* amiport: replaced closedir() */
 char *home = getenv("HOME");
 // After:
 char *home = amiport_getenv("HOME"); /* amiport: replaced getenv() — uses GetVar() */
+// CRITICAL: amiport_getenv() returns malloc'd strings (unlike POSIX getenv which
+// returns static storage). The caller MUST free the result or track it for atexit
+// cleanup. For NULL-check-only usage: store in temp, check, free immediately.
+// See known-pitfalls.md "amiport_getenv() Returns malloc'd Strings".
 
 // Before:
 sleep(5);
