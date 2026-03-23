@@ -44,16 +44,16 @@
 - **Bevel dark:** `#505050` — dark edge of inset elements
 - **Text:** `#1A1A1A` — primary text on gray backgrounds
 - **Text muted:** `#4A4A4A` — secondary text, metadata, descriptions
-- **Accent amber:** `#CC9933` — highlights, stat values, prompts, gauge fill
-- **Accent amber light:** `#DDAA44` — badges (new), hover accents
-- **Accent amber dark:** `#997722` — primary buttons
+- **Accent amber:** `#B8860B` — highlights, stat values, prompts, gauge fill
+- **Accent amber light:** `#DAA520` — badges (new), hover accents
+- **Accent amber dark:** `#8B6914` — primary buttons
 - **Accent brown:** `#776644` — links, section labels, group frame titles
 - **Accent red:** `#BB4444` — accent/CTA buttons, destructive actions
 - **Accent salmon:** `#CC7755` — hover state for links
 - **Accent cream:** `#E0D0B8` — title bar text, screen bar text
 - **Terminal bg:** `#222222` — shell window body
 - **Terminal fg:** `#D0CCC4` — shell text
-- **Terminal prompt:** `#CC9933` — amber prompt in shell
+- **Terminal prompt:** `#B8860B` — amber prompt in shell
 - **Terminal output:** `#888880` — dimmer output text
 - **Semantic:**
   - Success: border `#448844`, bg `#88BB88`
@@ -85,7 +85,7 @@
 ### Screen Bar
 Top navigation bar:
 - Dark gray background (`#505050`), cream text (`#E0D0B8`)
-- Brand name left (amber `#DDAA44`), nav links right
+- Brand name left (amber `#DAA520`), nav links right
 - 44px height, 1px bevel (shine top, shadow bottom)
 - No depth gadget, no decorative elements
 
@@ -109,7 +109,7 @@ Primary content container (replaces the old "Window" component):
 - 26px min-height, 13px font, 600 weight
 - Variants:
   - Default: elevated gray bg, dark text
-  - Primary: dark amber bg (`#997722`), white text
+  - Primary: dark amber bg (`#8B6914`), white text
   - Accent: red bg (`#BB4444`), white text
   - Ghost: transparent, muted text, 1px border
 - Border radius: 0
@@ -129,7 +129,7 @@ Primary content container (replaces the old "Window" component):
 
 ### Gauge (Progress Bar)
 - Inset bevel container on gray bg
-- Amber fill (`#CC9933`)
+- Amber fill (`#B8860B`)
 - Centered percentage text (10px, bold)
 - 16px height
 
@@ -142,7 +142,7 @@ Primary content container (replaces the old "Window" component):
 ### Badges
 - 10px uppercase text, 600 weight
 - Variants:
-  - New: amber light bg (`#DDAA44`), dark text
+  - New: amber light bg (`#DAA520`), dark text
   - Published: green-tinted bg, green text, green border
   - Popular: amber-tinted bg, dark text, amber border
   - Archived: elevated bg, muted text, gray border
