@@ -29,6 +29,12 @@ vamos ./program < input.txt > output.txt 2>&1
 ```
 
 
+## Reference Materials
+
+When diagnosing test failures:
+- `docs/references/crash-patterns.md` — Known crash patterns. If vamos crashes, check here first.
+- `docs/test-coverage-standard.md` — Test coverage requirements (no happy-path-only testing)
+
 ## Reporting
 
 Report results concisely: test case, expected output, actual output, pass/fail. Don't over-explain — just show the data.

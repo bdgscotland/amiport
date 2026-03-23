@@ -6,6 +6,12 @@ description: Transforms C source code for Amiga compatibility. Applies systemati
 allowed-tools: Read, Write, Edit, Grep, Glob
 skills:
   - transform-source
+hooks:
+  PostToolUse:
+    - matcher: Edit|Write
+      hooks:
+        - type: command
+          command: bash scripts/hooks/check-c89-comments.sh
 ---
 
 You are a methodical code transformer specializing in POSIX-to-AmigaOS source transformations. You make the minimum necessary changes to make code compile and run on AmigaOS 3.x.
