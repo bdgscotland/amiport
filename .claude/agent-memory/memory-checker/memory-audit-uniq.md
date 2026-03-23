@@ -15,72 +15,85 @@
 
 ## Critical Issues
 
-### 1. CRITICAL: obsolete() malloc Leaks
+### 1. CRITICAL (FIXED): obsolete() malloc Leaks — NOW TRACKED
 
-**Location:** uniq.c:296
+**Location:** uniq.c:319-323
 
+**Status:** FIXED after partial corrections
+
+The fixes added static tracking (lines 91-93) and cleanup integration:
 ```c
-len = strlen(ap) + 3;
-if ((start = p = malloc(len)) == NULL)
-    err(10, "malloc");
-*p++ = '-';
-*p++ = ap[0] == '+' ? 's' : 'f';
-(void)strlcpy(p, ap + 1, len - 2);
-*argv = start;
+/* Track for cleanup */
+#define MAX_OBSOLETE_ALLOCS 4
+static char *obsolete_allocs[MAX_OBSOLETE_ALLOCS];
+static int obsolete_alloc_count;
+
+/* In obsolete() */
+if (obsolete_alloc_count < MAX_OBSOLETE_ALLOCS)
+    obsolete_allocs[obsolete_alloc_count++] = start;
 ```
 
-**Problem:**
-- When uniq encounters old-style numeric options (e.g., `+2` for skip 2 fields, `-3` for skip 3 characters), the `obsolete()` function transforms them into modern option syntax
-- At line 296, a buffer is malloc'd to hold the new option string
-- At line 302, the pointer is stored in `*argv` (overwriting the original argv entry)
-- **These allocated strings are NEVER freed on any exit path** — they persist as pointers in the argv array
-- The allocated memory becomes unreachable after argv processing is complete
-- Multiple old-style options will leak multiple times
+**Cleanup in atexit():**
+```c
+static void cleanup(void) {
+    int i;
+    for (i = 0; i < obsolete_alloc_count; i++)
+        free(obsolete_allocs[i]);
+    amiport_free_argv();
+    (void)fflush(stdout);
+}
+```
 
-**Impact:** Each old-style option leaks ~10-20 bytes. For a port with 5 old-style options, ~100 bytes leak per invocation. On AmigaOS with `-noixemul`, this leaks permanently until reboot.
-
-**Affected Exit Paths:**
-- Line 109: `err()` in pledge() — **LEAK** (obsolete() already called at line 111)
-- Line 123: `errx()` in -f option parsing — **LEAK**
-- Line 131: `errx()` in -s option parsing — **LEAK**
-- Line 137: `usage()` from default case — **LEAK**
-- Line 148: `usage()` for argc > 2 — **LEAK**
-- Line 151: `err()` if freopen stdin fails — **LEAK**
-- Line 155: `err()` if freopen stdout fails — **LEAK**
-- Line 166: `err()` if getline fails on first line — **LEAK**
-- Line 207: `err()` if getline fails in loop — **LEAK**
-- Line 213: Normal `exit(0)` — **LEAK**
-
-The `atexit(cleanup)` call at line 103 registers cleanup of argv via `amiport_free_argv()`, but that only frees the **expanded argv** (from wildcard globbing), not the individual malloc'd strings allocated by `obsolete()`. These are a separate allocation pool.
-
-**Root Cause:** The original OpenBSD uniq code was not designed for resource cleanup. The obsolete() function mutates argv in place without tracking allocated memory.
+This correctly frees obsolete() malloc'd strings on all exit paths via atexit cleanup. **Status: OK after fixes**
 
 ---
 
-### 2. WARNING: freopen() Partial Resource Management
+### 2. CRITICAL (NEW): prevline Leak on getline Error in While Loop
 
-**Location:** uniq.c:149-155
+**Location:** uniq.c:228-229
+
+**NEW LEAK FOUND** — Partial fixes missed one exit path
 
 ```c
-if (argc >= 1 && strcmp(argv[0], "-") != 0) {
-    if (freopen(argv[0], "r", stdin) == NULL)
-        err(10, "%s", argv[0]);
-}
-if (argc == 2 && strcmp(argv[1], "-") != 0) {
-    if (freopen(argv[1], "w", stdout) == NULL)
-        err(10, "%s", argv[1]);
-}
+201:    while ((len = getline(&thisline, &thissize, stdin)) != -1) {
+        /* ... loop body ... */
+227:    }
+228:    if (ferror(stdin))
+229:        err(10, "getline");  /* ← LEAK EXITS HERE */
 ```
 
 **Problem:**
-- `freopen()` redirects an existing FILE* to a new file
-- If `freopen()` fails and returns NULL, the original stdin/stdout become unusable
-- The `err()` call at lines 151 and 155 terminates the program, but calls `exit()` which runs `atexit(cleanup)`
-- The `cleanup()` function only calls `amiport_free_argv()` and `fflush(stdout)`
-- **There is no explicit `fclose()` for the redirected files**
-- However, this is a minor issue compared to the malloc leak above
+- Line 185: `prevline` is allocated by first `getline()`
+- Line 201-227: while loop reads subsequent lines
+- Line 227: `thisline` is freed when loop exits
+- Line 228-229: If ferror set, `err()` is called which calls `exit()`
+- **prevline is LIVE but NEVER freed before exit()** ← **LEAK**
 
-**Mitigation:** `exit()` should close all open FILE* pointers automatically via libnix or AmigaOS cleanup. This is NOT a hard leak but should be noted.
+**Why It Leaks:**
+1. Normal exit path (line 235): `free(prevline)` at line 232 ✓
+2. Empty file path (line 190): `free(prevline)` at line 186 ✓
+3. First getline error path (line 188): `free(prevline)` at line 186 ✓
+4. **Loop error path (line 229): NO free before err()** ✗ **LEAK**
+
+The atexit() fix does NOT help here because:
+- cleanup() only frees obsolete_allocs[] and argv
+- cleanup() does NOT (and cannot) free prevline because prevline is a local variable in main
+- prevline MUST be freed inline in main before any exit() call on that path
+
+**Impact:**
+- ~8-16 KB memory leak per getline error in loop
+- AmigaOS permanent memory loss until reboot
+- High probability trigger (I/O errors, pipe breaks, signal interrupts)
+
+**Fix:** Single line — add `free(prevline);` before err() at line 229:
+
+```c
+227:    free(thisline);
+228:    if (ferror(stdin)) {
+229:+       free(prevline);
+230:        err(10, "getline");
+231:    }
+```
 
 ---
 
@@ -138,26 +151,37 @@ main()
 
 ## Summary
 
-### Allocation Count
+### Allocation Count (After Partial Fixes)
 - Total distinct allocations: **4 patterns**
-- Properly freed on all paths: **2** (prevline, thisline via getline)
-- Leaks found: **1 CRITICAL** (obsolete malloc)
+- Properly freed on all paths: **3** (obsolete_allocs, argv, thisline)
+- Leaks found: **1 CRITICAL** (prevline on line 229 error)
 - Unsafe realloc patterns: **0**
 - Double-free risks: **0**
-- File handle leaks: **0** (freopen returns FILE*, but exit() closes implicitly)
+- File handle leaks: **0**
 
 ### Verdict
 
-**CRITICAL — UNFIXABLE WITHOUT CODE CHANGES**
+**FAIL — ONE CRITICAL LEAK REMAINS**
 
-The program has one critical memory leak:
-- **obsolete() malloc leak (10-20 bytes per old-style option)** — transformed option strings are never freed
+The partial fixes (atexit cleanup for argv + obsolete tracking) correctly addressed:
+- ✓ amiport_expand_argv() cleanup via amiport_free_argv()
+- ✓ obsolete() malloc'd strings tracked and freed in cleanup()
+- ✓ atexit cleanup registered early to catch all err/errx paths
 
-This leak is triggered on EVERY invocation where old-style options are used. On AmigaOS with `-noixemul`, the allocated memory leaks permanently until reboot.
+But one exit path was missed:
+- **✗ prevline leak on getline error in while loop (line 229)**
 
-The fix requires agent dispatch to add cleanup logic. This cannot be fixed at the shim level — it requires code-level changes to either:
-1. Track and free the malloc'd strings from obsolete(), OR
-2. Refactor obsolete() to use a stack buffer instead of malloc
+**Impact:** ~8-16 KB permanent memory loss per error, AmigaOS reboot required to recover
+
+**Required Fix:** Add 1 line:
+```c
+228:    if (ferror(stdin)) {
+229:+       free(prevline);
+230:        err(10, "getline");
+231:    }
+```
+
+After this fix, ALL exit paths will be clean.
 
 ---
 

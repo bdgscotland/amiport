@@ -14,7 +14,15 @@
       "Bash(for id:*)",
       "Bash(do file=/private/tmp/claude-501/-Users-duncan-Developer-amiport/e9de9699-744b-4154-90c7-47c0cf37d462/tasks/$id.output echo '=== Agent $id:0:8 ===' tail -2000 $file)",
       "Bash(python3 -c \":*)",
-      "Bash(/dev/null echo:*)"
+      "Bash(/dev/null echo:*)",
+      "Bash(do echo:*)",
+      "Bash(# Create versioned readme for Aminet\ncp ports/lua/lua.readme ports/lua/lua-5.4.7.readme\n\n# Copy LHA to site packages \\(replacing old one\\)\ncp ports/lua/lua-5.4.7.lha site/packages/lua-5.4.7.lha\n\n# Get sha256 and size for the package JSON\necho \"=== Package info ===\"\nshasum -a 256 site/packages/lua-5.4.7.lha\nls -la site/packages/lua-5.4.7.lha\n\n# Clean up staging\nrm -rf /tmp/lua-lha-stage)",
+      "Bash(find site/ -name lua* -o -name packages.json)",
+      "Bash(rsync -avz --delete --exclude '.env' --exclude 'data/counters/*.txt' -e ssh site/ amiport-deploy:amiport.platesteel.net/)",
+      "Bash(curl -T lua-5.4.7.lha ftp://main.aminet.net/new/ --user \"anonymous:duncan@bowring.us\" -v)",
+      "Bash(curl -T lua-5.4.7.readme ftp://main.aminet.net/new/ --user \"anonymous:duncan@bowring.us\" -v)",
+      "Bash(shasum -a 256 site/packages/lua-5.4.7.lha)",
+      "Bash(shasum -a 256 /Users/duncan/Developer/amiport/site/packages/lua-5.4.7.lha)"
     ]
   }
 }
