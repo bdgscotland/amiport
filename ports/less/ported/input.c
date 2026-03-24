@@ -18,6 +18,8 @@
  */
 
 #include "less.h"
+/* amiport: profiler support */
+#include <amiport/profile.h>
 
 extern int squeeze;
 extern int hshift;
@@ -345,7 +347,11 @@ get_forw_line:
 
 public POSITION forw_line(POSITION curr_pos, POSITION *p_linepos, lbool *p_newline)
 {
-	return forw_line_seg(curr_pos, (chop_line() || hshift > 0), TRUE, FALSE, p_linepos, p_newline);
+	POSITION result;
+	AMIPORT_PROFILE_BEGIN("forw_line");
+	result = forw_line_seg(curr_pos, (chop_line() || hshift > 0), TRUE, FALSE, p_linepos, p_newline);
+	AMIPORT_PROFILE_END("forw_line");
+	return result;
 }
 
 /*

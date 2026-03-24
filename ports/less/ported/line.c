@@ -16,6 +16,8 @@
 #include "less.h"
 #include "charset.h"
 #include "position.h"
+/* amiport: profiler support */
+#include <amiport/profile.h>
 
 #if MSDOS_COMPILER==WIN32C
 #define WIN32_LEAN_AND_MEAN
@@ -650,10 +652,18 @@ public void loadc(void)
  */
 public lbool is_ansi_end(LWCHAR ch)
 {
+	AMIPORT_PROFILE_BEGIN("is_ansi_end");
 	if (!is_ascii_char(ch))
+	{
+		AMIPORT_PROFILE_END("is_ansi_end");
 		return (FALSE);
+	}
 	/* amiport: O(1) lookup table replaces strchr() — hot path optimization */
-	return (ch != 0 && ansi_end_table[(unsigned char) ch]);
+	{
+		lbool result = (ch != 0 && ansi_end_table[(unsigned char) ch]);
+		AMIPORT_PROFILE_END("is_ansi_end");
+		return result;
+	}
 }
 
 /*
@@ -661,12 +671,23 @@ public lbool is_ansi_end(LWCHAR ch)
  */
 public lbool is_ansi_middle(LWCHAR ch)
 {
+	AMIPORT_PROFILE_BEGIN("is_ansi_middle");
 	if (!is_ascii_char(ch))
+	{
+		AMIPORT_PROFILE_END("is_ansi_middle");
 		return (FALSE);
+	}
 	if (is_ansi_end(ch))
+	{
+		AMIPORT_PROFILE_END("is_ansi_middle");
 		return (FALSE);
+	}
 	/* amiport: O(1) lookup table replaces strchr() over 24-char string */
-	return (ch != 0 && ansi_mid_table[(unsigned char) ch]);
+	{
+		lbool result = (ch != 0 && ansi_mid_table[(unsigned char) ch]);
+		AMIPORT_PROFILE_END("is_ansi_middle");
+		return result;
+	}
 }
 
 /*
@@ -1099,17 +1120,24 @@ public int pappend_b(char c, POSITION pos, lbool before_pendc)
 {
 	LWCHAR ch = c & 0377;
 	int r;
+	AMIPORT_PROFILE_BEGIN("pappend_b");
 
 	if (pendc && !before_pendc)
 	{
 		if (ch == '\r' && pendc == '\r')
+		{
+			AMIPORT_PROFILE_END("pappend_b");
 			return (0);
+		}
 		if (do_append(pendc, NULL, pendpos))
+		{
 			/*
 			 * Oops.  We've probably lost the char which
 			 * was in pendc, since caller won't back up.
 			 */
+			AMIPORT_PROFILE_END("pappend_b");
 			return (1);
+		}
 		pendc = '\0';
 	}
 
@@ -1122,16 +1150,20 @@ public int pappend_b(char c, POSITION pos, lbool before_pendc)
 			mbc_buf_index = r + 1;
 			mbc_buf_len = 0;
 			if (r)
+			{
+				AMIPORT_PROFILE_END("pappend_b");
 				return (mbc_buf_index);
+			}
 		}
 
 		/*
-		 * Don't put the CR into the buffer until we see 
+		 * Don't put the CR into the buffer until we see
 		 * the next char.  If the next char is a newline,
 		 * discard the CR.
 		 */
 		pendc = ch;
 		pendpos = pos;
+		AMIPORT_PROFILE_END("pappend_b");
 		return (0);
 	}
 
@@ -1152,6 +1184,7 @@ public int pappend_b(char c, POSITION pos, lbool before_pendc)
 			{
 				mbc_buf_len = utf_len(c);
 				mbc_pos = pos;
+				AMIPORT_PROFILE_END("pappend_b");
 				return (0);
 			} else
 				/* UTF8_INVALID or stray UTF8_TRAIL */
@@ -1160,7 +1193,10 @@ public int pappend_b(char c, POSITION pos, lbool before_pendc)
 		{
 			mbc_buf[mbc_buf_index++] = c;
 			if (mbc_buf_index < mbc_buf_len)
+			{
+				AMIPORT_PROFILE_END("pappend_b");
 				return (0);
+			}
 			if (is_utf8_well_formed(mbc_buf, mbc_buf_index))
 				r = do_append(get_wchar(mbc_buf), mbc_buf, mbc_pos);
 			else
@@ -1183,6 +1219,7 @@ public int pappend_b(char c, POSITION pos, lbool before_pendc)
 		/* How many chars should caller back up? */
 		r = (!utf_mode) ? 1 : mbc_buf_index;
 	}
+	AMIPORT_PROFILE_END("pappend_b");
 	return (r);
 }
 

@@ -7,4 +7,4 @@
 - [port_patch_perf.md](port_patch_perf.md) - Performance findings for ports/patch v1.78 — putc hotpath, pgetline correctness bug, I/O bound analysis reviewed 2026-03-23
 - [port_jq_perf.md](port_jq_perf.md) - Performance findings for ports/jq 1.7.1 — put_char fwrite per character, MurmurHash3 unaligned reads, builtin startup cost reviewed 2026-03-23
 - [port_bc_perf.md](port_bc_perf.md) - Performance findings for ports/bc 1.07.1 — DIVU in multiply loops, malloc pressure in execute stack, MUL_BASE_DIGITS tuning reviewed 2026-03-23
-- [port_less_perf.md](port_less_perf.md) - Performance findings for ports/less 692 — ansi_start malloc hotpath, strchr lookup table, OUTBUF_SIZE reviewed 2026-03-23
+- [port_less_perf.md](port_less_perf.md) - Performance findings for ports/less 692 — all first-round fixes verified, ch.c/output.c/screen.c deep scan, no new HIGH findings reviewed 2026-03-23

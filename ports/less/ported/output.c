@@ -13,6 +13,8 @@
  */
 
 #include "less.h"
+/* amiport: profiler support */
+#include <amiport/profile.h>
 #if MSDOS_COMPILER==WIN32C
 #include "windows.h"
 #ifndef COMMON_LVB_UNDERSCORE
@@ -54,6 +56,7 @@ public void put_line(lbool forw_scroll)
 	int c;
 	size_t i;
 	int a;
+	AMIPORT_PROFILE_BEGIN("put_line");
 
 	if (ABORT_SIGS())
 	{
@@ -61,6 +64,7 @@ public void put_line(lbool forw_scroll)
 		 * Don't output if a signal is pending.
 		 */
 		screen_trashed();
+		AMIPORT_PROFILE_END("put_line");
 		return;
 	}
 
@@ -79,6 +83,7 @@ public void put_line(lbool forw_scroll)
 
 	if (forw_scroll && should_clear_after_line())
 		clear_eol();
+	AMIPORT_PROFILE_END("put_line");
 }
 
 /*
@@ -457,6 +462,7 @@ public void set_output(int fd, lbool no_term_init)
 public int putchr(int ch)
 {
 	char c = (char) ch;
+	AMIPORT_PROFILE_BEGIN("putchr");
 
 	/*
 	 * Init the terminal if this is the first byte written to stdout
@@ -505,6 +511,7 @@ public int putchr(int ch)
 	if (ob >= &obuf[sizeof(obuf)-1])
 		flush();
 	*ob++ = c;
+	AMIPORT_PROFILE_END("putchr");
 	return (c);
 }
 
