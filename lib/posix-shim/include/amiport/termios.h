@@ -60,6 +60,17 @@ struct termios {
 #define VMIN    0
 #define VTIME   1
 
+/* Control character indices (stub values — AmigaOS has no termios) */
+#define VERASE  2
+#define VKILL   3
+#define VWERASE 4
+#define VLNEXT  5
+#define VDSUSP  6
+#define VSTOP   7
+#define VSTART  8
+#define VDISCARD 9
+#define VERASE2 10
+
 /* Speed type (unused but referenced by some programs) */
 typedef unsigned long speed_t;
 typedef unsigned long tcflag_t;
