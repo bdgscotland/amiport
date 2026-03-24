@@ -178,24 +178,24 @@ Require bsdsocket.library (AmiTCP, Miami, Roadshow).
 
 | Program | Source | Cat | Status | Priority | Notes |
 |---------|--------|-----|--------|----------|-------|
-| nc/netcat | OpenBSD | 4 | VERIFY | HIGH | Network Swiss army knife. Small. |
-| curl | Daniel Stenberg | 4 | VERIFY | HIGH | HTTP client. Large but essential. |
-| wget | GNU | 4 | VERIFY | MEDIUM | HTTP downloader. |
-| whois | OpenBSD | 4 | VERIFY | MEDIUM | Domain lookup. Small. |
-| ftp | OpenBSD | 4 | VERIFY | MEDIUM | FTP client. |
-| telnet | OpenBSD | 4 | VERIFY | MEDIUM | Telnet client. |
+| nc/netcat | OpenBSD | 4 | EXISTS | — | netcat 1.10 (2000-2003) on Aminet. Dated but functional. |
+| curl | Daniel Stenberg | 4 | EXISTS | — | curl 8.18-DEV (2025!) on Aminet. Modern, actively maintained. |
+| wget | GNU | 4 | EXISTS | — | wget 1.11.4 (2009) on Aminet. Adequate. |
+| whois | OpenBSD | 4 | EXISTS | — | whois 1.37 (2015) on Aminet. |
+| ftp | OpenBSD | 4 | EXISTS | — | ncftp 3.2.0 (2006) on Aminet. AmiFTP GUI also exists. |
+| telnet | OpenBSD | 4 | EXISTS | — | DCTelnet 1.8.1 (2026!) on Aminet. Actively maintained. |
+| ping | OpenBSD | 4 | CANDIDATE | HIGH | No port found! Significant gap. Needs bsdsocket.library raw sockets. |
 | nslookup | ISC | 4 | VERIFY | MEDIUM | DNS lookup. |
-| ping | OpenBSD | 4 | VERIFY | MEDIUM | ICMP ping. Needs raw sockets. |
 | irc | various | 4 | VERIFY | MEDIUM | IRC client. Various small ones. |
 
 ## 10. Checksum & Crypto
 
 | Program | Source | Cat | Status | Priority | Notes |
 |---------|--------|-----|--------|----------|-------|
-| md5 | OpenBSD | 1 | VERIFY | HIGH | MD5 hash. Small. Very useful. |
-| sha1 | OpenBSD | 1 | VERIFY | HIGH | SHA-1 hash. Small. |
-| sha256 | OpenBSD | 1 | VERIFY | MEDIUM | SHA-256. Slower on 68k but doable. |
-| cksum | OpenBSD | 1 | VERIFY | MEDIUM | CRC checksum. |
+| md5 | OpenBSD | 1 | EXISTS | — | asum 1.2 (2026!) on Aminet. md5sum2 (1999) also exists. Skip. |
+| sha1 | OpenBSD | 1 | CANDIDATE | LOW | No dedicated sha1sum. SHA-1 deprecated anyway. Low priority. |
+| sha256 | OpenBSD | 1 | EXISTS | — | sha256 1.1 + sha256ht on Aminet. asum also covers SHA-256. |
+| cksum | OpenBSD | 1 | EXISTS | — | asum 1.2 covers CRC32. No exact POSIX cksum but close enough. |
 | b64encode | OpenBSD | 1 | VERIFY | LOW | Base64 encode/decode. |
 
 ## 11. Miscellaneous
@@ -296,13 +296,13 @@ Same CPU speed but ~6-10MB total RAM. Opens up larger programs.
 
 | Program | Source | Cat | Status | Priority | Notes |
 |---------|--------|-----|--------|----------|-------|
-| tcl | Tcl Core Team | 2 | EXISTS | LOW | Tcl 8.4.2 already exists for 68k Amiga. Dated but functional. |
-| xz/lzma | Tukaani | 2 | VERIFY | HIGH | Compression with larger dictionary. |
-| zstd | Facebook | 2 | VERIFY | MEDIUM | Full dictionary modes. |
-| links | Twibright | 3+4 | VERIFY | HIGH | Text web browser. Needs ~2MB working set. |
-| lynx | U of Kansas | 3+4 | VERIFY | MEDIUM | Text web browser. Larger than links. |
+| tcl | Tcl Core Team | 2 | EXISTS | — | Tcl 8.4.2 already exists for 68k Amiga. Dated but functional. |
+| xz/lzma | Tukaani | 2 | STRETCH | MEDIUM | No port found. Better with Fast RAM for larger dictionaries. |
+| zstd | Facebook | 2 | STRETCH | LOW | No port found. Full dictionary modes need Fast RAM. |
+| links | Twibright | 3+4 | EXISTS | — | Links 2.12 (2016) on Aminet for 68k. 6.8MB binary — needs Fast RAM. |
+| lynx | U of Kansas | 3+4 | EXISTS | — | lynx 2.8.7 (2005) on Aminet. 1.4MB binary. |
 | ssh | OpenBSD | 4 | VERIFY | MEDIUM | Crypto is CPU-bound at 14MHz but functional. |
-| emacs (mg) | OpenBSD | 3 | VERIFY | HIGH | If mg is too small, micro-emacs variants. |
+| emacs (mg) | OpenBSD | 3 | UPGRADE | HIGH | MicroEMACS 3.10 (1989) exists. Modern mg with Fast RAM headroom. |
 | perl | Larry Wall | 2 | VERIFY | STRETCH | Old perl 4/5 might fit in 8MB. Slow at 14MHz. |
 
 ---
@@ -423,9 +423,24 @@ tr, fold, rev, expand, unexpand, paste, join, comm, fmt, nl, od, split all avail
 - `diff3`/`sdiff` — GNU diff 2.3 on Aminet includes both. EXISTS.
 - `xz`/`zstd` — Not found. STRETCH (memory-heavy).
 
-### Pending Verification
+### Verified (Researcher Batch 5, 2026-03-24)
 
-Researcher still running for: network/crypto tools.
+**Network — mostly well-covered already:**
+- `netcat` — 1.10 (2000-2003) on Aminet. EXISTS.
+- `curl` — 8.18-DEV (2025!) on Aminet. Modern, actively maintained. EXISTS.
+- `wget` — 1.11.4 (2009) on Aminet. EXISTS.
+- `whois` — 1.37 (2015) on Aminet. EXISTS.
+- `ftp` — ncftp 3.2.0 (2006) on Aminet. EXISTS.
+- `telnet` — DCTelnet 1.8.1 (2026!) on Aminet. Actively maintained. EXISTS.
+- `ping` — **No port found!** Significant gap. CANDIDATE.
+- `links` — 2.12 (2016) for 68k on Aminet. EXISTS.
+- `lynx` — 2.8.7 (2005) for 68k on Aminet. EXISTS.
+
+**Crypto/Checksum — mostly covered:**
+- `md5` — asum 1.2 (2026!) on Aminet. Also md5sum2 (1999). EXISTS.
+- `sha256` — sha256 1.1 + sha256ht on Aminet. EXISTS.
+- `sha1` — No dedicated sha1sum tool. CANDIDATE (LOW — SHA-1 deprecated).
+- `cksum` — asum covers CRC32. Close enough. EXISTS.
 
 ### Our Value Proposition vs Existing Ports
 
@@ -480,10 +495,12 @@ Based on research, highest-value candidates for stock A1200:
 | Status | Count |
 |--------|-------|
 | PORTED | 16 |
-| EXISTS | ~20 |
-| CANDIDATE | ~45 |
+| EXISTS | ~30 |
+| CANDIDATE | ~40 |
 | UPGRADE | ~5 |
 | STRETCH | ~8 |
-| VERIFY | ~25 |
+| VERIFY | ~15 |
 | INFEASIBLE | ~5 |
-| **Total cataloged** | **~125** |
+| **Total cataloged** | **~120+** |
+
+*All 5 aminet-researcher batches complete (2026-03-24). ~15 items still VERIFY (low priority, niche).*
