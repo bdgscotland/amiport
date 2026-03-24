@@ -1,0 +1,54 @@
+Short:        GNU less 692 pager for AmigaOS
+Type:         util/cli
+Architecture: m68k-amigaos >= 3.0
+Uploader:     duncan@bowring.us
+Author:       Mark Nudelman (ported by Duncan Bowring)
+Version:      692
+
+less - GNU less 692 pager for AmigaOS
+
+The standard Unix pager. View files one screen at a time with
+forward/backward scrolling, regex search, line numbers, and more.
+First Category 3 (console UI) port in the amiport project.
+
+Original author: Mark Nudelman
+Ported by Duncan Bowring using amiport (AI-assisted porting toolkit).
+Project: https://github.com/bdgscotland/amiport
+
+Cross-compiled with m68k-amigaos-gcc for AmigaOS 3.x (68000+).
+Tested on FS-UAE with Workbench 3.1 (20/20 automated + interactive).
+
+Usage:
+  less [options] [file ...]
+
+  less README              View a file
+  less -N README           View with line numbers
+  less -s file.txt         Squeeze consecutive blank lines
+
+Interactive commands:
+  SPACE       Scroll forward one screen
+  b           Scroll backward one screen
+  /pattern    Search forward for pattern
+  n           Next search match
+  G           Go to end of file
+  g           Go to beginning
+  q           Quit
+
+Features:
+  - Forward and backward scrolling
+  - Regex search (Spencer V8 engine)
+  - Line numbers (-N)
+  - Squeeze blank lines (-s)
+  - Chop long lines (-S)
+  - Multiple file viewing
+  - Automatic window size detection
+
+Known limitations:
+  - No follow mode (less +F) -- poll() not available
+  - No pipe commands (|) -- popen/pclose not in libnix
+  - No locale/UTF-8 auto-detection -- defaults to latin1
+  - Cursor hide/show not supported by console.device
+  - No LESSOPEN/LESSCLOSE preprocessor
+
+Includes full source code (original POSIX and ported Amiga versions)
+and PORT.md documenting every transformation applied.
