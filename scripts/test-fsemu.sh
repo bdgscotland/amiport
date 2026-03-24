@@ -52,8 +52,10 @@ GREEN='\033[0;32m'
 YELLOW='\033[0;33m'
 NC='\033[0m' # No Color
 
+VISUAL_MODE=false
+
 usage() {
-    echo "Usage: $0 [--debug] <port-directory> [--timeout N]"
+    echo "Usage: $0 [--debug] [--visual] <port-directory> [--timeout N]"
     echo "       $0 --all [--timeout N]"
     echo ""
     echo "Options:"
@@ -130,7 +132,13 @@ generate_test_cases() {
     port_name=$(basename "$port_dir")
     local cases_file="$RESULTS_DIR/test-cases.txt"
 
-    # Check if port has a test-fsemu-cases file
+    # Check if port has a test cases file
+    # --visual mode uses test-fsemu-visual-cases.txt (separate pass)
+    if [ "$VISUAL_MODE" = true ] && [ -f "$port_dir/test-fsemu-visual-cases.txt" ]; then
+        cp "$port_dir/test-fsemu-visual-cases.txt" "$cases_file"
+        echo -e "${YELLOW}Visual verification mode (ADR-024)${NC}"
+        return 0
+    fi
     if [ -f "$port_dir/test-fsemu-cases.txt" ]; then
         cp "$port_dir/test-fsemu-cases.txt" "$cases_file"
         return 0
@@ -903,6 +911,10 @@ main() {
                 TIMEOUT_SECONDS="$2"
                 timeout_set=true
                 shift 2
+                ;;
+            --visual)
+                VISUAL_MODE=true
+                shift
                 ;;
             --all)
                 echo "TODO: --all mode not yet implemented"

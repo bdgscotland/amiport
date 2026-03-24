@@ -40,16 +40,7 @@ TEST: -u with nonexistent config file exits with RC 10
 CMD: WORK:mg -u WORK:no-such-config-file-xyz.mg WORK:test-mg-basic.txt
 EXPECT_RC: 10
 
-# ============================================================
-# Visual verification test (ADR-024) -- FIRST to avoid resource exhaustion
-# ============================================================
-
-ITEST: Visual: file content appears on screen after opening
-LAUNCH: WORK:mg -n WORK:test-mg-basic.txt
-KEYS: WAIT3000
-SCRAPE
-EXPECT_AT 1,1,Hello, Amiga world!
-EXPECT_AT 2,1,This is a basic test file for mg.
+# Visual verification tests are in test-fsemu-visual-cases.txt (separate pass).
 
 # ============================================================
 # Interactive tests -- search (before heavy tests to avoid resource exhaustion)
