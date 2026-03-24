@@ -5,7 +5,7 @@
 | Field | Value |
 |-------|-------|
 | Port | mg |
-| Date | 2026-03-24 17:10:33 |
+| Date | 2026-03-24 17:15:34 |
 | Duration | 191s |
 | Platform | FS-UAE 3.2.35 (A1200, Kickstart 3.1) |
 | Binary | `WORK:mg` (193K) |
@@ -19,7 +19,7 @@
 ok 1 - Visual: basic file content correct on all 5 lines
 ok 2 - Visual: scroll file displays numbered lines
 ok 3 - Visual: -R read-only mode still displays file
-ok 4 - Visual: empty file shows blank line 1
+ok 4 - Visual: -R flag displays all 5 lines
 # passed: 4 failed: 0 total: 4
 ```
 
@@ -30,7 +30,7 @@ ok 4 - Visual: empty file shows blank line 1
 | 1 | Visual: basic file content correct on all 5 lines | PASS | |
 | 2 | Visual: scroll file displays numbered lines | PASS | |
 | 3 | Visual: -R read-only mode still displays file | PASS | |
-| 4 | Visual: empty file shows blank line 1 | PASS | |
+| 4 | Visual: -R flag displays all 5 lines | PASS | |
 
 ## Environment
 
