@@ -412,19 +412,12 @@ run_emulator() {
             case "$scrape_sentinel" in *.assertions|*.uaem) continue;; esac
             local scrape_num
             scrape_num=$(basename "$scrape_sentinel" | sed 's/scrape-//')
-            # Pick the log with the latest creation time (birth time on macOS).
-            # The ITEST NewShell's log is always created after the boot shell's.
+            # Pick the ANSI log that was created most recently by mtime.
+            # During SCRAPE, the ITEST window is actively being written to
+            # (mg is drawing), so its log has the newest modification time.
+            # The boot shell's log was last written during startup.
             local target_log=""
-            local latest_birth=0
-            for logf in "$ansi_log_dir"/*.log; do
-                [ -f "$logf" ] || continue
-                local birth
-                birth=$(stat -f %B "$logf" 2>/dev/null || stat -c %W "$logf" 2>/dev/null || echo "0")
-                if [ "$birth" -gt "$latest_birth" ]; then
-                    latest_birth="$birth"
-                    target_log="$logf"
-                fi
-            done
+            target_log=$(ls -t "$ansi_log_dir"/*.log 2>/dev/null | head -1)
             if [ -n "$target_log" ]; then
                 cp "$target_log" "$RESULTS_DIR/scrapes/scrape-${scrape_num}.log"
                 echo "  Captured ANSI snapshot for test $scrape_num ($(basename "$target_log"))"
@@ -678,6 +671,15 @@ parse_results() {
     if ls "$RESULTS_DIR"/scrapes/scrape-*.log >/dev/null 2>&1; then
         echo ""
         echo "Visual assertions (ADR-024):"
+        # Diagnostic: show per-unit log sizes
+        if ls "$RESULTS_DIR"/ansi-logs/*.log >/dev/null 2>&1; then
+            echo "  Per-unit ANSI logs:"
+            for uf in "$RESULTS_DIR"/ansi-logs/*.log; do
+                local usize
+                usize=$(wc -c < "$uf" | tr -d ' ')
+                echo "    $(basename "$uf"): ${usize} bytes"
+            done
+        fi
         for scrape_log in "$RESULTS_DIR"/scrapes/scrape-*.log; do
             local scrape_base
             scrape_base=$(basename "$scrape_log" .log)

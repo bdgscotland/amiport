@@ -128,7 +128,7 @@ KEYS: WAIT3000
 SCRAPE
 EXPECT_AT 1,1,Hello, Amiga world!
 EXPECT_AT 2,1,This is a basic test file for mg.
-EXPECT_RC: 20
+EXPECT_RC: 0
 
 # NOTE: Maximum ~13 ITESTs can run before resource exhaustion on emulated
 # AmigaOS (each mg invocation opens "*" console handle + allocates memory
