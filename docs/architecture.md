@@ -19,7 +19,7 @@
                               ┌─────────────────────────────┐
                               │     lib/posix-shim/          │  Tier 1: Direct POSIX wrappers
                               │     lib/posix-emu/           │  Tier 2: Approximate emulation
-                              │     lib/console-shim/        │  ncurses → ANSI escapes
+                              │     lib/console-shim/        │  termcap + ncurses → ANSI escapes
                               │     lib/bsdsocket-shim/      │  BSD sockets → bsdsocket.library
                               └─────────────────────────────┘
 
@@ -81,9 +81,9 @@ The project provides four libraries, corresponding to the tiered compatibility m
 
 | Library | Purpose | Link Flag | API Prefix |
 |---------|---------|-----------|------------|
-| `lib/posix-shim/` | Tier 1: Direct POSIX-to-AmigaOS wrappers | `-lamiport` | `amiport_*` |
+| `lib/posix-shim/` | Tier 1: Direct POSIX-to-AmigaOS wrappers. Includes termios shim (tcgetattr/tcsetattr → SetMode) for terminal programs. | `-lamiport` | `amiport_*` |
 | `lib/posix-emu/` | Tier 2: Approximate POSIX emulation with caveats | `-lamiport-emu` | `amiport_emu_*` |
-| `lib/console-shim/` | ncurses subset via Amiga console.device ANSI escapes (ADR-009) | `-lamiport-console` | ncurses-compatible |
+| `lib/console-shim/` | Termcap + ncurses subset via Amiga console.device ANSI escapes (ADR-009). Termcap API (tgetent/tgetstr/tgoto/tparm) for programs like less; curses API (initscr/getch/addch) for ncurses programs. | `-lamiport-console` | termcap + ncurses-compatible |
 | `lib/bsdsocket-shim/` | BSD socket API via bsdsocket.library with auto lifecycle (ADR-010) | `-lamiport-net` | `amiport_*` |
 | `lib/posix-shim/include/amiport/compat.h` | Platform compatibility layer: alignment macros, compiler workarounds (not a tier — cross-cutting) | included via `<amiport/compat.h>` | `AMIPORT_ALIGN()` |
 
