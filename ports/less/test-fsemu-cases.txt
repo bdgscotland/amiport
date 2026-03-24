@@ -1,0 +1,112 @@
+# FS-UAE test suite for less 692
+# Category 3 (Console UI) — minimum 12 tests required
+# less is interactive, but -X -F -E flags make it non-interactive:
+#   -X  no termcap init/deinit (no screen clearing)
+#   -F  quit if file fits on one screen
+#   -E  quit at end of file
+# -V prints version and exits immediately without reading stdin
+
+# --- Functional tests ---
+
+TEST: Print version string (-V flag)
+CMD: WORK:less -V
+EXPECT_CONTAINS: less 692
+EXPECT_RC: 0
+
+TEST: Display file non-interactively (-X -F -E flags)
+CMD: WORK:less -X -F -E WORK:test-less-input.txt
+EXPECT_CONTAINS: Line 1
+EXPECT_RC: 0
+
+TEST: Display file with line numbers (-N flag)
+CMD: WORK:less -X -F -E -N WORK:test-less-input.txt
+EXPECT_CONTAINS: 1
+EXPECT_RC: 0
+
+TEST: Suppress line numbers (-n flag)
+CMD: WORK:less -X -F -E -n WORK:test-less-input.txt
+EXPECT_CONTAINS: Line 1
+EXPECT_RC: 0
+
+TEST: Squeeze blank lines (-s flag)
+CMD: WORK:less -X -F -E -s WORK:test-less-blanks.txt
+EXPECT_CONTAINS: First line
+EXPECT_RC: 0
+
+TEST: Search for pattern at startup (-p flag)
+CMD: WORK:less -X -F -E -p gamma WORK:test-less-input.txt
+EXPECT_CONTAINS: gamma
+EXPECT_RC: 0
+
+TEST: Chop long lines (-S flag)
+CMD: WORK:less -X -F -E -S WORK:test-less-longline.txt
+EXPECT_CONTAINS: LONGLINESTART
+EXPECT_RC: 0
+
+TEST: Quit at second EOF (-e flag)
+CMD: WORK:less -X -F -e WORK:test-less-single.txt
+EXPECT_CONTAINS: only one line
+EXPECT_RC: 0
+
+TEST: Case-insensitive search setup (-i flag, verify starts without error)
+CMD: WORK:less -X -F -E -i WORK:test-less-input.txt
+EXPECT_CONTAINS: Line 1
+EXPECT_RC: 0
+
+TEST: Combination flags -X -N -F -E together
+CMD: WORK:less -X -N -F -E WORK:test-less-single.txt
+EXPECT_CONTAINS: only one line
+EXPECT_RC: 0
+
+# --- Error path tests ---
+
+TEST: Nonexistent file prints error but exits OK (pager convention)
+CMD: WORK:less -X -F -E WORK:no-such-file-at-all.txt
+EXPECT_RC: 0
+
+TEST: Invalid option prints usage but exits OK (pager convention)
+CMD: WORK:less -Z -X -F -E WORK:test-less-input.txt
+EXPECT_RC: 0
+
+# --- Exit code tests ---
+
+TEST: Successful display exits with RC 0
+CMD: WORK:less -X -F -E WORK:test-less-single.txt
+EXPECT_RC: 0
+
+TEST: Version flag exits with RC 0
+CMD: WORK:less -V
+EXPECT_RC: 0
+
+# --- Edge case tests ---
+
+TEST: Empty file displays without crash (-X -F -E)
+CMD: WORK:less -X -F -E WORK:test-less-empty.txt
+EXPECT_RC: 0
+
+TEST: Long line file does not crash
+CMD: WORK:less -X -F -E WORK:test-less-longline.txt
+EXPECT_CONTAINS: LONGLINESTART
+EXPECT_RC: 0
+
+TEST: Single-line file fits on one screen (-F quits)
+CMD: WORK:less -X -F -E WORK:test-less-single.txt
+EXPECT_CONTAINS: only one line
+EXPECT_RC: 0
+
+TEST: Multiple blank lines file with -s squeeze
+CMD: WORK:less -X -F -E -s WORK:test-less-blanks.txt
+EXPECT_CONTAINS: Fourth line
+EXPECT_RC: 0
+
+# --- Amiga-specific tests ---
+
+TEST: WORK: volume path resolves correctly
+CMD: WORK:less -X -F -E WORK:test-less-input.txt
+EXPECT_CONTAINS: Line 1: alpha
+EXPECT_RC: 0
+
+TEST: -X prevents terminal init escape sequences on AmigaOS console
+CMD: WORK:less -X -F -E WORK:test-less-single.txt
+EXPECT_CONTAINS: only one line
+EXPECT_RC: 0
