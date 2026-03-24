@@ -1,0 +1,26 @@
+<svg width="240" height="44" viewBox="0 0 240 44" xmlns="http://www.w3.org/2000/svg">
+  <!-- 68k Chip icon -->
+  <rect x="4" y="6" width="32" height="32" fill="#8B6914"/>
+  <circle cx="12" cy="14" r="2.5" fill="#DAA520"/>
+  <rect x="10" y="12" width="20" height="20" fill="none" stroke="#DAA520" stroke-width="0.75"/>
+  <!-- Pins left -->
+  <rect x="0" y="11" width="6" height="2.5" fill="#DAA520"/>
+  <rect x="0" y="18" width="6" height="2.5" fill="#DAA520"/>
+  <rect x="0" y="25" width="6" height="2.5" fill="#DAA520"/>
+  <rect x="0" y="32" width="6" height="2.5" fill="#DAA520"/>
+  <!-- Pins right -->
+  <rect x="34" y="11" width="6" height="2.5" fill="#DAA520"/>
+  <rect x="34" y="18" width="6" height="2.5" fill="#DAA520"/>
+  <rect x="34" y="25" width="6" height="2.5" fill="#DAA520"/>
+  <rect x="34" y="32" width="6" height="2.5" fill="#DAA520"/>
+  <!-- Pins top -->
+  <rect x="11" y="2" width="2.5" height="6" fill="#DAA520"/>
+  <rect x="18" y="2" width="2.5" height="6" fill="#DAA520"/>
+  <rect x="25" y="2" width="2.5" height="6" fill="#DAA520"/>
+  <!-- Pins bottom -->
+  <rect x="11" y="36" width="2.5" height="6" fill="#DAA520"/>
+  <rect x="18" y="36" width="2.5" height="6" fill="#DAA520"/>
+  <rect x="25" y="36" width="2.5" height="6" fill="#DAA520"/>
+  <!-- Wordmark -->
+  <text x="48" y="31" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif" font-size="26" font-weight="700" fill="#E0D0B8">ami<tspan fill="#DAA520">port</tspan></text>
+</svg>

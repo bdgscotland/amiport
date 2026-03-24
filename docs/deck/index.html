@@ -388,61 +388,141 @@ html, body { width:100%; height:100%; overflow:hidden; background:var(--bg); }
 
 
 
-<!-- S4 ============================================================= -->
+<!-- S4a: FOUR PRINCIPLES ============================================ -->
 <div class="slide bg-img bg-villain">
   <style>
     @keyframes s4Reveal{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
-    @keyframes s4TypeBlink{0%,50%{border-color:var(--amber)}51%,100%{border-color:transparent}}
     .s4-fade{opacity:0;animation:s4Reveal 0.5s ease both}
     .s4-fade.d1{animation-delay:0.1s}.s4-fade.d2{animation-delay:0.2s}
     .s4-fade.d3{animation-delay:0.3s}.s4-fade.d4{animation-delay:0.4s}
-    .s4-fade.d5{animation-delay:0.5s}.s4-fade.d6{animation-delay:0.6s}
-    .s4-fade.d7{animation-delay:0.7s}.s4-fade.d8{animation-delay:0.8s}
-    .s4-cursor{border-right:2px solid var(--amber);animation:s4TypeBlink 1s step-end infinite;padding-right:2px}
+    .s4-fade.d5{animation-delay:0.5s}
   </style>
-  <div class="sc">
-    <div class="t2 s4-fade" style="font-size:clamp(20px,2vw,28px);">The chatbot approach to code migration fails for four specific reasons.</div>
-    <div class="row f1">
-      <!-- Left column: the story -->
-      <div class="col f1">
-        <div class="body s4-fade d1" style="font-size:14px; line-height:1.55; margin-bottom:10px;">The playbook most teams start with: paste legacy code into an LLM. Ask it to convert to Java. Get something that compiles. Ship it. Discover in testing that the business logic is subtly wrong &mdash; and you have no way to trace why.</div>
-        <div class="term s4-fade d2" style="font-size:13px; margin-bottom:12px;">
-<span class="c">Prompt:</span> Convert this COBOL to Java.<br><br>
-<span class="c">AI:</span> <span class="r">import com.ibm.cics.CICSAdapter;</span><br>
-<span class="c">&nbsp; // This class does not exist.</span><br>
-<span class="c">&nbsp; // The AI invented it to be helpful.</span><br>
-<span class="c">&nbsp; // Nobody catches it until UAT.<span class="s4-cursor"></span></span>
-        </div>
-        <div class="body s4-fade d3" style="margin-bottom:10px;">This isn't hypothetical. In the system I built, the target platform's <code style="font-family:var(--mono); color:var(--amber);">getopt_long()</code> function exists &mdash; it links, it compiles &mdash; but it returns <code style="font-family:var(--mono); color:var(--red);">'?'</code> for every single valid option. Every program silently fails. You don't catch it without a test suite that actually runs on the target.</div>
+  <div class="sc" style="gap:20px;">
+    <div class="row s4-fade" style="gap:28px; flex:1; align-items:stretch;">
+
+      <!-- Left 40%: SVG quadrant icon -->
+      <div class="col" style="flex:0 0 40%; display:flex; align-items:center; justify-content:center;">
+        <svg width="280" height="280" viewBox="0 0 280 280" style="max-width:100%; height:auto;">
+          <!-- Quadrant lines -->
+          <line x1="140" y1="20" x2="140" y2="260" stroke="#D4A020" stroke-width="1.5" opacity="0.4"/>
+          <line x1="20" y1="140" x2="260" y2="140" stroke="#D4A020" stroke-width="1.5" opacity="0.4"/>
+          <!-- Q1: Magnifying glass — Current State Truth -->
+          <g transform="translate(70,70)">
+            <circle cx="0" cy="0" r="24" fill="none" stroke="#D4A020" stroke-width="2.5"/>
+            <line x1="17" y1="17" x2="32" y2="32" stroke="#D4A020" stroke-width="3" stroke-linecap="round"/>
+            <circle cx="0" cy="0" r="8" fill="#D4A020" opacity="0.2"/>
+          </g>
+          <!-- Q2: Bar chart — Progressive Complexity -->
+          <g transform="translate(185,52)">
+            <rect x="0" y="24" width="14" height="16" fill="#D4A020" opacity="0.3" stroke="#D4A020" stroke-width="1.5"/>
+            <rect x="18" y="12" width="14" height="28" fill="#D4A020" opacity="0.25" stroke="#D4A020" stroke-width="1.5"/>
+            <rect x="36" y="0" width="14" height="40" fill="#D4A020" opacity="0.2" stroke="#D4A020" stroke-width="1.5"/>
+            <path d="M7,20 L25,8 L43,-4" fill="none" stroke="#D4A020" stroke-width="2" stroke-linecap="round"/>
+          </g>
+          <!-- Q3: Target + checkmark — Real Target Verification -->
+          <g transform="translate(70,210)">
+            <circle cx="0" cy="0" r="24" fill="none" stroke="#D4A020" stroke-width="1.5"/>
+            <circle cx="0" cy="0" r="14" fill="none" stroke="#D4A020" stroke-width="1" opacity="0.5"/>
+            <circle cx="0" cy="0" r="5" fill="none" stroke="#D4A020" stroke-width="1" opacity="0.3"/>
+            <path d="M-8,0 L-3,5 L9,-7" fill="none" stroke="#48A848" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+          </g>
+          <!-- Q4: Circular arrow — Self-Learning -->
+          <g transform="translate(210,210)">
+            <path d="M0,-22 A22,22 0 1,1 -22,0" fill="none" stroke="#D4A020" stroke-width="2.5"/>
+            <polygon points="-22,-8 -22,6 -14,-1" fill="#D4A020"/>
+            <circle cx="0" cy="0" r="5" fill="#D4A020" opacity="0.3"/>
+          </g>
+        </svg>
       </div>
-      <!-- Right column: four red cards -->
-      <div class="col f1">
-        <div class="card red s4-fade d4" style="margin-bottom:8px;">
-          <div class="card-h red">NO CLASSIFICATION</div>
-          <div class="card-b" style="padding:10px 14px;">
-            <div class="body" style="font-size:13px;">Every API call gets the same treatment. <code style="font-family:var(--mono);">stat()</code> has a direct equivalent &mdash; automate it. <code style="font-family:var(--mono);">fork()</code> fundamentally doesn't exist &mdash; it needs human architecture. The chatbot doesn't distinguish between a 5-minute rename and a 5-week redesign.</div>
+
+      <!-- Right 60%: headline + cards -->
+      <div class="col" style="flex:1; gap:14px; justify-content:center;">
+        <div>
+          <div class="t1 s4-fade" style="font-size:clamp(28px,3vw,40px); line-height:1.1; margin-bottom:8px;">Four principles.<br><span style="color:var(--amber-bright);">One pipeline.</span></div>
+          <div class="s4-fade d1" style="font-size:16px; color:var(--text-2); line-height:1.5; max-width:540px;">The same foundations we apply in Code Archaeology and Discovery Driven Engineering &mdash; automated end to end.</div>
+        </div>
+
+        <div class="card s4-fade d1" style="border-color:var(--amber);">
+          <div class="card-b" style="padding:10px 16px;">
+            <div style="display:flex; gap:10px; align-items:baseline;">
+              <span style="font-size:18px; font-weight:800; color:var(--amber); font-family:var(--mono);">1</span>
+              <div style="font-size:15px; color:var(--text); line-height:1.5;"><strong>Current State Truth</strong> &mdash; Scan every dependency. Classify by difficulty. No assumptions.</div>
+            </div>
           </div>
         </div>
-        <div class="card red s4-fade d5" style="margin-bottom:8px;">
-          <div class="card-h red">NO VERIFICATION</div>
-          <div class="card-b" style="padding:10px 14px;">
-            <div class="body" style="font-size:13px;">The output isn't compiled. Isn't tested. Isn't run on the target platform. "It looks right" is the only quality gate. We shipped grep to a public archive and it had exit codes always returning 0 &mdash; a bug invisible to anything except a real test suite.</div>
+
+        <div class="card s4-fade d2" style="border-color:var(--amber);">
+          <div class="card-b" style="padding:10px 16px;">
+            <div style="display:flex; gap:10px; align-items:baseline;">
+              <span style="font-size:18px; font-weight:800; color:var(--amber); font-family:var(--mono);">2</span>
+              <div style="font-size:15px; color:var(--text); line-height:1.5;"><strong>Progressive Complexity</strong> &mdash; Automate the mechanical. Escalate the hard. Stop for judgment.</div>
+            </div>
           </div>
         </div>
-        <div class="card red s4-fade d6" style="margin-bottom:8px;">
-          <div class="card-h red">NO PLATFORM KNOWLEDGE</div>
-          <div class="card-b" style="padding:10px 14px;">
-            <div class="body" style="font-size:13px;">The LLM doesn't have the target platform's API documentation, its C runtime quirks, or the 19 crash patterns we've documented. It doesn't know that <code style="font-family:var(--mono);">vsnprintf(NULL, 0)</code> crashes the runtime, or that <code style="font-family:var(--mono);">fclose(stdin)</code> takes down the entire operating system desktop.</div>
+
+        <div class="card s4-fade d3" style="border-color:var(--amber);">
+          <div class="card-b" style="padding:10px 16px;">
+            <div style="display:flex; gap:10px; align-items:baseline;">
+              <span style="font-size:18px; font-weight:800; color:var(--amber); font-family:var(--mono);">3</span>
+              <div style="font-size:15px; color:var(--text); line-height:1.5;"><strong>Real Target Verification</strong> &mdash; Test on the actual platform. Not a simulation. Not a proxy.</div>
+            </div>
           </div>
         </div>
-        <div class="card red s4-fade d7">
-          <div class="card-h red">NO LEARNING</div>
-          <div class="card-b" style="padding:10px 14px;">
-            <div class="body" style="font-size:13px;">Module 5,000 hits the exact same 68k alignment bug that module 12 hit. Every conversation starts from zero. There's no mechanism for one migration to make the next one better.</div>
+
+        <div class="card s4-fade d4" style="border-color:var(--amber);">
+          <div class="card-b" style="padding:10px 16px;">
+            <div style="display:flex; gap:10px; align-items:baseline;">
+              <span style="font-size:18px; font-weight:800; color:var(--amber); font-family:var(--mono);">4</span>
+              <div style="font-size:15px; color:var(--text); line-height:1.5;"><strong>Self-Learning</strong> &mdash; Every migration makes the next one faster. Bugs become prevention rules.</div>
+            </div>
           </div>
         </div>
       </div>
+
     </div>
+  </div>
+</div>
+
+<!-- S4b: CLASSIFICATION ================================================ -->
+<div class="slide bg-img bg-setup">
+  <style>
+    @keyframes s4bReveal{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+    .s4b-fade{opacity:0;animation:s4bReveal 0.5s ease both}
+    .s4b-fade.d1{animation-delay:0.1s}.s4b-fade.d2{animation-delay:0.2s}
+    .s4b-fade.d3{animation-delay:0.3s}.s4b-fade.d4{animation-delay:0.4s}
+    .s4b-fade.d5{animation-delay:0.5s}
+  </style>
+  <div class="sc" style="gap:24px;">
+    <div class="s4b-fade">
+      <div class="t1" style="font-size:clamp(28px,3vw,40px); line-height:1.1; margin-bottom:10px;">Classification is what made it <span style="color:var(--amber-bright);">possible.</span></div>
+      <div style="font-size:17px; color:var(--text-2); line-height:1.55; max-width:960px;">Before writing a single line of transformed code, we classified every POSIX dependency by migration difficulty. The classification tells the pipeline what it can automate, what needs human review, and where it must stop and escalate. Without it, you either automate everything and break things, or review everything and move slowly.</div>
+    </div>
+
+    <!-- Traffic light boxes — horizontal, asymmetric widths -->
+    <div class="row s4b-fade d2" style="gap:16px; align-items:stretch;">
+
+      <div style="flex:1; background:rgba(72,168,72,0.08); border:1px solid var(--green); padding:24px; display:flex; flex-direction:column; align-items:center; text-align:center; gap:8px;">
+        <div style="font-size:56px; font-weight:800; color:var(--green); font-family:var(--mono); line-height:1;">90</div>
+        <div style="font-size:16px; font-weight:700; color:var(--green);">Tier 1: Wrap &mdash; automated</div>
+        <div style="font-size:14px; color:var(--text-2); line-height:1.4;">Direct equivalent. AI handles it.</div>
+      </div>
+
+      <div style="flex:0.7; background:rgba(200,168,48,0.08); border:1px solid var(--yellow); padding:24px; display:flex; flex-direction:column; align-items:center; text-align:center; gap:8px;">
+        <div style="font-size:56px; font-weight:800; color:var(--yellow); font-family:var(--mono); line-height:1;">~10</div>
+        <div style="font-size:16px; font-weight:700; color:var(--yellow);">Tier 2: Emulate &mdash; approximate</div>
+        <div style="font-size:14px; color:var(--text-2); line-height:1.4;">Caveats documented. Human reviews.</div>
+      </div>
+
+      <div style="flex:0.5; background:rgba(208,72,56,0.08); border:1px solid var(--red); padding:24px; display:flex; flex-direction:column; align-items:center; text-align:center; gap:8px;">
+        <div style="font-size:56px; font-weight:800; color:var(--red); font-family:var(--mono); line-height:1;">&#x2717;</div>
+        <div style="font-size:16px; font-weight:700; color:var(--red);">Tier 3: Redesign &mdash; pipeline stops</div>
+        <div style="font-size:14px; color:var(--text-2); line-height:1.4;">Human decides.</div>
+      </div>
+
+    </div>
+
+    <!-- Callout -->
+    <div class="co s4b-fade d4" style="box-shadow:0 0 12px rgba(212,160,32,0.15);"><strong>Code Archaeology + Discovery Driven Engineering + Classification.</strong> Current state truth tells you what you have. Progressive complexity tells you how to approach it. Classification tells you what AI can handle and what needs a human.</div>
   </div>
 </div>
 
@@ -456,72 +536,70 @@ html, body { width:100%; height:100%; overflow:hidden; background:var(--bg); }
     .s5-fade.d3{animation-delay:0.24s}.s5-fade.d4{animation-delay:0.32s}
     .s5-fade.d5{animation-delay:0.40s}
   </style>
-  <div class="sc">
-    <div class="t2 s5-fade" style="font-size:clamp(20px,2vw,28px);">The stress test: modern Linux to a 1992 Commodore Amiga.</div>
-    <div class="body s5-fade d1" style="font-size:clamp(13px,1vw,15px); max-width:900px; margin-bottom:8px;">Two platforms that share zero APIs. Different CPU architecture. Different memory model. Different everything. If the approach works here &mdash; 2MB RAM, 7MHz, no memory protection &mdash; the patterns transfer to enterprise targets where the gap is smaller and the tooling is better.</div>
+  <div class="sc" style="gap:22px;">
+    <div class="t1 s5-fade" style="font-size:clamp(30px,3.2vw,42px); line-height:1.1;">Two platforms that <span style="color:var(--amber-bright);">share zero APIs.</span></div>
+    <div class="s5-fade d1" style="font-size:17px; color:var(--text-2); line-height:1.55; max-width:960px;">I chose the hardest target I could find: a 1992 Commodore Amiga. Different CPU, different memory model, different everything. The stock 68EC020 doesn't even have an MMU &mdash; you can't run a crash debugger on the hardware most users own. If the approach works here, it transfers to any enterprise target where the gap is smaller.</div>
 
-    <div class="row f1">
-      <div class="col f1 s5-fade d2">
-        <div class="card green" style="flex:1;">
+    <div class="row f1" style="gap:20px;">
+      <!-- Left: source (smaller) -->
+      <div class="col s5-fade d2" style="flex:0.8;">
+        <div class="card green" style="flex:0 0 auto;">
           <div class="card-h green">SOURCE: POSIX/LINUX 2024</div>
-          <div class="card-b">
-            <div style="font-size:14px; line-height:1.9; color:var(--text);">
-              64GB+ RAM, virtual memory, protected processes<br>
-              Automatic process cleanup on exit<br>
-              open() / read() / stat() / regex / fork()<br>
-              Threads, sockets, dynamic loading built in
+          <div class="card-b" style="padding:12px 14px;">
+            <div style="font-size:15px; line-height:1.9; color:var(--text);">
+              64GB+ RAM, virtual memory<br>
+              Protected processes, auto-cleanup<br>
+              open() / stat() / regex / fork()<br>
+              Threads, sockets, dynamic loading
             </div>
           </div>
         </div>
-      </div>
-
-      <div class="col vc s5-fade d3" style="align-items:center; flex:0 0 100px;">
-        <svg width="80" height="120" viewBox="0 0 80 120">
-          <line x1="40" y1="10" x2="40" y2="45" stroke="#D4A020" stroke-width="2" stroke-dasharray="4,4">
-            <animate attributeName="stroke-dashoffset" from="0" to="-8" dur="1s" repeatCount="indefinite"/>
-          </line>
-          <rect x="4" y="45" width="72" height="36" fill="none" stroke="#D4A020" stroke-width="2"/>
-          <text x="40" y="62" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="9" fill="#D4A020" font-weight="700">30-Year Gap</text>
-          <text x="40" y="74" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="7" fill="#887E70">Zero Shared APIs</text>
-          <line x1="40" y1="81" x2="40" y2="115" stroke="#D4A020" stroke-width="2" stroke-dasharray="4,4">
-            <animate attributeName="stroke-dashoffset" from="0" to="-8" dur="1s" repeatCount="indefinite"/>
-          </line>
-        </svg>
-      </div>
-
-      <div class="col f1 s5-fade d3">
-        <div class="card red" style="flex:1;">
+        <div class="s5-fade d3" style="text-align:center; padding:8px 0;">
+          <svg width="60" height="60" viewBox="0 0 60 60">
+            <line x1="30" y1="4" x2="30" y2="56" stroke="#D4A020" stroke-width="2" stroke-dasharray="4,4">
+              <animate attributeName="stroke-dashoffset" from="0" to="-8" dur="1s" repeatCount="indefinite"/>
+            </line>
+            <polygon points="22,48 30,58 38,48" fill="#D4A020" opacity="0.7"/>
+          </svg>
+        </div>
+        <div class="card red" style="flex:0 0 auto;">
           <div class="card-h red">TARGET: AMIGAOS 1992</div>
-          <div class="card-b">
-            <div style="font-size:14px; line-height:1.9; color:var(--text);">
+          <div class="card-b" style="padding:12px 14px;">
+            <div style="font-size:15px; line-height:1.9; color:var(--text);">
               2MB RAM, 7MHz Motorola 68000<br>
-              <strong style="color:var(--red);">No memory protection &mdash; one bad pointer corrupts the OS</strong><br>
-              No process cleanup &mdash; leaked memory persists until reboot<br>
-              No regex, no threads, no fork(), no sockets
+              <strong style="color:var(--red);">No memory protection at all</strong><br>
+              No cleanup &mdash; leaks persist to reboot<br>
+              No regex, no threads, no fork()
             </div>
           </div>
         </div>
       </div>
 
-      <div class="col f1 s5-fade d4">
+      <!-- Right: dimension table (larger, it's the interesting part) -->
+      <div class="col s5-fade d4" style="flex:1.2;">
         <div class="card" style="flex:1;">
-          <div class="card-h">Dimension-by-Dimension Gap</div>
-          <div class="card-b" style="padding:8px 14px;">
-            <table style="width:100%; font-size:12px; color:var(--text-2); border-collapse:collapse;">
-              <tr style="border-bottom:1px solid var(--border);"><td style="padding:4px 0; color:var(--text-3);">File I/O</td><td>open()</td><td style="color:var(--amber);">&rarr;</td><td>Open() <span class="caption">different flags, semantics</span></td></tr>
-              <tr style="border-bottom:1px solid var(--border);"><td style="padding:4px 0; color:var(--text-3);">Metadata</td><td>stat()</td><td style="color:var(--amber);">&rarr;</td><td>Lock()+Examine() <span class="caption">via BCPL pointers</span></td></tr>
-              <tr style="border-bottom:1px solid var(--border);"><td style="padding:4px 0; color:var(--text-3);">Epoch</td><td>1970-01-01</td><td style="color:var(--amber);">&rarr;</td><td>1978-01-01 <span class="caption">252M second offset</span></td></tr>
-              <tr style="border-bottom:1px solid var(--border);"><td style="padding:4px 0; color:var(--text-3);">Exit codes</td><td>0/1</td><td style="color:var(--amber);">&rarr;</td><td>0/5/10/20 <span class="caption">exit(1) is invisible</span></td></tr>
-              <tr style="border-bottom:1px solid var(--border);"><td style="padding:4px 0; color:var(--text-3);">Signals</td><td>SIGINT via kernel</td><td style="color:var(--amber);">&rarr;</td><td>Must poll SetSignal() manually</td></tr>
-              <tr style="border-bottom:1px solid var(--border);"><td style="padding:4px 0; color:var(--text-3);">Stack</td><td>8MB+ extensible</td><td style="color:var(--amber);">&rarr;</td><td>4KB default, fixed, no guard pages</td></tr>
-              <tr><td style="padding:4px 0; color:var(--text-3);">Memory</td><td>Virtual, per-process cleanup</td><td style="color:var(--amber);">&rarr;</td><td>Flat physical, no cleanup</td></tr>
+          <div class="card-h">DIMENSION-BY-DIMENSION GAP</div>
+          <div class="card-b" style="padding:10px 16px;">
+            <table style="width:100%; font-size:14px; color:var(--text-2); border-collapse:collapse;">
+              <tr style="border-bottom:1px solid var(--border);"><td style="padding:6px 0; color:var(--text-3); width:90px;">File I/O</td><td>open()</td><td style="color:var(--amber); padding:0 8px;">&rarr;</td><td>Open() <span style="font-size:12px; color:var(--text-3);">different flags, semantics</span></td></tr>
+              <tr style="border-bottom:1px solid var(--border);"><td style="padding:6px 0; color:var(--text-3);">Metadata</td><td>stat()</td><td style="color:var(--amber); padding:0 8px;">&rarr;</td><td>Lock()+Examine() <span style="font-size:12px; color:var(--text-3);">via BCPL pointers</span></td></tr>
+              <tr style="border-bottom:1px solid var(--border);"><td style="padding:6px 0; color:var(--text-3);">Epoch</td><td>1970-01-01</td><td style="color:var(--amber); padding:0 8px;">&rarr;</td><td>1978-01-01 <span style="font-size:12px; color:var(--text-3);">252M second offset</span></td></tr>
+              <tr style="border-bottom:1px solid var(--border);"><td style="padding:6px 0; color:var(--text-3);">Exit codes</td><td>0 / 1</td><td style="color:var(--amber); padding:0 8px;">&rarr;</td><td>0/5/10/20 <span style="font-size:12px; color:var(--text-3);">exit(1) is invisible</span></td></tr>
+              <tr style="border-bottom:1px solid var(--border);"><td style="padding:6px 0; color:var(--text-3);">Signals</td><td>SIGINT via kernel</td><td style="color:var(--amber); padding:0 8px;">&rarr;</td><td>Manual SetSignal() poll</td></tr>
+              <tr style="border-bottom:1px solid var(--border);"><td style="padding:6px 0; color:var(--text-3);">Stack</td><td>8MB+ extensible</td><td style="color:var(--amber); padding:0 8px;">&rarr;</td><td>4KB default, fixed, no guard</td></tr>
+              <tr><td style="padding:6px 0; color:var(--text-3);">Memory</td><td>Virtual, per-process</td><td style="color:var(--amber); padding:0 8px;">&rarr;</td><td>Flat physical, no cleanup</td></tr>
             </table>
           </div>
+        </div>
+        <div class="row s5-fade d5" style="gap:10px;">
+          <div class="card" style="flex:1;"><div class="card-b" style="padding:10px; text-align:center;"><div class="n md" style="margin-bottom:2px;">90</div><div style="font-size:13px; color:var(--text-2);">shim functions bridging the gap</div></div></div>
+          <div class="card" style="flex:1;"><div class="card-b" style="padding:10px; text-align:center;"><div class="n md" style="margin-bottom:2px;">57</div><div style="font-size:13px; color:var(--text-2);">deterministic transform rules</div></div></div>
+          <div class="card" style="flex:1;"><div class="card-b" style="padding:10px; text-align:center;"><div class="n md" style="margin-bottom:2px;">19</div><div style="font-size:13px; color:var(--text-2);">documented crash patterns</div></div></div>
         </div>
       </div>
     </div>
 
-    <div class="co mt s5-fade d5">Most problems clients face in legacy modernization exist here in a more extreme form. <strong>The engineering patterns that solve them transfer directly.</strong></div>
+    <div class="co s5-fade d5">Every problem enterprise clients face in legacy modernization exists here in a more extreme form. <strong>If we can bridge this gap, COBOL-to-Java is the easy version.</strong></div>
   </div>
 </div>
 
@@ -725,42 +803,63 @@ html, body { width:100%; height:100%; overflow:hidden; background:var(--bg); }
     .s7-fade.d3{animation-delay:0.25s}.s7-fade.d4{animation-delay:0.35s}
     .s7-fade.d5{animation-delay:0.45s}
   </style>
-  <div class="sc">
-    <div class="t2 s7-fade" style="font-size:clamp(18px,2vw,24px);">The difference between AI that ships and AI that hallucinates is not the model. It's the system around the model.</div>
-    <div class="body s7-fade d1" style="font-size:clamp(12px,1vw,14px); margin-bottom:8px;">Every failure from slide 4 &mdash; no classification, no verification, no knowledge, no learning &mdash; is a system problem. A better model still hallucinates <code style="font-family:var(--mono); color:var(--amber);">getopt_long()</code> as working. A better prompt still loses context at module 500. The fix is not a smarter LLM. It's an engineering platform that constrains the LLM, gives it ground truth, and verifies every output against the real target.</div>
+  <div class="sc" style="gap:22px;">
+    <div class="t1 s7-fade" style="font-size:clamp(30px,3.2vw,42px); line-height:1.1;">Every failure from slide 4 has<br><span style="color:var(--amber-bright);">a system-level fix.</span></div>
+    <div class="s7-fade d1" style="font-size:17px; color:var(--text-2); line-height:1.55; max-width:960px;">A better model still hallucinates <code style="font-family:var(--mono); color:var(--amber);">getopt_long()</code> as working. A better prompt still loses context at module 500. The fix is not a smarter LLM &mdash; it's an engineering platform that constrains the model, gives it ground truth, and verifies every output on the real target.</div>
 
-    <div class="g2 f1">
-      <div class="card green s7-fade d2">
-        <div class="card-h green">1. CLASSIFY BEFORE YOU CODE</div>
-        <div class="card-b">
-          <div class="body" style="margin-bottom:6px;"><span class="dot g"></span><strong>Tier 1</strong> (green): 90 functions with direct equivalents &mdash; <code style="font-family:var(--mono); font-size:12px;">stat()&rarr;Lock()+Examine()</code>. Fully automated.</div>
-          <div class="body" style="margin-bottom:6px;"><span class="dot y"></span><strong>Tier 2</strong> (yellow): ~10 functions approximated with documented caveats &mdash; regex rebuilt in pure C.</div>
-          <div class="body" style="margin-bottom:6px;"><span class="dot r"></span><strong>Tier 3</strong> (red): No equivalent exists &mdash; fork(), pthreads. Pipeline physically stops. Human decides.</div>
-          <div class="em">Enterprise: classify every EXEC CICS, VSAM, DB2 call before rewriting. Don't waste AI effort on things that need human architecture.</div>
+    <div class="row f1" style="gap:16px;">
+      <!-- Classify gets more space — it's the most novel concept -->
+      <div class="col s7-fade d2" style="flex:1.4;">
+        <div class="card green" style="flex:1;">
+          <div class="card-h green">1. CLASSIFY BEFORE YOU CODE</div>
+          <div class="card-b" style="padding:14px 16px;">
+            <div style="font-size:15px; color:var(--text-2); line-height:1.6; margin-bottom:10px;">Every API call gets a tier before any code is written. The pipeline physically stops on Tier 3.</div>
+            <div style="display:flex; gap:10px; margin-bottom:10px;">
+              <div style="flex:1; padding:8px 10px; background:var(--green-dim); border:1px solid rgba(72,168,72,0.3);">
+                <div style="font-size:14px; color:var(--green); font-weight:700; margin-bottom:3px;"><span class="dot g"></span>Tier 1 &mdash; Automate</div>
+                <div style="font-size:13px; color:var(--text-2);">90 functions with direct equivalents. <code style="font-family:var(--mono); font-size:12px;">stat()&rarr;amiport_stat()</code></div>
+              </div>
+              <div style="flex:1; padding:8px 10px; background:var(--yellow-dim); border:1px solid rgba(200,168,48,0.3);">
+                <div style="font-size:14px; color:var(--yellow); font-weight:700; margin-bottom:3px;"><span class="dot y"></span>Tier 2 &mdash; Approximate</div>
+                <div style="font-size:13px; color:var(--text-2);">~10 functions. Regex rebuilt in pure C with documented caveats.</div>
+              </div>
+              <div style="flex:1; padding:8px 10px; background:var(--red-dim); border:1px solid rgba(208,72,56,0.3);">
+                <div style="font-size:14px; color:var(--red); font-weight:700; margin-bottom:3px;"><span class="dot r"></span>Tier 3 &mdash; Stop</div>
+                <div style="font-size:13px; color:var(--text-2);">fork(), pthreads. Pipeline halts. Human decides architecture.</div>
+              </div>
+            </div>
+            <div style="font-style:italic; font-size:14px; color:var(--text-3);">Enterprise: classify every EXEC CICS, VSAM, DB2 call before rewriting. Don't waste AI on things that need human architecture.</div>
+          </div>
         </div>
       </div>
-      <div class="card green s7-fade d3">
-        <div class="card-h green">2. INJECT DOMAIN KNOWLEDGE</div>
-        <div class="card-b">
-          <div class="body" style="margin-bottom:6px;">86MB of machine-readable platform reference: 13,455 AmigaOS API files. 646-page Motorola CPU manual converted to searchable markdown. 700+ C runtime functions catalogued with availability status. Agents query these on demand via skills like <code style="font-family:var(--mono); font-size:12px;">/amiga-api-lookup</code> &mdash; loaded when needed, not crammed into context.</div>
-          <div class="em">Enterprise: your COBOL runtime quirks, packed decimal edge cases, JCL patterns. Captured once, queryable by every agent on every engagement.</div>
+
+      <!-- Other three pillars -->
+      <div class="col s7-fade d3" style="flex:1; gap:12px;">
+        <div class="card green" style="flex:1;">
+          <div class="card-h green">2. INJECT DOMAIN KNOWLEDGE</div>
+          <div class="card-b" style="padding:12px 14px;">
+            <div style="font-size:14px; color:var(--text-2); line-height:1.55; margin-bottom:6px;">86MB of platform reference: 13,455 API files, 646-page CPU manual, 700+ runtime functions. Agents query on demand via skills &mdash; loaded when needed, not crammed into context.</div>
+            <div style="font-style:italic; font-size:13px; color:var(--text-3);">Enterprise: COBOL runtime quirks, packed decimal edge cases, JCL patterns. Captured once, queryable on every engagement.</div>
+          </div>
         </div>
-      </div>
-      <div class="card green s7-fade d4">
-        <div class="card-h green">3. VERIFY EVERY OUTPUT</div>
-        <div class="card-b">
-          <div class="body" style="margin-bottom:6px;">Compiled in a Docker cross-compiler. Smoke-tested on a virtual AmigaOS runtime at ~100ms per test. Integration-tested on FS-UAE booting real AmigaOS 3.1 with an ARexx test harness. Mandatory memory-checker traces every malloc/free across all exit paths. Mandatory perf-optimizer checks 68k instruction timing against the 646-page Motorola PRM.</div>
-          <div class="em">Enterprise: compile, unit test, integration test against the real target system, memory audit, compliance check. Mandatory gates &mdash; not optional suggestions.</div>
+        <div class="card green s7-fade d4" style="flex:1;">
+          <div class="card-h green">3. VERIFY EVERY OUTPUT</div>
+          <div class="card-b" style="padding:12px 14px;">
+            <div style="font-size:14px; color:var(--text-2); line-height:1.55; margin-bottom:6px;">Cross-compiled in Docker. Smoke-tested at ~100ms per test. Integration-tested on FS-UAE with real AmigaOS 3.1. Mandatory memory audit traces every malloc/free. Mandatory perf check against the Motorola PRM.</div>
+            <div style="font-style:italic; font-size:13px; color:var(--text-3);">Enterprise: compile, test, integration test on real target, memory audit, compliance check. Mandatory gates &mdash; not suggestions.</div>
+          </div>
         </div>
-      </div>
-      <div class="card green s7-fade d5">
-        <div class="card-h green">4. ACCUMULATE LEARNING</div>
-        <div class="card-b">
-          <div class="body" style="margin-bottom:6px;">Every fix becomes a permanent pattern. Debug agent fixes a crash &rarr; pattern added to the crash KB &rarr; source-analyzer detects it at the analysis stage for all future ports. 19 crash patterns and growing. 20+ known pitfalls. <code style="font-family:var(--mono); font-size:12px;">fclose(stdin)</code> crashing the desktop was caught once &mdash; now flagged before any code is written. Port 14 avoids every mistake ports 1 through 13 made.</div>
-          <div class="em">Enterprise: module 5,000 in a client engagement benefits from everything modules 1&ndash;4,999 discovered. The pipeline gets smarter with every migration.</div>
+        <div class="card green s7-fade d5" style="flex:1;">
+          <div class="card-h green">4. ACCUMULATE LEARNING</div>
+          <div class="card-b" style="padding:12px 14px;">
+            <div style="font-size:14px; color:var(--text-2); line-height:1.55; margin-bottom:6px;">Debug agent fixes crash &rarr; pattern added to KB &rarr; source-analyzer flags it for all future ports. 19 crash patterns, 20+ pitfalls. <code style="font-family:var(--mono); font-size:12px;">fclose(stdin)</code> crashes the desktop &mdash; caught once, now flagged before code is written.</div>
+            <div style="font-style:italic; font-size:13px; color:var(--text-3);">Enterprise: module 5,000 avoids everything modules 1&ndash;4,999 discovered.</div>
+          </div>
         </div>
       </div>
     </div>
+
+    <div class="co s7-fade d5"><strong>Port 14 avoids every mistake ports 1 through 13 made.</strong> That's the compounding effect. Each migration funds the next one.</div>
   </div>
 </div>
 
@@ -775,124 +874,134 @@ html, body { width:100%; height:100%; overflow:hidden; background:var(--bg); }
     .s8-fade.d5{animation-delay:0.40s}.s8-fade.d6{animation-delay:0.48s}
     .s8-pipe{opacity:0;animation:s8PipeSlide 0.4s ease both;animation-delay:0.3s}
   </style>
-  <div class="sc">
-    <div class="t2 s8-fade" style="font-size:clamp(18px,2vw,22px);">Classify. Bridge. Pipeline.</div>
-    <div class="row f1">
-      <!-- Left: Adapter layer -->
-      <div class="col f1">
-        <div class="label s8-fade d1">ADAPTER LAYER (SELF-EXTENDING)</div>
-        <div class="body s8-fade d1" style="font-size:13px; margin-bottom:6px;">6,556 lines across four compatibility libraries. One wrapper per POSIX function &mdash; transformations are deterministic renames, not creative rewrites. Every change is annotated and auditable.</div>
+  <div class="sc" style="gap:20px;">
+    <div class="t1 s8-fade" style="font-size:clamp(30px,3.2vw,40px); line-height:1.1;">Classify. Bridge. Pipeline.<br><span style="color:var(--amber-bright);">Three loops that self-correct.</span></div>
+    <div class="s8-fade d1" style="font-size:17px; color:var(--text-2); line-height:1.55; max-width:960px;">The adapter layer makes transformations deterministic &mdash; one POSIX call maps to one shim call, auditable and traceable. The pipeline runs those transforms through 7 stages with mandatory gates. When something fails, it loops back automatically.</div>
 
-        <div class="g2 s8-fade d2" style="gap:6px; margin-bottom:8px;">
-          <div class="card"><div class="card-b" style="padding:8px;"><div style="font-family:var(--mono); font-size:12px; color:var(--amber); font-weight:700;">posix-shim</div><div class="caption">3,413 lines &middot; ~90 fn &middot; Tier 1</div></div></div>
-          <div class="card"><div class="card-b" style="padding:8px;"><div style="font-family:var(--mono); font-size:12px; color:var(--amber); font-weight:700;">posix-emu</div><div class="caption">1,285 lines &middot; regex, mmap &middot; Tier 2</div></div></div>
-          <div class="card"><div class="card-b" style="padding:8px;"><div style="font-family:var(--mono); font-size:12px; color:var(--amber); font-weight:700;">console-shim</div><div class="caption">1,146 lines &middot; ncurses API</div></div></div>
-          <div class="card"><div class="card-b" style="padding:8px;"><div style="font-family:var(--mono); font-size:12px; color:var(--amber); font-weight:700;">bsdsocket-shim</div><div class="caption">712 lines &middot; BSD sockets</div></div></div>
-        </div>
+    <div class="row f1" style="gap:20px;">
+      <!-- Left: Adapter layer + code transform -->
+      <div class="col s8-fade d2" style="flex:1;">
+        <div class="label" style="margin-bottom:4px;">ADAPTER LAYER (SELF-EXTENDING)</div>
 
-        <div class="term s8-fade d3" style="font-size:12px; margin-bottom:8px;">
-<span class="c">/* Before (POSIX): */</span><br>
-stat(path, &amp;sb);<br>
-exit(1);<br>
+        <div class="term" style="font-size:13px; margin-bottom:10px;">
+<span class="c">/* grep file.c &mdash; BEFORE (POSIX): */</span><br>
+<span class="r">fstat</span>(fd, &amp;sb); &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="c">/* 3 API dead-ends */</span><br>
+<span class="r">fdopen</span>(fd, "r"); &nbsp;&nbsp;&nbsp;<span class="c">/* wrong fd namespace */</span><br>
+<span class="r">mmap</span>(0, sb.st_size); <span class="c">/* doesn't exist */</span><br>
+exit(<span class="r">1</span>); &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="c">/* invisible to shell */</span><br>
 <br>
-<span class="c">/* After (via amiport): */</span><br>
+<span class="c">/* grep file.c &mdash; AFTER (via amiport): */</span><br>
 <span class="g">amiport_stat</span>(path, &amp;sb); <span class="c">/* Lock()+Examine() */</span><br>
-exit(<span class="g">10</span>); <span class="c">/* RETURN_ERROR */</span>
+fp = <span class="g">fopen</span>(path, "r"); &nbsp;<span class="c">/* correct namespace */</span><br>
+<span class="c">/* mmap removed: fgets() loop */</span><br>
+exit(<span class="g">10</span>); &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="c">/* RETURN_ERROR */</span><br>
+<br>
+<span class="c">/* 228 lines &rarr; 154 lines. Every change annotated. */</span>
         </div>
 
-        <div class="caption s8-fade d4">Started at ~20 functions with port 1. Now 90 after port 14. When a port needs a missing function, /extend-shim writes one.</div>
-        <div class="em s8-fade d4">Enterprise: your adapter layer for CICS/DB2/VSAM calls. Build once, compound across engagements. 20 rules at engagement 1, 200 by engagement 10.</div>
+        <div class="row" style="gap:6px; margin-bottom:8px;">
+          <div class="card" style="flex:1;"><div class="card-b" style="padding:8px;"><div style="font-family:var(--mono); font-size:12px; color:var(--amber); font-weight:700;">posix-shim</div><div style="font-size:12px; color:var(--text-3);">3,413 lines &middot; 90 fn &middot; Tier 1</div></div></div>
+          <div class="card" style="flex:1;"><div class="card-b" style="padding:8px;"><div style="font-family:var(--mono); font-size:12px; color:var(--amber); font-weight:700;">posix-emu</div><div style="font-size:12px; color:var(--text-3);">1,285 lines &middot; regex &middot; Tier 2</div></div></div>
+          <div class="card" style="flex:1;"><div class="card-b" style="padding:8px;"><div style="font-family:var(--mono); font-size:12px; color:var(--amber); font-weight:700;">console</div><div style="font-size:12px; color:var(--text-3);">1,146 lines &middot; ncurses</div></div></div>
+          <div class="card" style="flex:1;"><div class="card-b" style="padding:8px;"><div style="font-family:var(--mono); font-size:12px; color:var(--amber); font-weight:700;">bsdsocket</div><div style="font-size:12px; color:var(--text-3);">712 lines &middot; network</div></div></div>
+        </div>
+
+        <div style="font-size:14px; color:var(--text-3); margin-bottom:6px;">Started at ~20 functions with port 1. Now 90 after port 14. When a port needs a missing function, <code style="font-family:var(--mono); font-size:12px; color:var(--amber);">/extend-shim</code> writes one.</div>
+        <div style="font-style:italic; font-size:14px; color:var(--text-3);">Enterprise: your CICS/DB2/VSAM adapter. 20 rules at engagement 1, 200 by engagement 10.</div>
       </div>
 
-      <!-- Right: Pipeline -->
-      <div class="col f1">
-        <div class="label s8-fade d3">7-STAGE PIPELINE WITH 3 FEEDBACK LOOPS</div>
+      <!-- Right: Pipeline SVG + loops -->
+      <div class="col s8-fade d3" style="flex:1.1;">
+        <div class="label" style="margin-bottom:4px;">7-STAGE PIPELINE WITH 3 FEEDBACK LOOPS</div>
 
-        <!-- Pipeline SVG -->
-        <div class="s8-pipe" style="margin-bottom:10px;">
+        <div class="s8-pipe" style="margin-bottom:8px;">
           <svg viewBox="0 0 700 180" style="width:100%;" xmlns="http://www.w3.org/2000/svg">
             <defs>
-              <marker id="s8arrow" markerWidth="6" markerHeight="4" refX="5" refY="2" orient="auto">
+              <marker id="s8arr" markerWidth="6" markerHeight="4" refX="5" refY="2" orient="auto">
                 <path d="M0,0 L6,2 L0,4" fill="none" stroke="#887E70" stroke-width="0.8"/>
               </marker>
+              <linearGradient id="s8stageFill" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#D4A020" stop-opacity="0.06"/>
+                <stop offset="100%" stop-color="#D4A020" stop-opacity="0.01"/>
+              </linearGradient>
+              <linearGradient id="s8shipFill" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#48A848" stop-opacity="0.10"/>
+                <stop offset="100%" stop-color="#48A848" stop-opacity="0.02"/>
+              </linearGradient>
             </defs>
-            <!-- Stage boxes -->
             <g font-family="'Geist Mono',monospace">
-              <rect x="10" y="30" width="72" height="44" fill="#1C1814" stroke="#2E2A24" stroke-width="1"/>
+              <rect x="10" y="30" width="72" height="44" fill="url(#s8stageFill)" stroke="#2E2A24" stroke-width="1"/>
               <text x="46" y="48" text-anchor="middle" font-size="12" fill="#D4A020" font-weight="700">0</text>
               <text x="46" y="62" text-anchor="middle" font-size="8" fill="#C0B8A8">Research</text>
 
-              <!-- Gate -->
-              <rect x="90" y="38" width="4" height="28" fill="#D04838"/>
+              <rect x="90" y="38" width="4" height="28" fill="#D04838" rx="1"><animate attributeName="opacity" values="0.6;1;0.6" dur="2s" repeatCount="indefinite"/></rect>
 
-              <rect x="102" y="30" width="72" height="44" fill="#1C1814" stroke="#2E2A24" stroke-width="1"/>
+              <rect x="102" y="30" width="72" height="44" fill="url(#s8stageFill)" stroke="#2E2A24" stroke-width="1"/>
               <text x="138" y="48" text-anchor="middle" font-size="12" fill="#D4A020" font-weight="700">1</text>
               <text x="138" y="62" text-anchor="middle" font-size="8" fill="#C0B8A8">Analyze</text>
 
-              <rect x="182" y="38" width="4" height="28" fill="#D04838"/>
+              <rect x="182" y="38" width="4" height="28" fill="#D04838" rx="1"><animate attributeName="opacity" values="0.6;1;0.6" dur="2s" begin="0.15s" repeatCount="indefinite"/></rect>
 
-              <rect x="194" y="30" width="72" height="44" fill="#1C1814" stroke="#2E2A24" stroke-width="1"/>
+              <rect x="194" y="30" width="72" height="44" fill="url(#s8stageFill)" stroke="#2E2A24" stroke-width="1"/>
               <text x="230" y="48" text-anchor="middle" font-size="12" fill="#D4A020" font-weight="700">3</text>
               <text x="230" y="62" text-anchor="middle" font-size="8" fill="#C0B8A8">Transform</text>
 
-              <rect x="274" y="38" width="4" height="28" fill="#D04838"/>
+              <rect x="274" y="38" width="4" height="28" fill="#D04838" rx="1"><animate attributeName="opacity" values="0.6;1;0.6" dur="2s" begin="0.3s" repeatCount="indefinite"/></rect>
 
-              <rect x="286" y="30" width="72" height="44" fill="#1C1814" stroke="#2E2A24" stroke-width="1"/>
+              <rect x="286" y="30" width="72" height="44" fill="url(#s8stageFill)" stroke="#2E2A24" stroke-width="1"/>
               <text x="322" y="48" text-anchor="middle" font-size="12" fill="#D4A020" font-weight="700">4</text>
               <text x="322" y="62" text-anchor="middle" font-size="8" fill="#C0B8A8">Build</text>
 
-              <rect x="366" y="38" width="4" height="28" fill="#D04838"/>
+              <rect x="366" y="38" width="4" height="28" fill="#D04838" rx="1"><animate attributeName="opacity" values="0.6;1;0.6" dur="2s" begin="0.45s" repeatCount="indefinite"/></rect>
 
-              <rect x="378" y="30" width="72" height="44" fill="#1C1814" stroke="#2E2A24" stroke-width="1"/>
+              <rect x="378" y="30" width="72" height="44" fill="url(#s8stageFill)" stroke="#2E2A24" stroke-width="1"/>
               <text x="414" y="48" text-anchor="middle" font-size="12" fill="#D4A020" font-weight="700">5</text>
               <text x="414" y="62" text-anchor="middle" font-size="8" fill="#C0B8A8">Test</text>
 
-              <rect x="458" y="38" width="4" height="28" fill="#D04838"/>
+              <rect x="458" y="38" width="4" height="28" fill="#D04838" rx="1"><animate attributeName="opacity" values="0.6;1;0.6" dur="2s" begin="0.6s" repeatCount="indefinite"/></rect>
 
-              <rect x="470" y="30" width="72" height="44" fill="#1C1814" stroke="#2E2A24" stroke-width="1"/>
+              <rect x="470" y="30" width="72" height="44" fill="url(#s8stageFill)" stroke="#2E2A24" stroke-width="1"/>
               <text x="506" y="48" text-anchor="middle" font-size="12" fill="#D4A020" font-weight="700">6</text>
               <text x="506" y="62" text-anchor="middle" font-size="8" fill="#C0B8A8">Review</text>
 
-              <rect x="550" y="38" width="4" height="28" fill="#D04838"/>
+              <rect x="550" y="38" width="4" height="28" fill="#D04838" rx="1"><animate attributeName="opacity" values="0.6;1;0.6" dur="2s" begin="0.75s" repeatCount="indefinite"/></rect>
 
-              <rect x="562" y="30" width="72" height="44" fill="#1C1814" stroke="#48A848" stroke-width="1"/>
+              <rect x="562" y="30" width="72" height="44" fill="url(#s8shipFill)" stroke="#48A848" stroke-width="1.5"/>
               <text x="598" y="48" text-anchor="middle" font-size="12" fill="#48A848" font-weight="700">7</text>
               <text x="598" y="62" text-anchor="middle" font-size="8" fill="#48A848">Ship</text>
             </g>
 
-            <!-- Feedback loops (dashed arrows below) -->
-            <path d="M322,74 Q322,110 230,110 L230,74" fill="none" stroke="#887E70" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#s8arrow)"/>
-            <text x="276" y="120" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="7" fill="#887E70">Build&rarr;Transform</text>
+            <path d="M322,74 Q322,110 230,110 L230,74" fill="none" stroke="#887E70" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#s8arr)"/>
+            <text x="276" y="122" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="8" fill="#887E70">Build fails &rarr; Transform</text>
 
-            <path d="M414,74 Q414,135 322,135 L322,74" fill="none" stroke="#887E70" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#s8arrow)"/>
-            <text x="368" y="145" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="7" fill="#887E70">Test&rarr;Build</text>
+            <path d="M414,74 Q414,135 322,135 L322,74" fill="none" stroke="#887E70" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#s8arr)"/>
+            <text x="368" y="147" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="8" fill="#887E70">Crash &rarr; Debug &rarr; Build</text>
 
-            <path d="M506,74 Q506,160 322,160 L322,74" fill="none" stroke="#887E70" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#s8arrow)"/>
-            <text x="414" y="170" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="7" fill="#887E70">Review&rarr;Build</text>
+            <path d="M506,74 Q506,160 322,160 L322,74" fill="none" stroke="#887E70" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#s8arr)"/>
+            <text x="414" y="172" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="8" fill="#887E70">Review &rarr; Build</text>
           </svg>
         </div>
 
-        <!-- Loop description cards -->
         <div class="card s8-fade d4" style="margin-bottom:6px;">
           <div class="card-b" style="padding:8px 12px;">
             <div class="t4" style="color:var(--amber);">LOOP 1: BUILD FAILS &rarr; TRANSFORM</div>
-            <div class="body" style="font-size:12px;">Missing header, undefined symbol, type mismatch &mdash; routes back to the transform stage. If a shim function is missing, /extend-shim writes one. Up to 5 iterations.</div>
+            <div style="font-size:14px; color:var(--text-2); line-height:1.5;">Missing header, undefined symbol, type mismatch &mdash; auto-routes back. If a shim function is missing, <code style="font-family:var(--mono); font-size:12px;">/extend-shim</code> writes one. Up to 5 iterations. grep needed 3.</div>
           </div>
         </div>
         <div class="card s8-fade d5" style="margin-bottom:6px;">
           <div class="card-b" style="padding:8px 12px;">
-            <div class="t4" style="color:var(--amber);">LOOP 2: CRASH &rarr; DEBUG AGENT &rarr; BUILD</div>
-            <div class="body" style="font-size:12px;">Guru Meditation on FS-UAE &rarr; debug-agent auto-dispatched. Parses Enforcer hit data, maps crash address to source line via addr2line, queries the 19-pattern crash KB, applies fix with git stash rollback safety, rebuilds, retests. Up to 5 iterations, no human.</div>
+            <div class="t4" style="color:var(--amber);">LOOP 2: CRASH &rarr; DEBUG AGENT</div>
+            <div style="font-size:14px; color:var(--text-2); line-height:1.5;">Guru Meditation on FS-UAE &rarr; debug-agent parses Enforcer hit, maps PC to source via addr2line, queries the crash KB, applies fix with git stash rollback, rebuilds. No human. 5 iteration cap.</div>
           </div>
         </div>
         <div class="card s8-fade d6" style="margin-bottom:6px;">
           <div class="card-b" style="padding:8px 12px;">
-            <div class="t4" style="color:var(--amber);">LOOP 3: REVIEW CHANGES &rarr; BUILD</div>
-            <div class="body" style="font-size:12px;">Memory-checker finds a leak or perf-optimizer changes a hot loop &rarr; code goes back through build and test. Every change is re-verified. The grep re-port: fgetc()&rarr;fgets() was a 3-5x speedup on the 68000.</div>
+            <div class="t4" style="color:var(--amber);">LOOP 3: REVIEW &rarr; REBUILD</div>
+            <div style="font-size:14px; color:var(--text-2); line-height:1.5;">Memory-checker finds leak, perf-optimizer spots a hot loop &mdash; code goes back through build+test. grep: fgetc()&rarr;fgets() delivered 3-5x speedup on 68000.</div>
           </div>
         </div>
 
-        <div class="em s8-fade d6">Enterprise: automated regression, rollback, and fix loops. Not a waterfall that fails silently in UAT.</div>
+        <div style="font-style:italic; font-size:14px; color:var(--text-3);">Enterprise: automated regression, rollback, and fix loops. Not a waterfall that fails silently in UAT.</div>
       </div>
     </div>
   </div>
@@ -907,62 +1016,73 @@ exit(<span class="g">10</span>); <span class="c">/* RETURN_ERROR */</span>
     .s9-fade.d3{animation-delay:0.24s}.s9-fade.d4{animation-delay:0.32s}
     .s9-fade.d5{animation-delay:0.40s}
   </style>
-  <div class="sc">
-    <div class="t2 s9-fade" style="font-size:clamp(18px,2vw,24px);">Why it doesn't fall apart at scale: agents, enforcement, knowledge.</div>
-    <div class="body s9-fade d1" style="font-size:clamp(12px,1vw,14px); margin-bottom:8px;">A pipeline that works for one migration isn't interesting. A pipeline that works for the 14th &mdash; and gets better each time &mdash; is what a practice is built on.</div>
+  <div class="sc" style="gap:20px;">
+    <div class="t1 s9-fade" style="font-size:clamp(30px,3.2vw,40px); line-height:1.1;">Why it doesn't fall apart <span style="color:var(--amber-bright);">at scale.</span></div>
+    <div class="s9-fade d1" style="font-size:17px; color:var(--text-2); line-height:1.55; max-width:960px;">A pipeline that works for one migration isn't interesting. A pipeline that works for the 14th &mdash; and gets better each time &mdash; is what you build a practice on. Three things hold it together: constrained agents, layered enforcement, and a knowledge base that grows.</div>
 
-    <div class="g3 f1">
-      <!-- Column 1: 16 constrained agents -->
-      <div class="col s9-fade d2">
-        <div class="t3" style="font-size:11px;">16 CONSTRAINED AGENTS</div>
-        <div class="body" style="font-size:13px; margin-bottom:6px;">Not one God Prompt &mdash; 16 specialists with only the tools each one needs.</div>
-        <div class="term" style="font-size:11px; margin-bottom:8px;">
-<span class="c">source-analyzer</span>    <span class="g">r--</span><br>
-<span class="c">code-transformer</span>   <span class="g">rw-</span><br>
-<span class="c">build-manager</span>      <span class="g">rwx</span><br>
-<span class="c">test-runner</span>        <span class="g">r-x</span><br>
-<span class="y">memory-checker</span>     <span class="y">r-- (mandatory)</span><br>
-<span class="y">perf-optimizer</span>     <span class="y">r-- (mandatory)</span><br>
-<span class="c">debug-agent</span>        <span class="g">rwx</span> <span class="c">(5 iter cap)</span><br>
-<span class="r">aminet-publisher</span>   <span class="r">HUMAN APPROVAL</span>
+    <div class="row f1" style="gap:18px;">
+      <!-- Column 1: Agents — with the terminal as hero visual -->
+      <div class="col s9-fade d2" style="flex:1.3;">
+        <div class="t3" style="font-size:12px;">16 CONSTRAINED AGENTS</div>
+        <div style="font-size:15px; color:var(--text-2); line-height:1.5; margin-bottom:8px;">Not one God Prompt. 16 specialists, each with only the tools it needs. The analyzer can't write code. The publisher can't bypass testing. The debug-agent has a 5-iteration cap and git stash rollback.</div>
+        <div class="term" style="font-size:13px; margin-bottom:8px; flex:1;">
+<span class="p">$ cat agent-permissions.conf</span><br>
+<span class="c">source-analyzer</span>    <span class="g">r--</span> &nbsp;<span class="c"># read only</span><br>
+<span class="c">code-transformer</span>   <span class="g">rw-</span> &nbsp;<span class="c"># read + write ported/</span><br>
+<span class="c">build-manager</span>      <span class="g">rwx</span> &nbsp;<span class="c"># full (Docker)</span><br>
+<span class="c">test-runner</span>        <span class="g">r-x</span> &nbsp;<span class="c"># read + execute</span><br>
+<span class="y">memory-checker</span>     <span class="y">r--</span> &nbsp;<span class="y"># MANDATORY</span><br>
+<span class="y">perf-optimizer</span>     <span class="y">r--</span> &nbsp;<span class="y"># MANDATORY</span><br>
+<span class="c">debug-agent</span>        <span class="g">rwx</span> &nbsp;<span class="c"># 5 iter cap</span><br>
+<span class="r">aminet-publisher</span>   <span class="r">HUMAN GATE</span>
         </div>
-        <div class="body" style="font-size:12px; margin-bottom:4px;">Enforced by infrastructure hooks &mdash; <code style="font-family:var(--mono); font-size:11px;">block-original-edits.sh</code>, <code style="font-family:var(--mono); font-size:11px;">block-direct-gcc.sh</code>, <code style="font-family:var(--mono); font-size:11px;">enforce-agents.sh</code> &mdash; that fire on every tool call. The AI physically cannot bypass them.</div>
-        <div class="em">Your security auditor shouldn't fix code. Your migration agent shouldn't bypass compliance.</div>
+        <div style="font-style:italic; font-size:14px; color:var(--text-3);">Your security auditor shouldn't fix code. Your migration agent shouldn't bypass compliance.</div>
       </div>
 
-      <!-- Column 2: 3-layer enforcement -->
-      <div class="col s9-fade d3">
-        <div class="t3" style="font-size:11px;">3-LAYER ENFORCEMENT</div>
-
-        <div class="card" style="margin-bottom:6px;">
-          <div class="card-h">LAYER 1: RUNTIME</div>
-          <div class="card-b" style="padding:8px 12px;">
-            <div class="body" style="font-size:12px;">Hooks fire on every Edit/Write/Bash call. Block edits to upstream source, block direct compiler calls, validate C89 compliance on every file save.</div>
-          </div>
+      <!-- Column 2: Enforcement — with real hook code -->
+      <div class="col s9-fade d3" style="flex:1;">
+        <div class="t3" style="font-size:12px;">3-LAYER ENFORCEMENT</div>
+        <div class="term" style="font-size:12px; margin-bottom:8px;">
+<span class="c"># block-original-edits.sh</span><br>
+<span class="c"># Fires on every Edit/Write call</span><br>
+<span class="p">if</span> [[ "$path" == */original/* ]]; <span class="p">then</span><br>
+&nbsp; echo <span class="r">"BLOCKED: upstream is read-only"</span><br>
+&nbsp; <span class="r">exit 2</span> &nbsp;<span class="c"># hard block</span><br>
+<span class="p">fi</span><br><br>
+<span class="c"># enforce-agents.sh</span><br>
+<span class="c"># Warns but allows (agents use same tools)</span><br>
+<span class="p">if</span> [[ "$path" == */ported/*.c ]]; <span class="p">then</span><br>
+&nbsp; echo <span class="y">"WARN: use code-transformer"</span><br>
+&nbsp; <span class="g">exit 0</span> &nbsp;<span class="c"># warn only</span><br>
+<span class="p">fi</span>
         </div>
         <div class="card" style="margin-bottom:6px;">
-          <div class="card-h">LAYER 2: GIT</div>
           <div class="card-b" style="padding:8px 12px;">
-            <div class="body" style="font-size:12px;">Pre-commit validates doc consistency, port metadata, 40-char Aminet limit, version alignment. Pre-push builds shim library and compiles all tests.</div>
+            <div style="font-size:14px; color:var(--text-2); line-height:1.5;"><strong style="color:var(--text);">Layer 1</strong> Runtime: 8 hooks on every tool call. <strong style="color:var(--text);">Layer 2</strong> Git: pre-commit validates metadata, pre-push builds all tests. <strong style="color:var(--text);">Layer 3</strong> CI: 21 steps, builds all libraries and all 14 ports on every push.</div>
           </div>
         </div>
-        <div class="card" style="margin-bottom:6px;">
-          <div class="card-h">LAYER 3: CI</div>
-          <div class="card-b" style="padding:8px 12px;">
-            <div class="body" style="font-size:12px;">GitHub Actions builds all 4 libraries, runs all tests via vamos, builds + tests all 14 ports, validates docs + metadata + coverage on every push.</div>
-          </div>
-        </div>
-
-        <div class="em">Three chances to catch every violation. No single point of failure.</div>
+        <div style="font-style:italic; font-size:14px; color:var(--text-3);">Three chances to catch every violation. The design choice: <code style="font-family:var(--mono); font-size:12px;">exit 2</code> blocks, <code style="font-family:var(--mono); font-size:12px;">exit 0</code> warns &mdash; because blocking agent tool calls would break the pipeline itself.</div>
       </div>
 
-      <!-- Column 3: Living knowledge base -->
-      <div class="col s9-fade d4">
-        <div class="t3" style="font-size:11px;">LIVING KNOWLEDGE BASE</div>
-        <div class="body" style="font-size:13px; margin-bottom:6px;"><strong style="color:var(--text);">Static:</strong> 13,455 API docs + 646-page CPU manual + 700+ function catalog. Always available, never stale.</div>
-        <div class="body" style="font-size:13px; margin-bottom:6px;"><strong style="color:var(--text);">Living:</strong> 19 crash patterns + 20+ known pitfalls &mdash; growing with every migration. Debug agent fixes crash &rarr; new entry. <code style="font-family:var(--mono); font-size:12px;">getopt_long</code> returns '?' for all options &rarr; Pattern #17 &rarr; custom shim &rarr; all future ports auto-shimmed.</div>
-        <div class="body" style="font-size:13px; margin-bottom:6px;"><strong style="color:var(--amber-bright);">Port 14 avoids every mistake ports 1&ndash;13 made.</strong></div>
-        <div class="em">Your 100th client engagement avoids the first 99's incidents.</div>
+      <!-- Column 3: Knowledge — the getopt_long story -->
+      <div class="col s9-fade d4" style="flex:1;">
+        <div class="t3" style="font-size:12px;">LIVING KNOWLEDGE BASE</div>
+        <div style="font-size:15px; color:var(--text-2); line-height:1.5; margin-bottom:8px;"><strong style="color:var(--text);">Static:</strong> 13,455 API docs, 646-page CPU manual, 700+ function catalog.</div>
+        <div style="font-size:15px; color:var(--text-2); line-height:1.5; margin-bottom:10px;"><strong style="color:var(--text);">Living:</strong> 19 crash patterns + 20+ pitfalls, growing with every port.</div>
+
+        <div class="card" style="border-color:var(--amber); margin-bottom:8px;">
+          <div class="card-h" style="color:var(--amber);">THE GETOPT_LONG STORY</div>
+          <div class="card-b" style="padding:10px 14px;">
+            <div style="font-size:14px; color:var(--text-2); line-height:1.6;">
+              <strong style="color:var(--red);">Discovery:</strong> libnix <code style="font-family:var(--mono); font-size:12px;">getopt_long()</code> returns '?' for all options. 14 programs silently broken.<br>
+              <strong style="color:var(--amber);">Fix:</strong> Pattern #17 added to crash KB. Custom <code style="font-family:var(--mono); font-size:12px;">amiport/getopt.h</code> shim written.<br>
+              <strong style="color:var(--green);">Result:</strong> All future ports auto-shimmed. Never hits again.
+            </div>
+          </div>
+        </div>
+
+        <div style="font-size:16px; font-weight:700; color:var(--amber-bright); margin-bottom:6px;">Port 14 avoids every mistake ports 1&ndash;13 made.</div>
+        <div style="font-style:italic; font-size:14px; color:var(--text-3);">Your 100th client engagement avoids the first 99's incidents.</div>
       </div>
     </div>
   </div>
@@ -977,56 +1097,67 @@ exit(<span class="g">10</span>); <span class="c">/* RETURN_ERROR */</span>
     .s10-fade.d3{animation-delay:0.24s}.s10-fade.d4{animation-delay:0.32s}
     .s10-fade.d5{animation-delay:0.40s}
   </style>
-  <div class="sc">
-    <div class="t2 s10-fade" style="font-size:clamp(18px,2vw,24px);">When the system gets it wrong, it marks its own mistakes.</div>
-    <div class="body s10-fade d1" style="font-size:clamp(12px,1vw,14px); margin-bottom:8px;">Every migration system makes mistakes. The question is whether it buries them or learns from them. Three real stories.</div>
+  <div class="sc" style="gap:20px;">
+    <div class="t1 s10-fade" style="font-size:clamp(30px,3.2vw,40px); line-height:1.1;">When the system gets it wrong,<br><span style="color:var(--amber-bright);">it marks its own mistakes.</span></div>
+    <div class="s10-fade d1" style="font-size:17px; color:var(--text-2); line-height:1.55; max-width:960px;">Every migration system makes mistakes. The question is whether it buries them or learns from them. Three real stories from this project &mdash; each one is now a pattern that prevents the same failure from ever happening again.</div>
 
-    <div class="g3 f1">
-      <!-- Column 1: The debunked pattern -->
-      <div class="col s10-fade d2">
-        <div class="card red" style="flex:1;">
-          <div class="card-h red">THE DEBUNKED PATTERN</div>
-          <div class="card-b">
-            <div class="body" style="font-size:12px; margin-bottom:6px;">We spent weeks building workarounds for exit() "hanging" on AmigaOS. Restructured cleanup code across all 14 ports. Built a custom _exit() pattern that bypassed atexit handlers.</div>
-            <div class="body" style="font-size:12px; margin-bottom:6px;">The actual cause: a single non-ASCII byte in a test script. ARexx &mdash; a 1987 scripting language &mdash; crashes on any UTF-8 character, including inside comments. The <code style="font-family:var(--mono); font-size:11px;">\=</code> not-equal operator isn't recognized either &mdash; must use <code style="font-family:var(--mono); font-size:11px;">~=</code>.</div>
-            <div class="body" style="font-size:12px; margin-bottom:6px;">Pattern #9 is now marked <strong style="color:var(--red);">DEBUNKED</strong> in the knowledge base with a full post-mortem. The _exit() pattern was retired. exit() with atexit() cleanup was restored as the correct approach.</div>
-            <div class="em">The system corrected its own mistake and updated its rules.</div>
+    <div class="row f1" style="gap:18px;">
+      <!-- The Debunked Pattern — hero card, largest -->
+      <div class="col s10-fade d2" style="flex:1.5;">
+        <div class="card red" style="flex:1; border-width:2px;">
+          <div class="card-h red" style="font-size:12px;">THE DEBUNKED PATTERN &mdash; PATTERN #9</div>
+          <div class="card-b" style="padding:14px 16px;">
+            <div style="font-size:15px; color:var(--text-2); line-height:1.6; margin-bottom:10px;">We spent <strong style="color:var(--text);">weeks</strong> building workarounds for exit() "hanging" on AmigaOS. Restructured cleanup code across all 14 ports. Built a custom _exit() pattern that bypassed atexit handlers. The debug-agent logged dozens of iterations chasing this ghost.</div>
+            <div style="font-size:15px; color:var(--text-2); line-height:1.6; margin-bottom:10px;">The actual cause: <strong style="color:var(--red);">a single non-ASCII byte in a test script.</strong> ARexx &mdash; a 1987 scripting language &mdash; crashes on any UTF-8 character, including inside comments. A smart-quote in a comment string. That was it.</div>
+            <div class="term" style="font-size:12px; margin-bottom:10px;">
+<span class="c">/* crash-patterns.md */</span><br>
+<span class="r">## Pattern #9: exit() Hang</span><br>
+<span class="r">Status: DEBUNKED</span><br><br>
+<span class="c">Root cause: ARexx UTF-8 crash, not exit().</span><br>
+<span class="c">_exit() pattern retired.</span><br>
+<span class="c">exit() + atexit() cleanup restored.</span><br>
+<span class="c">Post-mortem: 2026-03-15</span>
+            </div>
+            <div style="font-size:15px; color:var(--text); line-height:1.5;"><strong style="color:var(--amber-bright);">This is the proof the system works.</strong> It spent weeks on a wrong theory. Then it found the real cause, marked its own pattern as debunked, wrote a post-mortem, and updated all 14 ports. A human system would have quietly shipped the workaround and moved on.</div>
           </div>
         </div>
       </div>
 
-      <!-- Column 2: The grep re-port -->
-      <div class="col s10-fade d3">
+      <!-- Right column: two smaller stories + Enforcer log -->
+      <div class="col s10-fade d3" style="flex:1; gap:14px;">
         <div class="card" style="flex:1;">
           <div class="card-h">THE GREP RE-PORT</div>
-          <div class="card-b">
-            <div class="body" style="font-size:12px; margin-bottom:6px;">grep shipped to Aminet. Real users downloaded it. Two critical bugs discovered post-publication:</div>
-            <div class="body" style="font-size:12px; margin-bottom:6px;"><strong style="color:var(--red);">BUG-1:</strong> Exit codes always 0. Missing braces in an if/else block &mdash; exit() executed unconditionally. Shell scripts using IF WARN got wrong results.</div>
-            <div class="body" style="font-size:12px; margin-bottom:6px;"><strong style="color:var(--red);">BUG-2:</strong> grep -R silently skipped subdirectories. <code style="font-family:var(--mono); font-size:11px;">d_type == DT_DIR</code> check &mdash; but AmigaOS never populates d_type. Always DT_UNKNOWN.</div>
-            <div class="body" style="font-size:12px;">Both patterns added to known-pitfalls. Source-analyzer now flags braceless multi-statement if/else AND d_type checks. Caught at analysis for all future ports.</div>
+          <div class="card-b" style="padding:12px 14px;">
+            <div style="font-size:14px; color:var(--text-2); line-height:1.6; margin-bottom:6px;">grep shipped to Aminet. Real users downloaded it. Two critical bugs found post-publication: exit codes always 0 (missing braces in if/else) and <code style="font-family:var(--mono); font-size:12px;">grep -R</code> silently skipping subdirectories (<code style="font-family:var(--mono); font-size:12px;">d_type == DT_DIR</code> &mdash; AmigaOS never populates d_type).</div>
+            <div style="font-size:14px; color:var(--text-2); line-height:1.6;">Both patterns added to known-pitfalls. Source-analyzer now flags braceless multi-statement if/else AND d_type checks. <strong style="color:var(--green);">Caught at analysis for all future ports.</strong></div>
           </div>
         </div>
-      </div>
 
-      <!-- Column 3: The desktop killer -->
-      <div class="col s10-fade d4">
         <div class="card" style="flex:1;">
           <div class="card-h">THE DESKTOP KILLER</div>
-          <div class="card-b">
-            <div class="body" style="font-size:12px; margin-bottom:6px;">A ported program called <code style="font-family:var(--mono); font-size:11px;">fclose(stdin)</code> after processing input. On Linux, harmless. On AmigaOS, it closes the shell's console handler and crashes the entire Workbench desktop. Not just the program &mdash; the operating system. User reboots.</div>
-            <div class="body" style="font-size:12px; margin-bottom:6px;">Now in known-pitfalls. Source-analyzer flags every fclose() that could receive stdin. Caught at analysis, before any code is written.</div>
-            <div class="em">Caught at analysis. Before any code is written.</div>
+          <div class="card-b" style="padding:12px 14px;">
+            <div style="font-size:14px; color:var(--text-2); line-height:1.6; margin-bottom:6px;">A ported program called <code style="font-family:var(--mono); font-size:12px;">fclose(stdin)</code>. On Linux, harmless. On AmigaOS, it closes the shell's console handler and <strong style="color:var(--red);">crashes the entire Workbench desktop.</strong> Not the program &mdash; the OS. User reboots.</div>
+            <div style="font-size:14px; color:var(--text-2); line-height:1.6;">Now flagged at analysis. Every fclose() that could receive stdin gets caught before any code is written.</div>
           </div>
+        </div>
+
+        <div class="term s10-fade d4" style="font-size:12px;">
+<span class="r">LONG-WRITE to 00F0FFFC</span> data=00000014<br>
+PC: 00F00408 &nbsp;<span class="c">/* inside freed arena */</span><br>
+Stack: <span class="r">DEADF00D</span> <span class="r">DEADF00D</span> <span class="r">DEADF00D</span><br>
+<span class="c">/* Mungwall sentinel: freed memory */</span><br>
+<span class="c">/* This is what a use-after-free   */</span><br>
+<span class="c">/* looks like on real hardware.     */</span>
         </div>
       </div>
     </div>
 
-    <div class="co mt s10-fade d5">In a chatbot engagement, these are $200K production incidents discovered in UAT. In a pipeline, they're patterns caught at analysis &mdash; <strong>before the first line of code is written.</strong></div>
+    <div class="co s10-fade d5">In a client engagement, each of these is a $200K production incident discovered in UAT. In this pipeline, they're patterns <strong>caught at analysis &mdash; before the first line of code is written.</strong></div>
   </div>
 </div>
 
 <!-- S11 ============================================================ -->
-<div class="slide bg-img bg-human">
+<div class="slide bg-img bg-velocity">
   <style>
     @keyframes s11Reveal{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
     .s11-fade{opacity:0;animation:s11Reveal 0.5s ease both}
@@ -1034,94 +1165,199 @@ exit(<span class="g">10</span>); <span class="c">/* RETURN_ERROR */</span>
     .s11-fade.d3{animation-delay:0.24s}.s11-fade.d4{animation-delay:0.32s}
     .s11-fade.d5{animation-delay:0.40s}
   </style>
-  <div class="sc">
-    <div class="t2 s11-fade" style="font-size:clamp(18px,2vw,24px);">Human on the loop. Not in the loop.</div>
-    <div class="body s11-fade d1" style="font-size:clamp(12px,1vw,14px); margin-bottom:8px;">The pipeline runs 90 automated transforms, five build-fix iterations, generates 15&ndash;65 tests per program from source code analysis, diagnoses and repairs crashes autonomously, and updates the knowledge base &mdash; all without asking permission. It stops for exactly three things.</div>
+  <div class="sc" style="gap:22px;">
 
-    <div class="row f1">
-      <!-- Left: runs at machine speed -->
-      <div class="col f1 s11-fade d2">
-        <div class="label" style="margin-bottom:4px;">RUNS AT MACHINE SPEED</div>
-        <div class="card green" style="margin-bottom:4px;"><div class="card-b" style="padding:6px 12px;"><div class="body" style="font-size:12px;">Tier 1 transforms &mdash; 90 functions, fully automated</div></div></div>
-        <div class="card green" style="margin-bottom:4px;"><div class="card-b" style="padding:6px 12px;"><div class="body" style="font-size:12px;">Build-fix recovery loops &mdash; up to 5 iterations per cycle</div></div></div>
-        <div class="card green" style="margin-bottom:4px;"><div class="card-b" style="padding:6px 12px;"><div class="body" style="font-size:12px;">Test generation &mdash; extracts getopt OPTIONS from source, generates 428 tests across 14 ports</div></div></div>
-        <div class="card green" style="margin-bottom:4px;"><div class="card-b" style="padding:6px 12px;"><div class="body" style="font-size:12px;">Crash diagnosis &mdash; Enforcer hit &rarr; addr2line &rarr; crash KB &rarr; fix &rarr; rebuild &rarr; retest</div></div></div>
-        <div class="card green" style="margin-bottom:4px;"><div class="card-b" style="padding:6px 12px;"><div class="body" style="font-size:12px;">Memory safety audit &mdash; traces every malloc/free across all exit paths (mandatory)</div></div></div>
-        <div class="card green" style="margin-bottom:4px;"><div class="card-b" style="padding:6px 12px;"><div class="body" style="font-size:12px;">Performance optimization &mdash; 68k timing analysis from 646-page Motorola PRM (mandatory)</div></div></div>
-        <div class="card green"><div class="card-b" style="padding:6px 12px;"><div class="body" style="font-size:12px;">Knowledge base updates &mdash; every fix feeds back into canonical rules</div></div></div>
+    <!-- Hero story: grep's journey -->
+    <div class="s11-fade">
+      <div class="t1" style="font-size:clamp(28px,3.2vw,40px); line-height:1.1; margin-bottom:10px;">grep went from OpenBSD source to live on Aminet.<br><span style="color:var(--amber-bright);">I made one decision.</span></div>
+      <div style="font-size:17px; color:var(--text-2); line-height:1.55; max-width:960px;">7 source files. Regex engine. Recursive directory walking. 25 portability issues identified. The pipeline analyzed, classified, transformed, compiled, tested, debugged, memory-audited, performance-optimized, and packaged it &mdash; including a re-port cycle when two bugs were found post-release. 53 tests passing on real AmigaOS 3.1. The only time it stopped: asking me to approve the upload.</div>
+    </div>
+
+    <!-- Full-width SVG: grep's pipeline flow with one human decision point -->
+    <div class="s11-fade d1">
+      <svg viewBox="0 0 1000 130" style="width:100%; overflow:visible;" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="s11arG" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+            <path d="M0,0 L8,3 L0,6" fill="#48A848" opacity="0.6"/>
+          </marker>
+          <marker id="s11arA" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+            <path d="M0,0 L8,3 L0,6" fill="#D4A020"/>
+          </marker>
+          <linearGradient id="s11autoFill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#48A848" stop-opacity="0.08"/>
+            <stop offset="100%" stop-color="#48A848" stop-opacity="0.02"/>
+          </linearGradient>
+          <linearGradient id="s11humanFill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#D4A020" stop-opacity="0.15"/>
+            <stop offset="100%" stop-color="#D4A020" stop-opacity="0.04"/>
+          </linearGradient>
+          <linearGradient id="s11liveFill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#48A848" stop-opacity="0.12"/>
+            <stop offset="100%" stop-color="#48A848" stop-opacity="0.03"/>
+          </linearGradient>
+        </defs>
+
+        <circle cx="845" cy="50" r="50" fill="#D4A020" opacity="0.05"/>
+        <circle cx="845" cy="50" r="30" fill="#D4A020" opacity="0.04"/>
+
+        <line x1="96" y1="50" x2="108" y2="50" stroke="#48A848" stroke-width="1.5" opacity="0.5" marker-end="url(#s11arG)"/>
+        <line x1="201" y1="50" x2="213" y2="50" stroke="#48A848" stroke-width="1.5" opacity="0.5" marker-end="url(#s11arG)"/>
+        <line x1="286" y1="50" x2="298" y2="50" stroke="#48A848" stroke-width="1.5" opacity="0.5" marker-end="url(#s11arG)"/>
+        <line x1="371" y1="50" x2="383" y2="50" stroke="#48A848" stroke-width="1.5" opacity="0.5" marker-end="url(#s11arG)"/>
+        <line x1="466" y1="50" x2="478" y2="50" stroke="#48A848" stroke-width="1.5" opacity="0.5" marker-end="url(#s11arG)"/>
+        <line x1="541" y1="50" x2="553" y2="50" stroke="#48A848" stroke-width="1.5" opacity="0.5" marker-end="url(#s11arG)"/>
+        <line x1="636" y1="50" x2="648" y2="50" stroke="#48A848" stroke-width="1.5" opacity="0.5" marker-end="url(#s11arG)"/>
+        <line x1="721" y1="50" x2="733" y2="50" stroke="#48A848" stroke-width="1.5" opacity="0.5" marker-end="url(#s11arG)"/>
+        <line x1="811" y1="50" x2="823" y2="50" stroke="#D4A020" stroke-width="2" marker-end="url(#s11arA)"/>
+        <line x1="877" y1="50" x2="905" y2="50" stroke="#48A848" stroke-width="2" opacity="0.6" marker-end="url(#s11arG)"/>
+
+        <g font-family="var(--mono)">
+          <rect x="15" y="30" width="80" height="40" fill="url(#s11autoFill)" stroke="#48A848" stroke-width="1.5"/>
+          <text x="55" y="47" text-anchor="middle" fill="#48A848" font-weight="700" font-size="11">Analyze</text>
+          <text x="55" y="61" text-anchor="middle" fill="#887E70" font-size="9">25 issues</text>
+
+          <rect x="110" y="30" width="90" height="40" fill="url(#s11autoFill)" stroke="#48A848" stroke-width="1.5"/>
+          <text x="155" y="47" text-anchor="middle" fill="#48A848" font-weight="700" font-size="11">Transform</text>
+          <text x="155" y="61" text-anchor="middle" fill="#887E70" font-size="9">57 rules</text>
+
+          <rect x="215" y="30" width="70" height="40" fill="url(#s11autoFill)" stroke="#48A848" stroke-width="1.5"/>
+          <text x="250" y="47" text-anchor="middle" fill="#48A848" font-weight="700" font-size="11">Build</text>
+          <text x="250" y="61" text-anchor="middle" fill="#887E70" font-size="9">3 iterations</text>
+
+          <rect x="300" y="30" width="70" height="40" fill="url(#s11autoFill)" stroke="#48A848" stroke-width="1.5"/>
+          <text x="335" y="47" text-anchor="middle" fill="#48A848" font-weight="700" font-size="11">Test</text>
+          <text x="335" y="61" text-anchor="middle" fill="#887E70" font-size="9">53/53 pass</text>
+
+          <rect x="385" y="30" width="80" height="40" fill="url(#s11autoFill)" stroke="#48A848" stroke-width="1.5"/>
+          <text x="425" y="47" text-anchor="middle" fill="#48A848" font-weight="700" font-size="11">Memory</text>
+          <text x="425" y="61" text-anchor="middle" fill="#887E70" font-size="9">clean</text>
+
+          <rect x="480" y="30" width="60" height="40" fill="url(#s11autoFill)" stroke="#48A848" stroke-width="1.5"/>
+          <text x="510" y="47" text-anchor="middle" fill="#48A848" font-weight="700" font-size="11">Perf</text>
+          <text x="510" y="61" text-anchor="middle" fill="#887E70" font-size="9">3-5x</text>
+
+          <rect x="555" y="30" width="80" height="40" fill="url(#s11autoFill)" stroke="#48A848" stroke-width="1.5"/>
+          <text x="595" y="47" text-anchor="middle" fill="#48A848" font-weight="700" font-size="11">Re-port</text>
+          <text x="595" y="61" text-anchor="middle" fill="#887E70" font-size="9">2 bugs fixed</text>
+
+          <rect x="650" y="30" width="70" height="40" fill="url(#s11autoFill)" stroke="#48A848" stroke-width="1.5"/>
+          <text x="685" y="47" text-anchor="middle" fill="#48A848" font-weight="700" font-size="11">Re-test</text>
+          <text x="685" y="61" text-anchor="middle" fill="#887E70" font-size="9">53/53</text>
+
+          <rect x="735" y="30" width="75" height="40" fill="url(#s11autoFill)" stroke="#48A848" stroke-width="1.5"/>
+          <text x="772" y="47" text-anchor="middle" fill="#48A848" font-weight="700" font-size="11">Package</text>
+          <text x="772" y="61" text-anchor="middle" fill="#887E70" font-size="9">LHA</text>
+
+          <rect x="825" y="24" width="40" height="52" fill="url(#s11humanFill)" stroke="#D4A020" stroke-width="2.5"/>
+          <text x="845" y="44" text-anchor="middle" fill="#D4A020" font-weight="700" font-size="10">&#x270B;</text>
+          <text x="845" y="62" text-anchor="middle" fill="#D4A020" font-weight="600" font-size="9">approve</text>
+
+          <rect x="910" y="28" width="80" height="44" fill="url(#s11liveFill)" stroke="#48A848" stroke-width="2"/>
+          <text x="950" y="47" text-anchor="middle" fill="#48A848" font-weight="700" font-size="14">LIVE</text>
+          <text x="950" y="63" text-anchor="middle" fill="#887E70" font-size="9">57 downloads</text>
+        </g>
+
+        <text x="400" y="92" text-anchor="middle" font-family="var(--mono)" font-size="10" fill="#48A848" opacity="0.8">All automated &mdash; no human intervention</text>
+        <text x="845" y="92" text-anchor="middle" font-family="var(--mono)" font-size="10" fill="#D4A020">One decision</text>
+        <text x="500" y="118" text-anchor="middle" font-family="var(--ff)" font-size="11" fill="#6A6050">90 transforms &middot; 428 tests &middot; 19 crash patterns &middot; 8 hooks &middot; 21-step CI &mdash; all running without asking</text>
+      </svg>
+    </div>
+
+    <!-- Divider line -->
+    <div class="s11-fade d2" style="width:100%; height:1px; background:linear-gradient(90deg, transparent, var(--amber), transparent); opacity:0.3;"></div>
+
+    <!-- Second story: amiport — the distribution platform -->
+    <div class="row s11-fade d2" style="gap:20px; align-items:flex-start;">
+      <div style="flex:1;">
+        <div style="display:flex; align-items:center; gap:14px; margin-bottom:10px;">
+          <img src="assets/logo.svg" style="height:36px; border:none; box-shadow:none;" alt="amiport">
+          <div style="font-size:20px; font-weight:700; color:var(--text);">We didn't just port the software. We built the distribution platform.</div>
+        </div>
+        <div style="font-size:16px; color:var(--text-2); line-height:1.6; margin-bottom:10px;">The same AI built <strong style="color:var(--amber);">amiport.platesteel.net</strong> &mdash; a complete package distribution platform. Package browser with search and filtering. CLI installer (<code style="font-family:var(--mono); color:var(--amber);">amiget install grep</code>) that downloads and installs directly on AmigaOS. Stats dashboard. RSS feed. An HTML 3.2 compatible page for classic Amiga browsers running on real hardware. All with a custom MUI-inspired design system.</div>
+        <div class="row" style="gap:8px;">
+          <div class="card" style="flex:1;"><div class="card-b" style="padding:8px; text-align:center; font-family:var(--mono); font-size:12px; color:var(--amber);">Package Browser</div></div>
+          <div class="card" style="flex:1;"><div class="card-b" style="padding:8px; text-align:center; font-family:var(--mono); font-size:12px; color:var(--amber);">CLI Installer</div></div>
+          <div class="card" style="flex:1;"><div class="card-b" style="padding:8px; text-align:center; font-family:var(--mono); font-size:12px; color:var(--amber);">Stats Dashboard</div></div>
+          <div class="card" style="flex:1;"><div class="card-b" style="padding:8px; text-align:center; font-family:var(--mono); font-size:12px; color:var(--amber);">Amiga HTML 3.2</div></div>
+          <div class="card" style="flex:1;"><div class="card-b" style="padding:8px; text-align:center; font-family:var(--mono); font-size:12px; color:var(--amber);">RSS Feed</div></div>
+        </div>
       </div>
-
-      <!-- Right: human decides -->
-      <div class="col f1 s11-fade d3">
-        <div class="label" style="margin-bottom:4px;">HUMAN DECIDES</div>
-        <div class="card" style="border-color:var(--amber); margin-bottom:8px;">
-          <div class="card-h">TIER 3: ARCHITECTURAL REDESIGN</div>
-          <div class="card-b">
-            <div class="body" style="font-size:13px;">Pipeline stops, presents options, waits for a decision. The AI does not silently stub fork() or pthreads. It explains the tradeoffs and lets the human choose.</div>
-          </div>
-        </div>
-        <div class="card" style="border-color:var(--amber); margin-bottom:8px;">
-          <div class="card-h">PUBLISHING TO PRODUCTION</div>
-          <div class="card-b">
-            <div class="body" style="font-size:13px;">Never automatic. aminet-publisher and amiport-publisher require explicit human sign-off for every release to the public archive.</div>
-          </div>
-        </div>
-        <div class="card" style="border-color:var(--amber); margin-bottom:8px;">
-          <div class="card-h">ESCALATION AFTER 5 ATTEMPTS</div>
-          <div class="card-b">
-            <div class="body" style="font-size:13px;">Build, debug, and fix loops cap at 5 iterations. Then the system admits it needs help and escalates with a summary of what it tried.</div>
-          </div>
-        </div>
+      <div style="flex:0 0 280px;">
+        <img src="assets/amiport-website.png" style="width:100%; border:1px solid var(--border);" alt="amiport website">
       </div>
     </div>
 
-    <div class="co mt s11-fade d5">For clients: your migration team isn't doing mechanical work. They're doing the work that actually needs judgment &mdash; <strong>architectural decisions, compliance sign-off, production readiness. Everything else moves at machine speed.</strong></div>
+    <!-- Takeaway — large -->
+    <div class="s11-fade d3" style="background:linear-gradient(135deg, var(--bg-card), var(--bg-panel)); border:2px solid var(--amber); border-left:4px solid var(--amber); padding:16px 24px; box-shadow:0 0 20px var(--amber-glow);">
+      <div style="font-size:22px; font-weight:700; color:var(--text); margin-bottom:4px;">Human <span style="color:var(--amber-bright);">on</span> the loop.</div>
+      <div style="font-size:16px; color:var(--text-2);">The pipeline runs. The platform publishes. The community downloads. Your team makes the decisions that need judgment. <strong style="color:var(--amber);">Everything else moves at machine speed.</strong></div>
+    </div>
   </div>
 </div>
 
 <!-- S12 ============================================================ -->
-<div class="slide bg-img bg-close">
+<div class="slide bg-img bg-velocity">
   <style>
     @keyframes s12Reveal{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
     @keyframes s12PillarRise{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
     .s12-fade{opacity:0;animation:s12Reveal 0.5s ease both}
-    .s12-fade.d1{animation-delay:0.1s}.s12-fade.d2{animation-delay:0.2s}
-    .s12-fade.d3{animation-delay:0.3s}.s12-fade.d4{animation-delay:0.4s}
-    .s12-fade.d5{animation-delay:0.5s}
+    .s12-fade.d1{animation-delay:0.12s}.s12-fade.d2{animation-delay:0.24s}
+    .s12-fade.d3{animation-delay:0.36s}.s12-fade.d4{animation-delay:0.48s}
+    .s12-fade.d5{animation-delay:0.6s}
     .s12-pillar{opacity:0;animation:s12PillarRise 0.6s ease both}
-    .s12-pillar:nth-child(1){animation-delay:0.35s}
-    .s12-pillar:nth-child(2){animation-delay:0.45s}
-    .s12-pillar:nth-child(3){animation-delay:0.55s}
+    .s12-pillar:nth-child(1){animation-delay:0.4s}
+    .s12-pillar:nth-child(2){animation-delay:0.5s}
+    .s12-pillar:nth-child(3){animation-delay:0.6s}
   </style>
-  <div class="sc" style="justify-content:center;">
-    <div class="t2 s12-fade" style="font-size:clamp(22px,2.5vw,30px); text-align:center; margin-bottom:16px;">Your clients' migrations are the easy version of this problem.</div>
+  <div class="sc" style="gap:24px;">
 
-    <div class="cmp s12-fade d1" style="max-width:1000px; margin:0 auto 16px;">
-      <div class="cmp-l">
-        <div class="t4" style="color:var(--amber); margin-bottom:8px;">What I built for (the hard way)</div>
-        <ul><li>Target has fewer APIs &mdash; had to invent 90 shims</li><li>2MB RAM, no garbage collection, no memory protection</li><li>Custom crash detection pipeline built from scratch</li><li>Platform docs scattered across 30-year-old manuals &mdash; converted by hand to 13,455 markdown files</li></ul>
+    <!-- Headline — constructive, not combative -->
+    <div class="s12-fade">
+      <div class="t1" style="font-size:clamp(28px,3.2vw,42px); line-height:1.1; margin-bottom:10px;">The patterns are proven.<br><span style="color:var(--amber-bright);">The target was harder than yours.</span></div>
+      <div style="font-size:17px; color:var(--text-2); line-height:1.55; max-width:960px;">We proved this approach on a platform with 2MB RAM, no memory protection, zero shared APIs, and 30-year-old documentation. Your clients' target platforms have more memory, better tooling, richer APIs, and modern documentation. The engineering patterns transfer directly.</div>
+    </div>
+
+    <!-- What we overcame vs what you have available -->
+    <div class="row s12-fade d1" style="gap:16px;">
+      <div class="card" style="flex:1;">
+        <div class="card-h" style="color:var(--text-3);">What We Overcame</div>
+        <div class="card-b" style="padding:14px 18px; font-size:15px; color:var(--text-2); line-height:1.7;">
+          Invented 90 shim functions from scratch<br>
+          2MB RAM, no GC, no memory protection<br>
+          Built crash detection pipeline from nothing<br>
+          Converted 30-year-old manuals to 13,455 machine-readable files
+        </div>
       </div>
-      <div class="cmp-r">
-        <div class="t4" style="margin-bottom:8px;">What your clients need (the easy way)</div>
-        <ul><li>Target has more APIs &mdash; rich Java/Spring/Cloud mapping available</li><li>64GB+ RAM, garbage collection, virtual memory, crash recovery</li><li>AddressSanitizer, Valgrind, JVM debuggers built in natively</li><li>Modern, structured, searchable API references</li></ul>
+      <div class="card" style="flex:1; border-color:var(--amber);">
+        <div class="card-h" style="color:var(--amber);">What Your Clients Have</div>
+        <div class="card-b" style="padding:14px 18px; font-size:15px; color:var(--text); line-height:1.7;">
+          Rich Java/Spring/Cloud API surface<br>
+          64GB+ RAM, GC, virtual memory, crash recovery<br>
+          ASAN, Valgrind, JVM debuggers built in<br>
+          Modern, structured, searchable documentation
+        </div>
       </div>
     </div>
 
-    <div class="body s12-fade d2" style="text-align:center; font-size:clamp(14px,1.1vw,16px); max-width:900px; margin:0 auto 16px; line-height:1.5;">
-      The three-tier classification becomes your COBOL triage framework. The adapter library becomes your CICS/DB2/VSAM mapping layer &mdash; 20 rules at engagement 1, 200 by engagement 10. The crash patterns KB becomes your production incident knowledge base. The enforcement hooks become your compliance gates.
+    <!-- Pattern mapping -->
+    <div class="s12-fade d2" style="font-size:16px; color:var(--text-2); line-height:1.6; max-width:960px;">
+      <strong style="color:var(--text);">Every engineering pattern transfers.</strong> The three-tier classification becomes your COBOL triage framework. The adapter library becomes your CICS/DB2/VSAM mapping layer &mdash; 20 rules at engagement 1, 200 by engagement 10. The crash patterns KB becomes your incident knowledge base. The enforcement hooks become your compliance gates.
     </div>
 
-    <div class="pillars s12-fade d3" style="max-width:900px; margin:0 auto 16px;">
+    <!-- Three pillars -->
+    <div class="pillars s12-fade d3" style="max-width:960px;">
       <div class="pillar s12-pillar">Constrain the agents.</div>
       <div class="pillar s12-pillar">Inject the domain knowledge.</div>
       <div class="pillar s12-pillar">Enforce the quality gates.</div>
     </div>
 
-    <div class="co s12-fade d4" style="max-width:900px; margin:0 auto; text-align:center; font-size:clamp(16px,1.4vw,20px); border-left-width:1px;">
-      <strong>Stop selling chatbot migrations. Build the pipeline.</strong>
+    <!-- Closing — confident, constructive -->
+    <div class="s12-fade d4" style="background:linear-gradient(135deg, var(--bg-card), var(--bg-panel)); border:2px solid var(--amber); border-left:4px solid var(--amber); padding:18px 28px; box-shadow:0 0 24px var(--amber-glow); max-width:960px;">
+      <div style="font-size:24px; font-weight:700; color:var(--text); margin-bottom:6px; text-align:center;">Build the pipeline.</div>
+      <div style="font-size:15px; color:var(--text-2); text-align:center;">The approach works. We proved it on the hardest target we could find.</div>
     </div>
 
-    <div class="author s12-fade d5" style="text-align:center; margin-top:16px;">Duncan Bowring, Accenture</div>
+    <div class="author s12-fade d5" style="text-align:center;">Duncan Bowring, Accenture</div>
   </div>
 </div>
 
