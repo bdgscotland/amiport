@@ -117,6 +117,7 @@ Categories 3-4 use an automated FS-UAE testing pipeline instead of manual intera
 - **vamos** path: fast, headless, no GUI — used for Categories 1-2. All ports tested in CI via `make test-ports`.
 - **FS-UAE** path: full AmigaOS boot, ARexx harness executes test cases, TAP output captured via shared RESULTS: volume, UAEQuit terminates the emulator — used for all categories pre-publication.
 - **Test assertions**: `EXPECT:` for exact first-line match, `EXPECT_CONTAINS:` for substring match (useful for multi-line command output like diff).
+- **Interactive tests** (Category 3+): `ITEST:` blocks use KeyInject (`toolchain/keyinject/`) to inject keystrokes via `commodities.library/AddIEvents()`. The test-runner.rexx harness supports `ITEST:` blocks alongside existing `TEST:` blocks. Interactive tests are skipped on vamos. See ADR-023.
 
 ### Toolchain
 

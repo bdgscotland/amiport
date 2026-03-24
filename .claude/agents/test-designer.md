@@ -14,8 +14,9 @@ You are a test suite designer for AmigaOS-ported programs. You analyze ported so
 
 Given a port directory (`ports/<name>/`), produce:
 1. A complete `test-fsemu-cases.txt` with 8+ tests (CLI, Category 1) or 10+ (scripting, Category 2)
-2. All required test input files (`test-<name>-*.txt`)
-3. A coverage report to stdout
+2. For Category 3+ ports: at least 3 `ITEST:` blocks for automated interactive testing (ADR-023)
+3. All required test input files (`test-<name>-*.txt`)
+4. A coverage report to stdout
 
 ## Test Case Format
 
@@ -100,6 +101,57 @@ CMD: WORK:sed -n $p WORK:input.txt
 # GOOD -- use a sed script file
 CMD: WORK:sed -f WORK:test-sed-lastline.sed WORK:input.txt
 # Create test-sed-lastline.sed containing: $p
+```
+
+## Interactive Tests (Category 3+ — ADR-023)
+
+For Category 3 (Console UI) and Category 4 (Network) ports, add `ITEST:` blocks for automated keystroke injection via KeyInject. These test interactive behavior that `TEST:` blocks cannot cover.
+
+### ITEST: Format
+
+```
+ITEST: description
+LAUNCH: WORK:<program> WORK:<inputfile>
+KEYS: comma-separated-key-sequence
+EXPECT_RC: expected-return-code
+```
+
+### KEYS Tokens
+
+- **Named keys:** `SPACE`, `RETURN`, `ESC`, `TAB`, `BACKSPACE`, `DELETE`, `UP`, `DOWN`, `LEFT`, `RIGHT`, `F1`-`F10`, `HELP`
+- **Single characters:** `a`-`z`, `0`-`9`, `/`, `.`, `-` (converted via `MapANSI()`)
+- **Delays:** `WAIT<ms>` (e.g., `WAIT500` = 500ms). Always start with `WAIT1500` or more to let the program initialize.
+
+### Required Interactive Tests (minimum 3)
+
+1. **Basic quit** — launch and quit with the program's quit key (q, ESC, Ctrl-C)
+2. **Navigation** — scroll/page/move then quit (SPACE, UP/DOWN, page keys)
+3. **Program-specific action** — search, edit, or other interactive feature
+
+### Rules
+
+- Create a 100+ line test file (`test-<name>-scroll.txt`) with a unique marker (e.g., "FINDME") on line 50 for search tests
+- Never use `SAY` during interactive tests (contaminates the shared console)
+- The harness waits 3s for init, runs KeyInject, waits 3s for exit, force-kills if needed
+- Interactive tests are skipped on vamos (KeyInject requires AmigaOS libraries)
+
+### Example (pager)
+
+```
+ITEST: Interactive quit with q key
+LAUNCH: WORK:less WORK:test-less-scroll.txt
+KEYS: WAIT1500,q
+EXPECT_RC: 0
+
+ITEST: Interactive scroll forward with SPACE then quit
+LAUNCH: WORK:less WORK:test-less-scroll.txt
+KEYS: WAIT1500,SPACE,WAIT500,q
+EXPECT_RC: 0
+
+ITEST: Interactive search with /FINDME then quit
+LAUNCH: WORK:less WORK:test-less-scroll.txt
+KEYS: WAIT2000,/,WAIT500,F,I,N,D,M,E,RETURN,WAIT1000,q
+EXPECT_RC: 0
 ```
 
 ## Infinite-Output Programs (yes, tail -f, event loops)

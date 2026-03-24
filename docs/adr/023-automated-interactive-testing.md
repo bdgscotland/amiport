@@ -2,7 +2,7 @@
 
 ## Status
 
-Proposed
+**Accepted**
 
 ## Date
 
@@ -84,58 +84,61 @@ This is the most architecturally sound approach — it gives full control of bot
 
 ## Decision
 
-**TBD** — This ADR is proposed for discussion. Recommended starting point: **Approach B (FS-UAE Net Protocol)** for immediate pragmatic value, with **Approach D (Console.device Driver)** as the long-term goal for real-hardware testing.
+**Approach A — Amiga-native keystroke injection** using `commodities.library/AddIEvents()` + `keymap.library/MapANSI()`.
 
-The approaches are not mutually exclusive — B gives us automated testing on the development machine now, D gives us testing on real hardware later.
+### Why Not Approach B (FS-UAE Net Protocol)?
 
-## Implementation Plan (Approach B)
+Research confirmed that **FS-UAE has no remote control API**. The "net protocol" does not exist. FS-UAE's Lua scripting branch (cnvogelg/fs-uae) is dormant and undocumented, with no keyboard injection support. vAmiga's RetroShell similarly lacks keyboard injection to the emulated Amiga. Host-side injection via osascript/xdotool is fragile (focus management, platform-specific, Accessibility permissions).
 
-1. Research FS-UAE net protocol capabilities (keyboard event injection, screenshot)
-2. Add `--net-protocol` flag to `test-fsemu.sh` for interactive test mode
-3. Define interactive test case format extending `test-fsemu-cases.txt`:
-   ```
-   TEST_INTERACTIVE: scroll and search
-   LAUNCH: WORK:less WORK:test-interactive.txt
-   WAIT: 2000
-   SEND_KEY: SPACE
-   WAIT: 500
-   SCREENSHOT: after-scroll.png
-   SEND_KEY: /
-   SEND_KEYS: FINDME
-   SEND_KEY: RETURN
-   WAIT: 500
-   SCREENSHOT: after-search.png
-   SEND_KEY: q
-   WAIT: 1000
-   EXPECT_EXIT: 0
-   ```
-4. Build screenshot comparison tooling (pixel diff with tolerance)
-5. Integrate into `make test-fsemu` pipeline
+### Why Approach A?
 
-## Implementation Plan (Approach D — Long-term)
+1. **Documented by Commodore** — ADCD `Lib_examples/mapansi.c` provides a canonical working example of `MapANSI()` + `AddIEvents()` for keyboard injection
+2. **Works on real hardware AND FS-UAE** — no emulator dependencies
+3. **Prior art** — FakeKey (Aminet, 1993) proves the approach has worked for 30+ years
+4. **Minimal code** — ~200 lines of C89, builds with existing bebbo-gcc toolchain
+5. **Clean integration** — ARexx test harness orchestrates, KeyInject injects, no host-side changes
 
-1. Write `toolchain/test-console-driver/driver.c` (~200 lines)
-2. Uses `OpenWindow()` + console.device to create a controlled console
-3. Launches test subject via `SystemTags()` with console I/O redirected
-4. ARexx sends keystroke injection commands to the driver
-5. Driver captures console.device output buffer and writes to file
-6. Test harness compares captured output against expected
+### Implementation
+
+A standalone C89 tool **KeyInject** (`toolchain/keyinject/keyinject.c`) that:
+
+1. Opens `keymap.library` V37 and `commodities.library` V37
+2. Allocates an `InputEvent` in `MEMF_PUBLIC` memory
+3. Parses a comma-separated key sequence from argv[1]
+4. For printable characters: uses `MapANSI()` to convert ASCII to rawkey code + qualifier
+5. For special keys (SPACE, RETURN, ESC, cursors): uses direct rawkey codes
+6. Injects each key via `AddIEvents()` (key-down then key-up with `IECODE_UP_PREFIX`)
+7. Uses `Delay()` from dos.library for timing between keys (50 ticks/sec on PAL)
+
+The ARexx test harness (`test-runner.rexx`) is extended with `ITEST:` blocks:
+```
+ITEST: Interactive quit with q key
+LAUNCH: WORK:less WORK:test-file.txt
+KEYS: WAIT1500,q
+EXPECT_RC: 0
+```
+
+The harness launches the program via `Run`, waits 3 seconds for initialization, invokes `WORK:KeyInject <keys>`, waits 3 seconds for the program to exit, then checks the return code. If KeyInject is not available (e.g., on vamos), interactive tests are skipped with TAP `# SKIP`.
+
+### Phase 2 (Future): Screen Content Verification
+
+Exit code verification confirms the program doesn't crash but doesn't verify screen rendering. Phase 2 will add screenshot-based verification, likely by injecting FS-UAE's screenshot hotkey from the Amiga side via KeyInject, then comparing screenshots on the host.
 
 ## Consequences
 
 ### Positive
-- Category 3+ ports can be tested automatically
+- Category 3+ ports can be tested automatically — `make test-fsemu` runs both non-interactive and interactive tests
 - Regression testing catches interactive bugs before shipping
 - Reduces manual testing burden as port catalog grows
-- Enables CI for console programs
+- Works on real AmigaOS hardware, not just emulators
+- Graceful degradation — interactive tests skip on vamos, non-interactive tests unaffected
 
 ### Negative
-- Approach B adds FS-UAE version dependency (net protocol support varies)
-- Screenshot comparison adds maintenance burden (reference images need updating)
-- Approach D requires significant implementation effort
-- Interactive test timing is inherently less deterministic than CLI tests
+- No screen content verification yet (Phase 2)
+- Interactive test timing is less deterministic than CLI tests (mitigated by generous WAIT delays)
+- Adds ~30 seconds per interactive test to the test-fsemu run time
 
 ### Neutral
-- Non-interactive FS-UAE tests (current `test-fsemu-cases.txt`) remain the primary test mechanism
-- Interactive tests supplement but don't replace the existing framework
-- Manual interactive verification remains valid for one-off checks
+- Non-interactive FS-UAE tests remain the primary test mechanism
+- Interactive tests supplement but don't replace manual verification for visual bugs
+- KeyInject is a general-purpose tool usable beyond the test harness

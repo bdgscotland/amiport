@@ -154,12 +154,25 @@ Create test input files as `test-<name>-*.txt` in the port directory (include an
 
 Assertion modes: `EXPECT:` (exact first-line), `EXPECT_CONTAINS:` (substring), `EXPECT_RC:` (exit code).
 
+**5d. Interactive tests (Category 3+ MANDATORY, ADR-023):**
+For Category 3 (Console UI) and Category 4 (Network) ports, add `ITEST:` blocks to `test-fsemu-cases.txt` for automated keystroke injection via KeyInject:
+
+```
+ITEST: Interactive quit with q key
+LAUNCH: WORK:<program> WORK:test-scroll.txt
+KEYS: WAIT1500,q
+EXPECT_RC: 0
+```
+
+KEYS tokens: named keys (`SPACE`, `RETURN`, `ESC`, `UP`, `DOWN`, etc.), single characters (`a`-`z`, `/`, `.`), delays (`WAIT500`). The test harness launches the program via `Run`, injects keys via `WORK:KeyInject`, and verifies exit code. Minimum 3 interactive tests: basic quit, navigation (scroll/page), and a program-specific action (search, edit, etc.).
+
 Then run: `make test-fsemu TARGET=ports/<name>`
 
 **GATE:** Do not proceed to Stage 6 unless:
 - test-fsemu-cases.txt has >= minimum test count for the port category
 - At least one test uses EXPECT_RC: 10 (error path tested)
 - At least one test uses EXPECT_RC: 5 or EXPECT_RC: 0 (success path tested)
+- Category 3+ ports have >= 3 ITEST: blocks
 
 If FS-UAE tests show a Guru Meditation (crash), **automatically dispatch the `debug-agent`** with the Enforcer log and binary. Do not ask the user — the debug agent handles crash diagnosis autonomously. After the debug agent fixes the crash, rebuild and retest.
 

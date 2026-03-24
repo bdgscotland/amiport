@@ -164,7 +164,9 @@ make smoke-test                     # Full end-to-end validation
 make test-fsemu TARGET=ports/grep   # Automated FS-UAE test with ARexx harness
 ```
 
-**Interactive testing** — for manual exploration on a full Amiga desktop:
+**Interactive testing** — automated keystroke injection for Category 3+ console programs using KeyInject (`toolchain/keyinject/`), which injects keystrokes via `commodities.library/AddIEvents()`. Add `ITEST:` blocks to `test-fsemu-cases.txt`. See [ADR-023](docs/adr/023-automated-interactive-testing.md).
+
+**Manual testing** — for manual exploration on a full Amiga desktop:
 
 ```bash
 make setup-emu          # Install FS-UAE, check for Kickstart ROM
@@ -259,6 +261,7 @@ make build-shim                     # Build POSIX shim library (Tier 1)
 make build-emu                      # Build POSIX emulation library (Tier 2)
 make build-console                  # Build console shim (ncurses)
 make build-net                      # Build BSD socket shim
+make build-keyinject                # Build KeyInject (keystroke injector, ADR-023)
 make build TARGET=ports/grep        # Build a specific port
 make build-ports                    # Build all ports
 
