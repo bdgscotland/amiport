@@ -26,7 +26,8 @@ SRCS = $(SRCDIR)/file_io.c \
        $(SRCDIR)/string_bsd.c \
        $(SRCDIR)/stdio_ext.c \
        $(SRCDIR)/glob.c \
-       $(SRCDIR)/argv_expand.c
+       $(SRCDIR)/argv_expand.c \
+       $(SRCDIR)/termios.c
 
 OBJS = $(SRCS:.c=.o)
 
