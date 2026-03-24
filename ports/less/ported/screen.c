@@ -911,19 +911,20 @@ public void scrsize(void)
 	}
 #else
 #ifdef __AMIGA__
-	/* amiport: Query console window size via CSI Device Status Report.
-	 * Send ESC[0 q (Window Status Request) — console.device responds with
-	 * ESC[1;1;rows;cols r giving the window dimensions in character cells. */
+	/* amiport: Query console window size via CSI Window Status Request.
+	 * Send ESC [ 0 SP q — console.device responds with
+	 * ESC [ 1 ; 1 ; rows ; cols SP r (window bounds report).
+	 * This does NOT move the cursor — no visible flicker. */
 	{
 		BPTR fh = Output();
 		if (fh && IsInteractive(fh))
 		{
 			char resp[64];
 			int i = 0;
-			/* Save cursor, move to extreme bottom-right, query position */
-			Write(fh, "\033[999;999H\033[6n", 14);
-			/* Read response: ESC [ row ; col R */
-			if (WaitForChar(fh, 200000)) /* 200ms timeout */
+			/* CSI 0 SP q = Window Status Request */
+			Write(fh, "\033[0 q", 5);
+			/* Read response: ESC [ 1 ; 1 ; rows ; cols SP r */
+			if (WaitForChar(Input(), 500000)) /* 500ms timeout */
 			{
 				BPTR infh = Input();
 				while (i < (int)sizeof(resp) - 1 && WaitForChar(infh, 50000))
@@ -931,15 +932,22 @@ public void scrsize(void)
 					char c;
 					if (Read(infh, &c, 1) != 1) break;
 					resp[i++] = c;
-					if (c == 'R') break;
+					/* amiport: ADCD says response ends with SP r (0x20 0x72)
+					 * Match on 'r' preceded by space */
+					if (c == 'r' && i >= 2 && resp[i-2] == ' ') break;
 				}
 				resp[i] = '\0';
-				/* Parse ESC [ row ; col R */
+				/* amiport: Parse Window Bounds Report per ADCD:
+				 * CSI 1 ; 1 ; <bottom> ; <right> SP r
+				 * CSI may be ESC[ (2 bytes) or 0x9B (1 byte) */
 				{
-					int row = 0, col = 0;
+					int row = 0, col = 0, semi = 0;
 					char *p = resp;
-					while (*p && *p != '[') p++;
-					if (*p == '[') p++;
+					/* Skip CSI: either 0x9B or ESC [ */
+					if ((unsigned char)*p == 0x9B) p++;
+					else { while (*p && *p != '[') p++; if (*p == '[') p++; }
+					/* Skip past "1;1;" (2 semicolons) to get rows;cols */
+					while (*p && semi < 2) { if (*p == ';') semi++; p++; }
 					while (*p >= '0' && *p <= '9') { row = row * 10 + (*p - '0'); p++; }
 					if (*p == ';') p++;
 					while (*p >= '0' && *p <= '9') { col = col * 10 + (*p - '0'); p++; }
@@ -947,8 +955,6 @@ public void scrsize(void)
 					if (col > 0) sys_width = col;
 				}
 			}
-			/* Restore cursor to home */
-			Write(fh, "\033[H", 3);
 		}
 	}
 #else

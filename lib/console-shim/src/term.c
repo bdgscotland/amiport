@@ -226,9 +226,10 @@ char *tgetstr(const char *cap, char **area)
     else if (cap[0] == 'c' && cap[1] == 'l') val = "\033[2J\033[H"; /* clear screen */
     else if (cap[0] == 'c' && cap[1] == 'd') val = "\033[J";       /* clear to EOS */
 
-    /* Init/deinit terminal */
-    else if (cap[0] == 't' && cap[1] == 'i') val = "\0337\033[?47h";
-    else if (cap[0] == 't' && cap[1] == 'e') val = "\033[?47l\0338";
+    /* Init/deinit terminal — Amiga console.device does not support
+     * alternate screen buffers (?47h/?47l). Use clear screen instead. */
+    else if (cap[0] == 't' && cap[1] == 'i') val = "\033[2J\033[H";
+    else if (cap[0] == 't' && cap[1] == 'e') val = "\033[2J\033[H";
 
     /* Standout (reverse video) */
     else if (cap[0] == 's' && cap[1] == 'o') val = "\033[7m";

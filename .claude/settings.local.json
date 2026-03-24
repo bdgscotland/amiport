@@ -22,7 +22,11 @@
       "Bash(curl -T lua-5.4.7.lha ftp://main.aminet.net/new/ --user \"anonymous:duncan@bowring.us\" -v)",
       "Bash(curl -T lua-5.4.7.readme ftp://main.aminet.net/new/ --user \"anonymous:duncan@bowring.us\" -v)",
       "Bash(shasum -a 256 site/packages/lua-5.4.7.lha)",
-      "Bash(shasum -a 256 /Users/duncan/Developer/amiport/site/packages/lua-5.4.7.lha)"
+      "Bash(shasum -a 256 /Users/duncan/Developer/amiport/site/packages/lua-5.4.7.lha)",
+      "Bash(/tmp/patch_audit_summary.txt:*)",
+      "Read(//tmp/**)",
+      "Skill(review-amiga)",
+      "Bash(ls:*)"
     ]
   }
 }
