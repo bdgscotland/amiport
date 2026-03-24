@@ -882,3 +882,55 @@ char probe[1024];
 int len = vsnprintf(probe, sizeof(probe), fmt, ap);
 /* amiport: probe buffer — libnix vsnprintf crashes on NULL (crash-patterns #5) */
 ```
+
+---
+
+## Category 3 (Console UI) Transforms
+
+These apply only to programs using terminal capabilities (less, nano, vim, htop).
+
+### H-TERMCAP: termcap header replacement
+
+**When:** Source includes `<termcap.h>`, `<ncurses/termcap.h>`, or `<curses.h>` for termcap functions
+**Pattern:** `#include <termcap.h>`
+**Replace:** `#include <amiport-console/term.h>`
+**Comment:** `/* amiport: termcap via console-shim (ADR-009) */`
+
+### H-TERMIOS: termios header replacement
+
+**When:** Source includes `<termios.h>` for raw/cooked terminal mode
+**Pattern:** `#include <termios.h>`
+**Replace:** `#include <amiport/termios.h>`
+**Comment:** `/* amiport: termios shim — maps tcsetattr to SetMode() */`
+
+### H-CURSES: ncurses header replacement
+
+**When:** Source includes `<curses.h>` or `<ncurses.h>` for full ncurses API
+**Pattern:** `#include <curses.h>` or `#include <ncurses.h>`
+**Replace:** `#include <amiport-console/curses.h>`
+**Comment:** `/* amiport: ncurses via console-shim (ADR-009) */`
+
+### F-DEVTTY: /dev/tty replacement
+
+**When:** Source opens `/dev/tty` for keyboard input (bypassing stdin redirection)
+**Pattern:** `open("/dev/tty", ...)` or string constant `"/dev/tty"`
+**Replace:** `open("*", ...)` or `"*"` — AmigaDOS star device = current console
+**Comment:** `/* amiport: /dev/tty → "*" (AmigaDOS star device) */`
+**Guard:** `#ifdef __AMIGA__` / `#else` / `#endif` for cross-platform
+
+### F-SIGWINCH: Window resize signal stub
+
+**When:** Source installs a SIGWINCH handler for terminal resize events
+**Pattern:** `signal(SIGWINCH, handler)` or `sigaction(SIGWINCH, ...)`
+**Action:** Disabled via defines.h (`SIGWINCH` not defined on AmigaOS). If not `#ifdef`-guarded in source, add `#ifndef __AMIGA__` guard.
+**Note:** Console-shim's `scrsize()` queries window size at startup via CSI Window Status Request (ADCD). No runtime resize detection — AmigaOS shell windows are typically fixed-size.
+
+### C-TI-TE: Terminal init/deinit sequences
+
+**When:** Console-shim returns terminal init (`ti`) and deinit (`te`) capability strings
+**Critical:** Amiga console.device does NOT support alternate screen buffers (`ESC[?47h`/`ESC[?47l`). Use clear screen (`ESC[2J ESC[H`) instead. This is already set in console-shim's tgetstr() — documented here for awareness.
+
+### C-CURSOR-HIDE: Cursor visibility
+
+**When:** Program uses `civis`/`cnorm` termcap capabilities to hide/show cursor
+**Note:** Amiga console.device does not support DEC private mode `ESC[?25l`/`ESC[?25h`. These are silently ignored. Cursor remains visible during paging. Known limitation — document in PORT.md.

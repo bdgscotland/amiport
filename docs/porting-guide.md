@@ -65,6 +65,15 @@ Cross-compiles the ported source using the Docker toolchain. Handles:
 - Linking with posix-shim library (+ console-shim/bsdsocket-shim for Categories 3-4)
 - Iterative error fixing
 
+**Category 3 (Console UI) build configuration:**
+- Add `-I../../lib/console-shim/include` to CFLAGS
+- Add `-L../../lib/console-shim -lamiport-console` to LDFLAGS
+- For termcap programs (less, vi): `#include <amiport-console/term.h>` replaces `<termcap.h>`
+- For termios programs: `#include <amiport/termios.h>` replaces `<termios.h>`
+- For ncurses programs (nano, htop): `#include <amiport-console/curses.h>` replaces `<curses.h>`
+- Hand-craft `defines.h` for programs that use autoconf (set HAVE_TERMCAP_H=1, HAVE_TERMIOS_H=1, etc.)
+- Use `-std=gnu99` if the upstream source requires C99 features (ADR-022)
+
 ### 4. Test
 
 First, dispatch the `test-designer` agent to generate a comprehensive test suite for the port. Test cases should NOT be written manually — the test-designer produces thorough coverage including edge cases, error paths, and boundary conditions.
