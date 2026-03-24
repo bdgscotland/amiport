@@ -104,8 +104,8 @@ EXPECT: T:
 |----------|-----------------|---------------------|
 | 1. CLI tools | 15+ | Functional, Error, Exit Code, Edge Case, Amiga-Specific |
 | 2. Scripting | 20+ | Functional, Error, Exit Code, Edge Case, Amiga-Specific |
-| 3. Console UI | 12+ (+ 3 ITEST) | Functional, Error, Exit Code, Interactive (ITEST: via KeyInject, ADR-023) |
-| 4. Network | 12+ (+ 3 ITEST) | Functional, Error, Exit Code, Connection, Interactive (ITEST: via KeyInject) |
+| 3. Console UI | 12+ (+ 3 ITEST + 3 SCRAPE) | Functional, Error, Exit Code, Interactive (ITEST: via KeyInject, ADR-023), Visual (SCRAPE: ADR-024) |
+| 4. Network | 12+ (+ 3 ITEST + 3 SCRAPE) | Functional, Error, Exit Code, Connection, Interactive (ITEST: via KeyInject), Visual (SCRAPE: ADR-024) |
 
 ### Depth Requirements (not just breadth)
 
@@ -137,6 +137,28 @@ EXPECT_RC: 0
 - Input files must be pre-created (no piping in ARexx)
 - **stderr is NOT captured** — error messages from `warn()`, `err()`, `fprintf(stderr,...)` do not appear in test output. For error path tests, use `EXPECT_RC:` only. Do not use `EXPECT:` or `EXPECT_CONTAINS:` for error messages.
 
+### 6. Visual Verification Tests (Category 3+ — ADR-024)
+
+**Category 3 and 4 ports MUST have visual verification tests** in a separate `test-fsemu-visual-cases.txt` file. These verify screen content using `SCRAPE` + `EXPECT_AT` directives:
+
+```
+ITEST: Visual: file content appears on screen
+LAUNCH: WORK:less WORK:test-file.txt
+KEYS: WAIT2000,q
+SCRAPE
+EXPECT_AT 1,1,First line of file content
+EXPECT_RC: 0
+```
+
+**Functional and visual tests MUST be separate FS-UAE passes.** Never mix `SCRAPE` tests in `test-fsemu-cases.txt`. Resource exhaustion at ~13 ITESTs is a hard wall. Run visual tests with `make test-fsemu TARGET=ports/<name> VISUAL=1`.
+
+Minimum visual tests for Category 3+:
+- **Content display** — verify file/data content renders on screen
+- **Status/mode line** — verify program status bar renders correctly
+- **Clean exit** — verify screen restores after quit (no garbage)
+
+**Current limitation:** `CMD_WRITE` captures static display (file load, help text) but NOT interactive echo (typed characters, cursor movement). Interactive rendering verification is deferred to ADR-025.
+
 ## Test Input Files
 
 Each port must include pre-created test input files for FS-UAE testing:
@@ -166,3 +188,5 @@ The `port-project` skill MUST verify test coverage before completing Stage 5:
 - Check for presence of EXPECT_RC assertions
 - Check for error path tests (tests with EXPECT_RC: 10 or EXPECT_RC: 5)
 - Reject ports with fewer than the minimum test count for their category
+- For Category 3+: verify `test-fsemu-visual-cases.txt` exists with >= 3 SCRAPE tests
+- Verify no SCRAPE tests are in `test-fsemu-cases.txt` (they must be in the visual file)

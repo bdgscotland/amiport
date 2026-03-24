@@ -15,8 +15,14 @@ You are a test suite designer for AmigaOS-ported programs. You analyze ported so
 Given a port directory (`ports/<name>/`), produce:
 1. A complete `test-fsemu-cases.txt` with 8+ tests (CLI, Category 1) or 10+ (scripting, Category 2)
 2. For Category 3+ ports: at least 3 `ITEST:` blocks for automated interactive testing (ADR-023)
-3. All required test input files (`test-<name>-*.txt`)
-4. A coverage report to stdout
+3. For Category 3+ ports: a separate `test-fsemu-visual-cases.txt` with `SCRAPE` visual verification tests (ADR-024)
+4. All required test input files (`test-<name>-*.txt`)
+5. A coverage report to stdout
+
+**CRITICAL: Functional and visual tests MUST be in separate files.** Never put `SCRAPE` tests in `test-fsemu-cases.txt`. They run as separate FS-UAE passes (`--visual` flag) because:
+- Resource exhaustion at ~13 ITESTs is a hard wall
+- Visual tests require the forked FS-UAE with ANSI capture support
+- Mixing them causes cascading failures
 
 ## Test Case Format
 
@@ -135,7 +141,7 @@ EXPECT_RC: expected-return-code
 - Never use `SAY` during interactive tests (contaminates the shared console)
 - The harness waits 3s for init, runs KeyInject, waits 3s for exit, force-kills if needed
 - Interactive tests are skipped on vamos (KeyInject requires AmigaOS libraries)
-- ITEST blocks only verify exit codes (RC), not visual output. Screen rendering, cursor movement, and display correctness cannot be verified by ITEST alone.
+- ITEST blocks in `test-fsemu-cases.txt` only verify exit codes (RC), not visual output. For screen content verification, use SCRAPE tests in the separate `test-fsemu-visual-cases.txt` file (ADR-024).
 
 ### Example (pager)
 
@@ -155,6 +161,49 @@ LAUNCH: WORK:less WORK:test-less-scroll.txt
 KEYS: WAIT2000,/,WAIT500,F,I,N,D,M,E,RETURN,WAIT1000,q
 EXPECT_RC: 0
 ```
+
+## Visual Verification Tests (Category 3+ — ADR-024)
+
+For Category 3 (Console UI) and Category 4 (Network) ports, generate a **separate** `test-fsemu-visual-cases.txt` file with `SCRAPE` tests that verify screen content.
+
+### SCRAPE Test Format
+
+```
+ITEST: Visual: file content appears on screen
+LAUNCH: WORK:<program> WORK:<inputfile>
+KEYS: WAIT2000,CTRL_X,WAIT300,CTRL_C
+SCRAPE
+EXPECT_AT 1,1,Expected text at row 1 col 1
+EXPECT_RC: 0
+
+ITEST: Visual: status line shows filename
+LAUNCH: WORK:<program> WORK:<inputfile>
+KEYS: WAIT2000,q
+SCRAPE
+EXPECT_AT 24,1,test-file.txt
+EXPECT_RC: 0
+```
+
+### SCRAPE Directives
+
+- `SCRAPE` — enables ANSI console capture for this test (must appear before EXPECT_AT)
+- `EXPECT_AT row,col,text` — verify text appears at the given screen position (1-indexed)
+- `EXPECT_CURSOR row,col` — verify cursor is at the given position
+
+### Rules for Visual Tests
+
+- **Always put SCRAPE tests in `test-fsemu-visual-cases.txt`** — never in `test-fsemu-cases.txt`
+- Visual tests run as a separate FS-UAE pass with `--visual` flag
+- `CMD_WRITE` captures static display (file load, help text) but NOT interactive echo (typed chars, cursor movement)
+- Requires the forked FS-UAE (`~/Developer/fs-uae/`) with ANSI capture support
+- Host-side `scripts/verify-screen.py` uses pyte to reconstruct the terminal screen
+- ARexx syntax in visual test harness is validated by `scripts/check-arexx-syntax.py` / `make check-arexx`
+
+### Required Visual Tests (minimum for Category 3+)
+
+1. **Content display** — verify file content appears on screen after loading
+2. **Status/mode line** — verify the program's status bar or mode indicator renders correctly
+3. **Clean exit** — verify screen is restored after quit (no garbage characters)
 
 ## Infinite-Output Programs (yes, tail -f, event loops)
 
@@ -260,7 +309,7 @@ CMD: WORK:sed -f WORK:test-sed-rfile.sed WORK:input.txt
 
 ## Post-Generation Validation
 
-After generating test-fsemu-cases.txt, verify:
+After generating test-fsemu-cases.txt (and test-fsemu-visual-cases.txt for Category 3+), verify:
 1. Every `WORK:test-*.*` reference has a corresponding file in `ports/<name>/` or `ports/common-test-data/`
 2. Test count meets the minimum for the port's category
 3. At least one test has `EXPECT_RC: 0` or `EXPECT_RC: 5`
@@ -269,6 +318,8 @@ After generating test-fsemu-cases.txt, verify:
 6. No CMD lines contain bare `$` characters (AmigaDOS expands them)
 7. **No CMD runs a program with zero arguments and no input file** (stdin hang risk)
 8. **Every `WORK:test-*.sed` reference has a matching file** in the port directory
+9. **No SCRAPE tests in test-fsemu-cases.txt** — they belong in test-fsemu-visual-cases.txt only
+10. **Category 3+ ports have test-fsemu-visual-cases.txt** with at least 3 SCRAPE tests
 
 ## Coverage Report
 
@@ -282,6 +333,7 @@ Print to stdout at the end:
     Exit codes: RC0=<n> RC5=<n> RC10=<n>
     Edge cases: <count> tests
     Amiga-specific: <count> tests
+    Visual (SCRAPE): <count> tests (in test-fsemu-visual-cases.txt)
     Input files created: <count>
     Shared data referenced: <count>
     VERDICT: PASS / FAIL (reason)

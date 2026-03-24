@@ -137,7 +137,7 @@ For console UI apps (Category 3), network apps (Category 4), GUI programs, or ha
 
 For interactive console programs (Category 3+), the test harness supports `ITEST:` blocks that use **KeyInject** (`toolchain/keyinject/`) to inject keystrokes via `commodities.library/AddIEvents()`. Interactive tests are skipped on vamos (KeyInject requires AmigaOS). See ADR-023.
 
-For **visual verification** (ADR-024), ITEST blocks can include `SCRAPE`, `EXPECT_AT row,col,text`, and `EXPECT_CURSOR row,col` directives. These require the forked FS-UAE (`~/Developer/fs-uae/`) with ANSI console capture support. The host-side `scripts/verify-screen.py` uses pyte to reconstruct the terminal screen from captured ANSI output and verify character-level assertions.
+For **visual verification** (ADR-024), use a **separate test file** (`test-fsemu-visual-cases.txt`) with `SCRAPE`, `EXPECT_AT row,col,text`, and `EXPECT_CURSOR row,col` directives. **Functional and visual tests MUST be separate FS-UAE passes** -- never mix them in one suite. Resource exhaustion at ~13 ITESTs is a hard wall. Run visual tests with `make test-fsemu TARGET=ports/<name> VISUAL=1` (passes `--visual` to `scripts/test-fsemu.sh`). The forked FS-UAE (`~/Developer/fs-uae/`) captures per-unit ANSI output; host-side `scripts/verify-screen.py` uses pyte for screen reconstruction. ARexx syntax validated by `scripts/check-arexx-syntax.py` / `make check-arexx`. Note: `CMD_WRITE` captures static display (file load, help text) but NOT interactive echo (typed chars, cursor movement) -- interactive rendering verification deferred to ADR-025.
 
 ## Design System
 

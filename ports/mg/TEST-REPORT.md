@@ -5,60 +5,32 @@
 | Field | Value |
 |-------|-------|
 | Port | mg |
-| Date | 2026-03-24 12:57:53 |
-| Duration | 324s |
+| Date | 2026-03-24 17:10:33 |
+| Duration | 191s |
 | Platform | FS-UAE 3.2.35 (A1200, Kickstart 3.1) |
 | Binary | `WORK:mg` (193K) |
 | Test method | ARexx harness → TAP output |
-| Result | **PASS** — 18/18 passed |
+| Result | **PASS** — 4/4 passed |
 
 ## Test Results
 
 ```
-1..18
-ok 1 - -h flag prints usage and exits with RC 0
-ok 2 - Unknown flag exits with RC 10
-ok 3 - -f with unknown function name exits with RC 10
-ok 4 - -b and -u flags are mutually exclusive, exits with RC 10
-ok 5 - -u with nonexistent config file exits with RC 10
-ok 6 - Search forward with C-s for a word, then quit
-ok 7 - Search backward with C-r for a word, then quit
-ok 8 - Open mg with no file and quit cleanly with C-x C-c
-ok 9 - Open a file and quit without saving using C-x C-c
-ok 10 - Open read-only with -R flag and quit
-ok 11 - Open file via WORK: volume path and quit
-ok 12 - Use +number to start at line 3 then quit
-ok 13 - Type text into scratch buffer and quit discarding with y
-ok 14 - Open file, add a character, undo with C-x u, quit
-ok 15 - Kill a line with C-k and yank it back with C-y, quit discarding
-ok 16 - Move cursor to end of line with C-e, beginning with C-a, quit
-ok 17 - Move cursor forward and back with C-f and C-b then quit
-ok 18 - Move cursor down and up with C-n and C-p then quit
-# passed: 18 failed: 0 total: 18
+1..4
+ok 1 - Visual: basic file content correct on all 5 lines
+ok 2 - Visual: scroll file displays numbered lines
+ok 3 - Visual: -R read-only mode still displays file
+ok 4 - Visual: empty file shows blank line 1
+# passed: 4 failed: 0 total: 4
 ```
 
 ### Breakdown
 
 | # | Test | Status | Details |
 |---|------|--------|---------|
-| 1 | -h flag prints usage and exits with RC 0 | PASS | |
-| 2 | Unknown flag exits with RC 10 | PASS | |
-| 3 | -f with unknown function name exits with RC 10 | PASS | |
-| 4 | -b and -u flags are mutually exclusive, exits with RC 10 | PASS | |
-| 5 | -u with nonexistent config file exits with RC 10 | PASS | |
-| 6 | Search forward with C-s for a word, then quit | PASS | |
-| 7 | Search backward with C-r for a word, then quit | PASS | |
-| 8 | Open mg with no file and quit cleanly with C-x C-c | PASS | |
-| 9 | Open a file and quit without saving using C-x C-c | PASS | |
-| 10 | Open read-only with -R flag and quit | PASS | |
-| 11 | Open file via WORK: volume path and quit | PASS | |
-| 12 | Use +number to start at line 3 then quit | PASS | |
-| 13 | Type text into scratch buffer and quit discarding with y | PASS | |
-| 14 | Open file, add a character, undo with C-x u, quit | PASS | |
-| 15 | Kill a line with C-k and yank it back with C-y, quit discarding | PASS | |
-| 16 | Move cursor to end of line with C-e, beginning with C-a, quit | PASS | |
-| 17 | Move cursor forward and back with C-f and C-b then quit | PASS | |
-| 18 | Move cursor down and up with C-n and C-p then quit | PASS | |
+| 1 | Visual: basic file content correct on all 5 lines | PASS | |
+| 2 | Visual: scroll file displays numbered lines | PASS | |
+| 3 | Visual: -R read-only mode still displays file | PASS | |
+| 4 | Visual: empty file shows blank line 1 | PASS | |
 
 ## Environment
 
@@ -120,6 +92,8 @@ TEST: -u with nonexistent config file exits with RC 10
 CMD: WORK:mg -u WORK:no-such-config-file-xyz.mg WORK:test-mg-basic.txt
 EXPECT_RC: 10
 
+# Visual verification tests are in test-fsemu-visual-cases.txt (separate pass).
+
 # ============================================================
 # Interactive tests -- search (before heavy tests to avoid resource exhaustion)
 # ============================================================
@@ -150,11 +124,6 @@ EXPECT_RC: 0
 
 ITEST: Open read-only with -R flag and quit
 LAUNCH: WORK:mg -n -R WORK:test-mg-basic.txt
-KEYS: WAIT2000,CTRL_X,WAIT300,CTRL_C
-EXPECT_RC: 0
-
-ITEST: Open file via WORK: volume path and quit
-LAUNCH: WORK:mg -n WORK:test-mg-basic.txt
 KEYS: WAIT2000,CTRL_X,WAIT300,CTRL_C
 EXPECT_RC: 0
 
@@ -203,7 +172,7 @@ EXPECT_RC: 0
 
 # NOTE: Maximum ~13 ITESTs can run before resource exhaustion on emulated
 # AmigaOS (each mg invocation opens "*" console handle + allocates memory
-# that isn't fully reclaimed after Break C kills). The 18 tests above
+# that isn't fully reclaimed after Break C kills). The tests above
 # cover all core features within this budget.
 # Paging (C-v, M-v) is verified in the earlier tests via search-on-scroll-file.
 ```
@@ -220,9 +189,9 @@ Written by the ARexx harness when all tests complete:
 
 ```
 TESTS_COMPLETE
-passed=18
+passed=4
 failed=0
-total=18
+total=4
 ```
 
 ---

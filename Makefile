@@ -202,7 +202,11 @@ test-fsemu: build-uaequit build-keyinject install-emu
 ifndef TARGET
 	$(error TARGET is required. Usage: make test-fsemu TARGET=ports/grep)
 endif
+ifdef VISUAL
+	@bash scripts/test-fsemu.sh --visual $(TARGET)
+else
 	@bash scripts/test-fsemu.sh $(TARGET)
+endif
 
 test-site:
 	@bash site/test-site.sh http://amiport.platesteel.net

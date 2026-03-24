@@ -1,17 +1,21 @@
 # test-fsemu-visual-cases.txt -- Visual verification tests for mg 3.7
 # Runs in a SEPARATE FS-UAE pass from functional tests (ADR-024).
-# Uses SCRAPE + EXPECT_AT to verify screen content after keyboard input.
 # Requires forked FS-UAE with per-unit ANSI capture.
 #
-# NOTE: CMD_WRITE captures static content display (file load, help text)
-# but NOT interactive echo (typed characters, cursor movement). Interactive
-# rendering verification needs the ADR-025 custom trap approach.
+# SCOPE: CMD_WRITE captures initial file display (the file load path
+# that writes all lines to the console on open). Interactive echo
+# (typed chars, cursor movement) is NOT captured by CMD_WRITE --
+# mg renders those through a different console.device path.
+# Interactive verification requires ADR-025 (direct screen buffer read).
+#
+# These tests verify: file content renders correctly, correct file loaded,
+# different files produce different output, flags affect display.
 
 # ============================================================
-# Visual: file content correctly displayed on open
+# 1. Basic file -- all 5 lines verified
 # ============================================================
 
-ITEST: Visual: file content displayed correctly on open
+ITEST: Visual: basic file content correct on all 5 lines
 LAUNCH: WORK:mg -n WORK:test-mg-basic.txt
 KEYS: WAIT3000
 SCRAPE
@@ -22,13 +26,34 @@ EXPECT_AT 4,1,Line four: the quick brown fox jumps over the lazy dog.
 EXPECT_AT 5,1,Line five: testing cursor movement and search.
 
 # ============================================================
-# Visual: scroll file displays from correct starting line
+# 2. Scroll file -- verify different file produces different output
 # ============================================================
 
-ITEST: Visual: scroll file displays all lines correctly
+ITEST: Visual: scroll file displays numbered lines
 LAUNCH: WORK:mg -n WORK:test-mg-scroll.txt
 KEYS: WAIT3000
 SCRAPE
 EXPECT_AT 1,1,Line 001: The Amiga 1200 was released in 1992.
 EXPECT_AT 3,1,Line 003: The AGA chipset brought 256 colours on screen.
 EXPECT_AT 5,1,Line 005: AmigaOS uses a microkernel called Exec.
+
+# ============================================================
+# 3. Read-only mode -- -R flag doesn't prevent display
+# ============================================================
+
+ITEST: Visual: -R read-only mode still displays file
+LAUNCH: WORK:mg -n -R WORK:test-mg-basic.txt
+KEYS: WAIT3000
+SCRAPE
+EXPECT_AT 1,1,Hello, Amiga world!
+EXPECT_AT 4,1,Line four: the quick brown fox jumps over the lazy dog.
+
+# ============================================================
+# 4. Empty file -- verify no stale content on screen
+# ============================================================
+
+ITEST: Visual: empty file shows blank line 1
+LAUNCH: WORK:mg -n WORK:test-mg-empty.txt
+KEYS: WAIT3000
+SCRAPE
+EXPECT_AT 1,1,

@@ -5,8 +5,8 @@
 | Field | Value |
 |-------|-------|
 | Port | less |
-| Date | 2026-03-23 23:44:20 |
-| Duration | 81s |
+| Date | 2026-03-24 01:42:48 |
+| Duration | 82s |
 | Platform | FS-UAE 3.2.35 (A1200, Kickstart 3.1) |
 | Binary | `WORK:less` (234K) |
 | Test method | ARexx harness → TAP output |

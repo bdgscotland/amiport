@@ -151,3 +151,14 @@ vamos does NOT support:
 - Most hardware-related libraries
 
 If the program requires unsupported libraries, note this and suggest FS-UAE testing instead.
+
+## FS-UAE Visual Verification (ADR-024)
+
+For Category 3+ (Console UI, Network) ports, visual verification tests run as a **separate FS-UAE pass** from functional tests:
+
+- **Functional tests**: `test-fsemu-cases.txt` -- run with `make test-fsemu TARGET=ports/<name>`
+- **Visual tests**: `test-fsemu-visual-cases.txt` -- run with `make test-fsemu TARGET=ports/<name> VISUAL=1`
+
+The `--visual` flag tells `scripts/test-fsemu.sh` to use the visual test file and enable ANSI capture via the forked FS-UAE (`~/Developer/fs-uae/`). Host-side `scripts/verify-screen.py` uses pyte to reconstruct the terminal screen.
+
+**Never mix functional and visual tests in one suite.** Resource exhaustion at ~13 ITESTs is a hard wall. See ADR-024 for details.

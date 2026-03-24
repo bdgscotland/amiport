@@ -118,7 +118,7 @@ Categories 3-4 use an automated FS-UAE testing pipeline instead of manual intera
 - **FS-UAE** path: full AmigaOS boot, ARexx harness executes test cases, TAP output captured via shared RESULTS: volume, UAEQuit terminates the emulator — used for all categories pre-publication.
 - **Test assertions**: `EXPECT:` for exact first-line match, `EXPECT_CONTAINS:` for substring match (useful for multi-line command output like diff).
 - **Interactive tests** (Category 3+): `ITEST:` blocks use KeyInject (`toolchain/keyinject/`) to inject keystrokes via `commodities.library/AddIEvents()`. The test-runner.rexx harness supports `ITEST:` blocks alongside existing `TEST:` blocks. Interactive tests are skipped on vamos. See ADR-023.
-- **Visual verification** (ADR-024): `SCRAPE` + `EXPECT_AT row,col,text` + `EXPECT_CURSOR row,col` directives in ITEST blocks. Forked FS-UAE captures raw ANSI output from console.device; host-side `verify-screen.py` (pyte) reconstructs screen state for character-level assertions.
+- **Visual verification** (ADR-024): `SCRAPE` + `EXPECT_AT row,col,text` + `EXPECT_CURSOR row,col` directives in a **separate** `test-fsemu-visual-cases.txt` file. Functional and visual tests MUST be separate FS-UAE passes (resource exhaustion at ~13 ITESTs is a hard wall). Run with `--visual` flag. Forked FS-UAE (`~/Developer/fs-uae/`) captures per-unit raw ANSI output from console.device; host-side `scripts/verify-screen.py` (pyte) reconstructs screen state for character-level assertions. ARexx syntax validated by `scripts/check-arexx-syntax.py` / `make check-arexx`. Note: `CMD_WRITE` captures static display only, not interactive echo (ADR-025 scope).
 
 ### Toolchain
 

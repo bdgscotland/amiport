@@ -63,9 +63,37 @@ EXPECT_RC: 0
 - Interactive tests are skipped on vamos (KeyInject requires AmigaOS)
 - FS-UAE config must include `fast_memory = 8192` (multiple CLIs exhaust 2MB Chip RAM)
 
+### Visual Verification Tests — Separate Pass (ADR-024)
+
+**Functional and visual tests MUST be separate FS-UAE passes.** Never mix them in one suite. Resource exhaustion at ~13 ITESTs is a hard wall, and visual tests require the forked FS-UAE with ANSI capture support.
+
+**Test file split:**
+- `test-fsemu-cases.txt` — non-interactive `TEST:` blocks + functional `ITEST:` blocks (exit code verification)
+- `test-fsemu-visual-cases.txt` — `SCRAPE` visual verification tests only
+
+**Running visual tests:**
+```bash
+make test-fsemu TARGET=ports/<name>           # Functional pass (default)
+make test-fsemu TARGET=ports/<name> VISUAL=1  # Visual pass (--visual flag)
+```
+
+The `--visual` flag tells `scripts/test-fsemu.sh` to use `test-fsemu-visual-cases.txt` instead and enables ANSI capture via the forked FS-UAE (`~/Developer/fs-uae/`). Host-side `scripts/verify-screen.py` uses pyte to reconstruct the terminal screen from captured ANSI output.
+
+**SCRAPE test format** (in `test-fsemu-visual-cases.txt`):
+```
+ITEST: Visual: file content appears on screen
+LAUNCH: WORK:mg -n WORK:test-file.txt
+KEYS: WAIT2000,CTRL_X,WAIT300,CTRL_C
+SCRAPE
+EXPECT_AT 1,1,Hello, Amiga world!
+EXPECT_RC: 0
+```
+
+**Current limitation:** `CMD_WRITE` captures static display (file load, help text) but NOT interactive echo (typed characters, cursor movement). Interactive rendering verification is deferred to ADR-025.
+
 ### Manual Interactive Verification (supplemental)
 
-Manual testing remains useful for **visual verification** (screen rendering, cursor positioning, display artifacts) that automated tests cannot verify yet (Phase 2 of ADR-023).
+Manual testing remains useful for **visual aspects that automated SCRAPE tests cannot yet verify** — interactive echo, cursor movement during typing, and complex screen transitions (ADR-025 scope).
 
 **How to run manual tests:**
 

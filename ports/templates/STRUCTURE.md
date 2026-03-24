@@ -10,7 +10,9 @@ ports/<name>/
 │   └── <name>.c       # Every change has a /* amiport: ... */ comment
 ├── Makefile           # Build rules — copied from templates/Makefile.template
 ├── PORT.md            # Porting log — copied from templates/PORT.md.template
-└── <name>.readme      # Aminet readme — generated from templates/readme.template
+├── <name>.readme      # Aminet readme — generated from templates/readme.template
+├── test-fsemu-cases.txt          # FS-UAE functional test suite (REQUIRED)
+└── test-fsemu-visual-cases.txt   # FS-UAE visual verification tests (Category 3+ — ADR-024)
 ```
 
 ## File Purposes
@@ -22,6 +24,8 @@ ports/<name>/
 | `Makefile` | Stage 2 | Template | Build, test, compare, package rules |
 | `PORT.md` | Stage 2+ | Template + Pipeline | Documents every transformation and test result |
 | `<name>.readme` | Stage 7 | Template | Aminet-format readme for distribution |
+| `test-fsemu-cases.txt` | Stage 5b | test-designer | Functional test suite (non-interactive + ITEST) |
+| `test-fsemu-visual-cases.txt` | Stage 5e | test-designer | Visual verification tests with SCRAPE (Category 3+, ADR-024) |
 
 ## Build Artifacts (not checked in)
 

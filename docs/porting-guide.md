@@ -111,9 +111,10 @@ KEYS: WAIT1500,q
 EXPECT_RC: 0
 ```
 
-For **visual verification** (ADR-024), add `SCRAPE` + `EXPECT_AT`/`EXPECT_CURSOR` to verify screen content:
+For **visual verification** (ADR-024), create a **separate** `test-fsemu-visual-cases.txt` with `SCRAPE` tests. Functional and visual tests MUST be separate FS-UAE passes -- never mix them. Resource exhaustion at ~13 ITESTs is a hard wall.
 
 ```
+# In test-fsemu-visual-cases.txt (NOT test-fsemu-cases.txt):
 ITEST: Visual: file content appears on screen
 LAUNCH: WORK:mg -n WORK:test-file.txt
 KEYS: WAIT2000,CTRL_X,WAIT300,CTRL_C
@@ -123,7 +124,13 @@ EXPECT_CURSOR 1,1
 EXPECT_RC: 0
 ```
 
-Requires the forked FS-UAE with ANSI console capture (`~/Developer/fs-uae/`).
+Run the two passes separately:
+```bash
+make test-fsemu TARGET=ports/<name>           # Functional pass
+make test-fsemu TARGET=ports/<name> VISUAL=1  # Visual pass (--visual flag)
+```
+
+Requires the forked FS-UAE with ANSI console capture (`~/Developer/fs-uae/`). Note: `CMD_WRITE` captures static display (file load, help text) but NOT interactive echo (typed characters, cursor movement) -- interactive rendering verification deferred to ADR-025.
 
 ### 5. Review (recommended)
 
