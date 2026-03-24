@@ -73,11 +73,6 @@ LAUNCH: WORK:mg -n -R WORK:test-mg-basic.txt
 KEYS: WAIT2000,CTRL_X,WAIT300,CTRL_C
 EXPECT_RC: 0
 
-ITEST: Open file via WORK: volume path and quit
-LAUNCH: WORK:mg -n WORK:test-mg-basic.txt
-KEYS: WAIT2000,CTRL_X,WAIT300,CTRL_C
-EXPECT_RC: 0
-
 ITEST: Use +number to start at line 3 then quit
 LAUNCH: WORK:mg -n +3 WORK:test-mg-scroll.txt
 KEYS: WAIT2000,CTRL_X,WAIT300,CTRL_C

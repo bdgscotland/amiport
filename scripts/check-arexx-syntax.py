@@ -26,7 +26,7 @@ def check_file(filepath):
     """Check a single ARexx file. Returns list of error strings."""
     errors = []
     try:
-        lines = open(filepath).readlines()
+        lines = open(filepath, encoding="iso-8859-1").readlines()
     except (IOError, OSError) as e:
         return [f"  Cannot read: {e}"]
 

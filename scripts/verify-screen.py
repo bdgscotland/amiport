@@ -126,6 +126,13 @@ def check_assertions(screen, assertions):
                 failed += 1
                 continue
 
+            if c < 0 or c >= screen.columns:
+                details.append(
+                    f"FAIL: EXPECT_AT {row},{col}: col out of range (screen has {screen.columns} cols)"
+                )
+                failed += 1
+                continue
+
             line = screen.display[r]
             end = c + len(expected_text)
             actual = line[c:end] if c < len(line) else ""
