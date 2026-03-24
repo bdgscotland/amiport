@@ -331,9 +331,10 @@ run_emulator() {
     export FSEMU_SCREENSHOTS_DIR="$RESULTS_DIR/screenshots"
     mkdir -p "$RESULTS_DIR/screenshots"
 
-    # ADR-024: Set up ANSI capture log if using forked FS-UAE
-    local ansi_log="$RESULTS_DIR/ansi-capture.log"
-    export AMIPORT_ANSI_LOG="$ansi_log"
+    # ADR-024: Set up per-window ANSI capture directory
+    local ansi_log_dir="$RESULTS_DIR/ansi-logs"
+    export AMIPORT_ANSI_LOG_DIR="$ansi_log_dir"
+    mkdir -p "$ansi_log_dir"
     mkdir -p "$RESULTS_DIR/scrapes"
 
     # Launch FS-UAE
@@ -404,16 +405,29 @@ run_emulator() {
 
         # ADR-024: Check for SCRAPE sentinels (visual verification).
         # The ARexx harness writes RESULTS:scrape-N after KEYS injection;
-        # we snapshot the ANSI log and delete the sentinel so the harness continues.
+        # we pick the newest per-unit ANSI log (the ITEST window) and copy it.
         for scrape_sentinel in "$RESULTS_DIR"/scrape-*; do
             [ -f "$scrape_sentinel" ] || continue
             # Skip .assertions and .uaem files
             case "$scrape_sentinel" in *.assertions|*.uaem) continue;; esac
             local scrape_num
             scrape_num=$(basename "$scrape_sentinel" | sed 's/scrape-//')
-            if [ -f "$ansi_log" ]; then
-                cp "$ansi_log" "$RESULTS_DIR/scrapes/scrape-${scrape_num}.log"
-                echo "  Captured ANSI snapshot for test $scrape_num"
+            # Pick the log with the latest creation time (birth time on macOS).
+            # The ITEST NewShell's log is always created after the boot shell's.
+            local target_log=""
+            local latest_birth=0
+            for logf in "$ansi_log_dir"/*.log; do
+                [ -f "$logf" ] || continue
+                local birth
+                birth=$(stat -f %B "$logf" 2>/dev/null || stat -c %W "$logf" 2>/dev/null || echo "0")
+                if [ "$birth" -gt "$latest_birth" ]; then
+                    latest_birth="$birth"
+                    target_log="$logf"
+                fi
+            done
+            if [ -n "$target_log" ]; then
+                cp "$target_log" "$RESULTS_DIR/scrapes/scrape-${scrape_num}.log"
+                echo "  Captured ANSI snapshot for test $scrape_num ($(basename "$target_log"))"
             fi
             rm -f "$scrape_sentinel"
         done
