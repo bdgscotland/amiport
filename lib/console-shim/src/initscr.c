@@ -19,12 +19,8 @@
 /* Host-side stubs for compilation testing */
 #endif
 
-/* --- Globals --- */
-
-WINDOW *stdscr = NULL;
-WINDOW *curscr = NULL;
-int LINES = 24;
-int COLS = 80;
+/* Globals (stdscr, curscr, LINES, COLS) are in globals.c
+ * to avoid pulling in initscr.o just for variable references */
 
 static int console_initialized = 0;
 static int original_mode = 0; /* 0 = CON:, 1 = RAW: */

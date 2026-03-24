@@ -8,10 +8,11 @@ CC = $(TOOLCHAIN_BIN)/m68k-amigaos-gcc
 AR = $(TOOLCHAIN_BIN)/m68k-amigaos-ar
 RANLIB = $(TOOLCHAIN_BIN)/m68k-amigaos-ranlib
 
-CFLAGS = -O2 -Wall -Wextra -noixemul -m68020 \
+CFLAGS = -O2 -Wall -Wextra -noixemul -m68000 \
          -Iinclude
 
-SRCS = src/initscr.c \
+SRCS = src/globals.c \
+       src/initscr.c \
        src/output.c \
        src/input.c \
        src/color.c \
