@@ -142,8 +142,8 @@ Constraints: ~1MB available after OS boot (~1.5MB without Workbench). No FPU. No
 |---------|--------|-----|--------|----------|-------|
 | lua | PUC-Rio 5.4.7 | 2 | PORTED | — | On Aminet (pending) |
 | jq | jqlang 1.7.1 | 2 | PORTED | — | On Aminet (pending) |
-| awk | OpenBSD/one true awk | 2 | VERIFY | HIGH | Pattern processing. GG gawk exists but bloated. OpenBSD awk is small. |
-| m4 | OpenBSD | 2 | VERIFY | MEDIUM | Macro processor. |
+| awk | OpenBSD/one true awk | 2 | EXISTS | LOW | AT&T awk 1.0 on Aminet (1994, noixemul, SAS/C). Works. GG gawk also exists (ixemul). |
+| m4 | GNU | 2 | CANDIDATE | LOW | May be in GG (ixemul). No standalone noixemul port. Dev tool only. |
 | forth | various | 2 | VERIFY | MEDIUM | Small interpreters (pForth). Native Amiga Forths may exist. |
 | scheme | various | 2 | VERIFY | MEDIUM | Small Schemes (chibi-scheme, s7). ~100KB. |
 
@@ -152,19 +152,19 @@ Constraints: ~1MB available after OS boot (~1.5MB without Workbench). No FPU. No
 | Program | Source | Cat | Status | Priority | Notes |
 |---------|--------|-----|--------|----------|-------|
 | less | GNU 692 | 3 | PORTED | — | |
-| mg | OpenBSD | 3 | VERIFY | HIGH | Micro Emacs. Small, clean OpenBSD source. Great A1200 fit. |
-| nano | GNU | 3 | VERIFY | HIGH | Simple editor. ~200KB binary. Very popular request. |
-| nvi | OpenBSD | 3 | VERIFY | MEDIUM | Small vi clone. Complex but iconic. |
-| sc | Public domain | 3 | VERIFY | MEDIUM | Spreadsheet calculator. Unique offering. |
-| ncdu | Antoine Pietri | 3 | VERIFY | MEDIUM | NCurses disk usage. |
+| mg | OpenBSD | 3 | UPGRADE | HIGH | MicroEMACS 3.10 (1989) on Aminet. Modern OpenBSD mg is vastly better. |
+| nano | GNU | 3 | CANDIDATE | HIGH | No port exists. Very popular request. Needs console-shim ncurses. |
+| nvi | OpenBSD | 3 | EXISTS | — | vim 6.0 (2002) on Aminet for 68k. No value over vim. Skip. |
+| sc | n-t-roff/sc | 3 | CANDIDATE | MEDIUM | No port found. Classic spreadsheet. Needs ncurses. |
+| ncdu | yorhel | 3 | CANDIDATE | MEDIUM | No port found. Use v1.x (C), not v2.x (Rust). Needs ncurses + dir walk. |
+| indent | GNU 2.2.12 | 2 | CANDIDATE | LOW | MorphOS/PPC only on Aminet. No 68k port. Pure C, easy. |
 | more | OpenBSD | 3 | EXISTS | — | less is superior; skip. |
 
 ## 8. Development Tools
 
 | Program | Source | Cat | Status | Priority | Notes |
 |---------|--------|-----|--------|----------|-------|
-| ctags | Universal Ctags | 2 | VERIFY | HIGH | Tag generation for editors. Very useful for Amiga devs. |
-| indent | GNU/OpenBSD | 2 | VERIFY | MEDIUM | C code formatter. |
+| ctags | Universal Ctags | 2 | UPGRADE | MEDIUM | Exuberant Ctags 5.5 (2003) on Aminet. Universal Ctags would be a big upgrade. |
 | diff3 | OpenBSD | 2 | VERIFY | MEDIUM | Three-way diff. |
 | sdiff | OpenBSD | 2 | VERIFY | MEDIUM | Side-by-side diff. |
 | unifdef | — | 2 | VERIFY | MEDIUM | Remove #ifdef blocks. |
@@ -208,6 +208,83 @@ Require bsdsocket.library (AmiTCP, Miami, Roadshow).
 | banner | OpenBSD | 1 | VERIFY | LOW | Print large letters. |
 | number | OpenBSD | 1 | VERIFY | LOW | Convert numbers to English. |
 | morse | OpenBSD | 1 | VERIFY | LOW | Morse code converter. |
+
+## 12. Games & Interactive Fiction
+
+| Program | Source | Cat | Status | Priority | Notes |
+|---------|--------|-----|--------|----------|-------|
+| frotz | Stefan Jokisch | 3 | VERIFY | HIGH | Z-machine interpreter. Plays all Infocom games. Small C, ncurses. |
+| nethack | DevTeam | 3 | VERIFY | HIGH | Roguelike. Legendary. TTY mode fits console-shim. ~200KB. |
+| angband | Ben Harrison | 3 | VERIFY | MEDIUM | Roguelike. Larger than nethack. May need Fast RAM. |
+| rogue | Michael Toy | 3 | VERIFY | MEDIUM | Original roguelike. Very small. |
+| 2048 | various | 3 | CANDIDATE | LOW | Terminal 2048 game. Trivial C implementations exist. |
+| chess (gnuchess) | GNU | 2 | VERIFY | MEDIUM | CLI chess engine. CPU-bound but playable on 68020. |
+| tetris | various | 3 | VERIFY | LOW | Terminal tetris. Many small C implementations. |
+
+## 13. Data Format Tools
+
+| Program | Source | Cat | Status | Priority | Notes |
+|---------|--------|-----|--------|----------|-------|
+| jq | jqlang 1.7.1 | 2 | PORTED | — | JSON processor. On Aminet (pending). |
+| csvtool | various | 1 | VERIFY | MEDIUM | CSV processing. Several small C implementations. |
+| xmlstarlet | Mikhail Grushinskiy | 2 | VERIFY | MEDIUM | XML processor (like jq for XML). Needs expat/libxml. |
+| yq | various | 2 | VERIFY | LOW | YAML processor. Most are Go/Python — need C version. |
+| base64 | OpenBSD | 1 | VERIFY | MEDIUM | Base64 encode/decode. |
+| uuencode/uudecode | OpenBSD | 1 | VERIFY | MEDIUM | Classic encoding. Historically important for Amiga BBS era. |
+
+## 14. Audio & Music Tools
+
+The Amiga is legendary for audio. Tools that work with its native formats have special value.
+
+| Program | Source | Cat | Status | Priority | Notes |
+|---------|--------|-----|--------|----------|-------|
+| sox | Chris Bagwell | 2 | VERIFY | HIGH | Swiss army knife of audio. Core features fit A1200, FPU helps. |
+| mpg123 | Michael Hipp | 2 | VERIFY | MEDIUM | MP3 decoder. Very slow on 68020 without FPU. Tier 3+? |
+| flac | Xiph.org | 2 | VERIFY | MEDIUM | FLAC decoder. Integer-only decode is feasible on 68020. |
+| openmpt (libopenmpt) | OpenMPT | 2 | VERIFY | HIGH | MOD/S3M/XM/IT playback library. Direct Amiga relevance. |
+| mid2agd | various | 2 | VERIFY | LOW | MIDI to Amiga format converters. Niche. |
+
+## 15. Graphics & Image Tools
+
+| Program | Source | Cat | Status | Priority | Notes |
+|---------|--------|-----|--------|----------|-------|
+| netpbm | various | 2 | VERIFY | HIGH | Image format conversion toolkit. Modular, small tools. PBM/PGM/PPM. |
+| pngquant | Kornel Lesinski | 2 | VERIFY | MEDIUM | PNG compression/quantization. Useful for web prep. |
+| gifski | Kornel Lesinski | 2 | VERIFY | LOW | GIF creation. Rust — needs C alternative. |
+| jp2a | Christian Stigen Larsen | 1 | VERIFY | MEDIUM | Convert JPEG to ASCII art. Fun + useful. |
+| caca-utils | Sam Hocevar | 2 | VERIFY | MEDIUM | Image to colored ASCII art (libcaca). |
+| iff2png | various | 2 | VERIFY | HIGH | IFF/ILBM to PNG converter. Direct Amiga relevance. |
+| png2iff | various | 2 | VERIFY | HIGH | PNG to IFF/ILBM converter. Direct Amiga relevance. |
+
+## 16. Document & Text Rendering
+
+| Program | Source | Cat | Status | Priority | Notes |
+|---------|--------|-----|--------|----------|-------|
+| groff | GNU | 2 | VERIFY | MEDIUM | Document formatter. Renders man pages. Large. |
+| mandoc | OpenBSD | 2 | VERIFY | HIGH | Man page formatter. Much smaller than groff. Clean C. |
+| discount | David Parsons | 2 | VERIFY | HIGH | Markdown to HTML. Small C library. Very useful. |
+| lowdown | Kristaps Dzonsons | 2 | VERIFY | HIGH | Markdown renderer. Clean C, minimal deps. BSD licensed. |
+| spell | OpenBSD | 2 | VERIFY | LOW | Spell checker. Needs dictionary file. |
+| aspell | GNU | 2 | VERIFY | LOW | Spell checker. Larger than spell. |
+| enscript | GNU | 2 | VERIFY | LOW | Text to PostScript. Niche on Amiga. |
+
+## 17. System & Admin Tools
+
+| Program | Source | Cat | Status | Priority | Notes |
+|---------|--------|-----|--------|----------|-------|
+| watch | Procps | 1 | VERIFY | MEDIUM | Run command repeatedly, show output. Needs Amiga timer. |
+| time | OpenBSD | 1 | VERIFY | MEDIUM | Time command execution. ReadEClock-based on Amiga. |
+| tput | ncurses | 1 | VERIFY | LOW | Terminal capability queries. Works with console-shim. |
+| strace equiv | — | 2 | CANDIDATE | LOW | Would need SnoopDos-like approach. Amiga-specific. |
+| lsof equiv | — | 2 | CANDIDATE | LOW | Show open files. Would use dos.library LockList. |
+
+## 18. Embedded Databases & Libraries
+
+| Program | Source | Cat | Status | Priority | Notes |
+|---------|--------|-----|--------|----------|-------|
+| sqlite | D. Richard Hipp | 2 | VERIFY | HIGH | Embedded SQL database. ~500KB. Needs Tier 3+ for real use. |
+| gdbm | GNU | 2 | VERIFY | MEDIUM | Key-value database. Small. Used by many tools. |
+| cdb | D.J. Bernstein | 2 | VERIFY | MEDIUM | Constant database. Very small, fast lookups. Perfect for A1200. |
 
 ---
 
