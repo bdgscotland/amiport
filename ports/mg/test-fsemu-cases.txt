@@ -41,6 +41,17 @@ CMD: WORK:mg -u WORK:no-such-config-file-xyz.mg WORK:test-mg-basic.txt
 EXPECT_RC: 10
 
 # ============================================================
+# Visual verification test (ADR-024) -- FIRST to avoid resource exhaustion
+# ============================================================
+
+ITEST: Visual: file content appears on screen after opening
+LAUNCH: WORK:mg -n WORK:test-mg-basic.txt
+KEYS: WAIT3000
+SCRAPE
+EXPECT_AT 1,1,Hello, Amiga world!
+EXPECT_AT 2,1,This is a basic test file for mg.
+
+# ============================================================
 # Interactive tests -- search (before heavy tests to avoid resource exhaustion)
 # ============================================================
 
@@ -114,20 +125,6 @@ EXPECT_RC: 0
 ITEST: Move cursor down and up with C-n and C-p then quit
 LAUNCH: WORK:mg -n WORK:test-mg-basic.txt
 KEYS: WAIT2000,CTRL_N,WAIT200,CTRL_N,WAIT200,CTRL_P,WAIT300,CTRL_X,WAIT300,CTRL_C
-EXPECT_RC: 0
-
-# ============================================================
-# Visual verification tests (ADR-024)
-# Uses SCRAPE to capture ANSI screen state for character-level assertions.
-# These require the forked FS-UAE with console capture support.
-# ============================================================
-
-ITEST: Visual: file content appears on screen after opening
-LAUNCH: WORK:mg -n WORK:test-mg-basic.txt
-KEYS: WAIT3000
-SCRAPE
-EXPECT_AT 1,1,Hello, Amiga world!
-EXPECT_AT 2,1,This is a basic test file for mg.
 EXPECT_RC: 0
 
 # NOTE: Maximum ~13 ITESTs can run before resource exhaustion on emulated

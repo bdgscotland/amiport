@@ -412,12 +412,13 @@ run_emulator() {
             case "$scrape_sentinel" in *.assertions|*.uaem) continue;; esac
             local scrape_num
             scrape_num=$(basename "$scrape_sentinel" | sed 's/scrape-//')
-            # Pick the ANSI log that was created most recently by mtime.
-            # During SCRAPE, the ITEST window is actively being written to
-            # (mg is drawing), so its log has the newest modification time.
-            # The boot shell's log was last written during startup.
+            # Pick the ANSI log with the highest hex address (newest ConUnit).
+            # AmigaOS allocates memory upward -- the most recently opened
+            # console window has the highest ConUnit address. This is the
+            # ITEST window for the current SCRAPE test.
             local target_log=""
-            target_log=$(ls -t "$ansi_log_dir"/*.log 2>/dev/null | head -1)
+            target_log=$(for f in "$ansi_log_dir"/*.log; do [ -f "$f" ] && basename "$f"; done | sort -r | head -1)
+            [ -n "$target_log" ] && target_log="$ansi_log_dir/$target_log"
             if [ -n "$target_log" ]; then
                 cp "$target_log" "$RESULTS_DIR/scrapes/scrape-${scrape_num}.log"
                 echo "  Captured ANSI snapshot for test $scrape_num ($(basename "$target_log"))"
