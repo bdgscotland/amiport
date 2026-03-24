@@ -10,10 +10,15 @@
  *   KeyInject q                          - single key
  *   KeyInject SPACE,WAIT500,q            - scroll then quit
  *   KeyInject /,F,I,N,D,M,E,RETURN      - type "/FINDME" + Enter
+ *   KeyInject CTRL_X,WAIT300,CTRL_C      - C-x C-c (Emacs quit)
+ *   KeyInject ALT_v,WAIT300,q            - M-v (page up) then quit
  *
  * Token types:
  *   Named keys: SPACE, RETURN, ESC, TAB, BACKSPACE, DELETE,
  *               UP, DOWN, LEFT, RIGHT, F1-F10, HELP
+ *   Modifier+key: CTRL_<key> (IEQUALIFIER_CONTROL), ALT_<key> (IEQUALIFIER_LALT)
+ *     <key> is any single char or named special key
+ *     e.g., CTRL_X, CTRL_C, CTRL_SLASH, ALT_g, ALT_v, CTRL_SPACE
  *   Single char: a-z, 0-9, /, ., -, etc. (via MapANSI)
  *   Delay: WAIT<ms> (e.g., WAIT500 = 500ms delay)
  *
@@ -31,6 +36,7 @@
 #include <exec/types.h>
 #include <exec/memory.h>
 #include <devices/inputevent.h>
+#include <libraries/commodities.h>   /* IEQUALIFIER_CONTROL, IEQUALIFIER_LALT */
 
 #include <proto/exec.h>
 #include <proto/dos.h>
@@ -39,7 +45,7 @@
 
 #include <string.h>
 
-static const char *verstag = "$VER: KeyInject 1.0 (24.03.2026)";
+static const char *verstag = "$VER: KeyInject 1.1 (24.03.2026)";
 
 /* Library bases -- opened manually, used by proto/ inline stubs */
 struct Library *KeymapBase = NULL;
@@ -189,6 +195,53 @@ static LONG parse_number(const char *s)
     return val;
 }
 
+/* Send one ASCII character with an additional qualifier (e.g., Ctrl or Alt).
+ * Uses MapANSI to get the rawkey code, then ORs in the extra qualifier. */
+static int send_char_with_qual(struct InputEvent *ie, char ch, UWORD extra_qual)
+{
+    UBYTE iebuffer[6];
+    LONG count;
+    UBYTE *p;
+    UWORD code, qual;
+
+    count = MapANSI((STRPTR)&ch, 1, iebuffer, 3, NULL);
+    if (count < 1) {
+        Printf((STRPTR)"KeyInject: cannot map character '%lc' (0x%02lx)\n",
+               (LONG)ch, (LONG)(unsigned char)ch);
+        return -1;
+    }
+
+    memset(ie, 0, sizeof(struct InputEvent));
+    ie->ie_Class = IECLASS_RAWKEY;
+    ie->ie_NextEvent = NULL;
+
+    p = iebuffer;
+    if (count >= 3) {
+        ie->ie_Prev2DownCode = *p++;
+        ie->ie_Prev2DownQual = *p++;
+    }
+    if (count >= 2) {
+        ie->ie_Prev1DownCode = *p++;
+        ie->ie_Prev1DownQual = *p++;
+    }
+    code = *p++;
+    qual = (UWORD)*p | extra_qual;
+    ie->ie_Code = code;
+    ie->ie_Qualifier = qual;
+    AddIEvents(ie);
+
+    /* Key-up */
+    {
+        memset(ie, 0, sizeof(struct InputEvent));
+        ie->ie_Class = IECLASS_RAWKEY;
+        ie->ie_NextEvent = NULL;
+        ie->ie_Code = code | IECODE_UP_PREFIX;
+        ie->ie_Qualifier = qual;
+        AddIEvents(ie);
+    }
+    return 0;
+}
+
 /* Process one token from the comma-separated key sequence */
 static int process_token(struct InputEvent *ie, const char *token, LONG len)
 {
@@ -214,6 +267,56 @@ static int process_token(struct InputEvent *ie, const char *token, LONG len)
         if (delay_ticks < 1) delay_ticks = 1;
         Delay(delay_ticks);
         return 0;
+    }
+
+    /* Check for CTRL_<key> -- sends key with IEQUALIFIER_CONTROL */
+    if (len > 5 && buf[0] == 'C' && buf[1] == 'T' && buf[2] == 'R' &&
+        buf[3] == 'L' && buf[4] == '_') {
+        const char *keypart = buf + 5;
+        int klen = len - 5;
+        int rc;
+
+        /* Check if keypart is a named special key */
+        for (sk = specials; sk->name != NULL; sk++) {
+            if (streq_nocase(keypart, sk->name)) {
+                send_rawkey(ie, sk->code, IEQUALIFIER_CONTROL);
+                Delay(DEFAULT_KEY_DELAY);
+                return 0;
+            }
+        }
+        /* Single char with Control qualifier */
+        if (klen == 1) {
+            rc = send_char_with_qual(ie, keypart[0], IEQUALIFIER_CONTROL);
+            if (rc == 0) Delay(DEFAULT_KEY_DELAY);
+            return rc;
+        }
+        Printf((STRPTR)"KeyInject: unknown CTRL_ target '%s'\n", (LONG)keypart);
+        return -1;
+    }
+
+    /* Check for ALT_<key> -- sends key with IEQUALIFIER_LALT (Meta/Alt) */
+    if (len > 4 && buf[0] == 'A' && buf[1] == 'L' && buf[2] == 'T' &&
+        buf[3] == '_') {
+        const char *keypart = buf + 4;
+        int klen = len - 4;
+        int rc;
+
+        /* Check if keypart is a named special key */
+        for (sk = specials; sk->name != NULL; sk++) {
+            if (streq_nocase(keypart, sk->name)) {
+                send_rawkey(ie, sk->code, IEQUALIFIER_LALT);
+                Delay(DEFAULT_KEY_DELAY);
+                return 0;
+            }
+        }
+        /* Single char with Alt qualifier */
+        if (klen == 1) {
+            rc = send_char_with_qual(ie, keypart[0], IEQUALIFIER_LALT);
+            if (rc == 0) Delay(DEFAULT_KEY_DELAY);
+            return rc;
+        }
+        Printf((STRPTR)"KeyInject: unknown ALT_ target '%s'\n", (LONG)keypart);
+        return -1;
     }
 
     /* Check for named special key */
@@ -247,14 +350,16 @@ int main(int argc, char **argv)
     (void)verstag;
 
     if (argc < 2) {
-        Printf((STRPTR)"KeyInject 1.0 - Inject keyboard events into input stream\n");
+        Printf((STRPTR)"KeyInject 1.1 - Inject keyboard events into input stream\n");
         Printf((STRPTR)"Usage: KeyInject <key-sequence>\n");
         Printf((STRPTR)"  key-sequence: comma-separated tokens\n");
         Printf((STRPTR)"  Keys: SPACE RETURN ESC TAB BACKSPACE DELETE\n");
         Printf((STRPTR)"        UP DOWN LEFT RIGHT F1-F10 HELP\n");
         Printf((STRPTR)"        Single chars: a-z 0-9 / . - etc.\n");
+        Printf((STRPTR)"  Modifiers: CTRL_<key> (hold Ctrl), ALT_<key> (hold Alt/Meta)\n");
+        Printf((STRPTR)"        e.g., CTRL_X CTRL_C ALT_g CTRL_SLASH\n");
         Printf((STRPTR)"  Delay: WAIT<ms> (e.g., WAIT500)\n");
-        Printf((STRPTR)"  Example: KeyInject SPACE,WAIT500,q\n");
+        Printf((STRPTR)"  Example: KeyInject CTRL_X,WAIT300,CTRL_C\n");
         return 5;  /* RETURN_WARN */
     }
 

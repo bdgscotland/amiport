@@ -77,9 +77,11 @@ char *tigetstr(const char *capname)
     if (strcmp(capname, "rmul") == 0)  return "\033[24m";
     if (strcmp(capname, "rev") == 0)   return "\033[7m";
 
-    /* Cursor visibility */
-    if (strcmp(capname, "civis") == 0) return "\033[?25l";
-    if (strcmp(capname, "cnorm") == 0) return "\033[?25h";
+    /* Cursor visibility — AmigaOS console.device SET CURSOR RENDITION
+     * VT220 uses ESC[?25l/h but AmigaOS uses ESC[0 p (off) / ESC[ p (on).
+     * See ADCD: "4 / Set Graphic Rendition Implementation Notes" */
+    if (strcmp(capname, "civis") == 0) return "\033[0 p";
+    if (strcmp(capname, "cnorm") == 0) return "\033[ p";
 
     /* Color */
     if (strcmp(capname, "setaf") == 0) {
@@ -262,10 +264,10 @@ char *tgetstr(const char *cap, char **area)
     else if (cap[0] == 'l' && cap[1] == 'e') val = "\b";      /* cursor left (backspace) */
     else if (cap[0] == 'b' && cap[1] == 'c') val = "\b";      /* backspace char */
 
-    /* Cursor visibility */
-    else if (cap[0] == 'v' && cap[1] == 'i') val = "\033[?25l"; /* invisible */
-    else if (cap[0] == 'v' && cap[1] == 'e') val = "\033[?25h"; /* normal */
-    else if (cap[0] == 'v' && cap[1] == 's') val = "\033[?25h"; /* very visible = normal */
+    /* Cursor visibility — AmigaOS SET CURSOR RENDITION (not VT220 ?25h/l) */
+    else if (cap[0] == 'v' && cap[1] == 'i') val = "\033[0 p"; /* invisible */
+    else if (cap[0] == 'v' && cap[1] == 'e') val = "\033[ p";  /* normal (visible) */
+    else if (cap[0] == 'v' && cap[1] == 's') val = "\033[ p";  /* very visible = normal */
 
     /* Padding character */
     else if (cap[0] == 'p' && cap[1] == 'c') val = "";

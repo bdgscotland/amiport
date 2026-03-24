@@ -1,0 +1,5 @@
+Hello, Amiga world!
+This is a basic test file for mg.
+Line three has some text.
+Line four: the quick brown fox jumps over the lazy dog.
+Line five: testing cursor movement and search.

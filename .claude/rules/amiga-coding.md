@@ -10,6 +10,18 @@ When writing code that calls AmigaOS functions (exec.library, dos.library, timer
 
 This applies to: shim implementations, new library features (profiler, crash handler, etc.), code review of AmigaOS calls, and any design work involving AmigaOS APIs.
 
+## Character Encoding — ASCII ONLY
+
+**ALL C source files (.c, .h) MUST be pure ASCII.** No UTF-8, no extended characters, not even inside comments. bebbo-gcc (GCC 6.5.0b) silently corrupts preprocessor output when it encounters multi-byte UTF-8 characters — entire functions vanish without any error or warning.
+
+Common violations to avoid:
+- Em-dash `—` (U+2014) → use `--` instead
+- Arrow `→` (U+2192) → use `->` instead
+- Smart quotes `''""` → use `''""` (straight quotes)
+- Copyright `©` → use `(C)` instead
+
+This applies to `/* comments */` and string literals equally. The pre-commit hook checks for non-ASCII bytes in ported source files.
+
 ## Language Standard
 
 - **ANSI C89 by default.** New code (shim libraries, examples) must use C89.

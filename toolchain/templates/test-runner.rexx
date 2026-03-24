@@ -155,8 +155,11 @@ DO i = 1 TO testcount
             CALL CLOSE('scr')
         END
 
-        /* Launch in background, capture CLI number */
-        ADDRESS COMMAND 'Run >' || clinumfile || ' Execute' scriptfile
+        /* Launch in a NEW console window so the test harness output
+         * does not pollute the interactive program's display.
+         * CON: opens a new Shell window; the Execute runs inside it.
+         * The window auto-closes when the script finishes (AUTO). */
+        ADDRESS COMMAND 'Run >' || clinumfile || ' NewShell CON:0/0/640/256/ITEST/AUTO FROM' scriptfile
 
         /* Wait for program to initialize (3 seconds) */
         ADDRESS COMMAND 'Wait 3'
@@ -165,6 +168,23 @@ DO i = 1 TO testcount
          * Do NOT use SAY here -- it writes to the shared console and
          * contaminates the interactive program's display. */
         ADDRESS COMMAND 'WORK:KeyInject' tkeys
+
+        /* Signal host to take a screenshot (visual verification).
+         * Write sentinel; host captures screenshot and deletes it.
+         * Wait up to 5s for host to process — if sentinel still
+         * exists after 5s, host screenshot capture is not active. */
+        /* Write screenshot sentinel to WORK: volume.
+         * Use ARexx OPEN/CLOSE (not Echo redirect — ADDRESS COMMAND
+         * does not pass through a shell for redirect parsing). */
+        screenshotfile = 'RESULTS:ss' || i
+        IF OPEN('ssf', screenshotfile, 'W') THEN DO
+            CALL WRITELN('ssf', 'ready')
+            CALL CLOSE('ssf')
+        END
+        DO ss_wait = 1 TO 10
+            IF ~EXISTS(screenshotfile) THEN LEAVE
+            ADDRESS COMMAND 'Wait 1'
+        END
 
         /* Wait for program to process quit key and exit (3 seconds) */
         ADDRESS COMMAND 'Wait 3'

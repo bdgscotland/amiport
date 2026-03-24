@@ -32,4 +32,23 @@ if [ -n "$PORTED_BINS" ]; then
     exit 1
 fi
 
+echo "=== Pre-commit: checking for non-ASCII in C source ==="
+# bebbo-gcc silently corrupts output when it encounters UTF-8 multi-byte
+# characters in .c/.h files, even inside comments. Functions vanish without
+# any error. Only check staged ported/ and lib/ C source files.
+NON_ASCII_FILES=""
+for f in $(git diff --cached --name-only | grep -E '\.(c|h)$' | grep -E '^(ports/.*/ported/|lib/)'); do
+    if [ -f "$f" ] && LC_ALL=C grep -Pn '[^\x00-\x7F]' "$f" > /dev/null 2>&1; then
+        NON_ASCII_FILES="$NON_ASCII_FILES\n  $f: $(LC_ALL=C grep -Pn '[^\x00-\x7F]' "$f" | head -3)"
+    fi
+done
+if [ -n "$NON_ASCII_FILES" ]; then
+    echo "BLOCKED: Non-ASCII characters found in C source files:"
+    echo -e "$NON_ASCII_FILES"
+    echo ""
+    echo "bebbo-gcc silently eats code around UTF-8 characters (even in comments)."
+    echo "Replace: em-dash with --, arrow with ->, smart quotes with straight quotes."
+    exit 1
+fi
+
 echo "=== Pre-commit: all checks passed ==="

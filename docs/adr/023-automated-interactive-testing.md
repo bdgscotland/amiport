@@ -116,7 +116,17 @@ ITEST: Interactive quit with q key
 LAUNCH: WORK:less WORK:test-file.txt
 KEYS: WAIT1500,q
 EXPECT_RC: 0
+
+ITEST: Quit mg editor with C-x C-c
+LAUNCH: WORK:mg -n WORK:test-mg-basic.txt
+KEYS: WAIT2000,CTRL_X,WAIT300,CTRL_C
+EXPECT_RC: 0
 ```
+
+KeyInject (v1.1+) supports modifier prefixes:
+- `CTRL_<key>` — injects key with `IEQUALIFIER_CONTROL` (Emacs C- bindings)
+- `ALT_<key>` — injects key with `IEQUALIFIER_LALT` (Emacs M- bindings)
+- `<key>` can be a single character or named special (e.g., `CTRL_SLASH`, `CTRL_SPACE`)
 
 The harness launches the program via `Run`, waits 3 seconds for initialization, invokes `WORK:KeyInject <keys>`, waits 3 seconds for the program to exit, then checks the return code. If KeyInject is not available (e.g., on vamos), interactive tests are skipped with TAP `# SKIP`.
 

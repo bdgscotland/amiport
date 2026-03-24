@@ -33,6 +33,7 @@ amiport combines POSIX compatibility libraries, AI-powered build agents, and a c
 | [bc](ports/bc/) | 1.07.1 | CLI | Arbitrary precision calculator (GNU) | Built & tested |
 | [jq](ports/jq/) | 1.7.1 | CLI | Lightweight command-line JSON processor (jqlang) | Built & tested |
 | [less](ports/less/) | 692 | Console UI | Terminal pager with search and scroll (GNU) | Built & tested |
+| [mg](ports/mg/) | 3.7 | Console UI | Micro Emacs-like text editor (troglobit/OpenBSD) | Built & tested |
 | [patch](ports/patch/) | 1.78 | CLI | Apply diff patches to source files (OpenBSD) | Built & tested |
 | [uniq](ports/uniq/) | 1.33 | CLI | Filter/report repeated lines in files (OpenBSD) | Built & tested |
 | [yes](ports/yes/) | 1.9 | CLI | Repeatedly output a string (OpenBSD) | [Live on Aminet](https://aminet.net/package/util/cli/yes-1.9) |

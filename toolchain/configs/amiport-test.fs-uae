@@ -34,3 +34,6 @@ fast_memory = 8192
 # Window settings
 window_width = 720
 window_height = 568
+
+# Screenshots — saved to RESULTS dir by test-fsemu.sh
+# Set via FSEMU_SCREENSHOTS_DIR env var at runtime

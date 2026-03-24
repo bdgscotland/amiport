@@ -1,0 +1,30 @@
+Line 001: The Amiga 1200 was released in 1992.
+Line 002: It features a 68020 CPU running at 14.18 MHz.
+Line 003: The AGA chipset brought 256 colours on screen.
+Line 004: Workbench 3.1 was the last official release.
+Line 005: AmigaOS uses a microkernel called Exec.
+Line 006: Exec provides multitasking via task switching.
+Line 007: The Copper is a coprocessor in the custom chips.
+Line 008: Blitter operations allow fast memory copies.
+Line 009: The Amiga had 1MB chip RAM by default.
+Line 010: Fast RAM is accessed only by the CPU.
+Line 011: ARexx is the built-in scripting language.
+Line 012: Commodore released the Amiga 500 in 1987.
+Line 013: The CD32 was the first 32-bit CD games console.
+Line 014: AmigaDOS paths use colons for volumes.
+Line 015: RAM: is a virtual RAM filesystem.
+Line 016: T: maps to RAM:T and holds temp files.
+Line 017: S: holds startup scripts and dot files.
+Line 018: C: contains commands like Dir and List.
+Line 019: SYS: is the boot volume root.
+Line 020: WORK: is commonly used for user data.
+Line 021: The Enforcer tool detects illegal memory access.
+Line 022: Mungwall detects use-after-free bugs.
+Line 023: The 68000 has a supervisor and user mode.
+Line 024: Address error exceptions occur on odd word access.
+Line 025: Bus errors occur when accessing invalid addresses.
+Line 026: The interrupt levels range from 1 to 7.
+Line 027: Level 6 is the keyboard and disk interrupt.
+Line 028: Paula handles audio, serial, and DMA.
+Line 029: Denise renders sprites and the display output.
+Line 030: Agnus contains the Copper and Blitter.

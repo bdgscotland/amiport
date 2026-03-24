@@ -130,10 +130,12 @@ EXPECT_RC: expected-return-code
 
 ### Rules
 
+- **Maximum 13 ITEST blocks per test suite.** Each ITEST spawns a background CLI process with console handles. After ~13 invocations, AmigaOS resource exhaustion causes cascading failures (RC=20 force-kills, then RC=10 errors). Put the most important interactive tests first. Non-interactive `TEST:` blocks have no limit.
 - Create a 100+ line test file (`test-<name>-scroll.txt`) with a unique marker (e.g., "FINDME") on line 50 for search tests
 - Never use `SAY` during interactive tests (contaminates the shared console)
 - The harness waits 3s for init, runs KeyInject, waits 3s for exit, force-kills if needed
 - Interactive tests are skipped on vamos (KeyInject requires AmigaOS libraries)
+- ITEST blocks only verify exit codes (RC), not visual output. Screen rendering, cursor movement, and display correctness cannot be verified by ITEST alone.
 
 ### Example (pager)
 

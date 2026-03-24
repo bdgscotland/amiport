@@ -52,6 +52,7 @@ EXPECT_RC: 0
 
 **KEYS token types:**
 - Named keys: `SPACE`, `RETURN`, `ESC`, `TAB`, `BACKSPACE`, `DELETE`, `UP`, `DOWN`, `LEFT`, `RIGHT`, `F1`-`F10`, `HELP`
+- Modifier+key: `CTRL_<key>` (hold Ctrl), `ALT_<key>` (hold Alt/Meta) — e.g., `CTRL_X`, `CTRL_C`, `ALT_g`, `CTRL_SLASH`; `<key>` is any single char or named key
 - Single characters: `a`-`z`, `0`-`9`, `/`, `.`, `-`, etc.
 - Delays: `WAIT<ms>` (e.g., `WAIT500` = 500ms)
 

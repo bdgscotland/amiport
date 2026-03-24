@@ -231,3 +231,30 @@ vamos only emulates a 68000 CPU. Libraries compiled with `-m68020` produce objec
 ## Static Archive Globals Pull Unwanted Dependencies
 
 When a static archive (`.a`) contains objects with heavy OS dependencies (e.g., `initscr.o` opens `intuition.library`), programs that only need lightweight functions from the archive still pull in those heavy objects if they reference shared global variables defined in those objects. **Fix:** Put shared globals (`COLS`, `LINES`, `stdscr`, etc.) in a separate dependency-free `.c` file (e.g., `globals.c`) with no AmigaOS `#include <proto/*.h>` headers. This prevents the linker from pulling heavyweight objects into lightweight consumers. Discovered in console-shim — `test_termcap` only needed `term.o` but `COLS`/`LINES` in `initscr.o` forced `intuition.library` linkage.
+
+## Console Programs Launched via Execute Script Get Non-Interactive Input()
+
+When a program is launched via `Run >clinumfile Execute scriptfile` (the ITEST harness pattern), `Input()` returns the script file handle, NOT the console. `IsInteractive(Input())` returns FALSE. Programs that check `isatty(STDIN_FILENO)` will panic or exit with an error. **Fix:** Open `"*"` (AmigaOS device name for "current console window") to get a direct console handle, then use `SelectInput()`/`SelectOutput()` to redirect process I/O:
+```c
+if (!IsInteractive(Input()) || !IsInteractive(Output())) {
+    BPTR confh_in = Open("*", MODE_OLDFILE);
+    BPTR confh_out = Open("*", MODE_OLDFILE);
+    if (confh_in && confh_out && IsInteractive(confh_in)) {
+        saved_in = Input(); saved_out = Output();
+        SelectInput(confh_in); SelectOutput(confh_out);
+    }
+}
+```
+On cleanup, restore originals with `SelectInput(saved_in)` before `Close(confh_in)`. This is the same pattern used by the less port (ttyin.c). Discovered in the mg 3.7 port where all ITEST blocks returned RC=10 from panic().
+
+## UTF-8 Characters in Comments Break bebbo-gcc Preprocessor
+
+The bebbo-gcc preprocessor (GCC 6.5.0b) silently eats code surrounding UTF-8 multi-byte characters, even inside C comments. An em-dash (U+2014, bytes E2 80 94) or arrow (U+2192, bytes E2 86 92) in a `/* comment */` causes the preprocessor to skip entire functions without any error or warning. The function simply vanishes from the preprocessor output. **Fix:** Use only ASCII in ALL source files, including comments. Replace em-dashes with `--`, arrows with `->`, and smart quotes with straight quotes. Discovered in the mg 3.7 port where `getenvironmentvariable()` was silently eliminated by an em-dash in a comment 20 lines later.
+
+## amiport_isatty() Does Not Know About libnix Standard File Descriptors
+
+`amiport_isatty(fd)` checks the amiport internal fd table. File descriptors 0 (stdin), 1 (stdout), 2 (stderr) from libnix are in a DIFFERENT fd namespace. Calling `amiport_isatty(0)` returns 0 (not a tty) because fd 0 is not in amiport's table. **Fix:** For stdin/stdout/stderr checks, use `IsInteractive(Input())` / `IsInteractive(Output())` directly from `<proto/dos.h>` instead of `isatty()`. Or use libnix's native `isatty()` if available. Discovered in the mg 3.7 port.
+
+## libnix getenv() Returns Static Pointer -- Do NOT Free
+
+Unlike `amiport_getenv()` which returns malloc'd strings, libnix's native `getenv()` returns a pointer to static internal storage. If a port uses libnix `getenv()` (no `#define getenv amiport_getenv` macro), callers must NOT free the result. The `amiport/stdlib.h` header does NOT define a getenv macro -- it only defines `exit -> amiport_exit`. Check whether getenv is macro'd before adding free() calls. Discovered in the mg 3.7 port where the code-transformer and review both incorrectly flagged getenv as needing free().

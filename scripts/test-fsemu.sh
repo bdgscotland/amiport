@@ -318,6 +318,10 @@ run_emulator() {
 
     echo -e "${YELLOW}Launching FS-UAE headless (timeout: ${TIMEOUT_SECONDS}s)...${NC}"
 
+    # Configure FS-UAE screenshot directory for visual test verification
+    export FSEMU_SCREENSHOTS_DIR="$RESULTS_DIR/screenshots"
+    mkdir -p "$RESULTS_DIR/screenshots"
+
     # Launch FS-UAE
     # Note: true headless mode (FSEMU_VIDEO_DRIVER=null) requires FS-UAE 4.0+
     # On FS-UAE 3.x, the window will appear briefly during the test run
@@ -356,6 +360,33 @@ run_emulator() {
     # Watchdog loop
     while true; do
         local elapsed=$(( $(date +%s) - start_time ))
+
+        # Check for ITEST screenshot requests from ARexx harness.
+        # The harness writes RESULTS:screenshot-N after KeyInject;
+        # we capture the FS-UAE window and delete the sentinel so the harness continues.
+        # Also check for any new files in RESULTS_DIR (debug)
+        for sentinel_file in "$RESULTS_DIR"/ss*; do
+            [ -f "$sentinel_file" ] || continue
+            # Skip FS-UAE metadata files (.uaem)
+            case "$sentinel_file" in *.uaem) rm -f "$sentinel_file"; continue;; esac
+            local ss_num
+            ss_num=$(basename "$sentinel_file" | sed 's/ss//')
+            local ss_file="$RESULTS_DIR/screenshots/itest-${ss_num}.png"
+            if command -v screencapture >/dev/null 2>&1; then
+                # Look up fresh CGWindowID (fast — pre-compiled helper, ~40ms)
+                local cur_wid
+                # Capture FS-UAE window region using screencapture -R x,y,w,h
+                local bounds
+                bounds=$("$SCRIPT_DIR/../toolchain/scripts/get-window-id" --bounds "$fsuae_pid" 2>/dev/null || true)
+                if [ -n "$bounds" ] && [ "$bounds" != "0,0,0,0" ]; then
+                    screencapture -x -R "$bounds" "$ss_file" 2>/dev/null || \
+                    screencapture -x "$ss_file" 2>/dev/null || true
+                else
+                    screencapture -x "$ss_file" 2>/dev/null || true
+                fi
+            fi
+            rm -f "$sentinel_file"
+        done
 
         # Check if FS-UAE exited (UAEQuit called)
         if ! kill -0 "$fsuae_pid" 2>/dev/null; then
@@ -398,7 +429,7 @@ run_emulator() {
             return 0
         fi
 
-        sleep 1
+        sleep 0.2
     done
 }
 
@@ -724,6 +755,18 @@ with open(sys.argv[2], 'w') as f:
 
     echo ""
     echo -e "${GREEN}Test report saved to: $report_file${NC}"
+
+    # Copy screenshots to port directory for permanent storage
+    local ss_count=0
+    if [ -d "$RESULTS_DIR/screenshots" ]; then
+        ss_count=$(find "$RESULTS_DIR/screenshots" -name "*.png" 2>/dev/null | wc -l | tr -d ' ')
+        if [ "$ss_count" -gt 0 ]; then
+            local ss_dest="$port_dir/screenshots"
+            rm -rf "$ss_dest"
+            cp -r "$RESULTS_DIR/screenshots" "$ss_dest"
+            echo -e "${GREEN}Screenshots captured: $ss_count (in $ss_dest/)${NC}"
+        fi
+    fi
     echo ""
 }
 

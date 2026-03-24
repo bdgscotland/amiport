@@ -28,9 +28,20 @@
  */
 void amiport_exit(int status);
 
-/* Drop-in replacement macro */
+/*
+ * amiport_getenv -- Read AmigaOS environment variable via GetVar().
+ *
+ * Unlike libnix getenv() which returns a static pointer,
+ * amiport_getenv() returns a malloc'd string that the CALLER MUST FREE.
+ * This uses AmigaDOS GetVar() which reads from ENV: (the real AmigaOS
+ * global environment), not just C-level setenv() variables.
+ */
+char *amiport_getenv(const char *name);
+
+/* Drop-in replacement macros */
 #ifndef AMIPORT_NO_STDLIB_MACROS
-#define exit(s) amiport_exit(s)
+#define exit(s)    amiport_exit(s)
+#define getenv(s)  amiport_getenv(s)
 #endif
 
 #endif /* AMIPORT_STDLIB_H */

@@ -180,8 +180,8 @@ int endwin(void)
 
     /* amiport: no alternate screen to restore (console.device doesn't support it) */
 
-    /* Show cursor */
-    printf("\033[?25h");
+    /* Show cursor — AmigaOS SET CURSOR RENDITION (visible) */
+    printf("\033[ p");
     fflush(stdout);
 
     /* Restore cooked mode */

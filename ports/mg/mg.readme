@@ -1,0 +1,52 @@
+Short:        Micro Emacs-like text editor
+Type:         text/edit
+Architecture: m68k-amigaos >= 3.0
+Uploader:     duncan@bowring.us
+Author:       Joachim Wiberg, OpenBSD (ported by Duncan Bowring)
+Version:      3.7
+
+mg - Micro Emacs-like text editor
+
+A lightweight, public domain Emacs clone from the BSD family.
+Provides core Emacs keybindings in a small footprint without
+requiring Lisp or heavy dependencies.
+
+Original author: Joachim Wiberg (troglobit/mg), OpenBSD
+Ported by Duncan Bowring using amiport (AI-assisted porting toolkit).
+Project: https://github.com/bdgscotland/amiport
+
+Cross-compiled with m68k-amigaos-gcc for AmigaOS 3.x (68000+).
+Tested in FS-UAE emulator with automated interactive tests.
+Uses built-in ANSI terminal backend (no ncurses required).
+
+Usage:
+  mg [-hnR] [-f mode] [-u file] [+number] [file ...]
+
+  mg WORK:document.txt       Open a file for editing
+  mg -R WORK:readme.txt      Open in read-only mode
+  mg +50 WORK:source.c       Open at line 50
+  mg -n WORK:file.txt        Open without backup files
+
+Key bindings (Emacs-style):
+  C-x C-f   Find (open) file
+  C-x C-s   Save file
+  C-x C-c   Quit
+  C-s       Search forward
+  C-r       Search backward
+  C-k       Kill (cut) line
+  C-y       Yank (paste)
+  C-x u     Undo
+  C-g       Cancel current operation
+
+Configuration:
+  Place startup commands in S:.mg
+
+Disabled features (no fork/exec on AmigaOS):
+  - Shell commands (M-x shell-command)
+  - Directory editor (dired)
+  - Cscope/grep integration
+  - Transparent .gz file opening
+  - Suspend to shell (C-z)
+
+Includes full source code (original POSIX and ported Amiga versions)
+and PORT.md documenting every transformation applied.
