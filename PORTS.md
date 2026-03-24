@@ -20,6 +20,7 @@ Programs ported to AmigaOS 3.x using the amiport pipeline.
 | [jq](ports/jq/) | 1.7.1 | Lightweight command-line JSON processor | CLI | jqlang jq 1.7.1 (MIT) | Built & tested (50/50 FS-UAE) | Submitted 2026-03-23 |
 | [bc](ports/bc/) | 1.07.1 | Arbitrary precision calculator | CLI | GNU bc 1.07.1 (GPL-3.0) | Built & tested (37/37 FS-UAE) | Submitted 2026-03-23 |
 | [patch](ports/patch/) | 1.78 | Apply diff patches to source files | CLI | OpenBSD patch v1.78 (ISC + BSD) | Built & tested (42/42 FS-UAE) | Not submitted |
+| [less](ports/less/) | 692 | Terminal pager with search and scroll | Console UI | GNU less 692 (GPL-3.0 / Less License) | Built & tested (20/20 FS-UAE) | Not submitted |
 
 ## Aminet Publication Tracking
 
