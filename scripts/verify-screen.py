@@ -83,6 +83,13 @@ def parse_assertions(assertions_path):
                     )
                     sys.exit(2)
                 row, col, text = int(parts[0]), int(parts[1]), parts[2]
+                if not text:
+                    print(
+                        f"ERROR: line {line_num}: EXPECT_AT has empty text"
+                        " (vacuous assertion -- always passes)",
+                        file=sys.stderr,
+                    )
+                    sys.exit(2)
                 assertions.append(("EXPECT_AT", row, col, text))
 
             elif line.startswith("EXPECT_CURSOR "):

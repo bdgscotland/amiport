@@ -49,11 +49,13 @@ EXPECT_AT 1,1,Hello, Amiga world!
 EXPECT_AT 4,1,Line four: the quick brown fox jumps over the lazy dog.
 
 # ============================================================
-# 4. Empty file -- verify no stale content on screen
+# 4. Read-only mode -- verify -R flag still displays content
+# (different flag combination than test 1)
 # ============================================================
 
-ITEST: Visual: empty file shows blank line 1
-LAUNCH: WORK:mg -n WORK:test-mg-empty.txt
+ITEST: Visual: -R flag displays all 5 lines
+LAUNCH: WORK:mg -n -R WORK:test-mg-basic.txt
 KEYS: WAIT3000
 SCRAPE
-EXPECT_AT 1,1,
+EXPECT_AT 1,1,Hello, Amiga world!
+EXPECT_AT 5,1,Line five: testing cursor movement and search.
