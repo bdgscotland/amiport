@@ -269,6 +269,13 @@ char *tgetstr(const char *cap, char **area)
     /* Padding character */
     else if (cap[0] == 'p' && cap[1] == 'c') val = "";
 
+    /* Key sequences */
+    else if (cap[0] == 'k' && cap[1] == 'b') val = "\010"; /* key_backspace = ^H (0x08) */
+    else if (cap[0] == 'k' && cap[1] == 'u') val = "\033[A"; /* key_up */
+    else if (cap[0] == 'k' && cap[1] == 'd') val = "\033[B"; /* key_down */
+    else if (cap[0] == 'k' && cap[1] == 'r') val = "\033[C"; /* key_right */
+    else if (cap[0] == 'k' && cap[1] == 'l') val = "\033[D"; /* key_left */
+
     /* Bell */
     else if (cap[0] == 'b' && cap[1] == 'l') val = "\007";
 

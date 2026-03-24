@@ -54,6 +54,11 @@ extern int fd0;
 #include <sys/ioctl.h>
 #endif
 
+#ifdef __AMIGA__
+/* amiport: AmigaOS includes for window size query in scrsize() */
+#include <proto/dos.h>
+#endif
+
 /* amiport: replaced <termios.h> with amiport/termios.h (Tier 1 shim) */
 #if HAVE_TERMIOS_H && HAVE_TERMIOS_FUNCS
 #include <amiport/termios.h>
@@ -905,6 +910,48 @@ public void scrsize(void)
 		}
 	}
 #else
+#ifdef __AMIGA__
+	/* amiport: Query console window size via CSI Device Status Report.
+	 * Send ESC[0 q (Window Status Request) — console.device responds with
+	 * ESC[1;1;rows;cols r giving the window dimensions in character cells. */
+	{
+		BPTR fh = Output();
+		if (fh && IsInteractive(fh))
+		{
+			char resp[64];
+			int i = 0;
+			/* Save cursor, move to extreme bottom-right, query position */
+			Write(fh, "\033[999;999H\033[6n", 14);
+			/* Read response: ESC [ row ; col R */
+			if (WaitForChar(fh, 200000)) /* 200ms timeout */
+			{
+				BPTR infh = Input();
+				while (i < (int)sizeof(resp) - 1 && WaitForChar(infh, 50000))
+				{
+					char c;
+					if (Read(infh, &c, 1) != 1) break;
+					resp[i++] = c;
+					if (c == 'R') break;
+				}
+				resp[i] = '\0';
+				/* Parse ESC [ row ; col R */
+				{
+					int row = 0, col = 0;
+					char *p = resp;
+					while (*p && *p != '[') p++;
+					if (*p == '[') p++;
+					while (*p >= '0' && *p <= '9') { row = row * 10 + (*p - '0'); p++; }
+					if (*p == ';') p++;
+					while (*p >= '0' && *p <= '9') { col = col * 10 + (*p - '0'); p++; }
+					if (row > 0) sys_height = row;
+					if (col > 0) sys_width = col;
+				}
+			}
+			/* Restore cursor to home */
+			Write(fh, "\033[H", 3);
+		}
+	}
+#else
 #ifdef TIOCGWINSZ
 	{
 		struct winsize w;
@@ -928,12 +975,13 @@ public void scrsize(void)
 				sys_width = w.uw_width / w.uw_hs;
 		}
 	}
-#endif
-#endif
-#endif
-#endif
-#endif
-#endif
+#endif /* WIOCGETD */
+#endif /* TIOCGWINSZ */
+#endif /* __AMIGA__ */
+#endif /* OS2 */
+#endif /* WIN32C */
+#endif /* BORLANDC */
+#endif /* MSOFTC */
 	}
 
 	if (sys_height > 0)
