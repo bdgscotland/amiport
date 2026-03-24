@@ -38,6 +38,14 @@ DEBUG_MODE=false
 SERIAL_PID=""
 ENFORCER_LOG=""
 
+# ADR-024: Prefer forked FS-UAE with ANSI capture support
+FSUAE_FORK="$HOME/Developer/fs-uae/fs-uae"
+if [ -x "$FSUAE_FORK" ]; then
+    FSUAE_BIN="$FSUAE_FORK"
+else
+    FSUAE_BIN="fs-uae"
+fi
+
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -61,8 +69,9 @@ usage() {
 preflight() {
     local errors=0
 
-    if ! command -v fs-uae >/dev/null 2>&1; then
-        echo -e "${RED}ERROR: FS-UAE not installed. Install with: brew install fs-uae${NC}"
+    if [ ! -x "$FSUAE_BIN" ] && ! command -v "$FSUAE_BIN" >/dev/null 2>&1; then
+        echo -e "${RED}ERROR: FS-UAE not found. Install with: brew install fs-uae${NC}"
+        echo -e "${RED}       Or build the amiport fork at ~/Developer/fs-uae/${NC}"
         errors=$((errors + 1))
     fi
 
@@ -322,10 +331,15 @@ run_emulator() {
     export FSEMU_SCREENSHOTS_DIR="$RESULTS_DIR/screenshots"
     mkdir -p "$RESULTS_DIR/screenshots"
 
+    # ADR-024: Set up ANSI capture log if using forked FS-UAE
+    local ansi_log="$RESULTS_DIR/ansi-capture.log"
+    export AMIPORT_ANSI_LOG="$ansi_log"
+    mkdir -p "$RESULTS_DIR/scrapes"
+
     # Launch FS-UAE
     # Note: true headless mode (FSEMU_VIDEO_DRIVER=null) requires FS-UAE 4.0+
     # On FS-UAE 3.x, the window will appear briefly during the test run
-    fs-uae "$config_file" >"$RESULTS_DIR/fsuae.log" 2>&1 &
+    "$FSUAE_BIN" "$config_file" >"$RESULTS_DIR/fsuae.log" 2>&1 &
     local fsuae_pid=$!
 
     # In debug mode, start serial capture client AFTER FS-UAE (FS-UAE is the server)
@@ -386,6 +400,22 @@ run_emulator() {
                 fi
             fi
             rm -f "$sentinel_file"
+        done
+
+        # ADR-024: Check for SCRAPE sentinels (visual verification).
+        # The ARexx harness writes RESULTS:scrape-N after KEYS injection;
+        # we snapshot the ANSI log and delete the sentinel so the harness continues.
+        for scrape_sentinel in "$RESULTS_DIR"/scrape-*; do
+            [ -f "$scrape_sentinel" ] || continue
+            # Skip .assertions and .uaem files
+            case "$scrape_sentinel" in *.assertions|*.uaem) continue;; esac
+            local scrape_num
+            scrape_num=$(basename "$scrape_sentinel" | sed 's/scrape-//')
+            if [ -f "$ansi_log" ]; then
+                cp "$ansi_log" "$RESULTS_DIR/scrapes/scrape-${scrape_num}.log"
+                echo "  Captured ANSI snapshot for test $scrape_num"
+            fi
+            rm -f "$scrape_sentinel"
         done
 
         # Check if FS-UAE exited (UAEQuit called)
@@ -629,11 +659,42 @@ parse_results() {
         fi
     fi
 
-    if [ "$failed" -gt 0 ]; then
+    # ADR-024: Run visual assertions for any SCRAPE snapshots
+    local visual_failures=0
+    if ls "$RESULTS_DIR"/scrapes/scrape-*.log >/dev/null 2>&1; then
+        echo ""
+        echo "Visual assertions (ADR-024):"
+        for scrape_log in "$RESULTS_DIR"/scrapes/scrape-*.log; do
+            local scrape_base
+            scrape_base=$(basename "$scrape_log" .log)
+            local scrape_num=${scrape_base#scrape-}
+            local assertions_file="$RESULTS_DIR/${scrape_base}.assertions"
+            if [ -f "$assertions_file" ]; then
+                echo "  Test $scrape_num:"
+                if python3 "$SCRIPT_DIR/verify-screen.py" "$scrape_log" "$assertions_file" 2>&1 | sed 's/^/    /'; then
+                    echo -e "    ${GREEN}Visual assertions passed${NC}"
+                else
+                    echo -e "    ${RED}Visual assertions FAILED${NC}"
+                    visual_failures=$((visual_failures + 1))
+                fi
+            fi
+        done
+    fi
+
+    local total_failures=$((failed + visual_failures))
+    if [ "$total_failures" -gt 0 ]; then
         echo -e "${RED}RESULT: $passed/$total passed, $failed FAILED${NC}"
+        if [ "$visual_failures" -gt 0 ]; then
+            echo -e "${RED}  + $visual_failures visual assertion failures${NC}"
+        fi
         return 1
     else
         echo -e "${GREEN}RESULT: $passed/$total passed${NC}"
+        if [ "$visual_failures" -eq 0 ] && ls "$RESULTS_DIR"/scrapes/scrape-*.log >/dev/null 2>&1; then
+            local scrape_count
+            scrape_count=$(ls "$RESULTS_DIR"/scrapes/scrape-*.log 2>/dev/null | wc -l)
+            echo -e "${GREEN}  + $scrape_count visual verification(s) passed${NC}"
+        fi
         return 0
     fi
 }
@@ -658,7 +719,7 @@ generate_report() {
 
     # Gather data
     local fsuae_version
-    fsuae_version=$(fs-uae --version 2>/dev/null || echo "unknown")
+    fsuae_version=$("$FSUAE_BIN" --version 2>/dev/null || echo "unknown")
     local binary_size="unknown"
     if [ -f "$port_dir/$port_name" ]; then
         binary_size=$(ls -lh "$port_dir/$port_name" | awk '{print $5}')

@@ -115,6 +115,7 @@ make test-shim         # Run POSIX shim library tests via vamos
 make test-ports        # Test all production ports via vamos
 make check-docs        # Validate agent references across all docs
 make check-port-metadata  # Validate port metadata consistency (version, files, PORTS.md)
+make check-arexx       # Validate ARexx files (non-ASCII, compound vars, syntax)
 make build-keyinject   # Build KeyInject (keystroke injector for interactive tests)
 make clean             # Remove build artifacts
 ```
@@ -135,6 +136,8 @@ Use **vamos** (from amitools) for CLI program testing (Categories 1-2) — it pr
 For console UI apps (Category 3), network apps (Category 4), GUI programs, or hardware-dependent code, use **FS-UAE** with a configured AmigaOS 3.x installation. See ADR-014 for automated FS-UAE testing design.
 
 For interactive console programs (Category 3+), the test harness supports `ITEST:` blocks that use **KeyInject** (`toolchain/keyinject/`) to inject keystrokes via `commodities.library/AddIEvents()`. Interactive tests are skipped on vamos (KeyInject requires AmigaOS). See ADR-023.
+
+For **visual verification** (ADR-024), ITEST blocks can include `SCRAPE`, `EXPECT_AT row,col,text`, and `EXPECT_CURSOR row,col` directives. These require the forked FS-UAE (`~/Developer/fs-uae/`) with ANSI console capture support. The host-side `scripts/verify-screen.py` uses pyte to reconstruct the terminal screen from captured ANSI output and verify character-level assertions.
 
 ## Design System
 
@@ -169,7 +172,7 @@ In QA mode, flag any code that doesn't match DESIGN.md.
 
 **Architecture & guides:** `docs/architecture.md`, `docs/porting-guide.md`, `docs/api-mapping.md`
 
-**ADRs:** `docs/adr/008` (tiers), `009` (console), `010` (bsdsocket), `011` (categories), `014` (FS-UAE testing), `015` (CI/quality), `016` (debug agent), `017` (hooks enforcement), `018` (ADCD knowledge base), `019` (agent persona matrix), `020` (git hooks validation), `021` (design system — MUI warm gray), `022` (C99 compiler support), `023` (automated interactive testing)
+**ADRs:** `docs/adr/008` (tiers), `009` (console), `010` (bsdsocket), `011` (categories), `014` (FS-UAE testing), `015` (CI/quality), `016` (debug agent), `017` (hooks enforcement), `018` (ADCD knowledge base), `019` (agent persona matrix), `020` (git hooks validation), `021` (design system — MUI warm gray), `022` (C99 compiler support), `023` (automated interactive testing), `024` (visual verification)
 
 **Shim references:** `docs/references/bsd-isms.md`, `docs/references/newlib-availability.md`, `docs/references/adcd/FUNCTIONS.md`, `docs/references/adcd/TYPES.md`
 
@@ -190,7 +193,7 @@ The project enforces structural safety via hooks in `.claude/settings.json`:
 The repo uses `.githooks/` for git hooks, configured by `make setup` (which runs `git config core.hooksPath .githooks`):
 
 - **commit-msg**: Enforces conventional commit prefixes (`feat:`, `fix:`, `docs:`, `test:`, `refactor:`, `chore:`, `ci:`, `perf:`, `style:`, `build:`). Allows merge commits.
-- **pre-commit**: Runs `make check-docs` and `make check-port-metadata` to validate agent references and port metadata consistency (version alignment, required files, no template placeholders, PORTS.md entries, stray artifacts). Also checks for stray root files and port directory hygiene. Blocks commits that would introduce doc drift, metadata drift, or violate hygiene rules.
+- **pre-commit**: Runs `make check-docs`, `make check-port-metadata`, and `make check-arexx` (when .rexx files are staged) to validate agent references, port metadata consistency, and ARexx syntax. Also checks for stray root files, port directory hygiene, and non-ASCII in C source. Blocks commits that would introduce doc drift, metadata drift, or violate hygiene rules.
 - **pre-push**: Builds the shim library and compiles all shim tests. Catches build/link breakage before it reaches origin. Runs expensive Docker cross-compilation (~10-15s).
 
 **`make setup` is mandatory after cloning.** Without it, hook validation is skipped.

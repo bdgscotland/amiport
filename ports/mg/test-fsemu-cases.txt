@@ -121,8 +121,22 @@ LAUNCH: WORK:mg -n WORK:test-mg-basic.txt
 KEYS: WAIT2000,CTRL_N,WAIT200,CTRL_N,WAIT200,CTRL_P,WAIT300,CTRL_X,WAIT300,CTRL_C
 EXPECT_RC: 0
 
+# ============================================================
+# Visual verification tests (ADR-024)
+# Uses SCRAPE to capture ANSI screen state for character-level assertions.
+# These require the forked FS-UAE with console capture support.
+# ============================================================
+
+ITEST: Visual: file content appears on screen after opening
+LAUNCH: WORK:mg -n WORK:test-mg-basic.txt
+KEYS: WAIT2000,CTRL_X,WAIT300,CTRL_C
+SCRAPE
+EXPECT_AT 1,1,Hello, Amiga world!
+EXPECT_AT 2,1,This is a basic test file for mg.
+EXPECT_RC: 0
+
 # NOTE: Maximum ~13 ITESTs can run before resource exhaustion on emulated
 # AmigaOS (each mg invocation opens "*" console handle + allocates memory
-# that isn't fully reclaimed after Break C kills). The 18 tests above
+# that isn't fully reclaimed after Break C kills). The tests above
 # cover all core features within this budget.
 # Paging (C-v, M-v) is verified in the earlier tests via search-on-scroll-file.

@@ -25,6 +25,13 @@
  *     EXPECT_RC: expected return code (optional, default 0)
  *   KeyInject must be at WORK:KeyInject (deployed by test-fsemu.sh).
  *
+ *   Visual verification (ADR-024) adds optional lines to ITEST: blocks:
+ *     SCRAPE
+ *     EXPECT_AT row,col,text
+ *     EXPECT_CURSOR row,col
+ *   SCRAPE triggers host-side ANSI log snapshot after KEYS injection.
+ *   EXPECT_AT/EXPECT_CURSOR are verified by host-side verify-screen.py.
+ *
  * Usage: rx WORK:test-runner.rexx
  */
 
@@ -58,12 +65,35 @@ DO WHILE ~EOF('tf')
             desc.testcount = STRIP(SUBSTR(line, 7))
             interactive.testcount = 1
             expect_mode.testcount = 'EXACT'
+            scrape.testcount = 0
         END
         WHEN LEFT(line, 7) = 'LAUNCH:' THEN DO
             launch.testcount = STRIP(SUBSTR(line, 8))
         END
         WHEN LEFT(line, 5) = 'KEYS:' THEN DO
             keys.testcount = STRIP(SUBSTR(line, 6))
+        END
+        WHEN LEFT(line, 6) = 'SCRAPE' THEN DO
+            /* ADR-024: Request screen state capture after KEYS injection.
+             * The host copies the ANSI log at this point for visual verification.
+             * Accepts both "SCRAPE" and "SCRAPE:" */
+            scrape.testcount = 1
+        END
+        WHEN LEFT(line, 10) = 'EXPECT_AT ' THEN DO
+            /* ADR-024: Visual assertion -- stored for host-side verify-screen.py.
+             * Accumulated as newline-separated string (ARexx has no multi-level
+             * compound variables -- stem.i.n does NOT work). */
+            IF visual_asserts.testcount = 'VISUAL_ASSERTS.' || testcount THEN
+                visual_asserts.testcount = line
+            ELSE
+                visual_asserts.testcount = visual_asserts.testcount || '0a'x || line
+        END
+        WHEN LEFT(line, 14) = 'EXPECT_CURSOR ' THEN DO
+            /* ADR-024: Cursor position assertion -- stored for host-side. */
+            IF visual_asserts.testcount = 'VISUAL_ASSERTS.' || testcount THEN
+                visual_asserts.testcount = line
+            ELSE
+                visual_asserts.testcount = visual_asserts.testcount || '0a'x || line
         END
         WHEN LEFT(line, 5) = 'TEST:' THEN DO
             testcount = testcount + 1
@@ -171,10 +201,10 @@ DO i = 1 TO testcount
 
         /* Signal host to take a screenshot (visual verification).
          * Write sentinel; host captures screenshot and deletes it.
-         * Wait up to 5s for host to process — if sentinel still
+         * Wait up to 5s for host to process -- if sentinel still
          * exists after 5s, host screenshot capture is not active. */
         /* Write screenshot sentinel to WORK: volume.
-         * Use ARexx OPEN/CLOSE (not Echo redirect — ADDRESS COMMAND
+         * Use ARexx OPEN/CLOSE (not Echo redirect -- ADDRESS COMMAND
          * does not pass through a shell for redirect parsing). */
         screenshotfile = 'RESULTS:ss' || i
         IF OPEN('ssf', screenshotfile, 'W') THEN DO
@@ -184,6 +214,36 @@ DO i = 1 TO testcount
         DO ss_wait = 1 TO 10
             IF ~EXISTS(screenshotfile) THEN LEAVE
             ADDRESS COMMAND 'Wait 1'
+        END
+
+        /* ADR-024: If SCRAPE is requested, write visual assertions file
+         * and signal host to snapshot the ANSI log for screen verification.
+         * Host copies ANSI log, runs verify-screen.py after all tests. */
+        tscrape = scrape.i
+        IF tscrape = 1 THEN DO
+            /* Write assertions to RESULTS:scrape-N.assertions.
+             * visual_asserts.i is a newline-separated string of assertion lines. */
+            assertfile = 'RESULTS:scrape-' || i || '.assertions'
+            va_data = visual_asserts.i
+            IF va_data ~= 'VISUAL_ASSERTS.' || i THEN DO
+                IF OPEN('af', assertfile, 'W') THEN DO
+                    CALL WRITECH('af', va_data)
+                    CALL WRITELN('af', '')
+                    CALL CLOSE('af')
+                END
+            END
+
+            /* Write scrape sentinel -- host copies ANSI log snapshot */
+            scrapefile = 'RESULTS:scrape-' || i
+            IF OPEN('scf', scrapefile, 'W') THEN DO
+                CALL WRITELN('scf', 'ready')
+                CALL CLOSE('scf')
+            END
+            /* Wait for host to process (up to 10s) */
+            DO scrape_wait = 1 TO 20
+                IF ~EXISTS(scrapefile) THEN LEAVE
+                ADDRESS COMMAND 'Wait 1'
+            END
         END
 
         /* Wait for program to process quit key and exit (3 seconds) */

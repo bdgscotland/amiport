@@ -51,4 +51,10 @@ if [ -n "$NON_ASCII_FILES" ]; then
     exit 1
 fi
 
+echo "=== Pre-commit: checking ARexx syntax ==="
+# Check all .rexx files for non-ASCII, three-level compounds, and \= usage
+if git diff --cached --name-only | grep -qE '\.rexx$'; then
+    make check-arexx
+fi
+
 echo "=== Pre-commit: all checks passed ==="

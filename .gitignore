@@ -82,3 +82,6 @@ enforcer-hits.json
 enforcer-mapped.json
 *.map
 .gstack/
+
+# Presentation deck (Accenture IP — not for public repo)
+docs/deck/

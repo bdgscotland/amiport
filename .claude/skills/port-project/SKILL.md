@@ -166,6 +166,20 @@ EXPECT_RC: 0
 
 KEYS tokens: named keys (`SPACE`, `RETURN`, `ESC`, `UP`, `DOWN`, etc.), single characters (`a`-`z`, `/`, `.`), delays (`WAIT500`). The test harness launches the program via `Run`, injects keys via `WORK:KeyInject`, and verifies exit code. Minimum 3 interactive tests: basic quit, navigation (scroll/page), and a program-specific action (search, edit, etc.).
 
+**5e. Visual verification (ADR-024, recommended for Category 3+):**
+Add `SCRAPE` + `EXPECT_AT row,col,text` to ITEST blocks to verify screen content:
+
+```
+ITEST: Visual: file content appears on screen
+LAUNCH: WORK:mg -n WORK:test-file.txt
+KEYS: WAIT2000,CTRL_X,WAIT300,CTRL_C
+SCRAPE
+EXPECT_AT 1,1,Hello, Amiga world!
+EXPECT_RC: 0
+```
+
+Requires the forked FS-UAE (`~/Developer/fs-uae/`) with ANSI console capture. `verify-screen.py` uses pyte to reconstruct the terminal from captured ANSI output.
+
 Then run: `make test-fsemu TARGET=ports/<name>`
 
 **GATE:** Do not proceed to Stage 6 unless:

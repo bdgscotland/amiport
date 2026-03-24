@@ -167,6 +167,8 @@ make test-fsemu TARGET=ports/grep   # Automated FS-UAE test with ARexx harness
 
 **Interactive testing** — automated keystroke injection for Category 3+ console programs using KeyInject (`toolchain/keyinject/`), which injects keystrokes via `commodities.library/AddIEvents()`. Add `ITEST:` blocks to `test-fsemu-cases.txt`. See [ADR-023](docs/adr/023-automated-interactive-testing.md).
 
+**Visual verification** — character-level screen assertions using a forked FS-UAE with ANSI console capture. Add `SCRAPE`, `EXPECT_AT row,col,text`, and `EXPECT_CURSOR row,col` to ITEST blocks. Requires `~/Developer/fs-uae/` (forked FS-UAE with console capture). See [ADR-024](docs/adr/024-visual-verification.md).
+
 **Manual testing** — for manual exploration on a full Amiga desktop:
 
 ```bash
@@ -279,6 +281,7 @@ make check-agents                   # Validate agent/skill frontmatter
 make check-test-coverage            # Validate FS-UAE test suite completeness
 make check-fix-propagation          # Scan ports for known crash patterns
 make check-port-metadata            # Validate port metadata consistency
+make check-arexx                    # Validate ARexx syntax (non-ASCII, compounds)
 make check-aminet                   # Check Aminet publication status
 
 # Emulator

@@ -111,6 +111,20 @@ KEYS: WAIT1500,q
 EXPECT_RC: 0
 ```
 
+For **visual verification** (ADR-024), add `SCRAPE` + `EXPECT_AT`/`EXPECT_CURSOR` to verify screen content:
+
+```
+ITEST: Visual: file content appears on screen
+LAUNCH: WORK:mg -n WORK:test-file.txt
+KEYS: WAIT2000,CTRL_X,WAIT300,CTRL_C
+SCRAPE
+EXPECT_AT 1,1,Hello, Amiga world!
+EXPECT_CURSOR 1,1
+EXPECT_RC: 0
+```
+
+Requires the forked FS-UAE with ANSI console capture (`~/Developer/fs-uae/`).
+
 ### 5. Review (recommended)
 
 Run `/review-amiga` on the ported source to check for Amiga-specific issues:
