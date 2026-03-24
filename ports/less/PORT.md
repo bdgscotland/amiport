@@ -93,8 +93,8 @@ Launch: `make install-emu && make emu`, then `WORK:less WORK:test-interactive.tx
 | /FINDME + ENTER | Jumps to match, highlights | PASS |
 | n finds next match | Jumps to line 75 | PASS |
 | q quits cleanly | Shell prompt returns | PASS |
-| Status line at bottom | : on last row | NEEDS RETEST (fix applied) |
-| Backspace during search | Deletes char | NEEDS RETEST (fix applied) |
+| Status line at bottom | : on last row | PASS |
+| Backspace during search | Deletes char | PASS |
 | G jumps to end | Shows last line | PASS |
 | Screen restores on quit | No garbage | PASS |
 
