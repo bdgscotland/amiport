@@ -1107,7 +1107,7 @@ exit(<span class="g">10</span>); &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp
         <div class="card red" style="flex:1; border-width:2px;">
           <div class="card-h red" style="font-size:12px;">THE DEBUNKED PATTERN &mdash; PATTERN #9</div>
           <div class="card-b" style="padding:14px 16px;">
-            <div style="font-size:15px; color:var(--text-2); line-height:1.6; margin-bottom:10px;">We spent <strong style="color:var(--text);">weeks</strong> building workarounds for exit() "hanging" on AmigaOS. Restructured cleanup code across all 14 ports. Built a custom _exit() pattern that bypassed atexit handlers. The debug-agent logged dozens of iterations chasing this ghost.</div>
+            <div style="font-size:15px; color:var(--text-2); line-height:1.6; margin-bottom:10px;">The pipeline identified <code style="font-family:var(--mono);">exit()</code> as "hanging" on AmigaOS. It built a workaround &mdash; a custom <code style="font-family:var(--mono);">_exit()</code> pattern that bypassed atexit handlers &mdash; and applied it across ports. The pattern was treated as true.</div>
             <div style="font-size:15px; color:var(--text-2); line-height:1.6; margin-bottom:10px;">The actual cause: <strong style="color:var(--red);">a single non-ASCII byte in a test script.</strong> ARexx &mdash; a 1987 scripting language &mdash; crashes on any UTF-8 character, including inside comments. A smart-quote in a comment string. That was it.</div>
             <div class="term" style="font-size:12px; margin-bottom:10px;">
 <span class="c">/* crash-patterns.md */</span><br>
@@ -1118,7 +1118,7 @@ exit(<span class="g">10</span>); &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp
 <span class="c">exit() + atexit() cleanup restored.</span><br>
 <span class="c">Post-mortem: 2026-03-15</span>
             </div>
-            <div style="font-size:15px; color:var(--text); line-height:1.5;"><strong style="color:var(--amber-bright);">This is the proof the system works.</strong> It spent weeks on a wrong theory. Then it found the real cause, marked its own pattern as debunked, wrote a post-mortem, and updated all 14 ports. A human system would have quietly shipped the workaround and moved on.</div>
+            <div style="font-size:15px; color:var(--text); line-height:1.5;"><strong style="color:var(--amber-bright);">This is the proof the system works.</strong> It followed a wrong theory, found the real cause, marked its own pattern as debunked, wrote a post-mortem, and corrected all affected ports. The system self-corrects.</div>
           </div>
         </div>
       </div>
@@ -1128,7 +1128,7 @@ exit(<span class="g">10</span>); &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp
         <div class="card" style="flex:1;">
           <div class="card-h">THE GREP RE-PORT</div>
           <div class="card-b" style="padding:12px 14px;">
-            <div style="font-size:14px; color:var(--text-2); line-height:1.6; margin-bottom:6px;">grep shipped to Aminet. Real users downloaded it. Two critical bugs found post-publication: exit codes always 0 (missing braces in if/else) and <code style="font-family:var(--mono); font-size:12px;">grep -R</code> silently skipping subdirectories (<code style="font-family:var(--mono); font-size:12px;">d_type == DT_DIR</code> &mdash; AmigaOS never populates d_type).</div>
+            <div style="font-size:14px; color:var(--text-2); line-height:1.6; margin-bottom:6px;">During the re-port cycle, FS-UAE testing caught two critical bugs: exit codes always returning 0 (missing braces in if/else) and <code style="font-family:var(--mono); font-size:12px;">grep -R</code> silently skipping subdirectories (<code style="font-family:var(--mono); font-size:12px;">d_type == DT_DIR</code> &mdash; AmigaOS never populates d_type). Both caught before publication.</div>
             <div style="font-size:14px; color:var(--text-2); line-height:1.6;">Both patterns added to known-pitfalls. Source-analyzer now flags braceless multi-statement if/else AND d_type checks. <strong style="color:var(--green);">Caught at analysis for all future ports.</strong></div>
           </div>
         </div>
