@@ -40,6 +40,11 @@ int tcgetattr(int fd, struct termios *t)
         memset(t->c_cc, 0, sizeof(t->c_cc));
         t->c_cc[VMIN] = 1;
         t->c_cc[VTIME] = 0;
+        /* amiport: populate control characters so programs can detect
+         * backspace, kill, word-erase keys. Amiga console uses ^H for BS. */
+        t->c_cc[VERASE] = 0x08;   /* ^H — backspace */
+        t->c_cc[VKILL] = 0x15;    /* ^U — kill line */
+        t->c_cc[VWERASE] = 0x17;  /* ^W — word erase */
         saved_termios = *t;
         saved_valid = 1;
     }
