@@ -120,7 +120,7 @@ Safety hooks enforce discipline across the pipeline:
 | `code-transformer` | Systematic POSIX-to-Amiga source transformation |
 | `build-manager` | Cross-compilation, error diagnosis, shim extension |
 | `test-runner` | Emulator test execution and output validation |
-| `port-coordinator` | Multi-file port orchestration and judgment calls |
+| `port-coordinator` | **Deprecated** — cannot dispatch subagents; orchestrate from main session |
 | `memory-checker` | Memory leak detection, double-free, allocation safety |
 | `perf-optimizer` | 68k instruction timing and loop optimization (static analysis) |
 | `profiler` | ReadEClock-based runtime measurement — validates perf-optimizer findings |

@@ -41,7 +41,9 @@ subagent_type: "memory-checker"         # Stage 6b: memory safety (mandatory)
 subagent_type: "perf-optimizer"         # Stage 6c: performance (mandatory)
 subagent_type: "profiler"               # Stage 6d: empirical runtime measurement (optional)
 subagent_type: "debug-agent"            # On crash: autonomous fix loop
-subagent_type: "port-coordinator"       # Complex multi-file ports (5+ files)
+# port-coordinator: DEPRECATED — cannot dispatch subagents from within an agent.
+# For complex multi-file ports, orchestrate from main session dispatching each
+# specialized agent directly (source-analyzer, code-transformer, build-manager, etc.)
 subagent_type: "aminet-publisher"       # Publishing (never automatic)
 subagent_type: "site-manager"           # Website deployment and testing
 subagent_type: "amiport-publisher"      # Test-gated publishing to amiport site
