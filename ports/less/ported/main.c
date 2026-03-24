@@ -21,6 +21,8 @@ char *__progname = "less";
 #endif
 
 #include "less.h"
+/* amiport: profiler support */
+#include <amiport/profile.h>
 #if MSDOS_COMPILER==WIN32C
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
@@ -273,6 +275,10 @@ int main(int argc, constant char *argv[])
 
 	progname = *argv++;
 	argc--;
+#ifdef AMIPORT_PROFILE
+	amiport_profile_init();
+	atexit(amiport_profile_summary);
+#endif
 	init_secure();
 
 #ifdef WIN32

@@ -66,3 +66,12 @@
   - Fixes applied: BC_ENV_ARGS tracking (env_allocs[]), strdup("BC_ENV_ARGS") freed, POSIXLY_CORRECT freed, BC_LINE_LENGTH freed ✓
   - Fixes still needed: Math lib strdups leak, f_names/v_names/a_names individual entries leak, function bodies not freed, global constants (_zero_/_one_/_two_) not freed, _bc_Free_list cache not freed
   - Remaining leak: 150+ bytes per invocation, up to 1+ KB for complex programs
+
+- [memory-audit-less-recheck.md](memory-audit-less-recheck.md) - ports/less 692 re-audit after partial fixes (2026-03-23)
+  - Status: PARTIAL FIXES APPLIED — 2 of 4 CRITICAL LEAKS FIXED, 2 REMAIN
+  - Issues: 4 critical found, 2 fixed, 2 unfixed
+  - Verdict: Cannot ship — fixes incomplete
+  - Fixes applied: every_first_cmd freed (quit:655-656), tagoption freed (quit:658-659) ✓
+  - Fixes still needed: first_cmd_at_prompt leak (~64 bytes), ttyin_name leak (~10-128 bytes)
+  - Root cause: Partial fix applied but overlooked 2 of 4 global leaks in quit() cleanup
+  - Optimizations reviewed: Static ansi_pool (CLEAN), OUTBUF_SIZE increase (CLEAN)

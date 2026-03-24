@@ -66,7 +66,12 @@ SRCS = \
 
 OBJECTS = $(SRCS:.c=.o)
 
-.PHONY: all clean test package
+# amiport: profiler build support
+PROF_OBJ  = ../../lib/posix-shim/src/profile.o
+PROF_CFLAGS = -DAMIPORT_PROFILE -I../../lib/posix-shim/include
+PROF_TARGET = less-profile
+
+.PHONY: all clean test package profile-build profile-run
 
 all: $(TARGET)
 
@@ -82,5 +87,13 @@ test: $(TARGET)
 	@echo "less 692 - AmigaOS 3.x port" | ../../toolchain/scripts/vamos -s $(VAMOS_STACK)k -C "" ./$(TARGET) -X -F -E
 	@echo "=== $(TARGET) smoke test complete ==="
 
+profile-build: $(SHIM_LIB) $(CONSOLE_SHIM_LIB)
+	$(CC) $(CFLAGS) $(PROF_CFLAGS) -o $(PROF_TARGET) $(SRCS) $(PROF_OBJ) $(LDFLAGS)
+
+profile-run: profile-build
+	@echo "=== Profiling $(PROF_TARGET) on 500-line test file ==="
+	../../toolchain/scripts/vamos -s $(VAMOS_STACK) -- ./$(PROF_TARGET) -X -E test-profile-input.txt 2>&1 | tee profile-output.txt | grep -A100 "amiport profiler" || true
+	@echo "=== Full profile saved to profile-output.txt ==="
+
 clean:
-	rm -f ported/*.o $(TARGET).map
+	rm -f ported/*.o $(TARGET).map $(PROF_TARGET) profile-output.txt

@@ -15,6 +15,8 @@
  */
 
 #include "less.h"
+/* amiport: profiler support */
+#include <amiport/profile.h>
 #if MSDOS_COMPILER==WIN32C
 #include <errno.h>
 #include <windows.h>
@@ -155,7 +157,7 @@ static int ch_get(void)
 		return (EOI);
 
 	/*
-	 * Quick check for the common case where 
+	 * Quick check for the common case where
 	 * the desired char is in the head buffer.
 	 */
 	if (ch_bufhead != END_OF_CHAIN)
@@ -648,12 +650,19 @@ public POSITION ch_tell(void)
 public int ch_forw_get(void)
 {
 	int c;
+	AMIPORT_PROFILE_BEGIN("ch_forw_get");
 
 	if (thisfile == NULL)
+	{
+		AMIPORT_PROFILE_END("ch_forw_get");
 		return (EOI);
+	}
 	c = ch_get();
 	if (c == EOI)
+	{
+		AMIPORT_PROFILE_END("ch_forw_get");
 		return (EOI);
+	}
 	if (ch_offset < LBUFSIZE-1)
 		ch_offset++;
 	else
@@ -661,6 +670,7 @@ public int ch_forw_get(void)
 		ch_block ++;
 		ch_offset = 0;
 	}
+	AMIPORT_PROFILE_END("ch_forw_get");
 	return (c);
 }
 

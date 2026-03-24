@@ -1,0 +1,508 @@
+Line 0001: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0002: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0003: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0004: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0005: Normal text with some content. The quick brown fox jumps over the lazy dog for testing.
+Line 0006: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0007: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0008: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0009: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0010: BOLD RED UNDERSCORE formatting applied to this particular longer line content here.
+Line 0011: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0012: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0013: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0014: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0015: Normal text with some content. The quick brown fox jumps over the lazy dog for testing.
+Line 0016: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0017: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0018: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0019: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0020: BOLD RED UNDERSCORE formatting applied to this particular longer line content here.
+Line 0021: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0022: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0023: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0024: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0025: Normal text with some content. The quick brown fox jumps over the lazy dog for testing.
+Line 0026: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0027: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0028: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0029: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0030: BOLD RED UNDERSCORE formatting applied to this particular longer line content here.
+Line 0031: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0032: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0033: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0034: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0035: Normal text with some content. The quick brown fox jumps over the lazy dog for testing.
+Line 0036: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0037: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0038: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0039: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0040: BOLD RED UNDERSCORE formatting applied to this particular longer line content here.
+Line 0041: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0042: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0043: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0044: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0045: Normal text with some content. The quick brown fox jumps over the lazy dog for testing.
+Line 0046: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0047: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0048: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0049: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0050: BOLD RED UNDERSCORE formatting applied to this particular longer line content here.
+Line 0051: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0052: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0053: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0054: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0055: Normal text with some content. The quick brown fox jumps over the lazy dog for testing.
+Line 0056: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0057: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0058: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0059: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0060: BOLD RED UNDERSCORE formatting applied to this particular longer line content here.
+Line 0061: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0062: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0063: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0064: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0065: Normal text with some content. The quick brown fox jumps over the lazy dog for testing.
+Line 0066: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0067: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0068: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0069: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0070: BOLD RED UNDERSCORE formatting applied to this particular longer line content here.
+Line 0071: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0072: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0073: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0074: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0075: Normal text with some content. The quick brown fox jumps over the lazy dog for testing.
+Line 0076: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0077: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0078: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0079: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0080: BOLD RED UNDERSCORE formatting applied to this particular longer line content here.
+Line 0081: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0082: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0083: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0084: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0085: Normal text with some content. The quick brown fox jumps over the lazy dog for testing.
+Line 0086: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0087: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0088: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0089: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0090: BOLD RED UNDERSCORE formatting applied to this particular longer line content here.
+Line 0091: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0092: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0093: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0094: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0095: Normal text with some content. The quick brown fox jumps over the lazy dog for testing.
+Line 0096: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0097: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0098: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0099: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0100: BOLD RED UNDERSCORE formatting applied to this particular longer line content here.
+Line 0101: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0102: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0103: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0104: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0105: Normal text with some content. The quick brown fox jumps over the lazy dog for testing.
+Line 0106: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0107: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0108: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0109: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0110: BOLD RED UNDERSCORE formatting applied to this particular longer line content here.
+Line 0111: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0112: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0113: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0114: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0115: Normal text with some content. The quick brown fox jumps over the lazy dog for testing.
+Line 0116: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0117: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0118: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0119: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0120: BOLD RED UNDERSCORE formatting applied to this particular longer line content here.
+Line 0121: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0122: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0123: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0124: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0125: Normal text with some content. The quick brown fox jumps over the lazy dog for testing.
+Line 0126: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0127: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0128: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0129: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0130: BOLD RED UNDERSCORE formatting applied to this particular longer line content here.
+Line 0131: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0132: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0133: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0134: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0135: Normal text with some content. The quick brown fox jumps over the lazy dog for testing.
+Line 0136: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0137: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0138: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0139: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0140: BOLD RED UNDERSCORE formatting applied to this particular longer line content here.
+Line 0141: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0142: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0143: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0144: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0145: Normal text with some content. The quick brown fox jumps over the lazy dog for testing.
+Line 0146: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0147: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0148: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0149: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0150: BOLD RED UNDERSCORE formatting applied to this particular longer line content here.
+Line 0151: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0152: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0153: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0154: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0155: Normal text with some content. The quick brown fox jumps over the lazy dog for testing.
+Line 0156: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0157: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0158: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0159: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0160: BOLD RED UNDERSCORE formatting applied to this particular longer line content here.
+Line 0161: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0162: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0163: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0164: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0165: Normal text with some content. The quick brown fox jumps over the lazy dog for testing.
+Line 0166: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0167: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0168: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0169: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0170: BOLD RED UNDERSCORE formatting applied to this particular longer line content here.
+Line 0171: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0172: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0173: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0174: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0175: Normal text with some content. The quick brown fox jumps over the lazy dog for testing.
+Line 0176: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0177: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0178: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0179: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0180: BOLD RED UNDERSCORE formatting applied to this particular longer line content here.
+Line 0181: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0182: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0183: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0184: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0185: Normal text with some content. The quick brown fox jumps over the lazy dog for testing.
+Line 0186: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0187: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0188: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0189: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0190: BOLD RED UNDERSCORE formatting applied to this particular longer line content here.
+Line 0191: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0192: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0193: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0194: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0195: Normal text with some content. The quick brown fox jumps over the lazy dog for testing.
+Line 0196: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0197: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0198: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0199: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0200: BOLD RED UNDERSCORE formatting applied to this particular longer line content here.
+Line 0201: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0202: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0203: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0204: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0205: Normal text with some content. The quick brown fox jumps over the lazy dog for testing.
+Line 0206: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0207: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0208: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0209: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0210: BOLD RED UNDERSCORE formatting applied to this particular longer line content here.
+Line 0211: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0212: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0213: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0214: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0215: Normal text with some content. The quick brown fox jumps over the lazy dog for testing.
+Line 0216: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0217: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0218: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0219: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0220: BOLD RED UNDERSCORE formatting applied to this particular longer line content here.
+Line 0221: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0222: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0223: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0224: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0225: Normal text with some content. The quick brown fox jumps over the lazy dog for testing.
+Line 0226: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0227: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0228: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0229: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0230: BOLD RED UNDERSCORE formatting applied to this particular longer line content here.
+Line 0231: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0232: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0233: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0234: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0235: Normal text with some content. The quick brown fox jumps over the lazy dog for testing.
+Line 0236: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0237: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0238: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0239: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0240: BOLD RED UNDERSCORE formatting applied to this particular longer line content here.
+Line 0241: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0242: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0243: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0244: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0245: Normal text with some content. The quick brown fox jumps over the lazy dog for testing.
+Line 0246: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0247: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0248: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0249: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0250: BOLD RED UNDERSCORE formatting applied to this particular longer line content here.
+Line 0251: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0252: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0253: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0254: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0255: Normal text with some content. The quick brown fox jumps over the lazy dog for testing.
+Line 0256: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0257: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0258: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0259: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0260: BOLD RED UNDERSCORE formatting applied to this particular longer line content here.
+Line 0261: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0262: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0263: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0264: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0265: Normal text with some content. The quick brown fox jumps over the lazy dog for testing.
+Line 0266: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0267: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0268: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0269: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0270: BOLD RED UNDERSCORE formatting applied to this particular longer line content here.
+Line 0271: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0272: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0273: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0274: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0275: Normal text with some content. The quick brown fox jumps over the lazy dog for testing.
+Line 0276: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0277: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0278: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0279: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0280: BOLD RED UNDERSCORE formatting applied to this particular longer line content here.
+Line 0281: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0282: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0283: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0284: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0285: Normal text with some content. The quick brown fox jumps over the lazy dog for testing.
+Line 0286: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0287: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0288: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0289: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0290: BOLD RED UNDERSCORE formatting applied to this particular longer line content here.
+Line 0291: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0292: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0293: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0294: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0295: Normal text with some content. The quick brown fox jumps over the lazy dog for testing.
+Line 0296: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0297: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0298: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0299: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0300: BOLD RED UNDERSCORE formatting applied to this particular longer line content here.
+Line 0301: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0302: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0303: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0304: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0305: Normal text with some content. The quick brown fox jumps over the lazy dog for testing.
+Line 0306: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0307: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0308: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0309: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0310: BOLD RED UNDERSCORE formatting applied to this particular longer line content here.
+Line 0311: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0312: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0313: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0314: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0315: Normal text with some content. The quick brown fox jumps over the lazy dog for testing.
+Line 0316: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0317: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0318: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0319: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0320: BOLD RED UNDERSCORE formatting applied to this particular longer line content here.
+Line 0321: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0322: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0323: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0324: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0325: Normal text with some content. The quick brown fox jumps over the lazy dog for testing.
+Line 0326: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0327: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0328: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0329: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0330: BOLD RED UNDERSCORE formatting applied to this particular longer line content here.
+Line 0331: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0332: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0333: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0334: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0335: Normal text with some content. The quick brown fox jumps over the lazy dog for testing.
+Line 0336: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0337: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0338: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0339: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0340: BOLD RED UNDERSCORE formatting applied to this particular longer line content here.
+Line 0341: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0342: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0343: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0344: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0345: Normal text with some content. The quick brown fox jumps over the lazy dog for testing.
+Line 0346: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0347: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0348: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0349: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0350: BOLD RED UNDERSCORE formatting applied to this particular longer line content here.
+Line 0351: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0352: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0353: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0354: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0355: Normal text with some content. The quick brown fox jumps over the lazy dog for testing.
+Line 0356: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0357: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0358: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0359: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0360: BOLD RED UNDERSCORE formatting applied to this particular longer line content here.
+Line 0361: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0362: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0363: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0364: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0365: Normal text with some content. The quick brown fox jumps over the lazy dog for testing.
+Line 0366: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0367: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0368: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0369: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0370: BOLD RED UNDERSCORE formatting applied to this particular longer line content here.
+Line 0371: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0372: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0373: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0374: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0375: Normal text with some content. The quick brown fox jumps over the lazy dog for testing.
+Line 0376: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0377: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0378: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0379: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0380: BOLD RED UNDERSCORE formatting applied to this particular longer line content here.
+Line 0381: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0382: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0383: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0384: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0385: Normal text with some content. The quick brown fox jumps over the lazy dog for testing.
+Line 0386: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0387: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0388: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0389: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0390: BOLD RED UNDERSCORE formatting applied to this particular longer line content here.
+Line 0391: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0392: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0393: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0394: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0395: Normal text with some content. The quick brown fox jumps over the lazy dog for testing.
+Line 0396: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0397: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0398: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0399: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0400: BOLD RED UNDERSCORE formatting applied to this particular longer line content here.
+Line 0401: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0402: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0403: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0404: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0405: Normal text with some content. The quick brown fox jumps over the lazy dog for testing.
+Line 0406: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0407: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0408: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0409: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0410: BOLD RED UNDERSCORE formatting applied to this particular longer line content here.
+Line 0411: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0412: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0413: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0414: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0415: Normal text with some content. The quick brown fox jumps over the lazy dog for testing.
+Line 0416: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0417: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0418: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0419: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0420: BOLD RED UNDERSCORE formatting applied to this particular longer line content here.
+Line 0421: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0422: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0423: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0424: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0425: Normal text with some content. The quick brown fox jumps over the lazy dog for testing.
+Line 0426: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0427: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0428: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0429: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0430: BOLD RED UNDERSCORE formatting applied to this particular longer line content here.
+Line 0431: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0432: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0433: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0434: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0435: Normal text with some content. The quick brown fox jumps over the lazy dog for testing.
+Line 0436: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0437: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0438: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0439: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0440: BOLD RED UNDERSCORE formatting applied to this particular longer line content here.
+Line 0441: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0442: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0443: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0444: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0445: Normal text with some content. The quick brown fox jumps over the lazy dog for testing.
+Line 0446: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0447: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0448: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0449: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0450: BOLD RED UNDERSCORE formatting applied to this particular longer line content here.
+Line 0451: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0452: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0453: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0454: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0455: Normal text with some content. The quick brown fox jumps over the lazy dog for testing.
+Line 0456: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0457: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0458: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0459: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0460: BOLD RED UNDERSCORE formatting applied to this particular longer line content here.
+Line 0461: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0462: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0463: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0464: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0465: Normal text with some content. The quick brown fox jumps over the lazy dog for testing.
+Line 0466: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0467: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0468: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0469: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0470: BOLD RED UNDERSCORE formatting applied to this particular longer line content here.
+Line 0471: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0472: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0473: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0474: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0475: Normal text with some content. The quick brown fox jumps over the lazy dog for testing.
+Line 0476: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0477: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0478: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0479: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0480: BOLD RED UNDERSCORE formatting applied to this particular longer line content here.
+Line 0481: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0482: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0483: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0484: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0485: Normal text with some content. The quick brown fox jumps over the lazy dog for testing.
+Line 0486: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0487: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0488: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0489: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0490: BOLD RED UNDERSCORE formatting applied to this particular longer line content here.
+Line 0491: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0492: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0493: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0494: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0495: Normal text with some content. The quick brown fox jumps over the lazy dog for testing.
+Line 0496: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0497: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0498: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0499: Regular line content for profiling test. Amiga 68k performance measurement output here.
+Line 0500: BOLD RED UNDERSCORE formatting applied to this particular longer line content here.
+
+=== amiport profiler (10000000 Hz) ===
+Function                Calls  Total(ms)  Avg(us)  Max(us)     %
+cat_file                    1       1598   310308   310308   66%
+ch_forw_get             49301        400        8      473   16%
+putchr                  49300        388        7      182   16%
+Total measured: 2387 ms
+

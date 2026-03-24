@@ -10,6 +10,8 @@
 
 #include "less.h"
 #include "position.h"
+/* amiport: profiler support */
+#include <amiport/profile.h>
 #if HAVE_STAT
 #include <sys/stat.h>
 #endif
@@ -919,10 +921,12 @@ public int edit_stdin(void)
 public void cat_file(void)
 {
 	int c;
+	AMIPORT_PROFILE_BEGIN("cat_file");
 
 	while ((c = ch_forw_get()) != EOI)
 		putchr(c);
 	flush();
+	AMIPORT_PROFILE_END("cat_file");
 }
 
 #if LOGFILE
