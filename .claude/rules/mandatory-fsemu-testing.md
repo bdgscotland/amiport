@@ -29,3 +29,46 @@ The test-runner.rexx harness sets `Stack 262144` before every command. This matc
 ## Test Coverage
 
 The test-fsemu-cases.txt MUST test **every single flag** the program accepts. Extract the OPTIONS string from getopt() and verify each flag has at least one test case. See `docs/test-coverage-standard.md`.
+
+## Interactive Testing (Category 3+ MANDATORY)
+
+For **Category 3 (Console UI) and Category 4 (Network)** ports, automated FS-UAE tests only cover non-interactive mode. A **manual interactive verification** is required before the port is considered complete.
+
+**How to run interactive tests:**
+
+1. Create a test file large enough to require scrolling (100+ lines):
+   ```bash
+   python3 -c "for i in range(1,101): print(f'Line {i}: test content')" > build/amiga/test-interactive.txt
+   ```
+2. Install the port binary to the emulator directory:
+   ```bash
+   make install-emu
+   ```
+3. Launch FS-UAE:
+   ```bash
+   make emu
+   ```
+4. In the **Amiga Shell** window that appears, type the test command:
+   ```
+   WORK:<program> WORK:test-interactive.txt
+   ```
+5. Work through the interactive checklist below — test each action, note pass/fail
+6. Document results in PORT.md under "Interactive Test Results"
+7. Close FS-UAE when done
+
+This is a manual gate until automated keystroke injection is implemented (see memory: `project_interactive_testing_gap.md`).
+
+**Interactive test checklist for console pagers (less, more):**
+- [ ] SPACE scrolls forward one screen
+- [ ] b scrolls backward
+- [ ] /pattern + ENTER searches forward
+- [ ] q quits cleanly (shell prompt returns, no garbage on screen)
+- [ ] Status line (:) appears at bottom of window
+- [ ] Backspace works during search input (not ^H)
+- [ ] Screen clears properly on start and restores on quit
+
+**Interactive test checklist for console editors (nano, vim, mg):**
+- [ ] Cursor keys move cursor
+- [ ] Text input appears at cursor position
+- [ ] Save and quit work
+- [ ] Screen redraws correctly after window operations
