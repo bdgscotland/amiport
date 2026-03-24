@@ -106,8 +106,8 @@ Constraints: ~1MB available after OS boot (~1.5MB without Workbench). No FPU. No
 | tar | OpenBSD / GNU | 2 | EXISTS | — | GG tar exists. |
 | unzip | Info-ZIP | 2 | EXISTS | — | On Aminet. |
 | zip | Info-ZIP | 2 | EXISTS | — | On Aminet. |
-| xz/lzma | Tukaani | 2 | VERIFY | HIGH | Modern compression. Dictionary may be tight on 2MB. |
-| zstd | Facebook | 2 | STRETCH | MEDIUM | Default dict 128KB OK, but larger modes need Fast RAM. |
+| xz/lzma | Tukaani | 2 | STRETCH | MEDIUM | No port found. Memory-heavy decompression. Tight on 2MB. |
+| zstd | Facebook | 2 | STRETCH | LOW | No port found. Modern but low priority — LHA/bzip2 sufficient. |
 | cpio | OpenBSD | 2 | VERIFY | LOW | Archive format. Less common. |
 
 ## 4. Shell Utilities
@@ -118,9 +118,9 @@ Constraints: ~1MB available after OS boot (~1.5MB without Workbench). No FPU. No
 | sleep | OpenBSD | 1 | EXISTS | — | Amiga has Wait. |
 | env | OpenBSD | 1 | VERIFY | MEDIUM | Run with modified environment. |
 | printf | OpenBSD | 1 | VERIFY | MEDIUM | Format and print data. |
-| seq | Plan 9 / GNU | 1 | VERIFY | MEDIUM | Print number sequences. Useful for scripting. |
+| seq | Plan 9 / GNU | 1 | CANDIDATE | MEDIUM | No port found. Useful for shell scripting. |
 | date | OpenBSD | 1 | VERIFY | MEDIUM | Date formatting. Needs epoch conversion. |
-| which | OpenBSD | 1 | VERIFY | MEDIUM | Locate a program. Needs PATH/C: awareness. |
+| which | OpenBSD | 1 | CANDIDATE | MEDIUM | No port found. Needs PATH/C: awareness. |
 | uname | — | 1 | CANDIDATE | LOW | System info. Amiga-specific implementation needed. |
 | tty | OpenBSD | 1 | VERIFY | LOW | Print terminal name. |
 | nohup | OpenBSD | 1 | VERIFY | LOW | Limited meaning on AmigaOS. |
@@ -131,10 +131,10 @@ Constraints: ~1MB available after OS boot (~1.5MB without Workbench). No FPU. No
 | Program | Source | Cat | Status | Priority | Notes |
 |---------|--------|-----|--------|----------|-------|
 | bc | GNU 1.07.1 | 2 | PORTED | — | On Aminet (pending) |
-| dc | OpenBSD | 1 | VERIFY | MEDIUM | RPN calculator. Often bundled with bc. |
-| factor | OpenBSD | 1 | VERIFY | LOW | Prime factorization. |
+| dc | OpenBSD | 1 | CANDIDATE | MEDIUM | No standalone port found. May be bundled in some bc packages. |
+| factor | OpenBSD | 1 | CANDIDATE | LOW | No port found. Trivial math utility. |
 | units | GNU | 1 | VERIFY | LOW | Unit conversion. Needs data file. |
-| expr | OpenBSD | 1 | VERIFY | MEDIUM | Expression evaluator. |
+| expr | OpenBSD | 1 | CANDIDATE | MEDIUM | No port found. Essential POSIX shell tool. |
 
 ## 6. Scripting & Languages
 
@@ -144,8 +144,8 @@ Constraints: ~1MB available after OS boot (~1.5MB without Workbench). No FPU. No
 | jq | jqlang 1.7.1 | 2 | PORTED | — | On Aminet (pending) |
 | awk | OpenBSD/one true awk | 2 | EXISTS | LOW | AT&T awk 1.0 on Aminet (1994, noixemul, SAS/C). Works. GG gawk also exists (ixemul). |
 | m4 | GNU | 2 | CANDIDATE | LOW | May be in GG (ixemul). No standalone noixemul port. Dev tool only. |
-| forth | various | 2 | VERIFY | MEDIUM | Small interpreters (pForth). Native Amiga Forths may exist. |
-| scheme | various | 2 | VERIFY | MEDIUM | Small Schemes (chibi-scheme, s7). ~100KB. |
+| forth | pForth | 2 | CANDIDATE | MEDIUM | Aminet has pForth but x86 only. 68k port from ANSI C source feasible. |
+| scheme | TinyScheme | 2 | CANDIDATE | MEDIUM | No Scheme interpreter found on Amiga. TinyScheme is ~60KB. |
 
 ## 7. Console UI / Interactive (Category 3)
 
@@ -165,8 +165,8 @@ Constraints: ~1MB available after OS boot (~1.5MB without Workbench). No FPU. No
 | Program | Source | Cat | Status | Priority | Notes |
 |---------|--------|-----|--------|----------|-------|
 | ctags | Universal Ctags | 2 | UPGRADE | MEDIUM | Exuberant Ctags 5.5 (2003) on Aminet. Universal Ctags would be a big upgrade. |
-| diff3 | OpenBSD | 2 | VERIFY | MEDIUM | Three-way diff. |
-| sdiff | OpenBSD | 2 | VERIFY | MEDIUM | Side-by-side diff. |
+| diff3 | OpenBSD | 2 | EXISTS | LOW | GNU diff 2.3 on Aminet includes diff3. Old but functional. |
+| sdiff | OpenBSD | 2 | EXISTS | LOW | GNU diff 2.3 on Aminet includes sdiff. Old but functional. |
 | unifdef | — | 2 | VERIFY | MEDIUM | Remove #ifdef blocks. |
 | cscope | Santa Cruz Op | 3 | VERIFY | MEDIUM | Source code browser. |
 | cpp | — | 2 | EXISTS | — | Comes with GCC. |
@@ -202,9 +202,9 @@ Require bsdsocket.library (AmiTCP, Miami, Roadshow).
 
 | Program | Source | Cat | Status | Priority | Notes |
 |---------|--------|-----|--------|----------|-------|
-| fortune | OpenBSD | 1 | VERIFY | MEDIUM | Random quotes. Needs data file. Fun. |
-| figlet | Frank/Glenn/Ian | 1 | VERIFY | MEDIUM | ASCII art text. Needs font files. |
-| cowsay | Tony Monroe | 1 | VERIFY | MEDIUM | Fun. Perl original, but C rewrites exist. |
+| fortune | OpenBSD | 1 | CANDIDATE | MEDIUM | Aminet "Fortune" is a lottery tool, not Unix fortune. No Unix port exists. |
+| figlet | FIGlet project | 1 | CANDIDATE | MEDIUM | MorphOS/PPC only on Aminet. No 68k port. Portable C source. |
+| cowsay | cowsay-org | 1 | CANDIDATE | MEDIUM | Doesn't exist. Original is Perl — use C reimplementation. Pairs with fortune. |
 | banner | OpenBSD | 1 | VERIFY | LOW | Print large letters. |
 | number | OpenBSD | 1 | VERIFY | LOW | Convert numbers to English. |
 | morse | OpenBSD | 1 | VERIFY | LOW | Morse code converter. |
@@ -296,7 +296,7 @@ Same CPU speed but ~6-10MB total RAM. Opens up larger programs.
 
 | Program | Source | Cat | Status | Priority | Notes |
 |---------|--------|-----|--------|----------|-------|
-| tcl | Tcl Core Team | 2 | VERIFY | MEDIUM | ~300KB binary. Fits with 4MB Fast. |
+| tcl | Tcl Core Team | 2 | EXISTS | LOW | Tcl 8.4.2 already exists for 68k Amiga. Dated but functional. |
 | xz/lzma | Tukaani | 2 | VERIFY | HIGH | Compression with larger dictionary. |
 | zstd | Facebook | 2 | VERIFY | MEDIUM | Full dictionary modes. |
 | links | Twibright | 3+4 | VERIFY | HIGH | Text web browser. Needs ~2MB working set. |
@@ -397,9 +397,35 @@ tr, fold, rev, expand, unexpand, paste, join, comm, fmt, nl, od, split all avail
 - `find`, `xargs`, `cmp`, `tree`, `touch`, `file`, `basename`, `dirname` — No ports found
 - `du` — AmigaOS-specific tools exist (DiskUsage, Mnemosyne) but not Unix du(1) compatible
 
+### Verified (Researcher Batch 3, 2026-03-24)
+
+**Editors/Interactive:**
+- `mg` — MicroEMACS 3.10 (1989) on Aminet. Ancient. Modern OpenBSD mg would be major UPGRADE.
+- `nano` — No port exists. HIGH priority.
+- `nvi` — vim 6.0 (2002) exists for 68k. Skip.
+- `sc` — No port found. CANDIDATE.
+- `ncdu` — No port found. CANDIDATE.
+- `awk` — AT&T awk 1.0 (1994) on Aminet, noixemul. Works.
+- `ctags` — Exuberant Ctags 5.5 (2003) on Aminet. Universal Ctags would be an upgrade.
+- `indent` — MorphOS/PPC only. No 68k port. CANDIDATE.
+
+### Verified (Researcher Batch 4, 2026-03-24)
+
+**Misc/Languages:**
+- `fortune` — Aminet "Fortune" is a lottery tool, not Unix fortune. Unix version: CANDIDATE.
+- `figlet` — MorphOS/PPC only. No 68k. CANDIDATE.
+- `cowsay` — Doesn't exist. CANDIDATE (as C reimplementation).
+- `dc` — Not found standalone. CANDIDATE.
+- `expr`, `seq`, `which` — Not found on Aminet. CANDIDATE.
+- `tcl` — Tcl 8.4.2 exists for 68k Amiga. SKIP.
+- `forth` — pForth on Aminet is x86 only. 68k: CANDIDATE from ANSI C source.
+- `scheme` — No interpreter found. CANDIDATE.
+- `diff3`/`sdiff` — GNU diff 2.3 on Aminet includes both. EXISTS.
+- `xz`/`zstd` — Not found. STRETCH (memory-heavy).
+
 ### Pending Verification
 
-Researchers still running for: editors/interactive, network/crypto, misc/languages.
+Researcher still running for: network/crypto tools.
 
 ### Our Value Proposition vs Existing Ports
 
@@ -424,13 +450,40 @@ Even where ports exist (GG, adtools), our ports offer:
 
 Based on research, highest-value candidates for stock A1200:
 
-1. **strings** — No port exists. Invaluable for Amiga developers.
-2. **find** — No port exists. Critical for shell scripting.
-3. **xargs** — No port exists. Pairs with find.
-4. **basename/dirname** — No ports. Trivial. Enable shell scripts.
-5. **cmp** — No port. Complements our diff.
+**CLI Tools (quick wins):**
+1. **basename/dirname** — No ports. Trivial. Enable shell scripts.
+2. **strings** — No port exists. Invaluable for Amiga developers.
+3. **cmp** — No port. Complements our diff.
+4. **find** — No port exists. Critical for shell scripting. Complex but high-value.
+5. **xargs** — No port exists. Pairs with find.
 6. **tree** — No port. Very popular utility.
-7. **awk** — GG gawk exists but bloated. OpenBSD awk is tiny.
-8. **mg** — Micro Emacs editor. Would be first real editor port.
-9. **nano** — Very popular request from community.
-10. **touch** — No port. Build systems need it.
+7. **touch** — No port. Build systems need it.
+8. **seq/expr/which** — No ports. Small shell utilities.
+
+**Interactive/Console (bigger effort, high impact):**
+9. **mg** — Modern OpenBSD micro-emacs. 1989 MicroEMACS on Aminet is ancient.
+10. **nano** — No port exists. Very popular community request.
+11. **frotz** — Z-machine interpreter. Play all Infocom games on Amiga.
+12. **nethack** — TTY roguelike. Legendary game.
+
+**Amiga-native value:**
+13. **fortune + cowsay** — Neither exists. Fun pair. C reimplementation of cowsay.
+14. **figlet** — MorphOS only. No 68k. ASCII art text.
+15. **mandoc/lowdown** — Man page + Markdown rendering. Useful for on-Amiga docs.
+
+**Languages:**
+16. **forth (pForth)** — Current Aminet version is x86. 68k from ANSI C source.
+17. **scheme (TinyScheme)** — No interpreter on Amiga. ~60KB.
+
+## Statistics
+
+| Status | Count |
+|--------|-------|
+| PORTED | 16 |
+| EXISTS | ~20 |
+| CANDIDATE | ~45 |
+| UPGRADE | ~5 |
+| STRETCH | ~8 |
+| VERIFY | ~25 |
+| INFEASIBLE | ~5 |
+| **Total cataloged** | **~125** |
