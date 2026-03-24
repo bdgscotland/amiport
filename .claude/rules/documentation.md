@@ -19,9 +19,14 @@ Update ALL of these:
 8. **PORTS.md** — Add to catalog table (name, version, description, category, source, status)
 9. **README.md** — Add to Ports summary table
 
+## When Completing a Category 3+ Port
+
+10. **test-fsemu-visual-cases.txt** — Visual verification tests in a SEPARATE file from functional tests (ADR-024). Functional and visual MUST be separate FS-UAE passes.
+
 ## Enforcement
 
 - A new skill without README/architecture/porting-guide references is **incomplete**.
 - An ADR without an index entry is **lost**.
 - A port without a PORTS.md entry is **invisible**.
+- A Category 3+ port without `test-fsemu-visual-cases.txt` has **no visual verification**.
 - Do not ask the user if they want docs updated — just do it.

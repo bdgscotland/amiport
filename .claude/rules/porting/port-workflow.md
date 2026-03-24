@@ -41,8 +41,9 @@ Every port lives in `ports/<toolname>/` with:
 1. Run `/review-amiga` for Amiga-specific code review
 2. Dispatch `memory-checker` agent (**mandatory** — AmigaOS has no memory protection or GC)
 3. Dispatch `perf-optimizer` agent (**mandatory** — arguably the best agent, finds critical 68k wins like fgetc→fgets 3-5x speedup)
-4. Dispatch `test-designer` agent to generate comprehensive `test-fsemu-cases.txt` (15+ tests for CLI, 20+ for scripting, 12+ for console/network). Do NOT write test cases manually — the agent analyzes source for flags, exit codes, error paths. Tests must include flag combinations, every error message path, edge cases (empty file, long line, no trailing newline), and crash-pattern regressions.
-5. Run `make test-fsemu TARGET=ports/<name>` — FS-UAE testing is **mandatory for ALL categories**, not just Category 3-4. Test input files must be pre-created (no piping — ARexx `ADDRESS COMMAND` doesn't support it).
-6. Run `make check-test-coverage` to verify the test suite meets the coverage standard
-7. Update `PORTS.md` with the new port entry
-8. Update `README.md` ports table
+4. Dispatch `test-designer` agent to generate comprehensive `test-fsemu-cases.txt` AND `test-fsemu-visual-cases.txt` (Category 3+). Do NOT write test cases manually — the agent analyzes source for flags, exit codes, error paths. Tests must include flag combinations, every error message path, edge cases (empty file, long line, no trailing newline), and crash-pattern regressions.
+5. Run `make test-fsemu TARGET=ports/<name>` — FS-UAE testing is **mandatory for ALL categories**. Test input files must be pre-created (no piping — ARexx `ADDRESS COMMAND` doesn't support it).
+6. For Category 3+: Run `make test-fsemu TARGET=ports/<name> VISUAL=1` — separate FS-UAE pass for visual verification (ADR-024). Functional and visual tests MUST be separate passes.
+7. Run `make check-test-coverage` to verify the test suite meets the coverage standard
+8. Update `PORTS.md` with the new port entry
+9. Update `README.md` ports table
