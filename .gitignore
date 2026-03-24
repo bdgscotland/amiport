@@ -85,3 +85,5 @@ enforcer-mapped.json
 
 # Presentation deck (Accenture IP — not for public repo)
 docs/deck/
+# FS-UAE screenshots contain uncropped full desktop -- never commit
+ports/*/screenshots/
