@@ -157,12 +157,8 @@ WINDOW *initscr(void)
     /* Switch to raw mode for character input */
     set_raw_mode();
 
-    /* Save cursor, switch to alternate screen (if supported) */
-    /* ESC 7 = save cursor, ESC [ ? 47 h = alternate screen */
-    printf("\0337");
-    printf("\033[?47h");
-
-    /* Clear screen */
+    /* amiport: Amiga console.device does not support alternate screen
+     * buffers (ESC[?47h/l). Just clear the screen. Per ADCD devices ch.4. */
     printf("\033[2J");
     printf("\033[H");
     fflush(stdout);
@@ -182,9 +178,7 @@ int endwin(void)
     /* Reset attributes */
     printf("\033[0m");
 
-    /* Restore alternate screen, restore cursor */
-    printf("\033[?47l");
-    printf("\0338");
+    /* amiport: no alternate screen to restore (console.device doesn't support it) */
 
     /* Show cursor */
     printf("\033[?25h");

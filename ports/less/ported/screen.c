@@ -911,19 +911,34 @@ public void scrsize(void)
 	}
 #else
 #ifdef __AMIGA__
-	/* amiport: Query console window size via CSI Window Status Request.
-	 * Send ESC [ 0 SP q — console.device responds with
-	 * ESC [ 1 ; 1 ; rows ; cols SP r (window bounds report).
-	 * This does NOT move the cursor — no visible flicker. */
+	/* amiport: Query console window size via ADCD-documented sequences.
+	 *
+	 * WINDOW STATUS REQUEST (ADCD devices/4-set-graphic-rendition):
+	 *   Write: 9B 30 20 71 (CSI 0 SP q)
+	 *
+	 * WINDOW BOUNDS REPORT (ADCD devices/4-reading-from-console):
+	 *   Read:  9B 31 3B 31 3B <bot> 3B <right> 20 72
+	 *          (CSI 1 ; 1 ; rows ; cols SP r)
+	 *
+	 * The response is placed in the console input stream. We must be in
+	 * RAW mode to read it character-by-character — in CON mode, the
+	 * console buffers input until RETURN. Temporarily set RAW mode. */
 	{
 		BPTR fh = Output();
 		if (fh && IsInteractive(fh))
 		{
 			char resp[64];
 			int i = 0;
-			/* CSI 0 SP q = Window Status Request */
-			Write(fh, "\033[0 q", 5);
-			/* Read response: ESC [ 1 ; 1 ; rows ; cols SP r */
+			int got_raw = 0;
+
+			/* Temporarily enter RAW mode to read the response */
+			SetMode(Input(), 1);
+			got_raw = 1;
+
+			/* Send Window Status Request: CSI 0 SP q */
+			Write(fh, "\x9b" "0 q", 4);
+
+			/* Read Window Bounds Report response */
 			if (WaitForChar(Input(), 500000)) /* 500ms timeout */
 			{
 				BPTR infh = Input();
@@ -932,21 +947,20 @@ public void scrsize(void)
 					char c;
 					if (Read(infh, &c, 1) != 1) break;
 					resp[i++] = c;
-					/* amiport: ADCD says response ends with SP r (0x20 0x72)
-					 * Match on 'r' preceded by space */
+					/* Response ends with SP r (0x20 0x72) per ADCD */
 					if (c == 'r' && i >= 2 && resp[i-2] == ' ') break;
 				}
 				resp[i] = '\0';
-				/* amiport: Parse Window Bounds Report per ADCD:
-				 * CSI 1 ; 1 ; <bottom> ; <right> SP r
-				 * CSI may be ESC[ (2 bytes) or 0x9B (1 byte) */
+
+				/* Parse: CSI 1 ; 1 ; <rows> ; <cols> SP r
+				 * CSI is 0x9B (single byte) on real Amiga */
 				{
 					int row = 0, col = 0, semi = 0;
 					char *p = resp;
-					/* Skip CSI: either 0x9B or ESC [ */
+					/* Skip CSI: 0x9B (1 byte) or ESC [ (2 bytes) */
 					if ((unsigned char)*p == 0x9B) p++;
 					else { while (*p && *p != '[') p++; if (*p == '[') p++; }
-					/* Skip past "1;1;" (2 semicolons) to get rows;cols */
+					/* Skip "1;1;" (2 semicolons) to reach rows;cols */
 					while (*p && semi < 2) { if (*p == ';') semi++; p++; }
 					while (*p >= '0' && *p <= '9') { row = row * 10 + (*p - '0'); p++; }
 					if (*p == ';') p++;
@@ -955,6 +969,10 @@ public void scrsize(void)
 					if (col > 0) sys_width = col;
 				}
 			}
+
+			/* Restore CON mode — less will set RAW mode later via raw_mode(1) */
+			if (got_raw)
+				SetMode(Input(), 0);
 		}
 	}
 #else
