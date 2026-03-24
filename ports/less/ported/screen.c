@@ -925,23 +925,25 @@ public void scrsize(void)
 	 * console buffers input until RETURN. Temporarily set RAW mode. */
 	{
 		BPTR fh = Output();
-		if (fh && IsInteractive(fh))
+		BPTR infh = Input();
+		/* amiport: guard both handles — hardware-expert review: SetMode on
+		 * non-interactive handle has undefined behavior per ADCD */
+		if (fh && infh && IsInteractive(fh) && IsInteractive(infh))
 		{
 			char resp[64];
 			int i = 0;
 			int got_raw = 0;
 
 			/* Temporarily enter RAW mode to read the response */
-			SetMode(Input(), 1);
+			SetMode(infh, 1);
 			got_raw = 1;
 
 			/* Send Window Status Request: CSI 0 SP q */
 			Write(fh, "\x9b" "0 q", 4);
 
 			/* Read Window Bounds Report response */
-			if (WaitForChar(Input(), 500000)) /* 500ms timeout */
+			if (WaitForChar(infh, 500000)) /* 500ms timeout */
 			{
-				BPTR infh = Input();
 				while (i < (int)sizeof(resp) - 1 && WaitForChar(infh, 50000))
 				{
 					char c;
@@ -972,7 +974,7 @@ public void scrsize(void)
 
 			/* Restore CON mode — less will set RAW mode later via raw_mode(1) */
 			if (got_raw)
-				SetMode(Input(), 0);
+				SetMode(infh, 0);
 		}
 	}
 #else

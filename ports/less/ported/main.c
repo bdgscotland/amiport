@@ -654,10 +654,14 @@ public void quit(int status)
 	 * with -noixemul. See memory-checker audit for less 692. */
 	free(every_first_cmd);
 	every_first_cmd = NULL;
+	{ extern char *first_cmd_at_prompt;
+	  free(first_cmd_at_prompt);
+	  first_cmd_at_prompt = NULL; }
 #if TAGS
 	free(tagoption);
 	tagoption = NULL;
 #endif
+	/* Note: ttyin_name points into argv, not malloc'd — do NOT free */
 	(void)fflush(stdout);
 #endif
 	exit(status);
