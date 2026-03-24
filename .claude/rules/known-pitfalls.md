@@ -221,3 +221,13 @@ When programs use `more_*()` growth functions (realloc pattern: allocate larger 
 ## bebbo-gcc -O1/-O2 Corrupts Large Struct Returns
 
 GCC 6.5.0b for 68k generates incorrect code for functions returning structs > 8 bytes by value at `-O1` or `-O2`. The first byte of the struct reads as 0 in the caller despite being correct inside the function. **Fix:** Compile with `-O0`. Add `CFLAGS := $(subst -O2,-O0,$(CFLAGS))` to the port Makefile. No source-level workaround exists. See crash-patterns #16.
+
+## Libraries MUST Use -m68000 (Not -m68020)
+
+vamos only emulates a 68000 CPU. Libraries compiled with `-m68020` produce object files containing 68020 instructions. When a test binary links against such a library, the test crashes on vamos with `ALERT: code=00068020` — even if the test code itself is pure C89 with no 68020-specific features. The 68020 instructions come from the library's `.o` files inside the `.a` archive.
+
+**Fix:** ALL libraries (`lib/posix-shim/`, `lib/console-shim/`, `lib/posix-emu/`, `lib/bsdsocket-shim/`) and ALL test Makefiles (`tests/*/Makefile`) MUST use `-m68000`. Individual port Makefiles inherit `-m68000` from `common.mk`. Discovered when console-shim was compiled with `-m68020` and test_termcap crashed on vamos.
+
+## Static Archive Globals Pull Unwanted Dependencies
+
+When a static archive (`.a`) contains objects with heavy OS dependencies (e.g., `initscr.o` opens `intuition.library`), programs that only need lightweight functions from the archive still pull in those heavy objects if they reference shared global variables defined in those objects. **Fix:** Put shared globals (`COLS`, `LINES`, `stdscr`, etc.) in a separate dependency-free `.c` file (e.g., `globals.c`) with no AmigaOS `#include <proto/*.h>` headers. This prevents the linker from pulling heavyweight objects into lightweight consumers. Discovered in console-shim — `test_termcap` only needed `term.o` but `COLS`/`LINES` in `initscr.o` forced `intuition.library` linkage.
