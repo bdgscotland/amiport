@@ -1,0 +1,100 @@
+Line 1: alpha content for interactive testing
+Line 2: beta content for scrolling verification
+Line 3: gamma content to fill the screen
+Line 4: delta content for paging tests
+Line 5: epsilon content with various text
+Line 6: zeta content for the scroll buffer
+Line 7: eta content that should be paged
+Line 8: theta content for screen filling
+Line 9: iota content with more text here
+Line 10: kappa content for testing less
+Line 11: lambda content in the scroll area
+Line 12: mu content for verification tests
+Line 13: nu content with additional lines
+Line 14: xi content for the test file
+Line 15: omicron content to keep going
+Line 16: pi content for more test data
+Line 17: rho content for interactive mode
+Line 18: sigma content that fills pages
+Line 19: tau content for the test suite
+Line 20: upsilon content still scrolling
+Line 21: phi content for paging forward
+Line 22: chi content in the middle area
+Line 23: psi content for testing search
+Line 24: omega content wrapping first set
+Line 25: alpha-2 content second iteration
+Line 26: beta-2 content still filling up
+Line 27: gamma-2 content for more pages
+Line 28: delta-2 content keep scrolling
+Line 29: epsilon-2 content almost there
+Line 30: zeta-2 content for the buffer
+Line 31: eta-2 content going further now
+Line 32: theta-2 content more test data
+Line 33: iota-2 content filling the file
+Line 34: kappa-2 content for less pager
+Line 35: lambda-2 content in the stream
+Line 36: mu-2 content for test coverage
+Line 37: nu-2 content with extra lines
+Line 38: xi-2 content for verification
+Line 39: omicron-2 content keep padding
+Line 40: pi-2 content for interactivity
+Line 41: rho-2 content in the test file
+Line 42: sigma-2 content almost halfway
+Line 43: tau-2 content for the pager
+Line 44: upsilon-2 content scrolling on
+Line 45: phi-2 content for page tests
+Line 46: chi-2 content more text here
+Line 47: psi-2 content nearing target
+Line 48: omega-2 content second wrap
+Line 49: alpha-3 content approaching it
+Line 50: FINDME target string for search test verification
+Line 51: beta-3 content past the target
+Line 52: gamma-3 content second half now
+Line 53: delta-3 content keep going down
+Line 54: epsilon-3 content more padding
+Line 55: zeta-3 content for the buffer
+Line 56: eta-3 content still scrolling
+Line 57: theta-3 content in lower half
+Line 58: iota-3 content for test file
+Line 59: kappa-3 content more content
+Line 60: lambda-3 content in the stream
+Line 61: mu-3 content for verification
+Line 62: nu-3 content with more lines
+Line 63: xi-3 content for the pager
+Line 64: omicron-3 content keep adding
+Line 65: pi-3 content for test suite
+Line 66: rho-3 content still padding
+Line 67: sigma-3 content going further
+Line 68: tau-3 content for scrolling
+Line 69: upsilon-3 content more data
+Line 70: phi-3 content for page down
+Line 71: chi-3 content in the file
+Line 72: psi-3 content nearing end
+Line 73: omega-3 content third wrap
+Line 74: alpha-4 content fourth set
+Line 75: beta-4 content still going
+Line 76: gamma-4 content more lines
+Line 77: delta-4 content keep it up
+Line 78: epsilon-4 content padding on
+Line 79: zeta-4 content for the file
+Line 80: eta-4 content almost done
+Line 81: theta-4 content lower area
+Line 82: iota-4 content still filling
+Line 83: kappa-4 content more text
+Line 84: lambda-4 content in stream
+Line 85: mu-4 content for testing
+Line 86: nu-4 content extra lines
+Line 87: xi-4 content for paging
+Line 88: omicron-4 content added
+Line 89: pi-4 content for suite
+Line 90: rho-4 content padding
+Line 91: sigma-4 content further
+Line 92: tau-4 content scrolls
+Line 93: upsilon-4 content data
+Line 94: phi-4 content pages
+Line 95: chi-4 content file
+Line 96: psi-4 content near end
+Line 97: omega-4 content wrapping
+Line 98: alpha-5 content final set
+Line 99: beta-5 content last lines
+Line 100: omega-5 final line of test file

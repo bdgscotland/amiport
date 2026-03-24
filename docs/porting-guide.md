@@ -102,6 +102,15 @@ make test-fsemu TARGET=ports/<name>
 
 This boots FS-UAE, runs an ARexx test harness inside AmigaOS, and produces a `TEST-REPORT.md` with TAP-format results. Test cases are defined in `test-fsemu-cases.txt` inside the port directory. The emulator exits automatically when tests complete (via UAEQuit) or a watchdog timeout fires. See ADR-014 for details.
 
+For Category 3 (Console UI) and Category 4 (Network) ports, add `ITEST:` blocks to `test-fsemu-cases.txt` for automated interactive testing. These use KeyInject (`toolchain/keyinject/`) to inject keystrokes via `commodities.library/AddIEvents()`. Interactive tests are skipped on vamos. Example:
+
+```
+ITEST: quit with q key
+LAUNCH: WORK:less WORK:test-file.txt
+KEYS: WAIT1500,q
+EXPECT_RC: 0
+```
+
 ### 5. Review (recommended)
 
 Run `/review-amiga` on the ported source to check for Amiga-specific issues:

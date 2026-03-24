@@ -5,8 +5,8 @@
 | Field | Value |
 |-------|-------|
 | Port | grep |
-| Date | 2026-03-22 16:19:07 |
-| Duration | 61s |
+| Date | 2026-03-23 23:45:14 |
+| Duration | 45s |
 | Platform | FS-UAE 3.2.35 (A1200, Kickstart 3.1) |
 | Binary | `WORK:grep` (63K) |
 | Test method | ARexx harness → TAP output |

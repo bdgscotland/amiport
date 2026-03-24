@@ -86,6 +86,14 @@ preflight() {
         fi
     fi
 
+    if [ ! -f "$TOOLCHAIN_DIR/keyinject/KeyInject" ]; then
+        echo -e "${YELLOW}Building KeyInject...${NC}"
+        make -C "$TOOLCHAIN_DIR/keyinject" 2>&1 | tail -1
+        if [ ! -f "$TOOLCHAIN_DIR/keyinject/KeyInject" ]; then
+            echo -e "${YELLOW}WARNING: Failed to build KeyInject (interactive tests will be skipped)${NC}"
+        fi
+    fi
+
     # Debug mode checks
     if [ "$DEBUG_MODE" = true ]; then
         local debug_tools_dir="$TOOLCHAIN_DIR/debug-tools"
@@ -148,6 +156,9 @@ build_boot_volume() {
 
     # Copy UAEQuit to WORK: (always available regardless of system type)
     cp "$TOOLCHAIN_DIR/uaequit/UAEQuit" "$AMIGA_DIR/UAEQuit" 2>/dev/null || true
+
+    # Copy KeyInject to WORK: (for interactive tests, ADR-023)
+    cp "$TOOLCHAIN_DIR/keyinject/KeyInject" "$AMIGA_DIR/KeyInject" 2>/dev/null || true
 
     # Copy ARexx test runner and helpers to build/amiga/ (mounted as WORK:)
     cp "$TOOLCHAIN_DIR/templates/test-runner.rexx" "$AMIGA_DIR/test-runner.rexx"
@@ -243,6 +254,10 @@ hard_drive_1_label = WORK
 hard_drive_2 = $RESULTS_DIR
 hard_drive_2_label = RESULTS
 
+# 8MB Fast RAM — interactive tests spawn multiple CLI processes
+# with 256KB stacks, which exhaust the A1200's 2MB Chip RAM
+fast_memory = 8192
+
 # Headless settings
 window_width = 720
 window_height = 568
@@ -266,6 +281,10 @@ hard_drive_1_label = WORK
 # Results drive (test output written here)
 hard_drive_2 = $RESULTS_DIR
 hard_drive_2_label = RESULTS
+
+# 8MB Fast RAM — interactive tests spawn multiple CLI processes
+# with 256KB stacks, which exhaust the A1200's 2MB Chip RAM
+fast_memory = 8192
 
 # Headless settings
 window_width = 720

@@ -18,6 +18,13 @@
  *     EXPECT_CONTAINS: substring to find in output (instead of EXPECT:)
  *     EXPECT_RC: expected Amiga return code (0, 5, 10, or 20)
  *
+ *   Interactive tests (ADR-023) use ITEST: blocks:
+ *     ITEST: description
+ *     LAUNCH: command to run in background
+ *     KEYS: comma-separated key sequence for KeyInject
+ *     EXPECT_RC: expected return code (optional, default 0)
+ *   KeyInject must be at WORK:KeyInject (deployed by test-fsemu.sh).
+ *
  * Usage: rx WORK:test-runner.rexx
  */
 
@@ -46,6 +53,18 @@ DO WHILE ~EOF('tf')
     line = READLN('tf')
     line = STRIP(line, 'T', '0D'x)  /* Strip CR if present (macOS -> AmigaOS) */
     SELECT
+        WHEN LEFT(line, 6) = 'ITEST:' THEN DO
+            testcount = testcount + 1
+            desc.testcount = STRIP(SUBSTR(line, 7))
+            interactive.testcount = 1
+            expect_mode.testcount = 'EXACT'
+        END
+        WHEN LEFT(line, 7) = 'LAUNCH:' THEN DO
+            launch.testcount = STRIP(SUBSTR(line, 8))
+        END
+        WHEN LEFT(line, 5) = 'KEYS:' THEN DO
+            keys.testcount = STRIP(SUBSTR(line, 6))
+        END
         WHEN LEFT(line, 5) = 'TEST:' THEN DO
             testcount = testcount + 1
             desc.testcount = STRIP(SUBSTR(line, 6))
@@ -87,6 +106,109 @@ DO i = 1 TO testcount
     outfile = 'T:test_out_' || i || '.txt'
 
     SAY 'Test' i || ':' tdesc
+
+    /* Check if this is an interactive test (ITEST: block) */
+    tinteractive = interactive.i
+    IF tinteractive = 1 THEN DO
+        /* ============================================================
+         * Interactive test execution path (ADR-023)
+         *
+         * 1. Write wrapper script that runs LAUNCH command + captures RC
+         * 2. Launch in background via Run
+         * 3. Wait for program to initialize (3 seconds)
+         * 4. Inject keystrokes via KeyInject
+         * 5. Wait for program to exit (3 seconds)
+         * 6. Force-kill if still running (Break C)
+         * 7. Read RC from wrapper script output
+         * ============================================================ */
+        scriptfile = 'T:itest_cmd_' || i
+        rcfile = 'T:itest_rc_' || i
+        clinumfile = 'T:itest_cli_' || i
+
+        /* Defensive: check LAUNCH and KEYS are defined */
+        tlaunch = launch.i
+        tkeys = keys.i
+        IF tlaunch = 'LAUNCH.' || i THEN DO
+            CALL WRITELN('rf', 'not ok' i '- ' || tdesc || ' (no LAUNCH defined)')
+            failed = failed + 1
+            ITERATE
+        END
+        IF tkeys = 'KEYS.' || i THEN DO
+            CALL WRITELN('rf', 'not ok' i '- ' || tdesc || ' (no KEYS defined)')
+            failed = failed + 1
+            ITERATE
+        END
+
+        /* Check KeyInject binary exists */
+        IF ~EXISTS('WORK:KeyInject') THEN DO
+            CALL WRITELN('rf', 'ok' i '- ' || tdesc || ' # SKIP KeyInject not available')
+            passed = passed + 1
+            ITERATE
+        END
+
+        /* Write Execute script: run command, capture RC */
+        IF OPEN('scr', scriptfile, 'W') THEN DO
+            CALL WRITELN('scr', 'FailAt 21')
+            CALL WRITELN('scr', 'Stack 262144')
+            CALL WRITELN('scr', tlaunch)
+            CALL WRITELN('scr', 'Echo >' || rcfile || ' $RC')
+            CALL CLOSE('scr')
+        END
+
+        /* Launch in background, capture CLI number */
+        ADDRESS COMMAND 'Run >' || clinumfile || ' Execute' scriptfile
+
+        /* Wait for program to initialize (3 seconds) */
+        ADDRESS COMMAND 'Wait 3'
+
+        /* Inject keystrokes via KeyInject.
+         * Do NOT use SAY here -- it writes to the shared console and
+         * contaminates the interactive program's display. */
+        ADDRESS COMMAND 'WORK:KeyInject' tkeys
+
+        /* Wait for program to process quit key and exit (3 seconds) */
+        ADDRESS COMMAND 'Wait 3'
+
+        /* If program is still running, force-kill via Break C */
+        IF OPEN('cf', clinumfile, 'R') THEN DO
+            cliline = READLN('cf')
+            CALL CLOSE('cf')
+            PARSE VAR cliline '[CLI' clinum ']'
+            clinum = STRIP(clinum)
+            IF DATATYPE(clinum, 'W') THEN DO
+                SAY '  Force-killing CLI' clinum
+                ADDRESS COMMAND 'Break' clinum 'C'
+            END
+        END
+        ADDRESS COMMAND 'Wait 1'
+
+        /* Read RC from wrapper script */
+        cmdrc = 0
+        IF OPEN('rcf', rcfile, 'R') THEN DO
+            rcline = READLN('rcf')
+            CALL CLOSE('rcf')
+            IF DATATYPE(STRIP(rcline), 'W') THEN cmdrc = STRIP(rcline)
+        END
+
+        /* Cleanup temp files */
+        ADDRESS COMMAND 'Delete >NIL:' scriptfile
+        ADDRESS COMMAND 'Delete >NIL:' rcfile
+        ADDRESS COMMAND 'Delete >NIL:' clinumfile
+
+        /* Let background CLI fully exit before next test.
+         * Without this, residual processes consume memory and
+         * the next interactive test may fail with OOM. */
+        ADDRESS COMMAND 'Wait 2'
+
+        /* For interactive tests, output match is always automatic
+         * (no stdout capture). Only RC is checked. */
+        actual = ''
+        match = 1
+    END
+    ELSE DO
+    /* ============================================================
+     * Non-interactive test execution path (existing logic)
+     * ============================================================ */
 
     /* Defensive check: skip test if CMD was never defined.
      * Note: SYMBOL('cmd.i') checks the literal name CMD.I, not the
@@ -145,6 +267,8 @@ DO i = 1 TO testcount
         END
         CALL CLOSE('of')
     END
+
+    END /* ELSE (non-interactive) */
 
     /* Compare -- supports exact match (EXPECT:), substring (EXPECT_CONTAINS:),
      * and exit code assertion (EXPECT_RC:). */

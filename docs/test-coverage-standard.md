@@ -104,8 +104,8 @@ EXPECT: T:
 |----------|-----------------|---------------------|
 | 1. CLI tools | 15+ | Functional, Error, Exit Code, Edge Case, Amiga-Specific |
 | 2. Scripting | 20+ | Functional, Error, Exit Code, Edge Case, Amiga-Specific |
-| 3. Console UI | 12+ | Functional, Error, Exit Code (+ interactive via FS-UAE) |
-| 4. Network | 12+ | Functional, Error, Exit Code, Connection (+ TCP/IP via FS-UAE) |
+| 3. Console UI | 12+ (+ 3 ITEST) | Functional, Error, Exit Code, Interactive (ITEST: via KeyInject, ADR-023) |
+| 4. Network | 12+ (+ 3 ITEST) | Functional, Error, Exit Code, Connection, Interactive (ITEST: via KeyInject) |
 
 ### Depth Requirements (not just breadth)
 

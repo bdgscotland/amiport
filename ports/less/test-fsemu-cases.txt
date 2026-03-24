@@ -110,3 +110,29 @@ TEST: -X prevents terminal init escape sequences on AmigaOS console
 CMD: WORK:less -X -F -E WORK:test-less-single.txt
 EXPECT_CONTAINS: only one line
 EXPECT_RC: 0
+
+# --- Interactive tests (ADR-023: automated keystroke injection) ---
+# These tests launch less in interactive mode (no -X -F -E) and use
+# KeyInject to send keystrokes via commodities.library AddIEvents().
+# Requires WORK:KeyInject (built by make build-keyinject).
+# Skipped automatically if KeyInject is not available.
+
+ITEST: Interactive quit with q key
+LAUNCH: WORK:less WORK:test-less-scroll.txt
+KEYS: WAIT1500,q
+EXPECT_RC: 0
+
+ITEST: Interactive scroll forward with SPACE then quit
+LAUNCH: WORK:less WORK:test-less-scroll.txt
+KEYS: WAIT1500,SPACE,WAIT500,q
+EXPECT_RC: 0
+
+ITEST: Interactive page down and back then quit
+LAUNCH: WORK:less WORK:test-less-scroll.txt
+KEYS: WAIT1500,SPACE,WAIT500,b,WAIT500,q
+EXPECT_RC: 0
+
+ITEST: Interactive search with /FINDME then quit
+LAUNCH: WORK:less WORK:test-less-scroll.txt
+KEYS: WAIT2000,/,WAIT500,F,I,N,D,M,E,RETURN,WAIT1000,q
+EXPECT_RC: 0

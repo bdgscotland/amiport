@@ -32,31 +32,46 @@ The test-fsemu-cases.txt MUST test **every single flag** the program accepts. Ex
 
 ## Interactive Testing (Category 3+ MANDATORY)
 
-For **Category 3 (Console UI) and Category 4 (Network)** ports, automated FS-UAE tests only cover non-interactive mode. A **manual interactive verification** is required before the port is considered complete.
+For **Category 3 (Console UI) and Category 4 (Network)** ports, add **automated interactive tests** using `ITEST:` blocks in `test-fsemu-cases.txt`. These use **KeyInject** (`toolchain/keyinject/`) to inject keystrokes via `commodities.library/AddIEvents()`. See ADR-023.
 
-**How to run interactive tests:**
+### Automated Interactive Tests (ITEST: blocks)
 
-1. Create a test file large enough to require scrolling (100+ lines):
-   ```bash
-   python3 -c "for i in range(1,101): print(f'Line {i}: test content')" > build/amiga/test-interactive.txt
-   ```
-2. Install the port binary to the emulator directory:
-   ```bash
-   make install-emu
-   ```
-3. Launch FS-UAE:
-   ```bash
-   make emu
-   ```
-4. In the **Amiga Shell** window that appears, type the test command:
-   ```
-   WORK:<program> WORK:test-interactive.txt
-   ```
-5. Work through the interactive checklist below — test each action, note pass/fail
-6. Document results in PORT.md under "Interactive Test Results"
-7. Close FS-UAE when done
+Add `ITEST:` blocks to `test-fsemu-cases.txt` for automated keystroke injection:
 
-This is a manual gate until automated keystroke injection is implemented (see memory: `project_interactive_testing_gap.md`).
+```
+ITEST: Interactive quit with q key
+LAUNCH: WORK:less WORK:test-scroll.txt
+KEYS: WAIT1500,q
+EXPECT_RC: 0
+
+ITEST: Interactive search then quit
+LAUNCH: WORK:less WORK:test-scroll.txt
+KEYS: WAIT2000,/,WAIT500,F,I,N,D,RETURN,WAIT1000,q
+EXPECT_RC: 0
+```
+
+**KEYS token types:**
+- Named keys: `SPACE`, `RETURN`, `ESC`, `TAB`, `BACKSPACE`, `DELETE`, `UP`, `DOWN`, `LEFT`, `RIGHT`, `F1`-`F10`, `HELP`
+- Single characters: `a`-`z`, `0`-`9`, `/`, `.`, `-`, etc.
+- Delays: `WAIT<ms>` (e.g., `WAIT500` = 500ms)
+
+**Rules for ITEST: blocks:**
+- Do NOT use `SAY` in the test harness during interactive tests — it contaminates the shared console
+- Include `WAIT1500` or more at the start of KEYS to let the program initialize
+- The test harness waits 3s for init, runs KeyInject, waits 3s for exit, then force-kills if needed
+- Interactive tests are skipped on vamos (KeyInject requires AmigaOS)
+- FS-UAE config must include `fast_memory = 8192` (multiple CLIs exhaust 2MB Chip RAM)
+
+### Manual Interactive Verification (supplemental)
+
+Manual testing remains useful for **visual verification** (screen rendering, cursor positioning, display artifacts) that automated tests cannot verify yet (Phase 2 of ADR-023).
+
+**How to run manual tests:**
+
+1. Install the port binary: `make install-emu`
+2. Launch FS-UAE: `make emu`
+3. In the Amiga Shell: `WORK:<program> WORK:test-file.txt`
+4. Work through the checklist, document in PORT.md under "Interactive Test Results"
 
 **Interactive test checklist for console pagers (less, more):**
 - [ ] SPACE scrolls forward one screen

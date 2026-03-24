@@ -5,17 +5,17 @@
 | Field | Value |
 |-------|-------|
 | Port | less |
-| Date | 2026-03-23 23:00:43 |
-| Duration | 38s |
+| Date | 2026-03-23 23:44:20 |
+| Duration | 81s |
 | Platform | FS-UAE 3.2.35 (A1200, Kickstart 3.1) |
 | Binary | `WORK:less` (234K) |
 | Test method | ARexx harness → TAP output |
-| Result | **PASS** — 20/20 passed |
+| Result | **PASS** — 24/24 passed |
 
 ## Test Results
 
 ```
-1..20
+1..24
 ok 1 - Print version string (-V flag)
 ok 2 - Display file non-interactively (-X -F -E flags)
 ok 3 - Display file with line numbers (-N flag)
@@ -36,7 +36,11 @@ ok 17 - Single-line file fits on one screen (-F quits)
 ok 18 - Multiple blank lines file with -s squeeze
 ok 19 - WORK: volume path resolves correctly
 ok 20 - -X prevents terminal init escape sequences on AmigaOS console
-# passed: 20 failed: 0 total: 20
+ok 21 - Interactive quit with q key
+ok 22 - Interactive scroll forward with SPACE then quit
+ok 23 - Interactive page down and back then quit
+ok 24 - Interactive search with /FINDME then quit
+# passed: 24 failed: 0 total: 24
 ```
 
 ### Breakdown
@@ -63,6 +67,10 @@ ok 20 - -X prevents terminal init escape sequences on AmigaOS console
 | 18 | Multiple blank lines file with -s squeeze | PASS | |
 | 19 | WORK: volume path resolves correctly | PASS | |
 | 20 | -X prevents terminal init escape sequences on AmigaOS console | PASS | |
+| 21 | Interactive quit with q key | PASS | |
+| 22 | Interactive scroll forward with SPACE then quit | PASS | |
+| 23 | Interactive page down and back then quit | PASS | |
+| 24 | Interactive search with /FINDME then quit | PASS | |
 
 ## Environment
 
@@ -194,6 +202,32 @@ TEST: -X prevents terminal init escape sequences on AmigaOS console
 CMD: WORK:less -X -F -E WORK:test-less-single.txt
 EXPECT_CONTAINS: only one line
 EXPECT_RC: 0
+
+# --- Interactive tests (ADR-023: automated keystroke injection) ---
+# These tests launch less in interactive mode (no -X -F -E) and use
+# KeyInject to send keystrokes via commodities.library AddIEvents().
+# Requires WORK:KeyInject (built by make build-keyinject).
+# Skipped automatically if KeyInject is not available.
+
+ITEST: Interactive quit with q key
+LAUNCH: WORK:less WORK:test-less-scroll.txt
+KEYS: WAIT1500,q
+EXPECT_RC: 0
+
+ITEST: Interactive scroll forward with SPACE then quit
+LAUNCH: WORK:less WORK:test-less-scroll.txt
+KEYS: WAIT1500,SPACE,WAIT500,q
+EXPECT_RC: 0
+
+ITEST: Interactive page down and back then quit
+LAUNCH: WORK:less WORK:test-less-scroll.txt
+KEYS: WAIT1500,SPACE,WAIT500,b,WAIT500,q
+EXPECT_RC: 0
+
+ITEST: Interactive search with /FINDME then quit
+LAUNCH: WORK:less WORK:test-less-scroll.txt
+KEYS: WAIT2000,/,WAIT500,F,I,N,D,M,E,RETURN,WAIT1000,q
+EXPECT_RC: 0
 ```
 
 ## Emulator Log
@@ -208,9 +242,9 @@ Written by the ARexx harness when all tests complete:
 
 ```
 TESTS_COMPLETE
-passed=20
+passed=24
 failed=0
-total=20
+total=24
 ```
 
 ---

@@ -36,6 +36,7 @@ The porting pipeline has 5 stages, each backed by a Claude skill:
   - `site/js/terminal-anim.js` — Hero typing animation (respects prefers-reduced-motion)
   - `site/api/v1/` — PHP API endpoints (packages, stats, download, vote, request)
 - `toolchain/` — Cross-compiler Docker images, build scripts, target profiles
+- `toolchain/keyinject/` — KeyInject: keyboard event injector for automated interactive testing (ADR-023)
 - `docs/` — Architecture docs, API mapping tables, porting guide, tier classification
 - `docs/references/adcd/` — Complete ADCD 2.1 in agent-optimized markdown (Libraries, Devices, Hardware, Amiga Mail, Autodocs)
 - `docs/references/amiga-intern/` — "Amiga Intern" (1992) converted to markdown — 68030 CPU internals, custom chip architecture, memory map, hardware programming
@@ -114,6 +115,7 @@ make test-shim         # Run POSIX shim library tests via vamos
 make test-ports        # Test all production ports via vamos
 make check-docs        # Validate agent references across all docs
 make check-port-metadata  # Validate port metadata consistency (version, files, PORTS.md)
+make build-keyinject   # Build KeyInject (keystroke injector for interactive tests)
 make clean             # Remove build artifacts
 ```
 
@@ -131,6 +133,8 @@ The toolchain scripts in `toolchain/scripts/` handle detection and invocation. A
 Use **vamos** (from amitools) for CLI program testing (Categories 1-2) — it provides a virtual AmigaOS runtime without needing a full emulator. The `test-amiga` skill handles this.
 
 For console UI apps (Category 3), network apps (Category 4), GUI programs, or hardware-dependent code, use **FS-UAE** with a configured AmigaOS 3.x installation. See ADR-014 for automated FS-UAE testing design.
+
+For interactive console programs (Category 3+), the test harness supports `ITEST:` blocks that use **KeyInject** (`toolchain/keyinject/`) to inject keystrokes via `commodities.library/AddIEvents()`. Interactive tests are skipped on vamos (KeyInject requires AmigaOS). See ADR-023.
 
 ## Design System
 
@@ -165,7 +169,7 @@ In QA mode, flag any code that doesn't match DESIGN.md.
 
 **Architecture & guides:** `docs/architecture.md`, `docs/porting-guide.md`, `docs/api-mapping.md`
 
-**ADRs:** `docs/adr/008` (tiers), `009` (console), `010` (bsdsocket), `011` (categories), `014` (FS-UAE testing), `015` (CI/quality), `016` (debug agent), `017` (hooks enforcement), `018` (ADCD knowledge base), `019` (agent persona matrix), `020` (git hooks validation), `021` (design system — MUI warm gray), `022` (C99 compiler support), `023` (automated interactive testing — proposed)
+**ADRs:** `docs/adr/008` (tiers), `009` (console), `010` (bsdsocket), `011` (categories), `014` (FS-UAE testing), `015` (CI/quality), `016` (debug agent), `017` (hooks enforcement), `018` (ADCD knowledge base), `019` (agent persona matrix), `020` (git hooks validation), `021` (design system — MUI warm gray), `022` (C99 compiler support), `023` (automated interactive testing)
 
 **Shim references:** `docs/references/bsd-isms.md`, `docs/references/newlib-availability.md`, `docs/references/adcd/FUNCTIONS.md`, `docs/references/adcd/TYPES.md`
 
