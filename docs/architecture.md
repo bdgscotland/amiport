@@ -24,7 +24,8 @@
                               └─────────────────────────────┘
 
 For complex multi-file ports (5+ source files, multiple Tier 3 issues):
-  port-coordinator agent is dispatched instead of inline orchestration.
+  Orchestrate from main session — dispatch each specialized agent directly.
+  (port-coordinator is deprecated — cannot dispatch subagents.)
   debug-agent is dispatched automatically on FS-UAE crash (Guru Meditation).
   hardware-expert is available on-demand at any stage for hardware questions.
 ```
@@ -58,7 +59,7 @@ Agents define **who** does the work — model selection, tool access, persona, a
 - **perf-optimizer**: Uses Sonnet for 68k hardware performance optimization. **Mandatory** (Stage 6c). Read + analysis tools.
 - **profiler**: Uses Sonnet for empirical runtime measurement. Instruments code with ReadEClock-based AMIPORT_PROFILE_BEGIN/END macros, builds profiled binary, runs on vamos/FS-UAE, analyzes timing output. Optional (Stage 6d). Full tool access.
 - **hardware-expert**: Uses Sonnet for Amiga system architecture validation. Dual-role: on-demand consultant (other agents escalate hardware questions) + proactive auditor (reviews reference docs for hardware accuracy). Baked-in knowledge covers CPU variants, chipset generations, address space, bus arbitration. Read + edit tools.
-- **port-coordinator**: Dispatched by /port-project for complex multi-file ports. Uses worktree isolation. Full tool access.
+- **port-coordinator**: **Deprecated** — cannot dispatch subagents. Orchestrate from main session instead.
 - **debug-agent**: Uses Sonnet for autonomous crash debugging. Parses Enforcer hits, maps to source, classifies crashes, applies fixes, and iterates until clean (max 5 iterations). Bash + edit + agent access (can escalate to hardware-expert).
 - **dependency-auditor**: Uses Sonnet for auditing external library dependencies. Research + read tools.
 - **test-designer**: Uses Sonnet for comprehensive FS-UAE test suite design. Analyzes ported source code (flags, exit codes, error paths) to generate test-fsemu-cases.txt files meeting the project's test coverage standard. Read + write tools.

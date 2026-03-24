@@ -61,7 +61,7 @@ The `/port-project` skill has GATE checks — it will not proceed to the next st
 | `code-transformer` | Stage 3 — source transformation |
 | `build-manager` | Stage 4 — cross-compilation and error fixing |
 | `test-runner` | Stage 5 — vamos testing |
-| `port-coordinator` | Dispatched by /port-project for complex multi-file ports requiring judgment calls. Not invoked directly. |
+| `port-coordinator` | **DEPRECATED** — cannot dispatch subagents. Orchestrate from main session instead, dispatching specialized agents directly. |
 | `dependency-auditor` | Before complex ports — audit external library dependencies |
 | `debug-agent` | When a port crashes at runtime — autonomous Enforcer-based crash diagnosis and fix loop |
 | `memory-checker` | **Mandatory** Stage 6b — memory leak detection, double-free, allocation safety |

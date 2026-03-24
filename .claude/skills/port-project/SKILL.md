@@ -217,13 +217,11 @@ This creates `<name>-<version>.lha` containing the binary, readme, and PORT.md �
 
 ## Complex Multi-File Ports
 
-For projects with 5+ source files, multiple Tier 3 issues, or significant judgment calls (e.g., redesigning subsystems), dispatch the `port-coordinator` agent instead of orchestrating stages 1-6 inline. The port-coordinator runs in a worktree and has its own tiered decision framework:
+For projects with 5+ source files, **orchestrate from the main session** by dispatching each specialized agent directly (source-analyzer, code-transformer, build-manager, etc.). The main session is the orchestrator — it has full context and can dispatch subagents.
 
-```
-Agent(subagent_type="port-coordinator", prompt="Port <name> to AmigaOS 3.x. Source is at ports/<name>/original/. Analysis report: <paste summary>. Port category: <N>.")
-```
+**Do NOT use port-coordinator.** It cannot dispatch subagents (Claude Code limitation: spawned agents cannot spawn their own agents). It falls back to doing manual transforms that skip the specialized agents' stub value impact analysis, crash pattern detection, and transformation rule enforcement. This was discovered during the less 692 port (2026-03-24).
 
-The port-coordinator delegates to the same specialized agents (source-analyzer, code-transformer, build-manager, etc.) but brings deeper judgment for complex tradeoffs. For simple single-file CLI tools, run the pipeline inline — port-coordinator adds overhead that isn't needed.
+For multi-file ports, the code-transformer agent handles all source files in a single dispatch — pass it the full list of files to transform. The build-manager iterates on all compile errors across all files.
 
 ## Orchestration — Mandatory Agent Dispatch
 
@@ -242,9 +240,10 @@ Sequential pipeline — each stage depends on the previous:
 8. `test-runner` → vamos testing (Stage 5)
 9. `memory-checker` → mandatory memory safety (Stage 6b)
 10. `debug-agent` → if crashes detected during FS-UAE testing
-11. `port-coordinator` → dispatched instead of inline orchestration for complex multi-file ports
 
 **Exception:** Stage 2 (directory setup) and Stage 7 (packaging) are mechanical and run inline.
+
+**Note:** `port-coordinator` is deprecated — it cannot dispatch subagents (Claude Code limitation). Always orchestrate from the main session.
 
 ## Error Recovery Between Stages
 

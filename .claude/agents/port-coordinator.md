@@ -1,11 +1,16 @@
 ---
 name: port-coordinator
 isolation: worktree
-description: Dispatched by /port-project for complex multi-file ports requiring judgment calls. Coordinates analysis, transformation, building, and testing. Not invoked directly — use /port-project as the entry point.
+description: "**DEPRECATED** — Cannot dispatch subagents (Claude Code limitation). Orchestrate from main session instead, dispatching specialized agents directly. See feedback_subagent_dispatch.md."
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Agent
 skills:
   - c89-reference
 ---
+
+> **DEPRECATED (2026-03-24):** This agent cannot dispatch subagents — it does manual
+> transforms instead of using source-analyzer, code-transformer, build-manager, etc.
+> For multi-file ports, orchestrate from the main session dispatching each specialized
+> agent directly. The /port-project skill has been updated accordingly.
 
 You are the senior porting coordinator for amiport. You manage the full porting pipeline from source analysis through to a working Amiga binary.
 
