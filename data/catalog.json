@@ -417,15 +417,19 @@
       "tier": 2,
       "status": "not_implemented",
       "complexity": "medium",
-      "unlocks": [],
-      "unlocks_count": 0
+      "unlocks": [
+        "find"
+      ],
+      "unlocks_count": 1
     },
     "fork": {
       "tier": 3,
       "status": "not_implemented",
       "complexity": "blocker",
-      "unlocks": [],
-      "unlocks_count": 0
+      "unlocks": [
+        "file"
+      ],
+      "unlocks_count": 1
     },
     "exec": {
       "tier": 3,
@@ -438,15 +442,19 @@
       "tier": 3,
       "status": "not_implemented",
       "complexity": "blocker",
-      "unlocks": [],
-      "unlocks_count": 0
+      "unlocks": [
+        "file"
+      ],
+      "unlocks_count": 1
     },
     "popen": {
       "tier": 2,
       "status": "not_implemented",
       "complexity": "medium",
-      "unlocks": [],
-      "unlocks_count": 0
+      "unlocks": [
+        "awk-plan9"
+      ],
+      "unlocks_count": 1
     },
     "select": {
       "tier": 1,
@@ -473,8 +481,11 @@
       "tier": 2,
       "status": "not_implemented",
       "complexity": "high",
-      "unlocks": [],
-      "unlocks_count": 0
+      "unlocks": [
+        "column",
+        "ls"
+      ],
+      "unlocks_count": 2
     },
     "dlopen": {
       "tier": 3,
@@ -501,6 +512,412 @@
       "tier": 1,
       "status": "implemented",
       "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "fts_open": {
+      "tier": 3,
+      "status": "not_implemented",
+      "complexity": "high",
+      "unlocks": [
+        "ls",
+        "du",
+        "find",
+        "cp",
+        "rm",
+        "chmod"
+      ],
+      "unlocks_count": 6
+    },
+    "fts_read": {
+      "tier": 3,
+      "status": "not_implemented",
+      "complexity": "high",
+      "unlocks": [
+        "ls",
+        "du",
+        "find",
+        "cp",
+        "rm",
+        "chmod"
+      ],
+      "unlocks_count": 6
+    },
+    "fts_close": {
+      "tier": 3,
+      "status": "not_implemented",
+      "complexity": "high",
+      "unlocks": [
+        "ls",
+        "du",
+        "find",
+        "cp",
+        "rm",
+        "chmod"
+      ],
+      "unlocks_count": 6
+    },
+    "fts_set": {
+      "tier": 3,
+      "status": "not_implemented",
+      "complexity": "high",
+      "unlocks": [
+        "ls",
+        "find",
+        "cp",
+        "rm",
+        "chmod"
+      ],
+      "unlocks_count": 5
+    },
+    "fts_children": {
+      "tier": 3,
+      "status": "not_implemented",
+      "complexity": "high",
+      "unlocks": [
+        "ls"
+      ],
+      "unlocks_count": 1
+    },
+    "getpwuid": {
+      "tier": 3,
+      "status": "not_implemented",
+      "complexity": "medium",
+      "unlocks": [
+        "file",
+        "find",
+        "id",
+        "whoami"
+      ],
+      "unlocks_count": 4
+    },
+    "getpwnam": {
+      "tier": 3,
+      "status": "not_implemented",
+      "complexity": "medium",
+      "unlocks": [
+        "file",
+        "find",
+        "id",
+        "whoami"
+      ],
+      "unlocks_count": 4
+    },
+    "getgrnam": {
+      "tier": 3,
+      "status": "not_implemented",
+      "complexity": "medium",
+      "unlocks": [
+        "find"
+      ],
+      "unlocks_count": 1
+    },
+    "getgrgid": {
+      "tier": 3,
+      "status": "not_implemented",
+      "complexity": "medium",
+      "unlocks": [
+        "id",
+        "whoami"
+      ],
+      "unlocks_count": 2
+    },
+    "getuid": {
+      "tier": 3,
+      "status": "not_implemented",
+      "complexity": "low",
+      "unlocks": [
+        "ls",
+        "file",
+        "cp",
+        "id",
+        "whoami"
+      ],
+      "unlocks_count": 5
+    },
+    "geteuid": {
+      "tier": 3,
+      "status": "not_implemented",
+      "complexity": "low",
+      "unlocks": [
+        "file",
+        "find",
+        "id",
+        "whoami"
+      ],
+      "unlocks_count": 4
+    },
+    "getgid": {
+      "tier": 3,
+      "status": "not_implemented",
+      "complexity": "low",
+      "unlocks": [
+        "id",
+        "whoami"
+      ],
+      "unlocks_count": 2
+    },
+    "getegid": {
+      "tier": 3,
+      "status": "not_implemented",
+      "complexity": "low",
+      "unlocks": [
+        "id",
+        "whoami"
+      ],
+      "unlocks_count": 2
+    },
+    "getgroups": {
+      "tier": 3,
+      "status": "not_implemented",
+      "complexity": "low",
+      "unlocks": [
+        "id",
+        "whoami"
+      ],
+      "unlocks_count": 2
+    },
+    "getgrouplist": {
+      "tier": 3,
+      "status": "not_implemented",
+      "complexity": "low",
+      "unlocks": [
+        "id",
+        "whoami"
+      ],
+      "unlocks_count": 2
+    },
+    "getlogin": {
+      "tier": 3,
+      "status": "not_implemented",
+      "complexity": "low",
+      "unlocks": [
+        "id",
+        "whoami",
+        "logname"
+      ],
+      "unlocks_count": 3
+    },
+    "symlink": {
+      "tier": 3,
+      "status": "not_implemented",
+      "complexity": "blocker",
+      "unlocks": [
+        "ln",
+        "cp"
+      ],
+      "unlocks_count": 2
+    },
+    "readlink": {
+      "tier": 3,
+      "status": "not_implemented",
+      "complexity": "blocker",
+      "unlocks": [
+        "ls",
+        "file",
+        "find",
+        "cp"
+      ],
+      "unlocks_count": 4
+    },
+    "link": {
+      "tier": 3,
+      "status": "not_implemented",
+      "complexity": "blocker",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "chown": {
+      "tier": 3,
+      "status": "not_implemented",
+      "complexity": "low",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "lchown": {
+      "tier": 3,
+      "status": "not_implemented",
+      "complexity": "low",
+      "unlocks": [
+        "cp"
+      ],
+      "unlocks_count": 1
+    },
+    "fchown": {
+      "tier": 3,
+      "status": "not_implemented",
+      "complexity": "low",
+      "unlocks": [
+        "cp",
+        "mv"
+      ],
+      "unlocks_count": 2
+    },
+    "fchmod": {
+      "tier": 3,
+      "status": "not_implemented",
+      "complexity": "low",
+      "unlocks": [
+        "cp",
+        "mv"
+      ],
+      "unlocks_count": 2
+    },
+    "gethostname": {
+      "tier": 3,
+      "status": "not_implemented",
+      "complexity": "medium",
+      "unlocks": [
+        "hostname"
+      ],
+      "unlocks_count": 1
+    },
+    "sethostname": {
+      "tier": 3,
+      "status": "not_implemented",
+      "complexity": "medium",
+      "unlocks": [
+        "hostname"
+      ],
+      "unlocks_count": 1
+    },
+    "ttyname": {
+      "tier": 3,
+      "status": "not_implemented",
+      "complexity": "medium",
+      "unlocks": [
+        "tty"
+      ],
+      "unlocks_count": 1
+    },
+    "user_from_uid": {
+      "tier": 3,
+      "status": "not_implemented",
+      "complexity": "medium",
+      "unlocks": [
+        "ls"
+      ],
+      "unlocks_count": 1
+    },
+    "group_from_gid": {
+      "tier": 3,
+      "status": "not_implemented",
+      "complexity": "medium",
+      "unlocks": [
+        "ls"
+      ],
+      "unlocks_count": 1
+    },
+    "utimensat": {
+      "tier": 2,
+      "status": "not_implemented",
+      "complexity": "medium",
+      "unlocks": [
+        "touch"
+      ],
+      "unlocks_count": 1
+    },
+    "futimens": {
+      "tier": 2,
+      "status": "not_implemented",
+      "complexity": "medium",
+      "unlocks": [
+        "touch"
+      ],
+      "unlocks_count": 1
+    },
+    "uname_syscall": {
+      "tier": 2,
+      "status": "not_implemented",
+      "complexity": "medium",
+      "unlocks": [
+        "uname"
+      ],
+      "unlocks_count": 1
+    },
+    "sysconf": {
+      "tier": 2,
+      "status": "not_implemented",
+      "complexity": "medium",
+      "unlocks": [
+        "find",
+        "xargs"
+      ],
+      "unlocks_count": 2
+    },
+    "setlocale": {
+      "tier": 2,
+      "status": "not_implemented",
+      "complexity": "low",
+      "unlocks": [
+        "fmt",
+        "fold",
+        "column",
+        "join",
+        "ls",
+        "nl"
+      ],
+      "unlocks_count": 6
+    },
+    "mbrtowc": {
+      "tier": 2,
+      "status": "not_implemented",
+      "complexity": "medium",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "wcwidth": {
+      "tier": 2,
+      "status": "not_implemented",
+      "complexity": "medium",
+      "unlocks": [
+        "fmt",
+        "fold",
+        "column"
+      ],
+      "unlocks_count": 3
+    },
+    "mbtowc": {
+      "tier": 2,
+      "status": "not_implemented",
+      "complexity": "medium",
+      "unlocks": [
+        "fmt",
+        "fold",
+        "column",
+        "join"
+      ],
+      "unlocks_count": 4
+    },
+    "wctomb": {
+      "tier": 2,
+      "status": "not_implemented",
+      "complexity": "medium",
+      "unlocks": [
+        "join"
+      ],
+      "unlocks_count": 1
+    },
+    "iswblank": {
+      "tier": 2,
+      "status": "not_implemented",
+      "complexity": "low",
+      "unlocks": [
+        "fmt"
+      ],
+      "unlocks_count": 1
+    },
+    "nl_langinfo": {
+      "tier": 2,
+      "status": "not_implemented",
+      "complexity": "low",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "utimes": {
+      "tier": 2,
+      "status": "not_implemented",
+      "complexity": "medium",
       "unlocks": [],
       "unlocks_count": 0
     }
@@ -550,7 +967,9 @@
         "stock_a1200": "fits",
         "a1200_accel": "fits",
         "a4000_030": "fits"
-      }
+      },
+      "aminet_status": "exists",
+      "aminet_notes": "ARPClones-37.1 (1995) and BP102 (1992) provide Amiga variants. GNU coreutils-bin v5.2.1-9 (2006) includes POSIX-compliant basename."
     },
     {
       "id": "dirname",
@@ -596,7 +1015,9 @@
         "stock_a1200": "fits",
         "a1200_accel": "fits",
         "a4000_030": "fits"
-      }
+      },
+      "aminet_status": "missing",
+      "aminet_notes": "Not available as standalone utility. GNU coreutils-bin v5.2.1-9 (2006) includes it."
     },
     {
       "id": "tr",
@@ -609,21 +1030,39 @@
         "version": "latest",
         "license": "BSD-3-Clause",
         "url": "https://cvsweb.openbsd.org/src/usr.bin/tr/",
-        "files": null,
-        "lines_of_code": null
+        "files": 3,
+        "lines_of_code": 579
       },
       "status": "candidate",
-      "analysis_status": "pending",
+      "analysis_status": "complete",
       "publishable": true,
-      "notes": "Multi-file but pure stdio; locale/wchar paths need #ifdef __AMIGA__",
+      "notes": "Multi-file (tr.c, str.c, extern.h); pure stdio + getopt. No locale/wchar deps.",
       "readiness": {
-        "score": 0.0,
-        "tier": "unanalyzed"
+        "score": 0.991,
+        "tier": "ready"
       },
       "hardware_fit": {
-        "stock_a1200": "unknown",
-        "a1200_accel": "unknown",
-        "a4000_030": "unknown"
+        "stock_a1200": "fits",
+        "a1200_accel": "fits",
+        "a4000_030": "fits"
+      },
+      "analysis": {
+        "analyzed_date": "2026-03-25",
+        "analyzer_version": "1.0",
+        "shim_library_version": "1.0",
+        "posix_tier_mix": {
+          "tier1": 4,
+          "tier2": 0,
+          "tier3": 0
+        },
+        "missing_shims": [],
+        "blocking_shims": [],
+        "blocker_workaround": null,
+        "dependencies": [],
+        "source_complexity": 0.94,
+        "estimated_stack_kb": 32,
+        "estimated_binary_kb": 38,
+        "estimated_data_kb": 2
       }
     },
     {
@@ -637,21 +1076,44 @@
         "version": "latest",
         "license": "BSD-3-Clause",
         "url": "https://cvsweb.openbsd.org/src/usr.bin/fmt/",
-        "files": null,
-        "lines_of_code": null
+        "files": 1,
+        "lines_of_code": 729
       },
       "status": "candidate",
-      "analysis_status": "pending",
+      "analysis_status": "complete",
       "publishable": true,
-      "notes": "Pure text processing, no OS deps",
+      "notes": "Text formatter. Locale/wchar paths can be #ifdef-d out for ASCII-only operation.",
       "readiness": {
-        "score": 0.0,
-        "tier": "unanalyzed"
+        "score": 0.578,
+        "tier": "blocked"
       },
       "hardware_fit": {
-        "stock_a1200": "unknown",
-        "a1200_accel": "unknown",
-        "a4000_030": "unknown"
+        "stock_a1200": "fits",
+        "a1200_accel": "fits",
+        "a4000_030": "fits"
+      },
+      "analysis": {
+        "analyzed_date": "2026-03-25",
+        "analyzer_version": "1.0",
+        "shim_library_version": "1.0",
+        "posix_tier_mix": {
+          "tier1": 5,
+          "tier2": 4,
+          "tier3": 0
+        },
+        "missing_shims": [
+          "setlocale",
+          "mbtowc",
+          "wcwidth",
+          "iswblank"
+        ],
+        "blocking_shims": [],
+        "blocker_workaround": "#ifdef __AMIGA__ to skip locale/wchar paths; ASCII-only is fine for Amiga",
+        "dependencies": [],
+        "source_complexity": 0.93,
+        "estimated_stack_kb": 32,
+        "estimated_binary_kb": 46,
+        "estimated_data_kb": 2
       }
     },
     {
@@ -665,21 +1127,43 @@
         "version": "latest",
         "license": "BSD-3-Clause",
         "url": "https://cvsweb.openbsd.org/src/usr.bin/fold/",
-        "files": null,
-        "lines_of_code": null
+        "files": 1,
+        "lines_of_code": 273
       },
       "status": "candidate",
-      "analysis_status": "pending",
+      "analysis_status": "complete",
       "publishable": true,
-      "notes": "Single file, pure stdio",
+      "notes": "Simple line folder. Locale/wchar for multibyte chars can be #ifdef-d out.",
       "readiness": {
-        "score": 0.0,
-        "tier": "unanalyzed"
+        "score": 0.588,
+        "tier": "blocked"
       },
       "hardware_fit": {
-        "stock_a1200": "unknown",
-        "a1200_accel": "unknown",
-        "a4000_030": "unknown"
+        "stock_a1200": "fits",
+        "a1200_accel": "fits",
+        "a4000_030": "fits"
+      },
+      "analysis": {
+        "analyzed_date": "2026-03-25",
+        "analyzer_version": "1.0",
+        "shim_library_version": "1.0",
+        "posix_tier_mix": {
+          "tier1": 4,
+          "tier2": 3,
+          "tier3": 0
+        },
+        "missing_shims": [
+          "setlocale",
+          "mbtowc",
+          "wcwidth"
+        ],
+        "blocking_shims": [],
+        "blocker_workaround": "#ifdef __AMIGA__ to skip multibyte paths; ASCII fold works fine",
+        "dependencies": [],
+        "source_complexity": 0.97,
+        "estimated_stack_kb": 16,
+        "estimated_binary_kb": 23,
+        "estimated_data_kb": 1
       }
     },
     {
@@ -726,7 +1210,9 @@
         "stock_a1200": "fits",
         "a1200_accel": "fits",
         "a4000_030": "fits"
-      }
+      },
+      "aminet_status": "exists",
+      "aminet_notes": "AlterASCII (1997) provides text reversal/transformation, but differs in purpose from POSIX rev. Not a direct port."
     },
     {
       "id": "column",
@@ -739,21 +1225,44 @@
         "version": "latest",
         "license": "BSD-3-Clause",
         "url": "https://cvsweb.openbsd.org/src/usr.bin/column/",
-        "files": null,
-        "lines_of_code": null
+        "files": 1,
+        "lines_of_code": 351
       },
       "status": "candidate",
-      "analysis_status": "pending",
+      "analysis_status": "complete",
       "publishable": true,
-      "notes": "Uses ioctl for terminal width -- stub to 80 columns",
+      "notes": "Columnate lists. ioctl only for terminal width detection (easy workaround). Locale paths can be skipped.",
       "readiness": {
-        "score": 0.0,
-        "tier": "unanalyzed"
+        "score": 0.603,
+        "tier": "feasible"
       },
       "hardware_fit": {
-        "stock_a1200": "unknown",
-        "a1200_accel": "unknown",
-        "a4000_030": "unknown"
+        "stock_a1200": "fits",
+        "a1200_accel": "fits",
+        "a4000_030": "fits"
+      },
+      "analysis": {
+        "analyzed_date": "2026-03-25",
+        "analyzer_version": "1.0",
+        "shim_library_version": "1.0",
+        "posix_tier_mix": {
+          "tier1": 7,
+          "tier2": 4,
+          "tier3": 0
+        },
+        "missing_shims": [
+          "ioctl",
+          "setlocale",
+          "mbtowc",
+          "wcwidth"
+        ],
+        "blocking_shims": [],
+        "blocker_workaround": "ioctl(TIOCGWINSZ) replaced with getenv(COLUMNS) or default 80; locale #ifdef-d out",
+        "dependencies": [],
+        "source_complexity": 0.96,
+        "estimated_stack_kb": 16,
+        "estimated_binary_kb": 27,
+        "estimated_data_kb": 2
       }
     },
     {
@@ -800,7 +1309,9 @@
         "stock_a1200": "fits",
         "a1200_accel": "fits",
         "a4000_030": "fits"
-      }
+      },
+      "aminet_status": "exists",
+      "aminet_notes": "Expand.lha (1992) provides 'TABs to spaces and vice versa'\u2014older standalone implementation."
     },
     {
       "id": "unexpand",
@@ -846,7 +1357,9 @@
         "stock_a1200": "fits",
         "a1200_accel": "fits",
         "a4000_030": "fits"
-      }
+      },
+      "aminet_status": "missing",
+      "aminet_notes": "Not found on Aminet. GNU coreutils-bin v5.2.1-9 (2006) includes it."
     },
     {
       "id": "paste",
@@ -859,21 +1372,39 @@
         "version": "latest",
         "license": "BSD-3-Clause",
         "url": "https://cvsweb.openbsd.org/src/usr.bin/paste/",
-        "files": null,
-        "lines_of_code": null
+        "files": 1,
+        "lines_of_code": 248
       },
       "status": "candidate",
-      "analysis_status": "pending",
+      "analysis_status": "complete",
       "publishable": true,
-      "notes": "Single file, pure stdio",
+      "notes": "Merge lines of files. Pure stdio + getopt + getline. No OS deps.",
       "readiness": {
-        "score": 0.0,
-        "tier": "unanalyzed"
+        "score": 0.997,
+        "tier": "ready"
       },
       "hardware_fit": {
-        "stock_a1200": "unknown",
-        "a1200_accel": "unknown",
-        "a4000_030": "unknown"
+        "stock_a1200": "fits",
+        "a1200_accel": "fits",
+        "a4000_030": "fits"
+      },
+      "analysis": {
+        "analyzed_date": "2026-03-25",
+        "analyzer_version": "1.0",
+        "shim_library_version": "1.0",
+        "posix_tier_mix": {
+          "tier1": 5,
+          "tier2": 0,
+          "tier3": 0
+        },
+        "missing_shims": [],
+        "blocking_shims": [],
+        "blocker_workaround": null,
+        "dependencies": [],
+        "source_complexity": 0.98,
+        "estimated_stack_kb": 16,
+        "estimated_binary_kb": 22,
+        "estimated_data_kb": 1
       }
     },
     {
@@ -887,21 +1418,43 @@
         "version": "latest",
         "license": "BSD-3-Clause",
         "url": "https://cvsweb.openbsd.org/src/usr.bin/join/",
-        "files": null,
-        "lines_of_code": null
+        "files": 1,
+        "lines_of_code": 634
       },
       "status": "candidate",
-      "analysis_status": "pending",
+      "analysis_status": "complete",
       "publishable": true,
-      "notes": "Single file, locale-aware sorting needs review",
+      "notes": "Relational join. Locale/wchar paths for multibyte field separators can be #ifdef-d out.",
       "readiness": {
-        "score": 0.0,
-        "tier": "unanalyzed"
+        "score": 0.608,
+        "tier": "feasible"
       },
       "hardware_fit": {
-        "stock_a1200": "unknown",
-        "a1200_accel": "unknown",
-        "a4000_030": "unknown"
+        "stock_a1200": "fits",
+        "a1200_accel": "fits",
+        "a4000_030": "fits"
+      },
+      "analysis": {
+        "analyzed_date": "2026-03-25",
+        "analyzer_version": "1.0",
+        "shim_library_version": "1.0",
+        "posix_tier_mix": {
+          "tier1": 6,
+          "tier2": 3,
+          "tier3": 0
+        },
+        "missing_shims": [
+          "setlocale",
+          "mbtowc",
+          "wctomb"
+        ],
+        "blocking_shims": [],
+        "blocker_workaround": "#ifdef __AMIGA__ to skip locale/wchar; ASCII join works correctly",
+        "dependencies": [],
+        "source_complexity": 0.94,
+        "estimated_stack_kb": 32,
+        "estimated_binary_kb": 41,
+        "estimated_data_kb": 2
       }
     },
     {
@@ -948,7 +1501,9 @@
         "stock_a1200": "fits",
         "a1200_accel": "fits",
         "a4000_030": "fits"
-      }
+      },
+      "aminet_status": "missing",
+      "aminet_notes": "Not available as standalone utility. GNU coreutils-bin v5.2.1-9 (2006) includes it."
     },
     {
       "id": "tsort",
@@ -961,21 +1516,39 @@
         "version": "latest",
         "license": "BSD-3-Clause",
         "url": "https://cvsweb.openbsd.org/src/usr.bin/tsort/",
-        "files": null,
-        "lines_of_code": null
+        "files": 1,
+        "lines_of_code": 1014
       },
       "status": "candidate",
-      "analysis_status": "pending",
+      "analysis_status": "complete",
       "publishable": true,
-      "notes": "Single file, pure stdio + malloc",
+      "notes": "Topological sort. Pure algorithm + stdio. No OS deps. Larger due to cycle detection.",
       "readiness": {
-        "score": 0.0,
-        "tier": "unanalyzed"
+        "score": 0.985,
+        "tier": "ready"
       },
       "hardware_fit": {
-        "stock_a1200": "unknown",
-        "a1200_accel": "unknown",
-        "a4000_030": "unknown"
+        "stock_a1200": "fits",
+        "a1200_accel": "fits",
+        "a4000_030": "fits"
+      },
+      "analysis": {
+        "analyzed_date": "2026-03-25",
+        "analyzer_version": "1.0",
+        "shim_library_version": "1.0",
+        "posix_tier_mix": {
+          "tier1": 5,
+          "tier2": 0,
+          "tier3": 0
+        },
+        "missing_shims": [],
+        "blocking_shims": [],
+        "blocker_workaround": null,
+        "dependencies": [],
+        "source_complexity": 0.9,
+        "estimated_stack_kb": 32,
+        "estimated_binary_kb": 60,
+        "estimated_data_kb": 4
       }
     },
     {
@@ -989,21 +1562,61 @@
         "version": "latest",
         "license": "BSD-3-Clause",
         "url": "https://cvsweb.openbsd.org/src/bin/ls/",
-        "files": null,
-        "lines_of_code": null
+        "files": 6,
+        "lines_of_code": 1250
       },
       "status": "candidate",
-      "analysis_status": "pending",
+      "analysis_status": "complete",
       "publishable": true,
-      "notes": "Multi-file; needs stat/readdir shims, ioctl for columns, no user/group on Amiga",
+      "notes": "Complex multi-file (ls.c, print.c, cmp.c, util.c, extern.h, ls.h). Needs fts replacement or shim. User/group display needs stubs. Significant effort.",
       "readiness": {
-        "score": 0.0,
-        "tier": "unanalyzed"
+        "score": 0.445,
+        "tier": "blocked"
       },
       "hardware_fit": {
-        "stock_a1200": "unknown",
-        "a1200_accel": "unknown",
-        "a4000_030": "unknown"
+        "stock_a1200": "fits",
+        "a1200_accel": "fits",
+        "a4000_030": "fits"
+      },
+      "analysis": {
+        "analyzed_date": "2026-03-25",
+        "analyzer_version": "1.0",
+        "shim_library_version": "1.0",
+        "posix_tier_mix": {
+          "tier1": 9,
+          "tier2": 2,
+          "tier3": 9
+        },
+        "missing_shims": [
+          "fts_open",
+          "fts_read",
+          "fts_close",
+          "fts_set",
+          "fts_children",
+          "getuid",
+          "readlink",
+          "user_from_uid",
+          "group_from_gid",
+          "ioctl",
+          "setlocale"
+        ],
+        "blocking_shims": [
+          "fts_open",
+          "fts_read",
+          "fts_close",
+          "fts_set",
+          "fts_children",
+          "getuid",
+          "readlink",
+          "user_from_uid",
+          "group_from_gid"
+        ],
+        "blocker_workaround": "fts can be replaced with opendir/readdir recursive walk; user/group stubs return \"amiga\"; readlink returns -1; ioctl(TIOCGWINSZ) use COLUMNS env",
+        "dependencies": [],
+        "source_complexity": 0.88,
+        "estimated_stack_kb": 64,
+        "estimated_binary_kb": 72,
+        "estimated_data_kb": 4
       }
     },
     {
@@ -1017,21 +1630,50 @@
         "version": "latest",
         "license": "BSD-2-Clause",
         "url": "https://cvsweb.openbsd.org/src/usr.bin/file/",
-        "files": null,
-        "lines_of_code": null
+        "files": 10,
+        "lines_of_code": 3701
       },
       "status": "candidate",
-      "analysis_status": "pending",
+      "analysis_status": "complete",
       "publishable": true,
-      "notes": "Needs magic database file; bundled magic.mgc or simplified rules",
+      "notes": "Multi-file with built-in magic detection (10 files, ~3700 LOC). fork/wait for sandbox can be bypassed. Complex but self-contained (no libmagic dep).",
       "readiness": {
-        "score": 0.0,
-        "tier": "unanalyzed"
+        "score": 0.451,
+        "tier": "blocked"
       },
       "hardware_fit": {
-        "stock_a1200": "unknown",
-        "a1200_accel": "unknown",
-        "a4000_030": "unknown"
+        "stock_a1200": "fits",
+        "a1200_accel": "fits",
+        "a4000_030": "fits"
+      },
+      "analysis": {
+        "analyzed_date": "2026-03-25",
+        "analyzer_version": "1.0",
+        "shim_library_version": "1.0",
+        "posix_tier_mix": {
+          "tier1": 15,
+          "tier2": 2,
+          "tier3": 7
+        },
+        "missing_shims": [
+          "fork",
+          "wait",
+          "getpwuid",
+          "getpwnam",
+          "geteuid",
+          "getuid",
+          "readlink"
+        ],
+        "blocking_shims": [
+          "fork",
+          "wait"
+        ],
+        "blocker_workaround": "fork/wait used for sandboxed magic testing \u2014 can run unsandboxed on AmigaOS (no privilege separation needed). getpw*/getuid stubs. readlink returns -1.",
+        "dependencies": [],
+        "source_complexity": 0.63,
+        "estimated_stack_kb": 64,
+        "estimated_binary_kb": 195,
+        "estimated_data_kb": 8
       }
     },
     {
@@ -1045,21 +1687,47 @@
         "version": "latest",
         "license": "BSD-3-Clause",
         "url": "https://cvsweb.openbsd.org/src/usr.bin/du/",
-        "files": null,
-        "lines_of_code": null
+        "files": 1,
+        "lines_of_code": 324
       },
       "status": "candidate",
-      "analysis_status": "pending",
+      "analysis_status": "complete",
       "publishable": true,
-      "notes": "Uses stat/opendir/readdir; block size semantics differ on Amiga",
+      "notes": "Disk usage. Core logic is simple but depends on fts for directory traversal. Rewrite with opendir/readdir is straightforward.",
       "readiness": {
-        "score": 0.0,
-        "tier": "unanalyzed"
+        "score": 0.47,
+        "tier": "blocked"
       },
       "hardware_fit": {
-        "stock_a1200": "unknown",
-        "a1200_accel": "unknown",
-        "a4000_030": "unknown"
+        "stock_a1200": "fits",
+        "a1200_accel": "fits",
+        "a4000_030": "fits"
+      },
+      "analysis": {
+        "analyzed_date": "2026-03-25",
+        "analyzer_version": "1.0",
+        "shim_library_version": "1.0",
+        "posix_tier_mix": {
+          "tier1": 3,
+          "tier2": 0,
+          "tier3": 3
+        },
+        "missing_shims": [
+          "fts_open",
+          "fts_read",
+          "fts_close"
+        ],
+        "blocking_shims": [
+          "fts_open",
+          "fts_read",
+          "fts_close"
+        ],
+        "blocker_workaround": "fts can be replaced with opendir/readdir recursive walk + stat for sizes",
+        "dependencies": [],
+        "source_complexity": 0.97,
+        "estimated_stack_kb": 64,
+        "estimated_binary_kb": 26,
+        "estimated_data_kb": 2
       }
     },
     {
@@ -1073,21 +1741,69 @@
         "version": "latest",
         "license": "BSD-3-Clause",
         "url": "https://cvsweb.openbsd.org/src/usr.bin/find/",
-        "files": null,
-        "lines_of_code": null
+        "files": 7,
+        "lines_of_code": 2803
       },
       "status": "candidate",
-      "analysis_status": "pending",
+      "analysis_status": "complete",
       "publishable": true,
-      "notes": "Needs fork/exec for -exec flag -- stub or omit -exec; rest is feasible",
+      "notes": "Complex multi-file (7 files, ~2800 LOC). -exec needs fork/exec (blocker). -user/-group need getpw/getgr. fts needs replacement. Partial port feasible (find without -exec).",
       "readiness": {
-        "score": 0.0,
-        "tier": "unanalyzed"
+        "score": 0.444,
+        "tier": "blocked"
       },
       "hardware_fit": {
-        "stock_a1200": "unknown",
-        "a1200_accel": "unknown",
-        "a4000_030": "unknown"
+        "stock_a1200": "fits",
+        "a1200_accel": "fits",
+        "a4000_030": "fits"
+      },
+      "analysis": {
+        "analyzed_date": "2026-03-25",
+        "analyzer_version": "1.0",
+        "shim_library_version": "1.0",
+        "posix_tier_mix": {
+          "tier1": 18,
+          "tier2": 2,
+          "tier3": 13
+        },
+        "missing_shims": [
+          "fts_open",
+          "fts_read",
+          "fts_close",
+          "fts_set",
+          "execvp",
+          "execve",
+          "vfork",
+          "waitpid",
+          "getpwnam",
+          "getpwuid",
+          "getgrnam",
+          "geteuid",
+          "readlink",
+          "sigaction",
+          "sysconf"
+        ],
+        "blocking_shims": [
+          "fts_open",
+          "fts_read",
+          "fts_close",
+          "fts_set",
+          "execvp",
+          "execve",
+          "vfork",
+          "waitpid",
+          "getpwnam",
+          "getpwuid",
+          "getgrnam",
+          "geteuid",
+          "readlink"
+        ],
+        "blocker_workaround": "-exec requires fork/exec (Tier 3 blocker). Subset without -exec/-user/-group is feasible with fts replacement.",
+        "dependencies": [],
+        "source_complexity": 0.72,
+        "estimated_stack_kb": 64,
+        "estimated_binary_kb": 150,
+        "estimated_data_kb": 4
       }
     },
     {
@@ -1101,21 +1817,48 @@
         "version": "latest",
         "license": "ISC",
         "url": "https://cvsweb.openbsd.org/src/usr.bin/xargs/",
-        "files": null,
-        "lines_of_code": null
+        "files": 2,
+        "lines_of_code": 727
       },
       "status": "candidate",
-      "analysis_status": "pending",
+      "analysis_status": "complete",
       "publishable": true,
-      "notes": "xargs without -P is feasible; uses SystemTagList for execution",
+      "notes": "Fundamentally depends on fork+exec to run child processes. AmigaDOS System() could work but is a significant rewrite.",
       "readiness": {
-        "score": 0.0,
-        "tier": "unanalyzed"
+        "score": 0.518,
+        "tier": "blocked"
       },
       "hardware_fit": {
-        "stock_a1200": "unknown",
-        "a1200_accel": "unknown",
-        "a4000_030": "unknown"
+        "stock_a1200": "fits",
+        "a1200_accel": "fits",
+        "a4000_030": "fits"
+      },
+      "analysis": {
+        "analyzed_date": "2026-03-25",
+        "analyzer_version": "1.0",
+        "shim_library_version": "1.0",
+        "posix_tier_mix": {
+          "tier1": 10,
+          "tier2": 1,
+          "tier3": 3
+        },
+        "missing_shims": [
+          "execvp",
+          "vfork",
+          "waitpid",
+          "sysconf"
+        ],
+        "blocking_shims": [
+          "execvp",
+          "vfork",
+          "waitpid"
+        ],
+        "blocker_workaround": "Core function is fork+exec \u2014 could use AmigaDOS SystemTags() but would be a major rewrite",
+        "dependencies": [],
+        "source_complexity": 0.93,
+        "estimated_stack_kb": 32,
+        "estimated_binary_kb": 46,
+        "estimated_data_kb": 2
       }
     },
     {
@@ -1129,21 +1872,42 @@
         "version": "latest",
         "license": "BSD-3-Clause",
         "url": "https://cvsweb.openbsd.org/src/usr.bin/touch/",
-        "files": null,
-        "lines_of_code": null
+        "files": 1,
+        "lines_of_code": 340
       },
       "status": "candidate",
-      "analysis_status": "pending",
+      "analysis_status": "complete",
       "publishable": true,
-      "notes": "Uses utimes/stat; SetFileDate on AmigaOS, epoch offset needed",
+      "notes": "Change file timestamps. Needs utimensat/futimens shim (maps to SetFileDate). Otherwise clean.",
       "readiness": {
-        "score": 0.0,
-        "tier": "unanalyzed"
+        "score": 0.646,
+        "tier": "feasible"
       },
       "hardware_fit": {
-        "stock_a1200": "unknown",
-        "a1200_accel": "unknown",
-        "a4000_030": "unknown"
+        "stock_a1200": "fits",
+        "a1200_accel": "fits",
+        "a4000_030": "fits"
+      },
+      "analysis": {
+        "analyzed_date": "2026-03-25",
+        "analyzer_version": "1.0",
+        "shim_library_version": "1.0",
+        "posix_tier_mix": {
+          "tier1": 8,
+          "tier2": 2,
+          "tier3": 0
+        },
+        "missing_shims": [
+          "utimensat",
+          "futimens"
+        ],
+        "blocking_shims": [],
+        "blocker_workaround": "utimensat/futimens can be shimmed via AmigaOS SetFileDate() \u2014 straightforward Tier 2 shim",
+        "dependencies": [],
+        "source_complexity": 0.97,
+        "estimated_stack_kb": 16,
+        "estimated_binary_kb": 27,
+        "estimated_data_kb": 2
       }
     },
     {
@@ -1157,21 +1921,43 @@
         "version": "latest",
         "license": "BSD-3-Clause",
         "url": "https://cvsweb.openbsd.org/src/bin/ln/",
-        "files": null,
-        "lines_of_code": null
+        "files": 1,
+        "lines_of_code": 202
       },
       "status": "candidate",
-      "analysis_status": "pending",
+      "analysis_status": "complete",
       "publishable": true,
-      "notes": "Amiga has soft links via MakeLink; hard links not available",
+      "notes": "Create links. symlink() is a hard blocker (no AmigaOS equivalent). Hard link via AmigaOS MakeLink() is possible for -f mode. ln -s would fail gracefully.",
       "readiness": {
-        "score": 0.0,
-        "tier": "unanalyzed"
+        "score": 0.566,
+        "tier": "blocked"
       },
       "hardware_fit": {
-        "stock_a1200": "unknown",
-        "a1200_accel": "unknown",
-        "a4000_030": "unknown"
+        "stock_a1200": "fits",
+        "a1200_accel": "fits",
+        "a4000_030": "fits"
+      },
+      "analysis": {
+        "analyzed_date": "2026-03-25",
+        "analyzer_version": "1.0",
+        "shim_library_version": "1.0",
+        "posix_tier_mix": {
+          "tier1": 7,
+          "tier2": 0,
+          "tier3": 1
+        },
+        "missing_shims": [
+          "symlink"
+        ],
+        "blocking_shims": [
+          "symlink"
+        ],
+        "blocker_workaround": "AmigaOS has no symlinks (only MakeLink for hard links on FFS). Hard link only mode feasible.",
+        "dependencies": [],
+        "source_complexity": 0.98,
+        "estimated_stack_kb": 16,
+        "estimated_binary_kb": 20,
+        "estimated_data_kb": 1
       }
     },
     {
@@ -1185,21 +1971,61 @@
         "version": "latest",
         "license": "BSD-3-Clause",
         "url": "https://cvsweb.openbsd.org/src/bin/cp/",
-        "files": null,
-        "lines_of_code": null
+        "files": 2,
+        "lines_of_code": 817
       },
       "status": "candidate",
-      "analysis_status": "pending",
+      "analysis_status": "complete",
       "publishable": true,
-      "notes": "Multi-file; -r needs opendir/readdir, no chmod/chown semantics",
+      "notes": "Copy files. Multi-file (cp.c, utils.c). Needs fts replacement. Ownership/symlink operations need stubs. Recursive copy feasible with workarounds.",
       "readiness": {
-        "score": 0.0,
-        "tier": "unanalyzed"
+        "score": 0.502,
+        "tier": "blocked"
       },
       "hardware_fit": {
-        "stock_a1200": "unknown",
-        "a1200_accel": "unknown",
-        "a4000_030": "unknown"
+        "stock_a1200": "fits",
+        "a1200_accel": "fits",
+        "a4000_030": "fits"
+      },
+      "analysis": {
+        "analyzed_date": "2026-03-25",
+        "analyzer_version": "1.0",
+        "shim_library_version": "1.0",
+        "posix_tier_mix": {
+          "tier1": 19,
+          "tier2": 0,
+          "tier3": 10
+        },
+        "missing_shims": [
+          "fts_open",
+          "fts_read",
+          "fts_close",
+          "fts_set",
+          "fchmod",
+          "fchown",
+          "getuid",
+          "lchown",
+          "readlink",
+          "symlink"
+        ],
+        "blocking_shims": [
+          "fts_open",
+          "fts_read",
+          "fts_close",
+          "fts_set",
+          "fchmod",
+          "fchown",
+          "getuid",
+          "lchown",
+          "readlink",
+          "symlink"
+        ],
+        "blocker_workaround": "fts replaceable with opendir/readdir. fchmod/fchown/lchown can be no-ops. symlink/readlink: skip -R symlink preservation. Major effort.",
+        "dependencies": [],
+        "source_complexity": 0.92,
+        "estimated_stack_kb": 64,
+        "estimated_binary_kb": 50,
+        "estimated_data_kb": 2
       }
     },
     {
@@ -1213,21 +2039,45 @@
         "version": "latest",
         "license": "BSD-3-Clause",
         "url": "https://cvsweb.openbsd.org/src/bin/mv/",
-        "files": null,
-        "lines_of_code": null
+        "files": 1,
+        "lines_of_code": 394
       },
       "status": "candidate",
-      "analysis_status": "pending",
+      "analysis_status": "complete",
       "publishable": true,
-      "notes": "Uses rename(); cross-device needs copy+delete fallback",
+      "notes": "Move/rename files. Calls cpmain/rmmain directly for cross-device (no fork). fchmod/fchown are trivial no-op stubs. Feasible.",
       "readiness": {
-        "score": 0.0,
-        "tier": "unanalyzed"
+        "score": 0.568,
+        "tier": "blocked"
       },
       "hardware_fit": {
-        "stock_a1200": "unknown",
-        "a1200_accel": "unknown",
-        "a4000_030": "unknown"
+        "stock_a1200": "fits",
+        "a1200_accel": "fits",
+        "a4000_030": "fits"
+      },
+      "analysis": {
+        "analyzed_date": "2026-03-25",
+        "analyzer_version": "1.0",
+        "shim_library_version": "1.0",
+        "posix_tier_mix": {
+          "tier1": 17,
+          "tier2": 0,
+          "tier3": 2
+        },
+        "missing_shims": [
+          "fchmod",
+          "fchown"
+        ],
+        "blocking_shims": [
+          "fchmod",
+          "fchown"
+        ],
+        "blocker_workaround": "fchmod/fchown can be no-op stubs \u2014 AmigaOS has limited permission model. Uses cpmain/rmmain directly (no fork).",
+        "dependencies": [],
+        "source_complexity": 0.96,
+        "estimated_stack_kb": 16,
+        "estimated_binary_kb": 29,
+        "estimated_data_kb": 2
       }
     },
     {
@@ -1241,21 +2091,49 @@
         "version": "latest",
         "license": "BSD-3-Clause",
         "url": "https://cvsweb.openbsd.org/src/bin/rm/",
-        "files": null,
-        "lines_of_code": null
+        "files": 1,
+        "lines_of_code": 445
       },
       "status": "candidate",
-      "analysis_status": "pending",
+      "analysis_status": "complete",
       "publishable": true,
-      "notes": "Uses unlink/rmdir shims; -r needs recursive opendir walk",
+      "notes": "Remove files. fts needed only for -r (recursive). Simple rm without -r is trivial. fts replacement for -r is moderate effort.",
       "readiness": {
-        "score": 0.0,
-        "tier": "unanalyzed"
+        "score": 0.538,
+        "tier": "blocked"
       },
       "hardware_fit": {
-        "stock_a1200": "unknown",
-        "a1200_accel": "unknown",
-        "a4000_030": "unknown"
+        "stock_a1200": "fits",
+        "a1200_accel": "fits",
+        "a4000_030": "fits"
+      },
+      "analysis": {
+        "analyzed_date": "2026-03-25",
+        "analyzer_version": "1.0",
+        "shim_library_version": "1.0",
+        "posix_tier_mix": {
+          "tier1": 14,
+          "tier2": 0,
+          "tier3": 4
+        },
+        "missing_shims": [
+          "fts_open",
+          "fts_read",
+          "fts_close",
+          "fts_set"
+        ],
+        "blocking_shims": [
+          "fts_open",
+          "fts_read",
+          "fts_close",
+          "fts_set"
+        ],
+        "blocker_workaround": "fts can be replaced with opendir/readdir recursive walk for -r mode. Non-recursive rm needs no fts.",
+        "dependencies": [],
+        "source_complexity": 0.96,
+        "estimated_stack_kb": 64,
+        "estimated_binary_kb": 32,
+        "estimated_data_kb": 2
       }
     },
     {
@@ -1269,21 +2147,39 @@
         "version": "latest",
         "license": "BSD-3-Clause",
         "url": "https://cvsweb.openbsd.org/src/bin/mkdir/",
-        "files": null,
-        "lines_of_code": null
+        "files": 1,
+        "lines_of_code": 175
       },
       "status": "candidate",
-      "analysis_status": "pending",
+      "analysis_status": "complete",
       "publishable": true,
-      "notes": "Simple; -p needs recursive creation; chmod mode bits are no-ops",
+      "notes": "Create directories. Pure shim (mkdir, chmod, stat). No blockers.",
       "readiness": {
-        "score": 0.0,
-        "tier": "unanalyzed"
+        "score": 0.997,
+        "tier": "ready"
       },
       "hardware_fit": {
-        "stock_a1200": "unknown",
-        "a1200_accel": "unknown",
-        "a4000_030": "unknown"
+        "stock_a1200": "fits",
+        "a1200_accel": "fits",
+        "a4000_030": "fits"
+      },
+      "analysis": {
+        "analyzed_date": "2026-03-25",
+        "analyzer_version": "1.0",
+        "shim_library_version": "1.0",
+        "posix_tier_mix": {
+          "tier1": 7,
+          "tier2": 0,
+          "tier3": 0
+        },
+        "missing_shims": [],
+        "blocking_shims": [],
+        "blocker_workaround": null,
+        "dependencies": [],
+        "source_complexity": 0.98,
+        "estimated_stack_kb": 16,
+        "estimated_binary_kb": 18,
+        "estimated_data_kb": 1
       }
     },
     {
@@ -1297,21 +2193,39 @@
         "version": "latest",
         "license": "BSD-3-Clause",
         "url": "https://cvsweb.openbsd.org/src/bin/rmdir/",
-        "files": null,
-        "lines_of_code": null
+        "files": 1,
+        "lines_of_code": 111
       },
       "status": "candidate",
-      "analysis_status": "pending",
+      "analysis_status": "complete",
       "publishable": true,
-      "notes": "Trivial; uses rmdir shim",
+      "notes": "Remove empty directories. Trivial \u2014 just rmdir() + getopt + err.",
       "readiness": {
-        "score": 0.0,
-        "tier": "unanalyzed"
+        "score": 0.999,
+        "tier": "ready"
       },
       "hardware_fit": {
-        "stock_a1200": "unknown",
-        "a1200_accel": "unknown",
-        "a4000_030": "unknown"
+        "stock_a1200": "fits",
+        "a1200_accel": "fits",
+        "a4000_030": "fits"
+      },
+      "analysis": {
+        "analyzed_date": "2026-03-25",
+        "analyzer_version": "1.0",
+        "shim_library_version": "1.0",
+        "posix_tier_mix": {
+          "tier1": 4,
+          "tier2": 0,
+          "tier3": 0
+        },
+        "missing_shims": [],
+        "blocking_shims": [],
+        "blocker_workaround": null,
+        "dependencies": [],
+        "source_complexity": 0.99,
+        "estimated_stack_kb": 16,
+        "estimated_binary_kb": 15,
+        "estimated_data_kb": 1
       }
     },
     {
@@ -1325,21 +2239,49 @@
         "version": "latest",
         "license": "BSD-3-Clause",
         "url": "https://cvsweb.openbsd.org/src/bin/chmod/",
-        "files": null,
-        "lines_of_code": null
+        "files": 1,
+        "lines_of_code": 355
       },
       "status": "candidate",
-      "analysis_status": "pending",
+      "analysis_status": "complete",
       "publishable": true,
-      "notes": "Maps to SetProtection; only r/w/e bits, no user/group/other",
+      "notes": "Change file modes. fts only for -R. AmigaOS has limited permission bits but chmod shim exists. Non-recursive mode is clean.",
       "readiness": {
-        "score": 0.0,
-        "tier": "unanalyzed"
+        "score": 0.469,
+        "tier": "blocked"
       },
       "hardware_fit": {
-        "stock_a1200": "unknown",
-        "a1200_accel": "unknown",
-        "a4000_030": "unknown"
+        "stock_a1200": "fits",
+        "a1200_accel": "fits",
+        "a4000_030": "fits"
+      },
+      "analysis": {
+        "analyzed_date": "2026-03-25",
+        "analyzer_version": "1.0",
+        "shim_library_version": "1.0",
+        "posix_tier_mix": {
+          "tier1": 4,
+          "tier2": 0,
+          "tier3": 4
+        },
+        "missing_shims": [
+          "fts_open",
+          "fts_read",
+          "fts_close",
+          "fts_set"
+        ],
+        "blocking_shims": [
+          "fts_open",
+          "fts_read",
+          "fts_close",
+          "fts_set"
+        ],
+        "blocker_workaround": "fts needed for -R (recursive). Non-recursive chmod is simple (just chmod() shim). fts replaceable with opendir/readdir.",
+        "dependencies": [],
+        "source_complexity": 0.96,
+        "estimated_stack_kb": 64,
+        "estimated_binary_kb": 27,
+        "estimated_data_kb": 2
       }
     },
     {
@@ -1353,21 +2295,43 @@
         "version": "latest",
         "license": "BSD-3-Clause",
         "url": "https://cvsweb.openbsd.org/src/usr.bin/env/",
-        "files": null,
-        "lines_of_code": null
+        "files": 1,
+        "lines_of_code": 101
       },
       "status": "candidate",
-      "analysis_status": "pending",
+      "analysis_status": "complete",
       "publishable": true,
-      "notes": "Print mode trivial; exec mode needs SystemTagList",
+      "notes": "Run program in modified environment. Core use (env VAR=val cmd) needs execvp. env without command (just print) works.",
       "readiness": {
-        "score": 0.0,
-        "tier": "unanalyzed"
+        "score": 0.548,
+        "tier": "blocked"
       },
       "hardware_fit": {
-        "stock_a1200": "unknown",
-        "a1200_accel": "unknown",
-        "a4000_030": "unknown"
+        "stock_a1200": "fits",
+        "a1200_accel": "fits",
+        "a4000_030": "fits"
+      },
+      "analysis": {
+        "analyzed_date": "2026-03-25",
+        "analyzer_version": "1.0",
+        "shim_library_version": "1.0",
+        "posix_tier_mix": {
+          "tier1": 4,
+          "tier2": 0,
+          "tier3": 1
+        },
+        "missing_shims": [
+          "execvp"
+        ],
+        "blocking_shims": [
+          "execvp"
+        ],
+        "blocker_workaround": "execvp can be replaced with AmigaDOS SystemTags() for running the command \u2014 moderate rewrite of exec path",
+        "dependencies": [],
+        "source_complexity": 0.99,
+        "estimated_stack_kb": 16,
+        "estimated_binary_kb": 15,
+        "estimated_data_kb": 1
       }
     },
     {
@@ -1381,21 +2345,39 @@
         "version": "latest",
         "license": "BSD-3-Clause",
         "url": "https://cvsweb.openbsd.org/src/usr.bin/printenv/",
-        "files": null,
-        "lines_of_code": null
+        "files": 1,
+        "lines_of_code": 69
       },
       "status": "candidate",
-      "analysis_status": "pending",
+      "analysis_status": "complete",
       "publishable": true,
-      "notes": "Needs environ enumeration -- scan ENV: on Amiga",
+      "notes": "Print environment variables. Trivial \u2014 uses extern environ + getenv. Maps to AmigaOS GetVar/ScanVars.",
       "readiness": {
-        "score": 0.0,
-        "tier": "unanalyzed"
+        "score": 0.999,
+        "tier": "ready"
       },
       "hardware_fit": {
-        "stock_a1200": "unknown",
-        "a1200_accel": "unknown",
-        "a4000_030": "unknown"
+        "stock_a1200": "fits",
+        "a1200_accel": "fits",
+        "a4000_030": "fits"
+      },
+      "analysis": {
+        "analyzed_date": "2026-03-25",
+        "analyzer_version": "1.0",
+        "shim_library_version": "1.0",
+        "posix_tier_mix": {
+          "tier1": 1,
+          "tier2": 0,
+          "tier3": 0
+        },
+        "missing_shims": [],
+        "blocking_shims": [],
+        "blocker_workaround": null,
+        "dependencies": [],
+        "source_complexity": 0.99,
+        "estimated_stack_kb": 16,
+        "estimated_binary_kb": 13,
+        "estimated_data_kb": 1
       }
     },
     {
@@ -1409,21 +2391,41 @@
         "version": "latest",
         "license": "BSD-3-Clause",
         "url": "https://cvsweb.openbsd.org/src/usr.bin/uname/",
-        "files": null,
-        "lines_of_code": null
+        "files": 1,
+        "lines_of_code": 144
       },
       "status": "candidate",
-      "analysis_status": "pending",
+      "analysis_status": "complete",
       "publishable": true,
-      "notes": "Stub uname() to return AmigaOS/68k info from exec.library",
+      "notes": "System identification. uname() syscall needs shim returning AmigaOS identity. Straightforward.",
       "readiness": {
-        "score": 0.0,
-        "tier": "unanalyzed"
+        "score": 0.615,
+        "tier": "feasible"
       },
       "hardware_fit": {
-        "stock_a1200": "unknown",
-        "a1200_accel": "unknown",
-        "a4000_030": "unknown"
+        "stock_a1200": "fits",
+        "a1200_accel": "fits",
+        "a4000_030": "fits"
+      },
+      "analysis": {
+        "analyzed_date": "2026-03-25",
+        "analyzer_version": "1.0",
+        "shim_library_version": "1.0",
+        "posix_tier_mix": {
+          "tier1": 2,
+          "tier2": 1,
+          "tier3": 0
+        },
+        "missing_shims": [
+          "uname_syscall"
+        ],
+        "blocking_shims": [],
+        "blocker_workaround": "uname() syscall shimmed to return static AmigaOS values (sysname=AmigaOS, machine=m68k, etc.)",
+        "dependencies": [],
+        "source_complexity": 0.99,
+        "estimated_stack_kb": 16,
+        "estimated_binary_kb": 17,
+        "estimated_data_kb": 1
       }
     },
     {
@@ -1437,21 +2439,45 @@
         "version": "latest",
         "license": "BSD-3-Clause",
         "url": "https://cvsweb.openbsd.org/src/bin/hostname/",
-        "files": null,
-        "lines_of_code": null
+        "files": 1,
+        "lines_of_code": 83
       },
       "status": "candidate",
-      "analysis_status": "pending",
+      "analysis_status": "complete",
       "publishable": true,
-      "notes": "Use GetVar HOSTNAME or bsdsocket.library gethostname()",
+      "notes": "Get/set hostname. gethostname available via bsdsocket.library or env var. sethostname less useful on Amiga.",
       "readiness": {
-        "score": 0.0,
-        "tier": "unanalyzed"
+        "score": 0.473,
+        "tier": "blocked"
       },
       "hardware_fit": {
-        "stock_a1200": "unknown",
-        "a1200_accel": "unknown",
-        "a4000_030": "unknown"
+        "stock_a1200": "fits",
+        "a1200_accel": "fits",
+        "a4000_030": "fits"
+      },
+      "analysis": {
+        "analyzed_date": "2026-03-25",
+        "analyzer_version": "1.0",
+        "shim_library_version": "1.0",
+        "posix_tier_mix": {
+          "tier1": 2,
+          "tier2": 0,
+          "tier3": 2
+        },
+        "missing_shims": [
+          "gethostname",
+          "sethostname"
+        ],
+        "blocking_shims": [
+          "gethostname",
+          "sethostname"
+        ],
+        "blocker_workaround": "gethostname via AmigaOS GetVar(\"hostname\",...) or bsdsocket.library gethostname(). sethostname can be a stub or SetVar.",
+        "dependencies": [],
+        "source_complexity": 0.99,
+        "estimated_stack_kb": 16,
+        "estimated_binary_kb": 14,
+        "estimated_data_kb": 1
       }
     },
     {
@@ -1465,21 +2491,61 @@
         "version": "latest",
         "license": "BSD-3-Clause",
         "url": "https://cvsweb.openbsd.org/src/usr.bin/id/",
-        "files": null,
-        "lines_of_code": null
+        "files": 1,
+        "lines_of_code": 378
       },
       "status": "candidate",
-      "analysis_status": "pending",
+      "analysis_status": "complete",
       "publishable": true,
-      "notes": "Amiga has no /etc/passwd -- stub getpwnam, return uid=0",
+      "notes": "Print user/group IDs. Fundamentally Unix user model. Can stub everything to return single-user values. Useful for scripts expecting id output.",
       "readiness": {
-        "score": 0.0,
-        "tier": "unanalyzed"
+        "score": 0.402,
+        "tier": "blocked"
       },
       "hardware_fit": {
-        "stock_a1200": "unknown",
-        "a1200_accel": "unknown",
-        "a4000_030": "unknown"
+        "stock_a1200": "fits",
+        "a1200_accel": "fits",
+        "a4000_030": "fits"
+      },
+      "analysis": {
+        "analyzed_date": "2026-03-25",
+        "analyzer_version": "1.0",
+        "shim_library_version": "1.0",
+        "posix_tier_mix": {
+          "tier1": 3,
+          "tier2": 0,
+          "tier3": 10
+        },
+        "missing_shims": [
+          "getuid",
+          "geteuid",
+          "getgid",
+          "getegid",
+          "getgroups",
+          "getgrouplist",
+          "getlogin",
+          "getpwuid",
+          "getpwnam",
+          "getgrgid"
+        ],
+        "blocking_shims": [
+          "getuid",
+          "geteuid",
+          "getgid",
+          "getegid",
+          "getgroups",
+          "getgrouplist",
+          "getlogin",
+          "getpwuid",
+          "getpwnam",
+          "getgrgid"
+        ],
+        "blocker_workaround": "All user/group functions need stubs. AmigaOS is single-user: uid=0, gid=0, user=\"amiga\". Feasible but many stubs.",
+        "dependencies": [],
+        "source_complexity": 0.96,
+        "estimated_stack_kb": 16,
+        "estimated_binary_kb": 28,
+        "estimated_data_kb": 2
       }
     },
     {
@@ -1493,21 +2559,61 @@
         "version": "latest",
         "license": "BSD-3-Clause",
         "url": "https://cvsweb.openbsd.org/src/usr.bin/whoami/",
-        "files": null,
-        "lines_of_code": null
+        "files": 1,
+        "lines_of_code": 378
       },
       "status": "candidate",
-      "analysis_status": "pending",
+      "analysis_status": "complete",
       "publishable": true,
-      "notes": "Amiga has no /etc/passwd -- stub getpwnam, return 'user'",
+      "notes": "Print effective user name. Symlink to id on OpenBSD (same binary). Same stubs as id needed.",
       "readiness": {
-        "score": 0.0,
-        "tier": "unanalyzed"
+        "score": 0.402,
+        "tier": "blocked"
       },
       "hardware_fit": {
-        "stock_a1200": "unknown",
-        "a1200_accel": "unknown",
-        "a4000_030": "unknown"
+        "stock_a1200": "fits",
+        "a1200_accel": "fits",
+        "a4000_030": "fits"
+      },
+      "analysis": {
+        "analyzed_date": "2026-03-25",
+        "analyzer_version": "1.0",
+        "shim_library_version": "1.0",
+        "posix_tier_mix": {
+          "tier1": 3,
+          "tier2": 0,
+          "tier3": 10
+        },
+        "missing_shims": [
+          "getuid",
+          "geteuid",
+          "getgid",
+          "getegid",
+          "getgroups",
+          "getgrouplist",
+          "getlogin",
+          "getpwuid",
+          "getpwnam",
+          "getgrgid"
+        ],
+        "blocking_shims": [
+          "getuid",
+          "geteuid",
+          "getgid",
+          "getegid",
+          "getgroups",
+          "getgrouplist",
+          "getlogin",
+          "getpwuid",
+          "getpwnam",
+          "getgrgid"
+        ],
+        "blocker_workaround": "Same as id \u2014 whoami is a symlink to id on OpenBSD. Stub user functions to return \"amiga\".",
+        "dependencies": [],
+        "source_complexity": 0.96,
+        "estimated_stack_kb": 16,
+        "estimated_binary_kb": 28,
+        "estimated_data_kb": 2
       }
     },
     {
@@ -1521,21 +2627,43 @@
         "version": "latest",
         "license": "BSD-3-Clause",
         "url": "https://cvsweb.openbsd.org/src/usr.bin/logname/",
-        "files": null,
-        "lines_of_code": null
+        "files": 1,
+        "lines_of_code": 68
       },
       "status": "candidate",
-      "analysis_status": "pending",
+      "analysis_status": "complete",
       "publishable": true,
-      "notes": "Trivial; stub getlogin() to return 'user'",
+      "notes": "Print login name. Just getlogin() + puts. Trivial with stub.",
       "readiness": {
-        "score": 0.0,
-        "tier": "unanalyzed"
+        "score": 0.515,
+        "tier": "blocked"
       },
       "hardware_fit": {
-        "stock_a1200": "unknown",
-        "a1200_accel": "unknown",
-        "a4000_030": "unknown"
+        "stock_a1200": "fits",
+        "a1200_accel": "fits",
+        "a4000_030": "fits"
+      },
+      "analysis": {
+        "analyzed_date": "2026-03-25",
+        "analyzer_version": "1.0",
+        "shim_library_version": "1.0",
+        "posix_tier_mix": {
+          "tier1": 2,
+          "tier2": 0,
+          "tier3": 1
+        },
+        "missing_shims": [
+          "getlogin"
+        ],
+        "blocking_shims": [
+          "getlogin"
+        ],
+        "blocker_workaround": "getlogin() stubbed to return \"amiga\" \u2014 AmigaOS is single-user",
+        "dependencies": [],
+        "source_complexity": 0.99,
+        "estimated_stack_kb": 16,
+        "estimated_binary_kb": 13,
+        "estimated_data_kb": 1
       }
     },
     {
@@ -1549,21 +2677,43 @@
         "version": "latest",
         "license": "BSD-3-Clause",
         "url": "https://cvsweb.openbsd.org/src/usr.bin/tty/",
-        "files": null,
-        "lines_of_code": null
+        "files": 1,
+        "lines_of_code": 75
       },
       "status": "candidate",
-      "analysis_status": "pending",
+      "analysis_status": "complete",
       "publishable": true,
-      "notes": "Stub ttyname() to return 'CON:'; isatty via IsInteractive",
+      "notes": "Print terminal name. Just ttyname() + isatty. Trivial with stub.",
       "readiness": {
-        "score": 0.0,
-        "tier": "unanalyzed"
+        "score": 0.515,
+        "tier": "blocked"
       },
       "hardware_fit": {
-        "stock_a1200": "unknown",
-        "a1200_accel": "unknown",
-        "a4000_030": "unknown"
+        "stock_a1200": "fits",
+        "a1200_accel": "fits",
+        "a4000_030": "fits"
+      },
+      "analysis": {
+        "analyzed_date": "2026-03-25",
+        "analyzer_version": "1.0",
+        "shim_library_version": "1.0",
+        "posix_tier_mix": {
+          "tier1": 2,
+          "tier2": 0,
+          "tier3": 1
+        },
+        "missing_shims": [
+          "ttyname"
+        ],
+        "blocking_shims": [
+          "ttyname"
+        ],
+        "blocker_workaround": "ttyname() stubbed to return \"CON:\" or \"*\" \u2014 AmigaOS console device name",
+        "dependencies": [],
+        "source_complexity": 0.99,
+        "estimated_stack_kb": 16,
+        "estimated_binary_kb": 13,
+        "estimated_data_kb": 1
       }
     },
     {
@@ -1610,7 +2760,9 @@
         "stock_a1200": "fits",
         "a1200_accel": "fits",
         "a4000_030": "fits"
-      }
+      },
+      "aminet_status": "exists",
+      "aminet_notes": "Not found as standalone. GNU coreutils-bin v5.2.1-9 (2006) includes POSIX echo. AlterASCII (1997) exists but is unrelated reversal tool."
     },
     {
       "id": "printf",
@@ -1623,21 +2775,39 @@
         "version": "latest",
         "license": "BSD-3-Clause",
         "url": "https://cvsweb.openbsd.org/src/usr.bin/printf/",
-        "files": null,
-        "lines_of_code": null
+        "files": 1,
+        "lines_of_code": 497
       },
       "status": "candidate",
-      "analysis_status": "pending",
+      "analysis_status": "complete",
       "publishable": true,
-      "notes": "Single file; implements printf format parsing in C",
+      "notes": "Format and print data. Pure C implementation of printf format strings. No OS deps beyond stdio.",
       "readiness": {
-        "score": 0.0,
-        "tier": "unanalyzed"
+        "score": 0.993,
+        "tier": "ready"
       },
       "hardware_fit": {
-        "stock_a1200": "unknown",
-        "a1200_accel": "unknown",
-        "a4000_030": "unknown"
+        "stock_a1200": "fits",
+        "a1200_accel": "fits",
+        "a4000_030": "fits"
+      },
+      "analysis": {
+        "analyzed_date": "2026-03-25",
+        "analyzer_version": "1.0",
+        "shim_library_version": "1.0",
+        "posix_tier_mix": {
+          "tier1": 2,
+          "tier2": 0,
+          "tier3": 0
+        },
+        "missing_shims": [],
+        "blocking_shims": [],
+        "blocker_workaround": null,
+        "dependencies": [],
+        "source_complexity": 0.95,
+        "estimated_stack_kb": 16,
+        "estimated_binary_kb": 34,
+        "estimated_data_kb": 2
       }
     },
     {
@@ -1651,21 +2821,41 @@
         "version": "latest",
         "license": "BSD-2-Clause",
         "url": "https://cvsweb.openbsd.org/src/usr.bin/nl/",
-        "files": null,
-        "lines_of_code": null
+        "files": 1,
+        "lines_of_code": 368
       },
       "status": "candidate",
-      "analysis_status": "pending",
+      "analysis_status": "complete",
       "publishable": true,
-      "notes": "Uses regex for section delimiters; regex shim available",
+      "notes": "Number lines. Uses regex (implemented in posix-emu). setlocale is trivial stub. Clean port.",
       "readiness": {
-        "score": 0.0,
-        "tier": "unanalyzed"
+        "score": 0.666,
+        "tier": "feasible"
       },
       "hardware_fit": {
-        "stock_a1200": "unknown",
-        "a1200_accel": "unknown",
-        "a4000_030": "unknown"
+        "stock_a1200": "fits",
+        "a1200_accel": "fits",
+        "a4000_030": "fits"
+      },
+      "analysis": {
+        "analyzed_date": "2026-03-25",
+        "analyzer_version": "1.0",
+        "shim_library_version": "1.0",
+        "posix_tier_mix": {
+          "tier1": 8,
+          "tier2": 1,
+          "tier3": 0
+        },
+        "missing_shims": [
+          "setlocale"
+        ],
+        "blocking_shims": [],
+        "blocker_workaround": "setlocale() is a no-op on AmigaOS \u2014 stub to return \"C\"",
+        "dependencies": [],
+        "source_complexity": 0.96,
+        "estimated_stack_kb": 16,
+        "estimated_binary_kb": 28,
+        "estimated_data_kb": 2
       }
     },
     {
@@ -1768,7 +2958,9 @@
         "stock_a1200": "fits",
         "a1200_accel": "fits",
         "a4000_030": "fits"
-      }
+      },
+      "aminet_status": "missing",
+      "aminet_notes": "Not available as standalone utility. GNU coreutils-bin v5.2.1-9 (2006) includes it."
     },
     {
       "id": "false",
@@ -1814,7 +3006,9 @@
         "stock_a1200": "fits",
         "a1200_accel": "fits",
         "a4000_030": "fits"
-      }
+      },
+      "aminet_status": "missing",
+      "aminet_notes": "Not available as standalone utility. GNU coreutils-bin v5.2.1-9 (2006) includes it."
     },
     {
       "id": "sleep",
@@ -1863,7 +3057,9 @@
         "stock_a1200": "fits",
         "a1200_accel": "fits",
         "a4000_030": "fits"
-      }
+      },
+      "aminet_status": "outdated",
+      "aminet_notes": "wsz13 (1993) is a window mover/sizer with sleep feature\u2014not a standalone sleep utility. GNU coreutils-bin v5.2.1-9 (2006) includes POSIX sleep."
     },
     {
       "id": "date",
@@ -2380,21 +3576,43 @@
         "version": "latest",
         "license": "BSD-3-Clause",
         "url": "https://cvsweb.openbsd.org/src/usr.bin/apply/",
-        "files": null,
-        "lines_of_code": null
+        "files": 1,
+        "lines_of_code": 237
       },
       "status": "candidate",
-      "analysis_status": "pending",
+      "analysis_status": "complete",
       "publishable": true,
-      "notes": "Uses system() -- maps to SystemTagList on Amiga",
+      "notes": "Uses fork/exec/waitpid/signal/sigprocmask -- Tier 3 blockers (no fork on AmigaOS). Could theoretically use SystemTagList but would need full rewrite of exec logic.",
       "readiness": {
-        "score": 0.0,
-        "tier": "unanalyzed"
+        "score": 0.813,
+        "tier": "feasible"
       },
       "hardware_fit": {
-        "stock_a1200": "unknown",
-        "a1200_accel": "unknown",
-        "a4000_030": "unknown"
+        "stock_a1200": "fits",
+        "a1200_accel": "fits",
+        "a4000_030": "fits"
+      },
+      "analysis": {
+        "analyzed_date": "2026-03-25",
+        "analyzer_version": "1.0",
+        "shim_library_version": "1.0",
+        "posix_tier_mix": {
+          "tier1": 6,
+          "tier2": 0,
+          "tier3": 3
+        },
+        "missing_shims": [],
+        "blocking_shims": [
+          "fork",
+          "exec",
+          "wait"
+        ],
+        "blocker_workaround": "Rewrite to use SystemTagList() instead of fork/exec/wait -- major restructure",
+        "dependencies": [],
+        "source_complexity": 0.976,
+        "estimated_stack_kb": 16,
+        "estimated_binary_kb": 15,
+        "estimated_data_kb": 2
       }
     },
     {
@@ -2408,21 +3626,44 @@
         "version": "latest",
         "license": "Lucent-1.02",
         "url": "https://github.com/9fans/plan9port/tree/master/src/cmd/awk",
-        "files": null,
-        "lines_of_code": null
+        "files": 10,
+        "lines_of_code": 4596
       },
       "status": "candidate",
-      "analysis_status": "pending",
+      "analysis_status": "complete",
       "publishable": true,
-      "notes": "Plan 9 awk is one true awk (BWK); simpler than gawk, no fork needed",
+      "notes": "Plan 9 awk (BWK). Uses popen/pclose for pipes and system() for awk system(). Plan9-specific includes (u.h, libc.h, bio.h, utf.h) in re.c need porting. ~4600 LOC across 10 files. popen is not implemented.",
       "readiness": {
-        "score": 0.0,
-        "tier": "unanalyzed"
+        "score": 0.498,
+        "tier": "blocked"
       },
       "hardware_fit": {
-        "stock_a1200": "unknown",
-        "a1200_accel": "unknown",
-        "a4000_030": "unknown"
+        "stock_a1200": "fits",
+        "a1200_accel": "fits",
+        "a4000_030": "fits"
+      },
+      "analysis": {
+        "analyzed_date": "2026-03-25",
+        "analyzer_version": "1.0",
+        "shim_library_version": "1.0",
+        "posix_tier_mix": {
+          "tier1": 20,
+          "tier2": 3,
+          "tier3": 0
+        },
+        "missing_shims": [
+          "popen"
+        ],
+        "blocking_shims": [],
+        "blocker_workaround": null,
+        "dependencies": [
+          "libutf (Plan9 UTF-8 library)",
+          "yacc (build-time)"
+        ],
+        "source_complexity": 0.54,
+        "estimated_stack_kb": 64,
+        "estimated_binary_kb": 80,
+        "estimated_data_kb": 32
       }
     },
     {
@@ -2436,21 +3677,39 @@
         "version": "latest",
         "license": "ISC",
         "url": "https://cvsweb.openbsd.org/src/usr.bin/getopt/",
-        "files": null,
-        "lines_of_code": null
+        "files": 1,
+        "lines_of_code": 43
       },
       "status": "candidate",
-      "analysis_status": "pending",
+      "analysis_status": "complete",
       "publishable": true,
-      "notes": "Trivial wrapper around getopt(3); useful for shell scripts",
+      "notes": "Trivial wrapper around getopt(3). pledge is no-op. Only uses stdio, getopt, err, exit.",
       "readiness": {
-        "score": 0.0,
-        "tier": "unanalyzed"
+        "score": 0.999,
+        "tier": "ready"
       },
       "hardware_fit": {
-        "stock_a1200": "unknown",
-        "a1200_accel": "unknown",
-        "a4000_030": "unknown"
+        "stock_a1200": "fits",
+        "a1200_accel": "fits",
+        "a4000_030": "fits"
+      },
+      "analysis": {
+        "analyzed_date": "2026-03-25",
+        "analyzer_version": "1.0",
+        "shim_library_version": "1.0",
+        "posix_tier_mix": {
+          "tier1": 4,
+          "tier2": 0,
+          "tier3": 0
+        },
+        "missing_shims": [],
+        "blocking_shims": [],
+        "blocker_workaround": null,
+        "dependencies": [],
+        "source_complexity": 0.996,
+        "estimated_stack_kb": 8,
+        "estimated_binary_kb": 10,
+        "estimated_data_kb": 1
       }
     },
     {
@@ -2464,21 +3723,41 @@
         "version": "latest",
         "license": "MIT",
         "url": "https://git.suckless.org/sbase/file/seq.c.html",
-        "files": null,
-        "lines_of_code": null
+        "files": 1,
+        "lines_of_code": 140
       },
       "status": "candidate",
-      "analysis_status": "pending",
+      "analysis_status": "complete",
       "publishable": true,
-      "notes": "Single-file sbase implementation; simpler than OpenBSD jot",
+      "notes": "Single-file sbase seq. Uses util.h (sbase utility library -- eprintf, ARGBEGIN macros, fshut). Pure stdio + math. Needs sbase util.c bundled or reimplemented.",
       "readiness": {
-        "score": 0.0,
-        "tier": "unanalyzed"
+        "score": 0.898,
+        "tier": "ready"
       },
       "hardware_fit": {
-        "stock_a1200": "unknown",
-        "a1200_accel": "unknown",
-        "a4000_030": "unknown"
+        "stock_a1200": "fits",
+        "a1200_accel": "fits",
+        "a4000_030": "fits"
+      },
+      "analysis": {
+        "analyzed_date": "2026-03-25",
+        "analyzer_version": "1.0",
+        "shim_library_version": "1.0",
+        "posix_tier_mix": {
+          "tier1": 3,
+          "tier2": 0,
+          "tier3": 0
+        },
+        "missing_shims": [],
+        "blocking_shims": [],
+        "blocker_workaround": null,
+        "dependencies": [
+          "sbase util.c (bundled)"
+        ],
+        "source_complexity": 0.986,
+        "estimated_stack_kb": 8,
+        "estimated_binary_kb": 12,
+        "estimated_data_kb": 1
       }
     },
     {
@@ -2492,13 +3771,13 @@
         "version": "latest",
         "license": "MIT",
         "url": "https://git.suckless.org/sbase/file/tac.c.html",
-        "files": null,
-        "lines_of_code": null
+        "files": 0,
+        "lines_of_code": 0
       },
       "status": "candidate",
-      "analysis_status": "pending",
-      "publishable": true,
-      "notes": "Single-file reverse cat; uses malloc + lseek",
+      "analysis_status": "failed",
+      "publishable": false,
+      "notes": "File tac.c does NOT exist in sbase (checked michaelforney/sbase and suckless.org). sbase has tail.c but no tac. Candidate should be removed or re-sourced.",
       "readiness": {
         "score": 0.0,
         "tier": "unanalyzed"
@@ -2520,21 +3799,41 @@
         "version": "latest",
         "license": "MIT",
         "url": "https://git.suckless.org/sbase/file/sponge.c.html",
-        "files": null,
-        "lines_of_code": null
+        "files": 1,
+        "lines_of_code": 37
       },
       "status": "candidate",
-      "analysis_status": "pending",
+      "analysis_status": "complete",
       "publishable": true,
-      "notes": "Single file; reads all stdin then writes to file; uses tmpfile",
+      "notes": "Extremely minimal (37 LOC). Uses mkstemp, unlink, lseek, creat + sbase util.h. All POSIX calls are Tier 1 shimmed. /tmp path needs T: replacement.",
       "readiness": {
-        "score": 0.0,
-        "tier": "unanalyzed"
+        "score": 0.899,
+        "tier": "ready"
       },
       "hardware_fit": {
-        "stock_a1200": "unknown",
-        "a1200_accel": "unknown",
-        "a4000_030": "unknown"
+        "stock_a1200": "fits",
+        "a1200_accel": "fits",
+        "a4000_030": "fits"
+      },
+      "analysis": {
+        "analyzed_date": "2026-03-25",
+        "analyzer_version": "1.0",
+        "shim_library_version": "1.0",
+        "posix_tier_mix": {
+          "tier1": 5,
+          "tier2": 0,
+          "tier3": 0
+        },
+        "missing_shims": [],
+        "blocking_shims": [],
+        "blocker_workaround": null,
+        "dependencies": [
+          "sbase util.c (bundled)"
+        ],
+        "source_complexity": 0.996,
+        "estimated_stack_kb": 8,
+        "estimated_binary_kb": 10,
+        "estimated_data_kb": 1
       }
     },
     {
@@ -2548,21 +3847,41 @@
         "version": "latest",
         "license": "MIT",
         "url": "https://git.suckless.org/sbase/file/install.c.html",
-        "files": null,
-        "lines_of_code": null
+        "files": 1,
+        "lines_of_code": 236
       },
       "status": "candidate",
-      "analysis_status": "pending",
+      "analysis_status": "complete",
       "publishable": true,
-      "notes": "File copy with mode bits; chmod is a no-op but copy is useful",
+      "notes": "Uses grp.h/pwd.h (getgrnam/getpwnam -- no users/groups on AmigaOS), lchown (no-op ok), symlink (no symlinks on AmigaOS), sys/wait.h, mknod. Core copy functionality is portable but ownership/permissions features are no-ops on AmigaOS.",
       "readiness": {
-        "score": 0.0,
-        "tier": "unanalyzed"
+        "score": 0.896,
+        "tier": "ready"
       },
       "hardware_fit": {
-        "stock_a1200": "unknown",
-        "a1200_accel": "unknown",
-        "a4000_030": "unknown"
+        "stock_a1200": "fits",
+        "a1200_accel": "fits",
+        "a4000_030": "fits"
+      },
+      "analysis": {
+        "analyzed_date": "2026-03-25",
+        "analyzer_version": "1.0",
+        "shim_library_version": "1.0",
+        "posix_tier_mix": {
+          "tier1": 12,
+          "tier2": 0,
+          "tier3": 0
+        },
+        "missing_shims": [],
+        "blocking_shims": [],
+        "blocker_workaround": null,
+        "dependencies": [
+          "sbase util.c (bundled)"
+        ],
+        "source_complexity": 0.976,
+        "estimated_stack_kb": 16,
+        "estimated_binary_kb": 15,
+        "estimated_data_kb": 2
       }
     },
     {
@@ -2576,21 +3895,42 @@
         "version": "latest",
         "license": "Lucent-1.02",
         "url": "https://github.com/9fans/plan9port/tree/master/src/cmd/unicode",
-        "files": null,
-        "lines_of_code": null
+        "files": 1,
+        "lines_of_code": 119
       },
       "status": "candidate",
-      "analysis_status": "pending",
+      "analysis_status": "complete",
       "publishable": true,
-      "notes": "UTF-8/codepoint lookup; pure C, no OS deps",
+      "notes": "Plan 9 unicode lookup tool. Uses Plan9-specific includes (u.h, libc.h, bio.h) and Plan9 types (Rune, Biobuf). Needs Plan9 compat shim or rewrite of I/O to stdio. Pure computation otherwise.",
       "readiness": {
-        "score": 0.0,
-        "tier": "unanalyzed"
+        "score": 0.898,
+        "tier": "ready"
       },
       "hardware_fit": {
-        "stock_a1200": "unknown",
-        "a1200_accel": "unknown",
-        "a4000_030": "unknown"
+        "stock_a1200": "fits",
+        "a1200_accel": "fits",
+        "a4000_030": "fits"
+      },
+      "analysis": {
+        "analyzed_date": "2026-03-25",
+        "analyzer_version": "1.0",
+        "shim_library_version": "1.0",
+        "posix_tier_mix": {
+          "tier1": 3,
+          "tier2": 0,
+          "tier3": 0
+        },
+        "missing_shims": [],
+        "blocking_shims": [],
+        "blocker_workaround": null,
+        "dependencies": [
+          "Plan9 libutf (Rune/utfrune/chartorune)",
+          "Plan9 libbio (Biobuf/Bprint)"
+        ],
+        "source_complexity": 0.988,
+        "estimated_stack_kb": 8,
+        "estimated_binary_kb": 12,
+        "estimated_data_kb": 1
       }
     },
     {
@@ -2604,21 +3944,42 @@
         "version": "latest",
         "license": "Lucent-1.02",
         "url": "https://github.com/9fans/plan9port/tree/master/src/cmd/freq",
-        "files": null,
-        "lines_of_code": null
+        "files": 1,
+        "lines_of_code": 109
       },
       "status": "candidate",
-      "analysis_status": "pending",
+      "analysis_status": "complete",
       "publishable": true,
-      "notes": "Byte frequency counter; trivial single-file",
+      "notes": "Plan 9 character frequency counter. Uses Plan9 includes (u.h, libc.h, bio.h). Large static array (Runemax+1 uvlong = ~8MB for full Unicode). Needs Plan9 compat shim. Could be rewritten to use stdio easily.",
       "readiness": {
-        "score": 0.0,
-        "tier": "unanalyzed"
+        "score": 0.898,
+        "tier": "ready"
       },
       "hardware_fit": {
-        "stock_a1200": "unknown",
-        "a1200_accel": "unknown",
-        "a4000_030": "unknown"
+        "stock_a1200": "exceeds",
+        "a1200_accel": "needs_fast_ram",
+        "a4000_030": "needs_fast_ram"
+      },
+      "analysis": {
+        "analyzed_date": "2026-03-25",
+        "analyzer_version": "1.0",
+        "shim_library_version": "1.0",
+        "posix_tier_mix": {
+          "tier1": 4,
+          "tier2": 0,
+          "tier3": 0
+        },
+        "missing_shims": [],
+        "blocking_shims": [],
+        "blocker_workaround": null,
+        "dependencies": [
+          "Plan9 libbio (Biobuf)",
+          "Plan9 libutf (Bgetrune)"
+        ],
+        "source_complexity": 0.989,
+        "estimated_stack_kb": 16,
+        "estimated_binary_kb": 12,
+        "estimated_data_kb": 8192
       }
     },
     {
@@ -2632,21 +3993,42 @@
         "version": "latest",
         "license": "Lucent-1.02",
         "url": "https://github.com/9fans/plan9port/tree/master/src/cmd/ascii",
-        "files": null,
-        "lines_of_code": null
+        "files": 1,
+        "lines_of_code": 239
       },
       "status": "candidate",
-      "analysis_status": "pending",
+      "analysis_status": "complete",
       "publishable": true,
-      "notes": "ASCII table display; trivial, no OS deps",
+      "notes": "Plan 9 ASCII reference tool. Uses Plan9 includes (u.h, libc.h, bio.h). Pure computation + formatted output. Could be rewritten to stdio.",
       "readiness": {
-        "score": 0.0,
-        "tier": "unanalyzed"
+        "score": 0.896,
+        "tier": "ready"
       },
       "hardware_fit": {
-        "stock_a1200": "unknown",
-        "a1200_accel": "unknown",
-        "a4000_030": "unknown"
+        "stock_a1200": "fits",
+        "a1200_accel": "fits",
+        "a4000_030": "fits"
+      },
+      "analysis": {
+        "analyzed_date": "2026-03-25",
+        "analyzer_version": "1.0",
+        "shim_library_version": "1.0",
+        "posix_tier_mix": {
+          "tier1": 3,
+          "tier2": 0,
+          "tier3": 0
+        },
+        "missing_shims": [],
+        "blocking_shims": [],
+        "blocker_workaround": null,
+        "dependencies": [
+          "Plan9 libbio (Biobuf/Bprint)",
+          "Plan9 libc (exits/fprint)"
+        ],
+        "source_complexity": 0.976,
+        "estimated_stack_kb": 8,
+        "estimated_binary_kb": 14,
+        "estimated_data_kb": 2
       }
     },
     {
@@ -2660,21 +4042,44 @@
         "version": "latest",
         "license": "Lucent-1.02",
         "url": "https://github.com/9fans/plan9port/tree/master/src/cmd/hoc",
-        "files": null,
-        "lines_of_code": null
+        "files": 5,
+        "lines_of_code": 1263
       },
       "status": "candidate",
-      "analysis_status": "pending",
+      "analysis_status": "complete",
       "publishable": true,
-      "notes": "K&R calculator; uses yacc-generated parser, may need FPU emulation",
+      "notes": "Plan 9 calculator language (K&R hoc). Uses Plan9 includes (u.h, libc.h, bio.h), yacc grammar, floating point math. ~1263 LOC across 5 files. Needs Plan9 compat + yacc build step. No fork/exec/popen.",
       "readiness": {
-        "score": 0.0,
-        "tier": "unanalyzed"
+        "score": 0.881,
+        "tier": "ready"
       },
       "hardware_fit": {
-        "stock_a1200": "unknown",
-        "a1200_accel": "unknown",
-        "a4000_030": "unknown"
+        "stock_a1200": "fits",
+        "a1200_accel": "fits",
+        "a4000_030": "fits"
+      },
+      "analysis": {
+        "analyzed_date": "2026-03-25",
+        "analyzer_version": "1.0",
+        "shim_library_version": "1.0",
+        "posix_tier_mix": {
+          "tier1": 8,
+          "tier2": 0,
+          "tier3": 0
+        },
+        "missing_shims": [],
+        "blocking_shims": [],
+        "blocker_workaround": null,
+        "dependencies": [
+          "Plan9 libbio (Biobuf)",
+          "Plan9 libutf",
+          "yacc (build-time)",
+          "libm (floating point)"
+        ],
+        "source_complexity": 0.874,
+        "estimated_stack_kb": 32,
+        "estimated_binary_kb": 30,
+        "estimated_data_kb": 8
       }
     },
     {
@@ -2688,21 +4093,41 @@
         "version": "latest",
         "license": "MIT",
         "url": "https://git.suckless.org/sbase/file/uuencode.c.html",
-        "files": null,
-        "lines_of_code": null
+        "files": 1,
+        "lines_of_code": 128
       },
       "status": "candidate",
-      "analysis_status": "pending",
+      "analysis_status": "complete",
       "publishable": true,
-      "notes": "Single file; pure stdio encoding",
+      "notes": "Single-file uuencode with base64 mode (-m). Uses fstat, fread, fwrite, fopen, stdio. All calls are Tier 1. Needs sbase util.c bundled.",
       "readiness": {
-        "score": 0.0,
-        "tier": "unanalyzed"
+        "score": 0.898,
+        "tier": "ready"
       },
       "hardware_fit": {
-        "stock_a1200": "unknown",
-        "a1200_accel": "unknown",
-        "a4000_030": "unknown"
+        "stock_a1200": "fits",
+        "a1200_accel": "fits",
+        "a4000_030": "fits"
+      },
+      "analysis": {
+        "analyzed_date": "2026-03-25",
+        "analyzer_version": "1.0",
+        "shim_library_version": "1.0",
+        "posix_tier_mix": {
+          "tier1": 5,
+          "tier2": 0,
+          "tier3": 0
+        },
+        "missing_shims": [],
+        "blocking_shims": [],
+        "blocker_workaround": null,
+        "dependencies": [
+          "sbase util.c (bundled)"
+        ],
+        "source_complexity": 0.987,
+        "estimated_stack_kb": 8,
+        "estimated_binary_kb": 12,
+        "estimated_data_kb": 1
       }
     },
     {
@@ -2716,21 +4141,41 @@
         "version": "latest",
         "license": "MIT",
         "url": "https://git.suckless.org/sbase/file/uudecode.c.html",
-        "files": null,
-        "lines_of_code": null
+        "files": 1,
+        "lines_of_code": 285
       },
       "status": "candidate",
-      "analysis_status": "pending",
+      "analysis_status": "complete",
       "publishable": true,
-      "notes": "Single file; companion to uuencode",
+      "notes": "Single-file uudecode with base64 support. Uses lstat, fopen, chmod, getline, stdio. All Tier 1. Needs sbase util.c bundled.",
       "readiness": {
-        "score": 0.0,
-        "tier": "unanalyzed"
+        "score": 0.896,
+        "tier": "ready"
       },
       "hardware_fit": {
-        "stock_a1200": "unknown",
-        "a1200_accel": "unknown",
-        "a4000_030": "unknown"
+        "stock_a1200": "fits",
+        "a1200_accel": "fits",
+        "a4000_030": "fits"
+      },
+      "analysis": {
+        "analyzed_date": "2026-03-25",
+        "analyzer_version": "1.0",
+        "shim_library_version": "1.0",
+        "posix_tier_mix": {
+          "tier1": 6,
+          "tier2": 0,
+          "tier3": 0
+        },
+        "missing_shims": [],
+        "blocking_shims": [],
+        "blocker_workaround": null,
+        "dependencies": [
+          "sbase util.c (bundled)"
+        ],
+        "source_complexity": 0.972,
+        "estimated_stack_kb": 8,
+        "estimated_binary_kb": 14,
+        "estimated_data_kb": 2
       }
     },
     {
@@ -2744,13 +4189,13 @@
         "version": "latest",
         "license": "MIT",
         "url": "https://git.suckless.org/sbase/file/base64.c.html",
-        "files": null,
-        "lines_of_code": null
+        "files": 0,
+        "lines_of_code": 0
       },
       "status": "candidate",
-      "analysis_status": "pending",
-      "publishable": true,
-      "notes": "Single file; pure encoding algorithm",
+      "analysis_status": "failed",
+      "publishable": false,
+      "notes": "File base64.c does NOT exist in sbase (checked michaelforney/sbase and suckless.org). sbase has uuencode with -m base64 mode instead. Candidate should be removed or re-sourced.",
       "readiness": {
         "score": 0.0,
         "tier": "unanalyzed"
@@ -2772,21 +4217,41 @@
         "version": "latest",
         "license": "MIT",
         "url": "https://git.suckless.org/sbase/file/sha256sum.c.html",
-        "files": null,
-        "lines_of_code": null
+        "files": 1,
+        "lines_of_code": 47
       },
       "status": "candidate",
-      "analysis_status": "pending",
+      "analysis_status": "complete",
       "publishable": true,
-      "notes": "Pure C hash; single file with bundled sha256",
+      "notes": "Tiny wrapper (47 LOC) around bundled SHA-256 implementation via crypt.h/sha256.h. Pure C, no OS deps beyond stdio. Needs sbase crypt.c + sha256.c bundled.",
       "readiness": {
-        "score": 0.0,
-        "tier": "unanalyzed"
+        "score": 0.899,
+        "tier": "ready"
       },
       "hardware_fit": {
-        "stock_a1200": "unknown",
-        "a1200_accel": "unknown",
-        "a4000_030": "unknown"
+        "stock_a1200": "fits",
+        "a1200_accel": "fits",
+        "a4000_030": "fits"
+      },
+      "analysis": {
+        "analyzed_date": "2026-03-25",
+        "analyzer_version": "1.0",
+        "shim_library_version": "1.0",
+        "posix_tier_mix": {
+          "tier1": 2,
+          "tier2": 0,
+          "tier3": 0
+        },
+        "missing_shims": [],
+        "blocking_shims": [],
+        "blocker_workaround": null,
+        "dependencies": [
+          "sbase crypt.c + sha256.c (bundled)"
+        ],
+        "source_complexity": 0.995,
+        "estimated_stack_kb": 8,
+        "estimated_binary_kb": 14,
+        "estimated_data_kb": 1
       }
     },
     {
@@ -2800,21 +4265,41 @@
         "version": "latest",
         "license": "MIT",
         "url": "https://git.suckless.org/sbase/file/md5sum.c.html",
-        "files": null,
-        "lines_of_code": null
+        "files": 1,
+        "lines_of_code": 47
       },
       "status": "candidate",
-      "analysis_status": "pending",
+      "analysis_status": "complete",
       "publishable": true,
-      "notes": "Pure C hash; single file with bundled md5",
+      "notes": "Tiny wrapper (47 LOC) around bundled MD5 implementation via crypt.h/md5.h. Pure C, no OS deps beyond stdio. Needs sbase crypt.c + md5.c bundled.",
       "readiness": {
-        "score": 0.0,
-        "tier": "unanalyzed"
+        "score": 0.899,
+        "tier": "ready"
       },
       "hardware_fit": {
-        "stock_a1200": "unknown",
-        "a1200_accel": "unknown",
-        "a4000_030": "unknown"
+        "stock_a1200": "fits",
+        "a1200_accel": "fits",
+        "a4000_030": "fits"
+      },
+      "analysis": {
+        "analyzed_date": "2026-03-25",
+        "analyzer_version": "1.0",
+        "shim_library_version": "1.0",
+        "posix_tier_mix": {
+          "tier1": 2,
+          "tier2": 0,
+          "tier3": 0
+        },
+        "missing_shims": [],
+        "blocking_shims": [],
+        "blocker_workaround": null,
+        "dependencies": [
+          "sbase crypt.c + md5.c (bundled)"
+        ],
+        "source_complexity": 0.995,
+        "estimated_stack_kb": 8,
+        "estimated_binary_kb": 14,
+        "estimated_data_kb": 1
       }
     },
     {
@@ -2828,13 +4313,13 @@
         "version": "latest",
         "license": "MIT",
         "url": "https://git.suckless.org/sbase/file/od.c.html",
-        "files": null,
-        "lines_of_code": null
+        "files": 0,
+        "lines_of_code": 0
       },
       "status": "candidate",
-      "analysis_status": "pending",
-      "publishable": true,
-      "notes": "Hex/octal dump; single file, pure stdio",
+      "analysis_status": "failed",
+      "publishable": false,
+      "notes": "File xd.c does NOT exist in sbase (checked michaelforney/sbase and suckless.org). sbase has od.c instead. Candidate should be removed or re-sourced.",
       "readiness": {
         "score": 0.0,
         "tier": "unanalyzed"
@@ -2856,21 +4341,41 @@
         "version": "latest",
         "license": "MIT",
         "url": "https://git.suckless.org/sbase/file/split.c.html",
-        "files": null,
-        "lines_of_code": null
+        "files": 1,
+        "lines_of_code": 92
       },
       "status": "candidate",
-      "analysis_status": "pending",
+      "analysis_status": "complete",
       "publishable": true,
-      "notes": "Single file; uses stdio for reading and writing chunks",
+      "notes": "Single-file split utility (92 LOC). Uses fopen, fclose, getc, putc, strlen, strcmp. Pure stdio. Needs sbase util.c bundled.",
       "readiness": {
-        "score": 0.0,
-        "tier": "unanalyzed"
+        "score": 0.899,
+        "tier": "ready"
       },
       "hardware_fit": {
-        "stock_a1200": "unknown",
-        "a1200_accel": "unknown",
-        "a4000_030": "unknown"
+        "stock_a1200": "fits",
+        "a1200_accel": "fits",
+        "a4000_030": "fits"
+      },
+      "analysis": {
+        "analyzed_date": "2026-03-25",
+        "analyzer_version": "1.0",
+        "shim_library_version": "1.0",
+        "posix_tier_mix": {
+          "tier1": 3,
+          "tier2": 0,
+          "tier3": 0
+        },
+        "missing_shims": [],
+        "blocking_shims": [],
+        "blocker_workaround": null,
+        "dependencies": [
+          "sbase util.c (bundled)"
+        ],
+        "source_complexity": 0.991,
+        "estimated_stack_kb": 8,
+        "estimated_binary_kb": 12,
+        "estimated_data_kb": 1
       }
     },
     {
@@ -2884,21 +4389,42 @@
         "version": "latest",
         "license": "MIT",
         "url": "https://git.suckless.org/sbase/file/od.c.html",
-        "files": null,
-        "lines_of_code": null
+        "files": 1,
+        "lines_of_code": 323
       },
       "status": "candidate",
-      "analysis_status": "pending",
+      "analysis_status": "complete",
       "publishable": true,
-      "notes": "Octal dump with multiple formats; single file",
+      "notes": "Single-file octal dump (323 LOC). Uses open/read/close from fcntl.h/unistd.h, malloc/free, queue.h macros. All POSIX calls are Tier 1 shimmed. Needs sbase util.c + queue.h bundled.",
       "readiness": {
-        "score": 0.0,
-        "tier": "unanalyzed"
+        "score": 0.895,
+        "tier": "ready"
       },
       "hardware_fit": {
-        "stock_a1200": "unknown",
-        "a1200_accel": "unknown",
-        "a4000_030": "unknown"
+        "stock_a1200": "fits",
+        "a1200_accel": "fits",
+        "a4000_030": "fits"
+      },
+      "analysis": {
+        "analyzed_date": "2026-03-25",
+        "analyzer_version": "1.0",
+        "shim_library_version": "1.0",
+        "posix_tier_mix": {
+          "tier1": 6,
+          "tier2": 0,
+          "tier3": 0
+        },
+        "missing_shims": [],
+        "blocking_shims": [],
+        "blocker_workaround": null,
+        "dependencies": [
+          "sbase util.c (bundled)",
+          "queue.h (BSD, bundled)"
+        ],
+        "source_complexity": 0.968,
+        "estimated_stack_kb": 8,
+        "estimated_binary_kb": 16,
+        "estimated_data_kb": 2
       }
     },
     {
@@ -2912,21 +4438,41 @@
         "version": "latest",
         "license": "MIT",
         "url": "https://git.suckless.org/sbase/file/sha1sum.c.html",
-        "files": null,
-        "lines_of_code": null
+        "files": 1,
+        "lines_of_code": 47
       },
       "status": "candidate",
-      "analysis_status": "pending",
+      "analysis_status": "complete",
       "publishable": true,
-      "notes": "Pure C hash; single file with bundled sha1",
+      "notes": "Tiny wrapper (47 LOC) around bundled SHA-1 implementation via crypt.h/sha1.h. Pure C, no OS deps beyond stdio. Needs sbase crypt.c + sha1.c bundled.",
       "readiness": {
-        "score": 0.0,
-        "tier": "unanalyzed"
+        "score": 0.899,
+        "tier": "ready"
       },
       "hardware_fit": {
-        "stock_a1200": "unknown",
-        "a1200_accel": "unknown",
-        "a4000_030": "unknown"
+        "stock_a1200": "fits",
+        "a1200_accel": "fits",
+        "a4000_030": "fits"
+      },
+      "analysis": {
+        "analyzed_date": "2026-03-25",
+        "analyzer_version": "1.0",
+        "shim_library_version": "1.0",
+        "posix_tier_mix": {
+          "tier1": 2,
+          "tier2": 0,
+          "tier3": 0
+        },
+        "missing_shims": [],
+        "blocking_shims": [],
+        "blocker_workaround": null,
+        "dependencies": [
+          "sbase crypt.c + sha1.c (bundled)"
+        ],
+        "source_complexity": 0.995,
+        "estimated_stack_kb": 8,
+        "estimated_binary_kb": 14,
+        "estimated_data_kb": 1
       }
     }
   ],
