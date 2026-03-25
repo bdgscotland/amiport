@@ -83,3 +83,29 @@ SCRAPE
 SCREEN_READ
 EXPECT_TRAP_CURSOR 2,3
 EXPECT_RC: 0
+
+# ============================================================
+# 6. mg cursor DOWN via C-n -- status line shows (2,0)
+# Host-side osascript injection (ADR-025).
+# mg's status line updates after cursor movement via CMD_WRITE.
+# Column 28 = start of "(line,col)" in status line for scroll file.
+# ============================================================
+
+ITEST: Visual: C-n moves cursor down -- status line shows (2,0)
+LAUNCH: WORK:mg -n WORK:test-mg-scroll.txt
+KEYS: WAIT3000,CTRL_N,WAIT2000
+SCRAPE
+EXPECT_AT 29,28,(2,0)
+CLEANUP: CTRL_X,WAIT500,CTRL_C
+
+# ============================================================
+# 7. mg cursor DOWN via arrow key -- proves CSI 0x9B fix
+# Same as test 6 but using DOWN arrow key.
+# ============================================================
+
+ITEST: Visual: DOWN arrow moves cursor -- status line shows (2,0)
+LAUNCH: WORK:mg -n WORK:test-mg-scroll.txt
+KEYS: WAIT3000,DOWN,WAIT2000
+SCRAPE
+EXPECT_AT 29,28,(2,0)
+CLEANUP: CTRL_X,WAIT500,CTRL_C
