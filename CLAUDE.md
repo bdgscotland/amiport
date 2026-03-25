@@ -37,6 +37,7 @@ The porting pipeline has 5 stages, each backed by a Claude skill:
   - `site/api/v1/` — PHP API endpoints (packages, stats, download, vote, request)
 - `toolchain/` — Cross-compiler Docker images, build scripts, target profiles
 - `toolchain/keyinject/` — KeyInject: keyboard event injector for automated interactive testing (ADR-023)
+- `toolchain/screenread/` — ScreenRead: ConUnit cursor reader for visual test cursor verification (ADR-025)
 - `docs/` — Architecture docs, API mapping tables, porting guide, tier classification
 - `docs/references/adcd/` — Complete ADCD 2.1 in agent-optimized markdown (Libraries, Devices, Hardware, Amiga Mail, Autodocs)
 - `docs/references/amiga-intern/` — "Amiga Intern" (1992) converted to markdown — 68030 CPU internals, custom chip architecture, memory map, hardware programming
@@ -72,6 +73,7 @@ The `/port-project` skill has GATE checks — it will not proceed to the next st
 | `test-designer` | Designs comprehensive FS-UAE test suites by analyzing source code, flags, exit codes, and error paths |
 | `aminet-publisher` | Publishing — curated, never automatic |
 | `site-manager` | Website operations — deployment, manifest generation, security scanning, testing |
+| `visual-test-expert` | Visual test authoring and debugging — SCRAPE/SCREEN_READ/EXPECT_TRAP_CURSOR (ADR-024/025) |
 | `amiport-publisher` | Publish ports to amiport.platesteel.net — test-gated, never automatic |
 
 ## Documentation Rules — IMPORTANT
@@ -117,6 +119,7 @@ make check-docs        # Validate agent references across all docs
 make check-port-metadata  # Validate port metadata consistency (version, files, PORTS.md)
 make check-arexx       # Validate ARexx files (non-ASCII, compound vars, syntax)
 make build-keyinject   # Build KeyInject (keystroke injector for interactive tests)
+make build-screenread  # Build ScreenRead (screen state reader for visual tests)
 make clean             # Remove build artifacts
 ```
 
@@ -137,7 +140,9 @@ For console UI apps (Category 3), network apps (Category 4), GUI programs, or ha
 
 For interactive console programs (Category 3+), the test harness supports `ITEST:` blocks that use **KeyInject** (`toolchain/keyinject/`) to inject keystrokes via `commodities.library/AddIEvents()`. Interactive tests are skipped on vamos (KeyInject requires AmigaOS). See ADR-023.
 
-For **visual verification** (ADR-024), use a **separate test file** (`test-fsemu-visual-cases.txt`) with `SCRAPE`, `EXPECT_AT row,col,text`, and `EXPECT_CURSOR row,col` directives. **Functional and visual tests MUST be separate FS-UAE passes** -- never mix them in one suite. Resource exhaustion at ~13 ITESTs is a hard wall. Run visual tests with `make test-fsemu TARGET=ports/<name> VISUAL=1` (passes `--visual` to `scripts/test-fsemu.sh`). The forked FS-UAE (`~/Developer/fs-uae/`) captures per-unit ANSI output; host-side `scripts/verify-screen.py` uses pyte for screen reconstruction. ARexx syntax validated by `scripts/check-arexx-syntax.py` / `make check-arexx`. Note: `CMD_WRITE` captures static display (file load, help text) but NOT interactive echo (typed chars, cursor movement) -- interactive rendering verification deferred to ADR-025.
+For **visual verification** (ADR-024), use a **separate test file** (`test-fsemu-visual-cases.txt`) with `SCRAPE`, `EXPECT_AT row,col,text`, and `EXPECT_CURSOR row,col` directives. **Functional and visual tests MUST be separate FS-UAE passes** -- never mix them in one suite. Resource exhaustion at ~13 ITESTs is a hard wall. Run visual tests with `make test-fsemu TARGET=ports/<name> VISUAL=1` (passes `--visual` to `scripts/test-fsemu.sh`). The forked FS-UAE (`~/Developer/fs-uae/`) captures per-unit ANSI output; host-side `scripts/verify-screen.py` uses pyte for screen reconstruction. ARexx syntax validated by `scripts/check-arexx-syntax.py` / `make check-arexx`. Note: `CMD_WRITE` captures static display (file load, help text) but NOT interactive echo (typed chars, cursor movement).
+
+For **cursor position verification** (ADR-025), use `EXPECT_TRAP_CURSOR row,col` in visual test files. This reads cursor position directly from the ConUnit struct via a custom FS-UAE trap (mode 150), not from ANSI reconstruction. Requires `SCREEN_READ` directive and the ScreenRead binary (`toolchain/screenread/`). `EXPECT_TRAP_CURSOR` is authoritative for interactive cursor operations; `EXPECT_CURSOR` (pyte-based) is for static display only.
 
 ## Design System
 
@@ -172,7 +177,7 @@ In QA mode, flag any code that doesn't match DESIGN.md.
 
 **Architecture & guides:** `docs/architecture.md`, `docs/porting-guide.md`, `docs/api-mapping.md`
 
-**ADRs:** `docs/adr/008` (tiers), `009` (console), `010` (bsdsocket), `011` (categories), `014` (FS-UAE testing), `015` (CI/quality), `016` (debug agent), `017` (hooks enforcement), `018` (ADCD knowledge base), `019` (agent persona matrix), `020` (git hooks validation), `021` (design system — MUI warm gray), `022` (C99 compiler support), `023` (automated interactive testing), `024` (visual verification)
+**ADRs:** `docs/adr/008` (tiers), `009` (console), `010` (bsdsocket), `011` (categories), `014` (FS-UAE testing), `015` (CI/quality), `016` (debug agent), `017` (hooks enforcement), `018` (ADCD knowledge base), `019` (agent persona matrix), `020` (git hooks validation), `021` (design system — MUI warm gray), `022` (C99 compiler support), `023` (automated interactive testing), `024` (visual verification), `025` (screen read trap — interactive cursor verification)
 
 **Shim references:** `docs/references/bsd-isms.md`, `docs/references/newlib-availability.md`, `docs/references/adcd/FUNCTIONS.md`, `docs/references/adcd/TYPES.md`
 

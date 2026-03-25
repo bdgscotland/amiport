@@ -130,7 +130,9 @@ make test-fsemu TARGET=ports/<name>           # Functional pass
 make test-fsemu TARGET=ports/<name> VISUAL=1  # Visual pass (--visual flag)
 ```
 
-Requires the forked FS-UAE with ANSI console capture (`~/Developer/fs-uae/`). Note: `CMD_WRITE` captures static display (file load, help text) but NOT interactive echo (typed characters, cursor movement) -- interactive rendering verification deferred to ADR-025.
+Requires the forked FS-UAE with ANSI console capture (`~/Developer/fs-uae/`). Note: `CMD_WRITE` captures static display (file load, help text) but NOT interactive echo (typed characters, cursor movement).
+
+For **cursor position verification**, add `SCREEN_READ` and `EXPECT_TRAP_CURSOR row,col` directives. This reads the cursor directly from the ConUnit struct in emulated memory via a custom FS-UAE trap. Use this for interactive cursor operations (arrow keys, C-n/C-p, search positioning). `EXPECT_CURSOR` only works for static display (ANSI reconstruction).
 
 ### 5. Review (recommended)
 

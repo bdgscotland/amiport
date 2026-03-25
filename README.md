@@ -132,6 +132,7 @@ Safety hooks enforce discipline across the pipeline:
 | `test-designer` | Comprehensive FS-UAE test suite generation from source analysis |
 | `aminet-publisher` | Aminet packaging, readme generation, upload |
 | `site-manager` | Website deployment, manifest generation, security scanning, testing |
+| `visual-test-expert` | Visual test authoring and debugging — SCRAPE/SCREEN_READ/EXPECT_TRAP_CURSOR (ADR-024/025) |
 | `amiport-publisher` | Test-gated publishing to amiport.platesteel.net — validates tests before allowing downloads |
 
 Every architectural decision is recorded in ADRs and product decisions in PDRs — see [docs/adr/](docs/adr/) and [docs/pdr/](docs/pdr/).
@@ -168,6 +169,8 @@ make test-fsemu TARGET=ports/grep   # Automated FS-UAE test with ARexx harness
 **Interactive testing** — automated keystroke injection for Category 3+ console programs using KeyInject (`toolchain/keyinject/`), which injects keystrokes via `commodities.library/AddIEvents()`. Add `ITEST:` blocks to `test-fsemu-cases.txt`. See [ADR-023](docs/adr/023-automated-interactive-testing.md).
 
 **Visual verification** — character-level screen assertions using a forked FS-UAE with ANSI console capture. Add `SCRAPE`, `EXPECT_AT row,col,text`, and `EXPECT_CURSOR row,col` to ITEST blocks. Requires `~/Developer/fs-uae/` (forked FS-UAE with console capture). See [ADR-024](docs/adr/024-visual-verification.md).
+
+**Cursor position verification** — trap-based ConUnit reading via ScreenRead (`toolchain/screenread/`). Add `SCREEN_READ` and `EXPECT_TRAP_CURSOR row,col` to visual test blocks. See [ADR-025](docs/adr/025-screen-read-trap.md).
 
 **Manual testing** — for manual exploration on a full Amiga desktop:
 

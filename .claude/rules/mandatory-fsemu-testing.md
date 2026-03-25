@@ -89,7 +89,21 @@ EXPECT_AT 1,1,Hello, Amiga world!
 EXPECT_RC: 0
 ```
 
-**Current limitation:** `CMD_WRITE` captures static display (file load, help text) but NOT interactive echo (typed characters, cursor movement). Interactive rendering verification is deferred to ADR-025.
+**Current limitation:** `CMD_WRITE` captures static display (file load, help text) but NOT interactive echo (typed characters, cursor movement). Use `EXPECT_TRAP_CURSOR` for interactive cursor verification.
+
+**Cursor position verification (ADR-025):**
+```
+ITEST: Visual: cursor moves after keystroke
+LAUNCH: WORK:program WORK:test-file.txt
+KEYS: WAIT2000,DOWN,WAIT1000
+SCRAPE
+SCREEN_READ
+EXPECT_TRAP_CURSOR 2,1
+CLEANUP: CTRL_X,WAIT300,CTRL_C
+EXPECT_RC: 0
+```
+
+`SCREEN_READ` triggers the ScreenRead binary to dump ConUnit cursor position via FS-UAE trap. `EXPECT_TRAP_CURSOR row,col` reads the .screen JSON. This is authoritative for interactive cursor operations -- `EXPECT_CURSOR` (pyte-based) only works for static display.
 
 ### Manual Interactive Verification (supplemental)
 

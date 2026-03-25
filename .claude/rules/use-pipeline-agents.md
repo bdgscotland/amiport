@@ -23,6 +23,7 @@
 | Add missing shim fn | `/extend-shim` | Don't manually add shim functions |
 | Website operations | `site-manager` agent | Don't manually rsync or debug PHP |
 | Publish to amiport site | `amiport-publisher` agent | Don't manually set package status or skip test gates |
+| Visual test authoring | `visual-test-expert` agent | Don't manually write SCRAPE/SCREEN_READ tests |
 
 ## How to Dispatch
 
@@ -46,6 +47,7 @@ subagent_type: "debug-agent"            # On crash: autonomous fix loop
 # specialized agent directly (source-analyzer, code-transformer, build-manager, etc.)
 subagent_type: "aminet-publisher"       # Publishing (never automatic)
 subagent_type: "site-manager"           # Website deployment and testing
+subagent_type: "visual-test-expert"    # Visual test authoring and debugging (ADR-024/025)
 subagent_type: "amiport-publisher"      # Test-gated publishing to amiport site
 ```
 

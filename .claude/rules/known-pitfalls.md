@@ -258,3 +258,23 @@ The bebbo-gcc preprocessor (GCC 6.5.0b) silently eats code surrounding UTF-8 mul
 ## libnix getenv() Returns Static Pointer -- Do NOT Free
 
 Unlike `amiport_getenv()` which returns malloc'd strings, libnix's native `getenv()` returns a pointer to static internal storage. If a port uses libnix `getenv()` (no `#define getenv amiport_getenv` macro), callers must NOT free the result. The `amiport/stdlib.h` header does NOT define a getenv macro -- it only defines `exit -> amiport_exit`. Check whether getenv is macro'd before adding free() calls. Discovered in the mg 3.7 port where the code-transformer and review both incorrectly flagged getenv as needing free().
+
+## CSI 0x9B Not Translated to ESC [ for VT100 Key Bindings
+
+AmigaOS console.device sends cursor keys, function keys, and other special keys as CSI sequences (0x9B + parameters + letter). Programs that use VT100/ANSI key bindings (ESC + [ + letter) won't recognize these keys unless 0x9B is explicitly translated to ESC [.
+
+The METABIT handler in many editors (mg, less, nano) strips the high bit from 0x9B -> 0x1B (ESC) but pushes back 0x1B instead of `[`, producing ESC ESC (Meta-ESC) instead of ESC [ (CSI sequence start).
+
+**Fix:** Add a CSI check before any METABIT handler:
+```c
+#ifdef __AMIGA__
+if (c == 0x9B) {
+    pushedc = '[';
+    pushed = TRUE;
+    c = CCHR('[');  /* ESC */
+} else
+#endif
+if (use_metakey && (c & METABIT)) { ... }
+```
+
+This affects ALL ported programs that handle keyboard input with VT100 escape sequences. Check during code-transformer stage for any `METABIT` or `0x80` bit-stripping code.

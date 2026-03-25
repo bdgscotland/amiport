@@ -65,6 +65,7 @@ Agents define **who** does the work — model selection, tool access, persona, a
 - **test-designer**: Uses Sonnet for comprehensive FS-UAE test suite design. Analyzes ported source code (flags, exit codes, error paths) to generate test-fsemu-cases.txt files meeting the project's test coverage standard. Read + write tools.
 - **aminet-publisher**: Uses Sonnet for Aminet package preparation and publishing. Curated, never automatic.
 - **site-manager**: Uses Sonnet for website deployment, manifest generation, security scanning, and testing. Dispatched by /deploy-site skill.
+- **visual-test-expert**: Uses Sonnet for visual test authoring and debugging. Writes SCRAPE/SCREEN_READ/EXPECT_AT/EXPECT_TRAP_CURSOR test cases, debugs visual test failures, and maintains the consolehook trap handler and ScreenRead binary (ADR-024/025).
 - **amiport-publisher**: Uses Sonnet for test-gated publishing to amiport.platesteel.net. Validates vamos/FS-UAE tests pass before allowing downloads. Sets package status (stable/testing/hidden). Never publishes without explicit approval.
 
 ### Context-Loading Skills
@@ -118,7 +119,8 @@ Categories 3-4 use an automated FS-UAE testing pipeline instead of manual intera
 - **FS-UAE** path: full AmigaOS boot, ARexx harness executes test cases, TAP output captured via shared RESULTS: volume, UAEQuit terminates the emulator — used for all categories pre-publication.
 - **Test assertions**: `EXPECT:` for exact first-line match, `EXPECT_CONTAINS:` for substring match (useful for multi-line command output like diff).
 - **Interactive tests** (Category 3+): `ITEST:` blocks use KeyInject (`toolchain/keyinject/`) to inject keystrokes via `commodities.library/AddIEvents()`. The test-runner.rexx harness supports `ITEST:` blocks alongside existing `TEST:` blocks. Interactive tests are skipped on vamos. See ADR-023.
-- **Visual verification** (ADR-024): `SCRAPE` + `EXPECT_AT row,col,text` + `EXPECT_CURSOR row,col` directives in a **separate** `test-fsemu-visual-cases.txt` file. Functional and visual tests MUST be separate FS-UAE passes (resource exhaustion at ~13 ITESTs is a hard wall). Run with `--visual` flag. Forked FS-UAE (`~/Developer/fs-uae/`) captures per-unit raw ANSI output from console.device; host-side `scripts/verify-screen.py` (pyte) reconstructs screen state for character-level assertions. ARexx syntax validated by `scripts/check-arexx-syntax.py` / `make check-arexx`. Note: `CMD_WRITE` captures static display only, not interactive echo (ADR-025 scope).
+- **Visual verification** (ADR-024): `SCRAPE` + `EXPECT_AT row,col,text` + `EXPECT_CURSOR row,col` directives in a **separate** `test-fsemu-visual-cases.txt` file. Functional and visual tests MUST be separate FS-UAE passes (resource exhaustion at ~13 ITESTs is a hard wall). Run with `--visual` flag. Forked FS-UAE (`~/Developer/fs-uae/`) captures per-unit raw ANSI output from console.device; host-side `scripts/verify-screen.py` (pyte) reconstructs screen state for character-level assertions. ARexx syntax validated by `scripts/check-arexx-syntax.py` / `make check-arexx`. Note: `CMD_WRITE` captures static display only, not interactive echo.
+- **Cursor verification** (ADR-025): `SCREEN_READ` + `EXPECT_TRAP_CURSOR row,col` reads cursor position from ConUnit via custom FS-UAE trap mode 150. ScreenRead (`toolchain/screenread/`) triggers the trap; the host reads ConUnit fields (cu_XCCP+62, cu_YCCP+64) from emulated memory. Authoritative for interactive cursor operations -- `EXPECT_CURSOR` (pyte) only works for static display.
 
 ### Toolchain
 
