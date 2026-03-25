@@ -1,0 +1,22 @@
+{
+    "name": "mg",
+    "version": "3.7",
+    "revision": 1,
+    "description": "Micro Emacs-like text editor",
+    "category": "text/edit",
+    "source": "troglobit/mg 3.7",
+    "license": "Public Domain",
+    "size": 106501,
+    "sha256": "c081417f2f4830e5ec056440a047defacc620511291d56e92a933e8774429cf5",
+    "download": "/packages/mg-3.7.lha",
+    "requires": [],
+    "aminet": "",
+    "stack": 65536,
+    "status": "stable",
+    "readme": "Short:        Micro Emacs-like text editor\nType:         text/edit\nArchitecture: m68k-amigaos >= 3.0\nUploader:     duncan (at) bowring (dot) us\nAuthor:       Joachim Wiberg, OpenBSD (ported by Duncan Bowring)\nVersion:      3.7\n\nmg - Micro Emacs-like text editor\n\nA lightweight, public domain Emacs clone from the BSD family.\nProvides core Emacs keybindings in a small footprint without\nrequiring Lisp or heavy dependencies.\n\nOriginal author: Joachim Wiberg (troglobit/mg), OpenBSD\nPorted by Duncan Bowring using amiport (AI-assisted porting toolkit).\nProject: https://github.com/bdgscotland/amiport\n\nCross-compiled with m68k-amigaos-gcc for AmigaOS 3.x (68000+).\nTested in FS-UAE emulator with automated interactive tests.\nUses built-in ANSI terminal backend (no ncurses required).\n\nUsage:\n  mg [-hnR] [-f mode] [-u file] [+number] [file ...]\n\n  mg WORK:document.txt       Open a file for editing\n  mg -R WORK:readme.txt      Open in read-only mode\n  mg +50 WORK:source.c       Open at line 50\n  mg -n WORK:file.txt        Open without backup files\n\nKey bindings (Emacs-style):\n  C-x C-f   Find (open) file\n  C-x C-s   Save file\n  C-x C-c   Quit\n  C-s       Search forward\n  C-r       Search backward\n  C-k       Kill (cut) line\n  C-y       Yank (paste)\n  C-x u     Undo\n  C-g       Cancel current operation\n\nConfiguration:\n  Place startup commands in S:.mg\n\nDisabled features (no fork/exec on AmigaOS):\n  - Shell commands (M-x shell-command)\n  - Directory editor (dired)\n  - Cscope/grep integration\n  - Transparent .gz file opening\n  - Suspend to shell (C-z)\n\nIncludes full source code (original POSIX and ported Amiga versions)\nand PORT.md documenting every transformation applied.",
+    "published_at": "2026-03-25T14:30:00Z",
+    "porting_notes": "43-file Category 3 (Console UI) port with built-in ANSI terminal backend (-DWITHOUT_CURSES), no ncurses dependency. Five subsystems disabled due to AmigaOS fork/exec absence: dired, compile/grep mode, cscope, M-x shell-command, and transparent .gz open. Console I/O uses Open(\"*\") + SelectInput/SelectOutput for interactive console handle under ARexx ITEST harness. Two critical memory leaks fixed post-audit: interpreter.c getenv() result for M-x get-environment-variable, and ttykbd.c TERM env var leaked on startup. All 17 functional tests and 7 visual tests (ADR-024 SCRAPE pass) pass on FS-UAE A1200 with Kickstart 3.1.",
+    "test_count": 17,
+    "test_pass": 17,
+    "known_limitations": "No shell integration (M-x shell-command, M-!, C-z suspend) -- AmigaOS has no fork(). No dired (directory editor) -- requires fork/exec for shell commands. No cscope/grep/compile mode -- requires popen(). No transparent .gz file opening -- requires popen(\"gunzip\"). Terminal size fixed at startup (no SIGWINCH resize detection). Tilde expansion (~user) only works for current user via ENV:HOME. File permissions (chmod/chown) are no-ops."
+}
