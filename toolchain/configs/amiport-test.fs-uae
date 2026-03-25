@@ -27,6 +27,12 @@ hard_drive_1_label = WORK
 keyboard_input_grab = 1
 raw_input = 0
 
+# Joystick — disable keyboard joystick emulation so arrow keys reach
+# the keyboard. FS-UAE defaults to mapping arrow keys to joystick port 1,
+# which steals them from console.device. Without this, arrow keys produce
+# zero bytes in RAW mode programs (mg, less, nano).
+joystick_port_1_mode = nothing
+
 # 8MB Fast RAM — interactive tests (ITEST: blocks) spawn multiple CLI
 # processes with 256KB stacks, which exhaust the A1200's 2MB Chip RAM
 fast_memory = 8192
