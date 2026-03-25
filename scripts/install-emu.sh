@@ -45,6 +45,18 @@ for dir in "$PROJECT_DIR"/examples/*/; do
     fi
 done
 
+# Install toolchain helpers (KeyInject, ScreenRead, UAEQuit)
+for helper in KeyInject ScreenRead UAEQuit; do
+    for helperdir in "$PROJECT_DIR"/toolchain/*/; do
+        if [ -f "$helperdir/$helper" ]; then
+            cp "$helperdir/$helper" "$EMU_DIR/"
+            echo "  [OK] $helper (toolchain)"
+            INSTALLED=$((INSTALLED + 1))
+            break
+        fi
+    done
+done
+
 # Install common test data files
 COMMON_DATA="$PROJECT_DIR/ports/common-test-data"
 if [ -d "$COMMON_DATA" ]; then

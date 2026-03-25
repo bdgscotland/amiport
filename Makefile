@@ -198,7 +198,10 @@ build-uaequit:
 build-keyinject:
 	$(MAKE) -C toolchain/keyinject
 
-test-fsemu: build-uaequit build-keyinject install-emu
+build-screenread:  ## Build ScreenRead (screen state reader for visual tests)
+	$(MAKE) -C toolchain/screenread
+
+test-fsemu: build-uaequit build-keyinject build-screenread install-emu
 ifndef TARGET
 	$(error TARGET is required. Usage: make test-fsemu TARGET=ports/grep)
 endif
