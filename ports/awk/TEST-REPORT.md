@@ -5,7 +5,7 @@
 | Field | Value |
 |-------|-------|
 | Port | awk |
-| Date | 2026-03-25 17:05:55 |
+| Date | 2026-03-25 17:30:27 |
 | Duration | 68s |
 | Platform | FS-UAE 3.2.35 (A1200, Kickstart 3.1) |
 | Binary | `WORK:awk` (168K) |
@@ -174,12 +174,12 @@ EXPECT_RC: 0
 
 TEST: NR built-in variable tracks record number
 CMD: WORK:awk -f WORK:test-awk-nr.awk WORK:test-awk-numbers.txt
-EXPECT_CONTAINS: 10
+EXPECT: 1 10
 EXPECT_RC: 0
 
 TEST: NF and dollar-NF built-in variables
 CMD: WORK:awk -f WORK:test-awk-nf.awk WORK:test-multiline.txt
-EXPECT_CONTAINS: world
+EXPECT: 2 world
 EXPECT_RC: 0
 
 TEST: OFS output field separator applied on print list
@@ -221,12 +221,12 @@ EXPECT_RC: 0
 
 TEST: match() sets RSTART and RLENGTH
 CMD: WORK:awk -f WORK:test-awk-match.awk WORK:test-multiline.txt
-EXPECT_CONTAINS: 1
+EXPECT: 1 5
 EXPECT_RC: 0
 
 TEST: split() splits string into array returns count
 CMD: WORK:awk -f WORK:test-awk-split.awk WORK:test-awk-colon.txt
-EXPECT_CONTAINS: 3
+EXPECT: 3 root
 EXPECT_RC: 0
 
 TEST: sprintf() formats string without printing
@@ -255,7 +255,7 @@ EXPECT_RC: 0
 
 TEST: for loop with if-else produces alternating output
 CMD: WORK:awk -f WORK:test-awk-control.awk WORK:test-empty.txt
-EXPECT_CONTAINS: odd
+EXPECT: 1 odd
 EXPECT_RC: 0
 
 # === FUNCTIONAL TESTS: arrays ===
@@ -295,7 +295,7 @@ EXPECT_RC: 0
 
 TEST: --csv mode splits comma-separated fields
 CMD: WORK:awk --csv -f WORK:test-awk-csv.awk WORK:test-awk-csv-data.txt
-EXPECT_CONTAINS: age
+EXPECT: 3 age
 EXPECT_RC: 0
 
 # === ERROR PATH TESTS ===
@@ -330,8 +330,8 @@ EXPECT_RC: 0
 # === AMIGA-SPECIFIC TESTS ===
 
 TEST: WORK: volume path for input file (Amiga path handling)
-CMD: WORK:awk -f WORK:test-awk-fields.awk WORK:test-awk-colon.txt
-EXPECT_CONTAINS: root
+CMD: WORK:awk -F: -f WORK:test-awk-fields.awk WORK:test-awk-colon.txt
+EXPECT: root
 EXPECT_RC: 0
 
 TEST: -v flag with Amiga WORK: path in variable value
@@ -343,29 +343,29 @@ EXPECT_RC: 0
 
 TEST: Word count simulation (NR words chars)
 CMD: WORK:awk -f WORK:test-awk-wc.awk WORK:test-awk-stressfile.txt
-EXPECT_CONTAINS: 20
+EXPECT: 20 60 458
 EXPECT_RC: 0
 
 TEST: Sum column of numbers (real-world data extraction)
 CMD: WORK:awk -f WORK:test-awk-sum.awk WORK:test-awk-numbers.txt
-EXPECT_CONTAINS: 150
+EXPECT: 150
 EXPECT_RC: 0
 
 TEST: Extract second field from colon-delimited passwd-style file
 CMD: WORK:awk -F : -f WORK:test-awk-csv.awk WORK:test-awk-colon.txt
-EXPECT_CONTAINS: 0
+EXPECT: 3 0
 EXPECT_RC: 0
 
 # === STRESS TESTS ===
 
 TEST: 10000-iteration loop accumulates correct sum
 CMD: WORK:awk -f WORK:test-awk-stress.awk WORK:test-empty.txt
-EXPECT_CONTAINS: 5000
+EXPECT: 50005000
 EXPECT_RC: 0
 
 TEST: Recursive function fib(20) without stack overflow
 CMD: WORK:awk -f WORK:test-awk-recursion.awk WORK:test-empty.txt
-EXPECT_CONTAINS: 676
+EXPECT: 6765
 EXPECT_RC: 0
 
 TEST: Process 20-line file building associative array
@@ -376,7 +376,7 @@ EXPECT_RC: 0
 
 TEST: atan2(0,-1) computes pi to 10 decimal places
 CMD: WORK:awk -f WORK:test-awk-picomp.awk WORK:test-empty.txt
-EXPECT_CONTAINS: 3.14159
+EXPECT: 3.1415926536
 EXPECT_RC: 0
 ```
 

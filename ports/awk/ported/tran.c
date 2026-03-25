@@ -465,7 +465,12 @@ static char *get_str_val(Cell *vp, char **fmt)        /* get string val of a Cel
 		if ((p = get_inf_nan(vp->fval)) != NULL) \
 			strcpy(s, p); \
 		else if (modf(vp->fval, &dtemp) == 0)	/* it's integral */ \
-			snprintf(s, sizeof (s), "%.30g", vp->fval); \
+			/* amiport: %.30g shows FP noise on 68k libnix (trailing zeros \
+			 * not stripped at >15 digits). %.15g is max meaningful precision \
+			 * for IEEE 754 double (15.9 significant digits) and displays \
+			 * integers cleanly. Upstream uses %.30g which works on 64-bit \
+			 * systems but exposes FP representation noise on libnix. */ \
+			snprintf(s, sizeof (s), "%.15g", vp->fval); \
 		else \
 			snprintf(s, sizeof (s), *fmt, vp->fval); \
 		vp->sval = tostring(s); \

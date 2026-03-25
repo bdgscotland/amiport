@@ -68,12 +68,9 @@ Verdict: **MODERATE** -- 11 source files, ~12K LOC, Category 2 scripting interpr
 - `popen` uses temp files, not concurrent pipes -- awk `print | "cmd"` works but is not concurrent
 - `system()` returns AmigaDOS RC directly (0/5/10/20), not Unix wait-status
 
-## Known Bugs (WIP -- not yet resolved)
+## Bug Fix: libnix %.30g Formatting (RESOLVED)
 
-- **libnix `%g` format bug**: `print` outputs integers as `1.0000000000` instead of `1`. The OFMT is set to `"%.6g"` which should suppress trailing zeros, but libnix's printf does not implement `%g` correctly. This affects all numeric output via `print` (not `printf "%d"`). Root cause needs investigation on FS-UAE.
-- **Floating point accumulation drift**: `fib(20)` returns `6764.999...` instead of `6765`. Integer arithmetic via `for (i=1; i<=10000; i++) sum+=i` returns `50004999.999...`. This may be related to the `%g` issue or a genuine 68k FPU precision problem.
-- **split() array access**: `split($0, parts, ":")` returns correct count but `parts[1]` appears empty in output. Needs investigation.
-- **Test suite status**: 44 tests with strict expectations. ~12 tests expected to fail due to the above bugs. Tests are NOT weakened -- they fail honestly.
+Root cause: upstream awk uses `%.30g` to format integers, which on libnix shows FP representation noise (e.g., `1.0000000000` instead of `1`). At 30 significant digits, IEEE 754 double precision noise becomes visible. Fix: changed to `%.15g` which is the max meaningful precision for 64-bit double and displays integers cleanly. This also resolved the apparent FP accumulation bugs (`fib(20)` and `sum(1..10000)`) — the math was always correct, the formatting just showed noise beyond 15 digits.
 
 ## Known Limitations
 

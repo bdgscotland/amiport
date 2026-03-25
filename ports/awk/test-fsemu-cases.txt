@@ -198,7 +198,7 @@ EXPECT_RC: 0
 # === AMIGA-SPECIFIC TESTS ===
 
 TEST: WORK: volume path for input file (Amiga path handling)
-CMD: WORK:awk -f WORK:test-awk-fields.awk WORK:test-awk-colon.txt
+CMD: WORK:awk -F: -f WORK:test-awk-fields.awk WORK:test-awk-colon.txt
 EXPECT: root
 EXPECT_RC: 0
 

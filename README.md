@@ -37,7 +37,7 @@ amiport combines POSIX compatibility libraries, AI-powered build agents, and a c
 | [comm](ports/comm/) | 1.11 | CLI | Compare two sorted files line by line (OpenBSD) | Built & tested |
 | [rev](ports/rev/) | 1.16 | CLI | Reverse lines character by character (OpenBSD) | Built & tested |
 | [expand](ports/expand/) | 1.15 | CLI | Convert tabs to spaces (OpenBSD) | Built & tested |
-| [awk](ports/awk/) | 2024.12.25 | Scripting | Pattern scanning and processing (BWK) | WIP -- %g format bug |
+| [awk](ports/awk/) | 2024.12.25 | Scripting | Pattern scanning and processing (BWK) | Built & tested |
 | [patch](ports/patch/) | 1.78 | CLI | Apply diff patches to source files (OpenBSD) | Built & tested |
 | [uniq](ports/uniq/) | 1.33 | CLI | Filter/report repeated lines in files (OpenBSD) | Built & tested |
 | [yes](ports/yes/) | 1.9 | CLI | Repeatedly output a string (OpenBSD) | [Live on Aminet](https://aminet.net/package/util/cli/yes-1.9) |
