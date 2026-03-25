@@ -1,0 +1,3284 @@
+{
+  "version": "1.0",
+  "generated": "2026-03-25T00:00:00Z",
+  "shim_library_version": "1.0",
+  "hardware_profiles": {
+    "stock_a1200": {
+      "label": "Amiga 1200 (stock)",
+      "cpu": "68020",
+      "chip_ram_kb": 2048,
+      "fast_ram_kb": 0,
+      "total_ram_kb": 2048,
+      "max_practical_stack_kb": 64,
+      "fpu": false,
+      "notes": "Base A1200 with 2MB Chip RAM only. Limited stack headroom."
+    },
+    "a1200_accel": {
+      "label": "Amiga 1200 + Accelerator",
+      "cpu": "68030",
+      "chip_ram_kb": 2048,
+      "fast_ram_kb": 8192,
+      "total_ram_kb": 10240,
+      "max_practical_stack_kb": 256,
+      "fpu": false,
+      "notes": "A1200 with 68030 accelerator (e.g. Blizzard 1230) and 8MB Fast RAM"
+    },
+    "a4000_030": {
+      "label": "Amiga 4000/030",
+      "cpu": "68030",
+      "chip_ram_kb": 2048,
+      "fast_ram_kb": 16384,
+      "total_ram_kb": 18432,
+      "max_practical_stack_kb": 512,
+      "fpu": true,
+      "notes": "A4000 with 68030 and 16MB Fast RAM"
+    }
+  },
+  "aminet_category_map": {
+    "cli": "util/cli",
+    "scripting": "dev/lang",
+    "console_ui": "util/misc",
+    "network": "comm/tcp",
+    "text_processing": "text/misc",
+    "file_management": "util/dir",
+    "system_admin": "util/sys",
+    "development": "dev/misc",
+    "math": "util/misc",
+    "archiving": "util/arc",
+    "editor": "text/edit",
+    "pager": "text/show"
+  },
+  "shim_functions": {
+    "stat": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "fstat": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "open": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "close": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "read": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "write": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "lseek": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "opendir": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "readdir": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "closedir": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "mkdir": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "getcwd": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "chdir": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "unlink": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "rename": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "access": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "sleep": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "usleep": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "getenv": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "getpid": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "isatty": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "time": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "gettimeofday": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "getopt": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "getopt_long": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "strtok_r": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "signal": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "tmpfile": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "fnmatch": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "glob": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "scandir": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "strlcpy": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "strlcat": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "reallocarray": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "recallocarray": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "asprintf": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "mkstemp": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "pread": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "pwrite": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "getline": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "fpurge": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "dup": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "dup2": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "chmod": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "rmdir": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "lstat": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "setenv": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "unsetenv": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "realpath": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "regex": {
+      "tier": 2,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "mmap": {
+      "tier": 2,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "pipe": {
+      "tier": 2,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "sigaction": {
+      "tier": 2,
+      "status": "not_implemented",
+      "complexity": "medium",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "fork": {
+      "tier": 3,
+      "status": "not_implemented",
+      "complexity": "blocker",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "exec": {
+      "tier": 3,
+      "status": "not_implemented",
+      "complexity": "blocker",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "wait": {
+      "tier": 3,
+      "status": "not_implemented",
+      "complexity": "blocker",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "popen": {
+      "tier": 2,
+      "status": "not_implemented",
+      "complexity": "medium",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "select": {
+      "tier": 1,
+      "status": "not_implemented",
+      "complexity": "medium",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "socket": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "fcntl": {
+      "tier": 2,
+      "status": "not_implemented",
+      "complexity": "medium",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "ioctl": {
+      "tier": 2,
+      "status": "not_implemented",
+      "complexity": "high",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "dlopen": {
+      "tier": 3,
+      "status": "not_implemented",
+      "complexity": "blocker",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "pthread": {
+      "tier": 3,
+      "status": "not_implemented",
+      "complexity": "blocker",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "termios": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "curses": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    }
+  },
+  "candidates": [
+    {
+      "id": "basename",
+      "name": "basename",
+      "description": "Strip directory and suffix from filenames",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream": {
+        "source": "openbsd",
+        "version": "latest",
+        "license": "ISC",
+        "url": "https://cvsweb.openbsd.org/src/usr.bin/basename/",
+        "files": 1,
+        "lines_of_code": 88
+      },
+      "status": "candidate",
+      "analysis_status": "complete",
+      "publishable": true,
+      "notes": "Trivial single-file utility, no POSIX deps beyond stdio",
+      "analysis": {
+        "analyzed_date": "2026-03-25",
+        "analyzer_version": "1.0",
+        "shim_library_version": "1.0",
+        "posix_tier_mix": {
+          "tier1": 3,
+          "tier2": 0,
+          "tier3": 0
+        },
+        "missing_shims": [],
+        "blocking_shims": [],
+        "blocker_workaround": null,
+        "dependencies": [],
+        "source_complexity": 0.99,
+        "estimated_stack_kb": 8,
+        "estimated_binary_kb": 11,
+        "estimated_data_kb": 1
+      },
+      "readiness": {
+        "score": 0.999,
+        "tier": "ready"
+      },
+      "hardware_fit": {
+        "stock_a1200": "fits",
+        "a1200_accel": "fits",
+        "a4000_030": "fits"
+      }
+    },
+    {
+      "id": "dirname",
+      "name": "dirname",
+      "description": "Strip last component from filename",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream": {
+        "source": "openbsd",
+        "version": "latest",
+        "license": "ISC",
+        "url": "https://cvsweb.openbsd.org/src/usr.bin/dirname/",
+        "files": 1,
+        "lines_of_code": 57
+      },
+      "status": "candidate",
+      "analysis_status": "complete",
+      "publishable": true,
+      "notes": "Trivial single-file utility",
+      "analysis": {
+        "analyzed_date": "2026-03-25",
+        "analyzer_version": "1.0",
+        "shim_library_version": "1.0",
+        "posix_tier_mix": {
+          "tier1": 3,
+          "tier2": 0,
+          "tier3": 0
+        },
+        "missing_shims": [],
+        "blocking_shims": [],
+        "blocker_workaround": null,
+        "dependencies": [],
+        "source_complexity": 0.99,
+        "estimated_stack_kb": 8,
+        "estimated_binary_kb": 11,
+        "estimated_data_kb": 1
+      },
+      "readiness": {
+        "score": 0.999,
+        "tier": "ready"
+      },
+      "hardware_fit": {
+        "stock_a1200": "fits",
+        "a1200_accel": "fits",
+        "a4000_030": "fits"
+      }
+    },
+    {
+      "id": "tr",
+      "name": "tr",
+      "description": "Translate or delete characters",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream": {
+        "source": "openbsd",
+        "version": "latest",
+        "license": "BSD-3-Clause",
+        "url": "https://cvsweb.openbsd.org/src/usr.bin/tr/",
+        "files": null,
+        "lines_of_code": null
+      },
+      "status": "candidate",
+      "analysis_status": "pending",
+      "publishable": true,
+      "notes": "Multi-file but pure stdio; locale/wchar paths need #ifdef __AMIGA__",
+      "readiness": {
+        "score": 0.0,
+        "tier": "unanalyzed"
+      },
+      "hardware_fit": {
+        "stock_a1200": "unknown",
+        "a1200_accel": "unknown",
+        "a4000_030": "unknown"
+      }
+    },
+    {
+      "id": "fmt",
+      "name": "fmt",
+      "description": "Simple text formatter",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream": {
+        "source": "openbsd",
+        "version": "latest",
+        "license": "BSD-3-Clause",
+        "url": "https://cvsweb.openbsd.org/src/usr.bin/fmt/",
+        "files": null,
+        "lines_of_code": null
+      },
+      "status": "candidate",
+      "analysis_status": "pending",
+      "publishable": true,
+      "notes": "Pure text processing, no OS deps",
+      "readiness": {
+        "score": 0.0,
+        "tier": "unanalyzed"
+      },
+      "hardware_fit": {
+        "stock_a1200": "unknown",
+        "a1200_accel": "unknown",
+        "a4000_030": "unknown"
+      }
+    },
+    {
+      "id": "fold",
+      "name": "fold",
+      "description": "Wrap lines to specified width",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream": {
+        "source": "openbsd",
+        "version": "latest",
+        "license": "BSD-3-Clause",
+        "url": "https://cvsweb.openbsd.org/src/usr.bin/fold/",
+        "files": null,
+        "lines_of_code": null
+      },
+      "status": "candidate",
+      "analysis_status": "pending",
+      "publishable": true,
+      "notes": "Single file, pure stdio",
+      "readiness": {
+        "score": 0.0,
+        "tier": "unanalyzed"
+      },
+      "hardware_fit": {
+        "stock_a1200": "unknown",
+        "a1200_accel": "unknown",
+        "a4000_030": "unknown"
+      }
+    },
+    {
+      "id": "rev",
+      "name": "rev",
+      "description": "Reverse lines character by character",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream": {
+        "source": "openbsd",
+        "version": "latest",
+        "license": "BSD-3-Clause",
+        "url": "https://cvsweb.openbsd.org/src/usr.bin/rev/",
+        "files": 1,
+        "lines_of_code": 120
+      },
+      "status": "candidate",
+      "analysis_status": "complete",
+      "publishable": true,
+      "notes": "Trivial single-file, ~50 lines",
+      "analysis": {
+        "analyzed_date": "2026-03-25",
+        "analyzer_version": "1.0",
+        "shim_library_version": "1.0",
+        "posix_tier_mix": {
+          "tier1": 5,
+          "tier2": 0,
+          "tier3": 0
+        },
+        "missing_shims": [],
+        "blocking_shims": [],
+        "blocker_workaround": null,
+        "dependencies": [],
+        "source_complexity": 0.99,
+        "estimated_stack_kb": 8,
+        "estimated_binary_kb": 11,
+        "estimated_data_kb": 1
+      },
+      "readiness": {
+        "score": 0.999,
+        "tier": "ready"
+      },
+      "hardware_fit": {
+        "stock_a1200": "fits",
+        "a1200_accel": "fits",
+        "a4000_030": "fits"
+      }
+    },
+    {
+      "id": "column",
+      "name": "column",
+      "description": "Columnate lists",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream": {
+        "source": "openbsd",
+        "version": "latest",
+        "license": "BSD-3-Clause",
+        "url": "https://cvsweb.openbsd.org/src/usr.bin/column/",
+        "files": null,
+        "lines_of_code": null
+      },
+      "status": "candidate",
+      "analysis_status": "pending",
+      "publishable": true,
+      "notes": "Uses ioctl for terminal width -- stub to 80 columns",
+      "readiness": {
+        "score": 0.0,
+        "tier": "unanalyzed"
+      },
+      "hardware_fit": {
+        "stock_a1200": "unknown",
+        "a1200_accel": "unknown",
+        "a4000_030": "unknown"
+      }
+    },
+    {
+      "id": "expand",
+      "name": "expand",
+      "description": "Convert tabs to spaces",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream": {
+        "source": "openbsd",
+        "version": "latest",
+        "license": "BSD-3-Clause",
+        "url": "https://cvsweb.openbsd.org/src/usr.bin/expand/",
+        "files": 1,
+        "lines_of_code": 160
+      },
+      "status": "candidate",
+      "analysis_status": "complete",
+      "publishable": true,
+      "notes": "Single file, pure stdio",
+      "analysis": {
+        "analyzed_date": "2026-03-25",
+        "analyzer_version": "1.0",
+        "shim_library_version": "1.0",
+        "posix_tier_mix": {
+          "tier1": 3,
+          "tier2": 0,
+          "tier3": 0
+        },
+        "missing_shims": [],
+        "blocking_shims": [],
+        "blocker_workaround": null,
+        "dependencies": [],
+        "source_complexity": 0.98,
+        "estimated_stack_kb": 8,
+        "estimated_binary_kb": 12,
+        "estimated_data_kb": 1
+      },
+      "readiness": {
+        "score": 0.997,
+        "tier": "ready"
+      },
+      "hardware_fit": {
+        "stock_a1200": "fits",
+        "a1200_accel": "fits",
+        "a4000_030": "fits"
+      }
+    },
+    {
+      "id": "unexpand",
+      "name": "unexpand",
+      "description": "Convert spaces to tabs",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream": {
+        "source": "openbsd",
+        "version": "latest",
+        "license": "BSD-3-Clause",
+        "url": "https://cvsweb.openbsd.org/src/usr.bin/unexpand/",
+        "files": 1,
+        "lines_of_code": 130
+      },
+      "status": "candidate",
+      "analysis_status": "complete",
+      "publishable": true,
+      "notes": "Single file, pure stdio",
+      "analysis": {
+        "analyzed_date": "2026-03-25",
+        "analyzer_version": "1.0",
+        "shim_library_version": "1.0",
+        "posix_tier_mix": {
+          "tier1": 2,
+          "tier2": 0,
+          "tier3": 0
+        },
+        "missing_shims": [],
+        "blocking_shims": [],
+        "blocker_workaround": null,
+        "dependencies": [],
+        "source_complexity": 0.99,
+        "estimated_stack_kb": 8,
+        "estimated_binary_kb": 11,
+        "estimated_data_kb": 1
+      },
+      "readiness": {
+        "score": 0.999,
+        "tier": "ready"
+      },
+      "hardware_fit": {
+        "stock_a1200": "fits",
+        "a1200_accel": "fits",
+        "a4000_030": "fits"
+      }
+    },
+    {
+      "id": "paste",
+      "name": "paste",
+      "description": "Merge lines of files side by side",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream": {
+        "source": "openbsd",
+        "version": "latest",
+        "license": "BSD-3-Clause",
+        "url": "https://cvsweb.openbsd.org/src/usr.bin/paste/",
+        "files": null,
+        "lines_of_code": null
+      },
+      "status": "candidate",
+      "analysis_status": "pending",
+      "publishable": true,
+      "notes": "Single file, pure stdio",
+      "readiness": {
+        "score": 0.0,
+        "tier": "unanalyzed"
+      },
+      "hardware_fit": {
+        "stock_a1200": "unknown",
+        "a1200_accel": "unknown",
+        "a4000_030": "unknown"
+      }
+    },
+    {
+      "id": "join",
+      "name": "join",
+      "description": "Relational database join on sorted files",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream": {
+        "source": "openbsd",
+        "version": "latest",
+        "license": "BSD-3-Clause",
+        "url": "https://cvsweb.openbsd.org/src/usr.bin/join/",
+        "files": null,
+        "lines_of_code": null
+      },
+      "status": "candidate",
+      "analysis_status": "pending",
+      "publishable": true,
+      "notes": "Single file, locale-aware sorting needs review",
+      "readiness": {
+        "score": 0.0,
+        "tier": "unanalyzed"
+      },
+      "hardware_fit": {
+        "stock_a1200": "unknown",
+        "a1200_accel": "unknown",
+        "a4000_030": "unknown"
+      }
+    },
+    {
+      "id": "comm",
+      "name": "comm",
+      "description": "Select or reject lines common to two files",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream": {
+        "source": "openbsd",
+        "version": "latest",
+        "license": "BSD-3-Clause",
+        "url": "https://cvsweb.openbsd.org/src/usr.bin/comm/",
+        "files": 1,
+        "lines_of_code": 160
+      },
+      "status": "candidate",
+      "analysis_status": "complete",
+      "publishable": true,
+      "notes": "Single file, pure stdio",
+      "analysis": {
+        "analyzed_date": "2026-03-25",
+        "analyzer_version": "1.0",
+        "shim_library_version": "1.0",
+        "posix_tier_mix": {
+          "tier1": 3,
+          "tier2": 0,
+          "tier3": 0
+        },
+        "missing_shims": [],
+        "blocking_shims": [],
+        "blocker_workaround": null,
+        "dependencies": [],
+        "source_complexity": 0.98,
+        "estimated_stack_kb": 8,
+        "estimated_binary_kb": 12,
+        "estimated_data_kb": 1
+      },
+      "readiness": {
+        "score": 0.997,
+        "tier": "ready"
+      },
+      "hardware_fit": {
+        "stock_a1200": "fits",
+        "a1200_accel": "fits",
+        "a4000_030": "fits"
+      }
+    },
+    {
+      "id": "tsort",
+      "name": "tsort",
+      "description": "Topological sort of directed graph",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream": {
+        "source": "openbsd",
+        "version": "latest",
+        "license": "BSD-3-Clause",
+        "url": "https://cvsweb.openbsd.org/src/usr.bin/tsort/",
+        "files": null,
+        "lines_of_code": null
+      },
+      "status": "candidate",
+      "analysis_status": "pending",
+      "publishable": true,
+      "notes": "Single file, pure stdio + malloc",
+      "readiness": {
+        "score": 0.0,
+        "tier": "unanalyzed"
+      },
+      "hardware_fit": {
+        "stock_a1200": "unknown",
+        "a1200_accel": "unknown",
+        "a4000_030": "unknown"
+      }
+    },
+    {
+      "id": "ls",
+      "name": "ls",
+      "description": "List directory contents",
+      "amiport_category": "cli",
+      "aminet_category": "util/dir",
+      "upstream": {
+        "source": "openbsd",
+        "version": "latest",
+        "license": "BSD-3-Clause",
+        "url": "https://cvsweb.openbsd.org/src/bin/ls/",
+        "files": null,
+        "lines_of_code": null
+      },
+      "status": "candidate",
+      "analysis_status": "pending",
+      "publishable": true,
+      "notes": "Multi-file; needs stat/readdir shims, ioctl for columns, no user/group on Amiga",
+      "readiness": {
+        "score": 0.0,
+        "tier": "unanalyzed"
+      },
+      "hardware_fit": {
+        "stock_a1200": "unknown",
+        "a1200_accel": "unknown",
+        "a4000_030": "unknown"
+      }
+    },
+    {
+      "id": "file",
+      "name": "file",
+      "description": "Determine file type via magic numbers",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream": {
+        "source": "openbsd",
+        "version": "latest",
+        "license": "BSD-2-Clause",
+        "url": "https://cvsweb.openbsd.org/src/usr.bin/file/",
+        "files": null,
+        "lines_of_code": null
+      },
+      "status": "candidate",
+      "analysis_status": "pending",
+      "publishable": true,
+      "notes": "Needs magic database file; bundled magic.mgc or simplified rules",
+      "readiness": {
+        "score": 0.0,
+        "tier": "unanalyzed"
+      },
+      "hardware_fit": {
+        "stock_a1200": "unknown",
+        "a1200_accel": "unknown",
+        "a4000_030": "unknown"
+      }
+    },
+    {
+      "id": "du",
+      "name": "du",
+      "description": "Display disk usage statistics",
+      "amiport_category": "cli",
+      "aminet_category": "util/dir",
+      "upstream": {
+        "source": "openbsd",
+        "version": "latest",
+        "license": "BSD-3-Clause",
+        "url": "https://cvsweb.openbsd.org/src/usr.bin/du/",
+        "files": null,
+        "lines_of_code": null
+      },
+      "status": "candidate",
+      "analysis_status": "pending",
+      "publishable": true,
+      "notes": "Uses stat/opendir/readdir; block size semantics differ on Amiga",
+      "readiness": {
+        "score": 0.0,
+        "tier": "unanalyzed"
+      },
+      "hardware_fit": {
+        "stock_a1200": "unknown",
+        "a1200_accel": "unknown",
+        "a4000_030": "unknown"
+      }
+    },
+    {
+      "id": "find",
+      "name": "find",
+      "description": "Walk a file hierarchy",
+      "amiport_category": "cli",
+      "aminet_category": "util/dir",
+      "upstream": {
+        "source": "openbsd",
+        "version": "latest",
+        "license": "BSD-3-Clause",
+        "url": "https://cvsweb.openbsd.org/src/usr.bin/find/",
+        "files": null,
+        "lines_of_code": null
+      },
+      "status": "candidate",
+      "analysis_status": "pending",
+      "publishable": true,
+      "notes": "Needs fork/exec for -exec flag -- stub or omit -exec; rest is feasible",
+      "readiness": {
+        "score": 0.0,
+        "tier": "unanalyzed"
+      },
+      "hardware_fit": {
+        "stock_a1200": "unknown",
+        "a1200_accel": "unknown",
+        "a4000_030": "unknown"
+      }
+    },
+    {
+      "id": "xargs",
+      "name": "xargs",
+      "description": "Build and execute command lines from stdin",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream": {
+        "source": "openbsd",
+        "version": "latest",
+        "license": "ISC",
+        "url": "https://cvsweb.openbsd.org/src/usr.bin/xargs/",
+        "files": null,
+        "lines_of_code": null
+      },
+      "status": "candidate",
+      "analysis_status": "pending",
+      "publishable": true,
+      "notes": "xargs without -P is feasible; uses SystemTagList for execution",
+      "readiness": {
+        "score": 0.0,
+        "tier": "unanalyzed"
+      },
+      "hardware_fit": {
+        "stock_a1200": "unknown",
+        "a1200_accel": "unknown",
+        "a4000_030": "unknown"
+      }
+    },
+    {
+      "id": "touch",
+      "name": "touch",
+      "description": "Change file access and modification times",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream": {
+        "source": "openbsd",
+        "version": "latest",
+        "license": "BSD-3-Clause",
+        "url": "https://cvsweb.openbsd.org/src/usr.bin/touch/",
+        "files": null,
+        "lines_of_code": null
+      },
+      "status": "candidate",
+      "analysis_status": "pending",
+      "publishable": true,
+      "notes": "Uses utimes/stat; SetFileDate on AmigaOS, epoch offset needed",
+      "readiness": {
+        "score": 0.0,
+        "tier": "unanalyzed"
+      },
+      "hardware_fit": {
+        "stock_a1200": "unknown",
+        "a1200_accel": "unknown",
+        "a4000_030": "unknown"
+      }
+    },
+    {
+      "id": "ln",
+      "name": "ln",
+      "description": "Make links between files",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream": {
+        "source": "openbsd",
+        "version": "latest",
+        "license": "BSD-3-Clause",
+        "url": "https://cvsweb.openbsd.org/src/bin/ln/",
+        "files": null,
+        "lines_of_code": null
+      },
+      "status": "candidate",
+      "analysis_status": "pending",
+      "publishable": true,
+      "notes": "Amiga has soft links via MakeLink; hard links not available",
+      "readiness": {
+        "score": 0.0,
+        "tier": "unanalyzed"
+      },
+      "hardware_fit": {
+        "stock_a1200": "unknown",
+        "a1200_accel": "unknown",
+        "a4000_030": "unknown"
+      }
+    },
+    {
+      "id": "cp",
+      "name": "cp",
+      "description": "Copy files and directories",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream": {
+        "source": "openbsd",
+        "version": "latest",
+        "license": "BSD-3-Clause",
+        "url": "https://cvsweb.openbsd.org/src/bin/cp/",
+        "files": null,
+        "lines_of_code": null
+      },
+      "status": "candidate",
+      "analysis_status": "pending",
+      "publishable": true,
+      "notes": "Multi-file; -r needs opendir/readdir, no chmod/chown semantics",
+      "readiness": {
+        "score": 0.0,
+        "tier": "unanalyzed"
+      },
+      "hardware_fit": {
+        "stock_a1200": "unknown",
+        "a1200_accel": "unknown",
+        "a4000_030": "unknown"
+      }
+    },
+    {
+      "id": "mv",
+      "name": "mv",
+      "description": "Move or rename files",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream": {
+        "source": "openbsd",
+        "version": "latest",
+        "license": "BSD-3-Clause",
+        "url": "https://cvsweb.openbsd.org/src/bin/mv/",
+        "files": null,
+        "lines_of_code": null
+      },
+      "status": "candidate",
+      "analysis_status": "pending",
+      "publishable": true,
+      "notes": "Uses rename(); cross-device needs copy+delete fallback",
+      "readiness": {
+        "score": 0.0,
+        "tier": "unanalyzed"
+      },
+      "hardware_fit": {
+        "stock_a1200": "unknown",
+        "a1200_accel": "unknown",
+        "a4000_030": "unknown"
+      }
+    },
+    {
+      "id": "rm",
+      "name": "rm",
+      "description": "Remove directory entries",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream": {
+        "source": "openbsd",
+        "version": "latest",
+        "license": "BSD-3-Clause",
+        "url": "https://cvsweb.openbsd.org/src/bin/rm/",
+        "files": null,
+        "lines_of_code": null
+      },
+      "status": "candidate",
+      "analysis_status": "pending",
+      "publishable": true,
+      "notes": "Uses unlink/rmdir shims; -r needs recursive opendir walk",
+      "readiness": {
+        "score": 0.0,
+        "tier": "unanalyzed"
+      },
+      "hardware_fit": {
+        "stock_a1200": "unknown",
+        "a1200_accel": "unknown",
+        "a4000_030": "unknown"
+      }
+    },
+    {
+      "id": "mkdir",
+      "name": "mkdir",
+      "description": "Make directories",
+      "amiport_category": "cli",
+      "aminet_category": "util/dir",
+      "upstream": {
+        "source": "openbsd",
+        "version": "latest",
+        "license": "BSD-3-Clause",
+        "url": "https://cvsweb.openbsd.org/src/bin/mkdir/",
+        "files": null,
+        "lines_of_code": null
+      },
+      "status": "candidate",
+      "analysis_status": "pending",
+      "publishable": true,
+      "notes": "Simple; -p needs recursive creation; chmod mode bits are no-ops",
+      "readiness": {
+        "score": 0.0,
+        "tier": "unanalyzed"
+      },
+      "hardware_fit": {
+        "stock_a1200": "unknown",
+        "a1200_accel": "unknown",
+        "a4000_030": "unknown"
+      }
+    },
+    {
+      "id": "rmdir",
+      "name": "rmdir",
+      "description": "Remove directories",
+      "amiport_category": "cli",
+      "aminet_category": "util/dir",
+      "upstream": {
+        "source": "openbsd",
+        "version": "latest",
+        "license": "BSD-3-Clause",
+        "url": "https://cvsweb.openbsd.org/src/bin/rmdir/",
+        "files": null,
+        "lines_of_code": null
+      },
+      "status": "candidate",
+      "analysis_status": "pending",
+      "publishable": true,
+      "notes": "Trivial; uses rmdir shim",
+      "readiness": {
+        "score": 0.0,
+        "tier": "unanalyzed"
+      },
+      "hardware_fit": {
+        "stock_a1200": "unknown",
+        "a1200_accel": "unknown",
+        "a4000_030": "unknown"
+      }
+    },
+    {
+      "id": "chmod",
+      "name": "chmod",
+      "description": "Change file permission bits",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream": {
+        "source": "openbsd",
+        "version": "latest",
+        "license": "BSD-3-Clause",
+        "url": "https://cvsweb.openbsd.org/src/bin/chmod/",
+        "files": null,
+        "lines_of_code": null
+      },
+      "status": "candidate",
+      "analysis_status": "pending",
+      "publishable": true,
+      "notes": "Maps to SetProtection; only r/w/e bits, no user/group/other",
+      "readiness": {
+        "score": 0.0,
+        "tier": "unanalyzed"
+      },
+      "hardware_fit": {
+        "stock_a1200": "unknown",
+        "a1200_accel": "unknown",
+        "a4000_030": "unknown"
+      }
+    },
+    {
+      "id": "env",
+      "name": "env",
+      "description": "Set environment and execute command",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream": {
+        "source": "openbsd",
+        "version": "latest",
+        "license": "BSD-3-Clause",
+        "url": "https://cvsweb.openbsd.org/src/usr.bin/env/",
+        "files": null,
+        "lines_of_code": null
+      },
+      "status": "candidate",
+      "analysis_status": "pending",
+      "publishable": true,
+      "notes": "Print mode trivial; exec mode needs SystemTagList",
+      "readiness": {
+        "score": 0.0,
+        "tier": "unanalyzed"
+      },
+      "hardware_fit": {
+        "stock_a1200": "unknown",
+        "a1200_accel": "unknown",
+        "a4000_030": "unknown"
+      }
+    },
+    {
+      "id": "printenv",
+      "name": "printenv",
+      "description": "Print all or part of environment",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream": {
+        "source": "openbsd",
+        "version": "latest",
+        "license": "BSD-3-Clause",
+        "url": "https://cvsweb.openbsd.org/src/usr.bin/printenv/",
+        "files": null,
+        "lines_of_code": null
+      },
+      "status": "candidate",
+      "analysis_status": "pending",
+      "publishable": true,
+      "notes": "Needs environ enumeration -- scan ENV: on Amiga",
+      "readiness": {
+        "score": 0.0,
+        "tier": "unanalyzed"
+      },
+      "hardware_fit": {
+        "stock_a1200": "unknown",
+        "a1200_accel": "unknown",
+        "a4000_030": "unknown"
+      }
+    },
+    {
+      "id": "uname",
+      "name": "uname",
+      "description": "Print system information",
+      "amiport_category": "cli",
+      "aminet_category": "util/sys",
+      "upstream": {
+        "source": "openbsd",
+        "version": "latest",
+        "license": "BSD-3-Clause",
+        "url": "https://cvsweb.openbsd.org/src/usr.bin/uname/",
+        "files": null,
+        "lines_of_code": null
+      },
+      "status": "candidate",
+      "analysis_status": "pending",
+      "publishable": true,
+      "notes": "Stub uname() to return AmigaOS/68k info from exec.library",
+      "readiness": {
+        "score": 0.0,
+        "tier": "unanalyzed"
+      },
+      "hardware_fit": {
+        "stock_a1200": "unknown",
+        "a1200_accel": "unknown",
+        "a4000_030": "unknown"
+      }
+    },
+    {
+      "id": "hostname",
+      "name": "hostname",
+      "description": "Print or set system hostname",
+      "amiport_category": "cli",
+      "aminet_category": "util/sys",
+      "upstream": {
+        "source": "openbsd",
+        "version": "latest",
+        "license": "BSD-3-Clause",
+        "url": "https://cvsweb.openbsd.org/src/bin/hostname/",
+        "files": null,
+        "lines_of_code": null
+      },
+      "status": "candidate",
+      "analysis_status": "pending",
+      "publishable": true,
+      "notes": "Use GetVar HOSTNAME or bsdsocket.library gethostname()",
+      "readiness": {
+        "score": 0.0,
+        "tier": "unanalyzed"
+      },
+      "hardware_fit": {
+        "stock_a1200": "unknown",
+        "a1200_accel": "unknown",
+        "a4000_030": "unknown"
+      }
+    },
+    {
+      "id": "id",
+      "name": "id",
+      "description": "Print user identity",
+      "amiport_category": "cli",
+      "aminet_category": "util/sys",
+      "upstream": {
+        "source": "openbsd",
+        "version": "latest",
+        "license": "BSD-3-Clause",
+        "url": "https://cvsweb.openbsd.org/src/usr.bin/id/",
+        "files": null,
+        "lines_of_code": null
+      },
+      "status": "candidate",
+      "analysis_status": "pending",
+      "publishable": true,
+      "notes": "Amiga has no /etc/passwd -- stub getpwnam, return uid=0",
+      "readiness": {
+        "score": 0.0,
+        "tier": "unanalyzed"
+      },
+      "hardware_fit": {
+        "stock_a1200": "unknown",
+        "a1200_accel": "unknown",
+        "a4000_030": "unknown"
+      }
+    },
+    {
+      "id": "whoami",
+      "name": "whoami",
+      "description": "Display effective user id",
+      "amiport_category": "cli",
+      "aminet_category": "util/sys",
+      "upstream": {
+        "source": "openbsd",
+        "version": "latest",
+        "license": "BSD-3-Clause",
+        "url": "https://cvsweb.openbsd.org/src/usr.bin/whoami/",
+        "files": null,
+        "lines_of_code": null
+      },
+      "status": "candidate",
+      "analysis_status": "pending",
+      "publishable": true,
+      "notes": "Amiga has no /etc/passwd -- stub getpwnam, return 'user'",
+      "readiness": {
+        "score": 0.0,
+        "tier": "unanalyzed"
+      },
+      "hardware_fit": {
+        "stock_a1200": "unknown",
+        "a1200_accel": "unknown",
+        "a4000_030": "unknown"
+      }
+    },
+    {
+      "id": "logname",
+      "name": "logname",
+      "description": "Display user's login name",
+      "amiport_category": "cli",
+      "aminet_category": "util/sys",
+      "upstream": {
+        "source": "openbsd",
+        "version": "latest",
+        "license": "BSD-3-Clause",
+        "url": "https://cvsweb.openbsd.org/src/usr.bin/logname/",
+        "files": null,
+        "lines_of_code": null
+      },
+      "status": "candidate",
+      "analysis_status": "pending",
+      "publishable": true,
+      "notes": "Trivial; stub getlogin() to return 'user'",
+      "readiness": {
+        "score": 0.0,
+        "tier": "unanalyzed"
+      },
+      "hardware_fit": {
+        "stock_a1200": "unknown",
+        "a1200_accel": "unknown",
+        "a4000_030": "unknown"
+      }
+    },
+    {
+      "id": "tty",
+      "name": "tty",
+      "description": "Print name of terminal on stdin",
+      "amiport_category": "cli",
+      "aminet_category": "util/sys",
+      "upstream": {
+        "source": "openbsd",
+        "version": "latest",
+        "license": "BSD-3-Clause",
+        "url": "https://cvsweb.openbsd.org/src/usr.bin/tty/",
+        "files": null,
+        "lines_of_code": null
+      },
+      "status": "candidate",
+      "analysis_status": "pending",
+      "publishable": true,
+      "notes": "Stub ttyname() to return 'CON:'; isatty via IsInteractive",
+      "readiness": {
+        "score": 0.0,
+        "tier": "unanalyzed"
+      },
+      "hardware_fit": {
+        "stock_a1200": "unknown",
+        "a1200_accel": "unknown",
+        "a4000_030": "unknown"
+      }
+    },
+    {
+      "id": "echo",
+      "name": "echo",
+      "description": "Write arguments to standard output",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream": {
+        "source": "openbsd",
+        "version": "latest",
+        "license": "BSD-3-Clause",
+        "url": "https://cvsweb.openbsd.org/src/bin/echo/",
+        "files": 1,
+        "lines_of_code": 130
+      },
+      "status": "candidate",
+      "analysis_status": "complete",
+      "publishable": true,
+      "notes": "Trivial ~30 lines; no POSIX deps",
+      "analysis": {
+        "analyzed_date": "2026-03-25",
+        "analyzer_version": "1.0",
+        "shim_library_version": "1.0",
+        "posix_tier_mix": {
+          "tier1": 1,
+          "tier2": 0,
+          "tier3": 0
+        },
+        "missing_shims": [],
+        "blocking_shims": [],
+        "blocker_workaround": null,
+        "dependencies": [],
+        "source_complexity": 0.99,
+        "estimated_stack_kb": 8,
+        "estimated_binary_kb": 11,
+        "estimated_data_kb": 1
+      },
+      "readiness": {
+        "score": 0.999,
+        "tier": "ready"
+      },
+      "hardware_fit": {
+        "stock_a1200": "fits",
+        "a1200_accel": "fits",
+        "a4000_030": "fits"
+      }
+    },
+    {
+      "id": "printf",
+      "name": "printf",
+      "description": "Format and print data",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream": {
+        "source": "openbsd",
+        "version": "latest",
+        "license": "BSD-3-Clause",
+        "url": "https://cvsweb.openbsd.org/src/usr.bin/printf/",
+        "files": null,
+        "lines_of_code": null
+      },
+      "status": "candidate",
+      "analysis_status": "pending",
+      "publishable": true,
+      "notes": "Single file; implements printf format parsing in C",
+      "readiness": {
+        "score": 0.0,
+        "tier": "unanalyzed"
+      },
+      "hardware_fit": {
+        "stock_a1200": "unknown",
+        "a1200_accel": "unknown",
+        "a4000_030": "unknown"
+      }
+    },
+    {
+      "id": "nl",
+      "name": "nl",
+      "description": "Number lines of files",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream": {
+        "source": "openbsd",
+        "version": "latest",
+        "license": "BSD-2-Clause",
+        "url": "https://cvsweb.openbsd.org/src/usr.bin/nl/",
+        "files": null,
+        "lines_of_code": null
+      },
+      "status": "candidate",
+      "analysis_status": "pending",
+      "publishable": true,
+      "notes": "Uses regex for section delimiters; regex shim available",
+      "readiness": {
+        "score": 0.0,
+        "tier": "unanalyzed"
+      },
+      "hardware_fit": {
+        "stock_a1200": "unknown",
+        "a1200_accel": "unknown",
+        "a4000_030": "unknown"
+      }
+    },
+    {
+      "id": "colrm",
+      "name": "colrm",
+      "description": "Remove columns from a file",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream": {
+        "source": "openbsd",
+        "version": "latest",
+        "license": "BSD-3-Clause",
+        "url": "https://cvsweb.openbsd.org/src/usr.bin/colrm/",
+        "files": null,
+        "lines_of_code": null
+      },
+      "status": "candidate",
+      "analysis_status": "pending",
+      "publishable": true,
+      "notes": "Single file, pure stdio",
+      "readiness": {
+        "score": 0.0,
+        "tier": "unanalyzed"
+      },
+      "hardware_fit": {
+        "stock_a1200": "unknown",
+        "a1200_accel": "unknown",
+        "a4000_030": "unknown"
+      }
+    },
+    {
+      "id": "cat",
+      "name": "cat",
+      "description": "Concatenate and print files",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream": {
+        "source": "openbsd",
+        "version": "latest",
+        "license": "BSD-3-Clause",
+        "url": "https://cvsweb.openbsd.org/src/bin/cat/",
+        "files": null,
+        "lines_of_code": null
+      },
+      "status": "candidate",
+      "analysis_status": "pending",
+      "publishable": true,
+      "notes": "Simple; raw mode (-u) can use read/write shims for unbuffered I/O",
+      "readiness": {
+        "score": 0.0,
+        "tier": "unanalyzed"
+      },
+      "hardware_fit": {
+        "stock_a1200": "unknown",
+        "a1200_accel": "unknown",
+        "a4000_030": "unknown"
+      }
+    },
+    {
+      "id": "true",
+      "name": "true",
+      "description": "Return true (exit 0) value",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream": {
+        "source": "openbsd",
+        "version": "latest",
+        "license": "ISC",
+        "url": "https://cvsweb.openbsd.org/src/usr.bin/true/",
+        "files": 1,
+        "lines_of_code": 7
+      },
+      "status": "candidate",
+      "analysis_status": "complete",
+      "publishable": true,
+      "notes": "Trivial; one line of C",
+      "analysis": {
+        "analyzed_date": "2026-03-25",
+        "analyzer_version": "1.0",
+        "shim_library_version": "1.0",
+        "posix_tier_mix": {
+          "tier1": 0,
+          "tier2": 0,
+          "tier3": 0
+        },
+        "missing_shims": [],
+        "blocking_shims": [],
+        "blocker_workaround": null,
+        "dependencies": [],
+        "source_complexity": 0.99,
+        "estimated_stack_kb": 8,
+        "estimated_binary_kb": 10,
+        "estimated_data_kb": 1
+      },
+      "readiness": {
+        "score": 0.999,
+        "tier": "ready"
+      },
+      "hardware_fit": {
+        "stock_a1200": "fits",
+        "a1200_accel": "fits",
+        "a4000_030": "fits"
+      }
+    },
+    {
+      "id": "false",
+      "name": "false",
+      "description": "Return false (exit non-zero) value",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream": {
+        "source": "openbsd",
+        "version": "latest",
+        "license": "ISC",
+        "url": "https://cvsweb.openbsd.org/src/usr.bin/false/",
+        "files": 1,
+        "lines_of_code": 7
+      },
+      "status": "candidate",
+      "analysis_status": "complete",
+      "publishable": true,
+      "notes": "Trivial; exit(RETURN_ERROR) for Amiga shell compatibility",
+      "analysis": {
+        "analyzed_date": "2026-03-25",
+        "analyzer_version": "1.0",
+        "shim_library_version": "1.0",
+        "posix_tier_mix": {
+          "tier1": 0,
+          "tier2": 0,
+          "tier3": 0
+        },
+        "missing_shims": [],
+        "blocking_shims": [],
+        "blocker_workaround": null,
+        "dependencies": [],
+        "source_complexity": 0.99,
+        "estimated_stack_kb": 8,
+        "estimated_binary_kb": 10,
+        "estimated_data_kb": 1
+      },
+      "readiness": {
+        "score": 0.999,
+        "tier": "ready"
+      },
+      "hardware_fit": {
+        "stock_a1200": "fits",
+        "a1200_accel": "fits",
+        "a4000_030": "fits"
+      }
+    },
+    {
+      "id": "sleep",
+      "name": "sleep",
+      "description": "Suspend execution for an interval",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream": {
+        "source": "openbsd",
+        "version": "latest",
+        "license": "BSD-3-Clause",
+        "url": "https://cvsweb.openbsd.org/src/bin/sleep/",
+        "files": 1,
+        "lines_of_code": 110
+      },
+      "status": "candidate",
+      "analysis_status": "complete",
+      "publishable": true,
+      "notes": "Trivial; uses amiport_sleep shim",
+      "analysis": {
+        "analyzed_date": "2026-03-25",
+        "analyzer_version": "1.0",
+        "shim_library_version": "1.0",
+        "posix_tier_mix": {
+          "tier1": 3,
+          "tier2": 0,
+          "tier3": 0
+        },
+        "missing_shims": [
+          "nanosleep",
+          "getprogname"
+        ],
+        "blocking_shims": [],
+        "blocker_workaround": "nanosleep can be replaced with amiport_sleep() for whole seconds or Delay() for sub-second; getprogname replaced with __progname",
+        "dependencies": [],
+        "source_complexity": 0.99,
+        "estimated_stack_kb": 8,
+        "estimated_binary_kb": 11,
+        "estimated_data_kb": 1
+      },
+      "readiness": {
+        "score": 0.699,
+        "tier": "feasible"
+      },
+      "hardware_fit": {
+        "stock_a1200": "fits",
+        "a1200_accel": "fits",
+        "a4000_030": "fits"
+      }
+    },
+    {
+      "id": "date",
+      "name": "date",
+      "description": "Display or set date and time",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream": {
+        "source": "openbsd",
+        "version": "latest",
+        "license": "BSD-3-Clause",
+        "url": "https://cvsweb.openbsd.org/src/bin/date/",
+        "files": null,
+        "lines_of_code": null
+      },
+      "status": "candidate",
+      "analysis_status": "pending",
+      "publishable": true,
+      "notes": "Needs epoch offset (1978 vs 1970); strftime from libnix; set mode stubs",
+      "readiness": {
+        "score": 0.0,
+        "tier": "unanalyzed"
+      },
+      "hardware_fit": {
+        "stock_a1200": "unknown",
+        "a1200_accel": "unknown",
+        "a4000_030": "unknown"
+      }
+    },
+    {
+      "id": "expr",
+      "name": "expr",
+      "description": "Evaluate expression",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream": {
+        "source": "openbsd",
+        "version": "latest",
+        "license": "ISC",
+        "url": "https://cvsweb.openbsd.org/src/bin/expr/",
+        "files": null,
+        "lines_of_code": null
+      },
+      "status": "candidate",
+      "analysis_status": "pending",
+      "publishable": true,
+      "notes": "Uses regex for : operator; regex shim available",
+      "readiness": {
+        "score": 0.0,
+        "tier": "unanalyzed"
+      },
+      "hardware_fit": {
+        "stock_a1200": "unknown",
+        "a1200_accel": "unknown",
+        "a4000_030": "unknown"
+      }
+    },
+    {
+      "id": "test",
+      "name": "test",
+      "description": "Condition evaluation utility",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream": {
+        "source": "openbsd",
+        "version": "latest",
+        "license": "BSD-3-Clause",
+        "url": "https://cvsweb.openbsd.org/src/bin/test/",
+        "files": null,
+        "lines_of_code": null
+      },
+      "status": "candidate",
+      "analysis_status": "pending",
+      "publishable": true,
+      "notes": "Uses stat for file tests; stub user/group tests",
+      "readiness": {
+        "score": 0.0,
+        "tier": "unanalyzed"
+      },
+      "hardware_fit": {
+        "stock_a1200": "unknown",
+        "a1200_accel": "unknown",
+        "a4000_030": "unknown"
+      }
+    },
+    {
+      "id": "seq",
+      "name": "seq",
+      "description": "Print sequences of numbers",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream": {
+        "source": "openbsd",
+        "version": "latest",
+        "license": "ISC",
+        "url": "https://cvsweb.openbsd.org/src/usr.bin/jot/",
+        "files": null,
+        "lines_of_code": null
+      },
+      "status": "candidate",
+      "analysis_status": "pending",
+      "publishable": true,
+      "notes": "OpenBSD has jot not seq; sbase seq is simpler alternative",
+      "readiness": {
+        "score": 0.0,
+        "tier": "unanalyzed"
+      },
+      "hardware_fit": {
+        "stock_a1200": "unknown",
+        "a1200_accel": "unknown",
+        "a4000_030": "unknown"
+      }
+    },
+    {
+      "id": "jot",
+      "name": "jot",
+      "description": "Print sequential or random data",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream": {
+        "source": "openbsd",
+        "version": "latest",
+        "license": "BSD-3-Clause",
+        "url": "https://cvsweb.openbsd.org/src/usr.bin/jot/",
+        "files": null,
+        "lines_of_code": null
+      },
+      "status": "candidate",
+      "analysis_status": "pending",
+      "publishable": true,
+      "notes": "Uses arc4random -- replace with rand(); single file",
+      "readiness": {
+        "score": 0.0,
+        "tier": "unanalyzed"
+      },
+      "hardware_fit": {
+        "stock_a1200": "unknown",
+        "a1200_accel": "unknown",
+        "a4000_030": "unknown"
+      }
+    },
+    {
+      "id": "factor",
+      "name": "factor",
+      "description": "Factor a number and print prime factors",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream": {
+        "source": "openbsd",
+        "version": "latest",
+        "license": "BSD-3-Clause",
+        "url": "https://cvsweb.openbsd.org/src/usr.bin/factor/",
+        "files": null,
+        "lines_of_code": null
+      },
+      "status": "candidate",
+      "analysis_status": "pending",
+      "publishable": true,
+      "notes": "Pure math, no POSIX deps; may use unsigned long long",
+      "readiness": {
+        "score": 0.0,
+        "tier": "unanalyzed"
+      },
+      "hardware_fit": {
+        "stock_a1200": "unknown",
+        "a1200_accel": "unknown",
+        "a4000_030": "unknown"
+      }
+    },
+    {
+      "id": "which",
+      "name": "which",
+      "description": "Locate a program file in the user's path",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream": {
+        "source": "openbsd",
+        "version": "latest",
+        "license": "ISC",
+        "url": "https://cvsweb.openbsd.org/src/usr.bin/which/",
+        "files": null,
+        "lines_of_code": null
+      },
+      "status": "candidate",
+      "analysis_status": "pending",
+      "publishable": true,
+      "notes": "Scan C: directory on Amiga instead of PATH",
+      "readiness": {
+        "score": 0.0,
+        "tier": "unanalyzed"
+      },
+      "hardware_fit": {
+        "stock_a1200": "unknown",
+        "a1200_accel": "unknown",
+        "a4000_030": "unknown"
+      }
+    },
+    {
+      "id": "nohup",
+      "name": "nohup",
+      "description": "Run command immune to hangups",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream": {
+        "source": "openbsd",
+        "version": "latest",
+        "license": "BSD-3-Clause",
+        "url": "https://cvsweb.openbsd.org/src/usr.bin/nohup/",
+        "files": null,
+        "lines_of_code": null
+      },
+      "status": "candidate",
+      "analysis_status": "pending",
+      "publishable": true,
+      "notes": "Needs exec -- use SystemTagList; no SIGHUP on Amiga",
+      "readiness": {
+        "score": 0.0,
+        "tier": "unanalyzed"
+      },
+      "hardware_fit": {
+        "stock_a1200": "unknown",
+        "a1200_accel": "unknown",
+        "a4000_030": "unknown"
+      }
+    },
+    {
+      "id": "look",
+      "name": "look",
+      "description": "Display lines beginning with a given string",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream": {
+        "source": "openbsd",
+        "version": "latest",
+        "license": "BSD-3-Clause",
+        "url": "https://cvsweb.openbsd.org/src/usr.bin/look/",
+        "files": null,
+        "lines_of_code": null
+      },
+      "status": "candidate",
+      "analysis_status": "pending",
+      "publishable": true,
+      "notes": "Binary search on sorted file; needs /usr/share/dict/words substitute",
+      "readiness": {
+        "score": 0.0,
+        "tier": "unanalyzed"
+      },
+      "hardware_fit": {
+        "stock_a1200": "unknown",
+        "a1200_accel": "unknown",
+        "a4000_030": "unknown"
+      }
+    },
+    {
+      "id": "strings",
+      "name": "strings",
+      "description": "Find printable strings in files",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream": {
+        "source": "openbsd",
+        "version": "latest",
+        "license": "BSD-3-Clause",
+        "url": "https://cvsweb.openbsd.org/src/usr.bin/strings/",
+        "files": null,
+        "lines_of_code": null
+      },
+      "status": "candidate",
+      "analysis_status": "pending",
+      "publishable": true,
+      "notes": "Single file, pure stdio; useful for Amiga hunk binaries",
+      "readiness": {
+        "score": 0.0,
+        "tier": "unanalyzed"
+      },
+      "hardware_fit": {
+        "stock_a1200": "unknown",
+        "a1200_accel": "unknown",
+        "a4000_030": "unknown"
+      }
+    },
+    {
+      "id": "cmp",
+      "name": "cmp",
+      "description": "Compare two files byte by byte",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream": {
+        "source": "openbsd",
+        "version": "latest",
+        "license": "BSD-3-Clause",
+        "url": "https://cvsweb.openbsd.org/src/usr.bin/cmp/",
+        "files": null,
+        "lines_of_code": null
+      },
+      "status": "candidate",
+      "analysis_status": "pending",
+      "publishable": true,
+      "notes": "Multi-file but simple; uses fgetc/fread",
+      "readiness": {
+        "score": 0.0,
+        "tier": "unanalyzed"
+      },
+      "hardware_fit": {
+        "stock_a1200": "unknown",
+        "a1200_accel": "unknown",
+        "a4000_030": "unknown"
+      }
+    },
+    {
+      "id": "cksum",
+      "name": "cksum",
+      "description": "Display file checksums and block counts",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream": {
+        "source": "openbsd",
+        "version": "latest",
+        "license": "BSD-3-Clause",
+        "url": "https://cvsweb.openbsd.org/src/usr.bin/cksum/",
+        "files": null,
+        "lines_of_code": null
+      },
+      "status": "candidate",
+      "analysis_status": "pending",
+      "publishable": true,
+      "notes": "CRC32/sum algorithms are pure C; may include MD5/SHA if bundled",
+      "readiness": {
+        "score": 0.0,
+        "tier": "unanalyzed"
+      },
+      "hardware_fit": {
+        "stock_a1200": "unknown",
+        "a1200_accel": "unknown",
+        "a4000_030": "unknown"
+      }
+    },
+    {
+      "id": "md5",
+      "name": "md5",
+      "description": "Calculate MD5 message digest",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream": {
+        "source": "openbsd",
+        "version": "latest",
+        "license": "ISC",
+        "url": "https://cvsweb.openbsd.org/src/bin/md5/",
+        "files": null,
+        "lines_of_code": null
+      },
+      "status": "candidate",
+      "analysis_status": "pending",
+      "publishable": true,
+      "notes": "Pure C hash implementation; also handles sha256/sha512 modes",
+      "readiness": {
+        "score": 0.0,
+        "tier": "unanalyzed"
+      },
+      "hardware_fit": {
+        "stock_a1200": "unknown",
+        "a1200_accel": "unknown",
+        "a4000_030": "unknown"
+      }
+    },
+    {
+      "id": "pr",
+      "name": "pr",
+      "description": "Print files for page display",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream": {
+        "source": "openbsd",
+        "version": "latest",
+        "license": "BSD-3-Clause",
+        "url": "https://cvsweb.openbsd.org/src/usr.bin/pr/",
+        "files": null,
+        "lines_of_code": null
+      },
+      "status": "candidate",
+      "analysis_status": "pending",
+      "publishable": true,
+      "notes": "Multi-column pagination; locale/time functions needed",
+      "readiness": {
+        "score": 0.0,
+        "tier": "unanalyzed"
+      },
+      "hardware_fit": {
+        "stock_a1200": "unknown",
+        "a1200_accel": "unknown",
+        "a4000_030": "unknown"
+      }
+    },
+    {
+      "id": "col",
+      "name": "col",
+      "description": "Filter reverse line feeds from input",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream": {
+        "source": "openbsd",
+        "version": "latest",
+        "license": "BSD-3-Clause",
+        "url": "https://cvsweb.openbsd.org/src/usr.bin/col/",
+        "files": null,
+        "lines_of_code": null
+      },
+      "status": "candidate",
+      "analysis_status": "pending",
+      "publishable": true,
+      "notes": "Single file, pure character processing",
+      "readiness": {
+        "score": 0.0,
+        "tier": "unanalyzed"
+      },
+      "hardware_fit": {
+        "stock_a1200": "unknown",
+        "a1200_accel": "unknown",
+        "a4000_030": "unknown"
+      }
+    },
+    {
+      "id": "vis",
+      "name": "vis",
+      "description": "Display non-printable characters visually",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream": {
+        "source": "openbsd",
+        "version": "latest",
+        "license": "BSD-3-Clause",
+        "url": "https://cvsweb.openbsd.org/src/usr.bin/vis/",
+        "files": null,
+        "lines_of_code": null
+      },
+      "status": "candidate",
+      "analysis_status": "pending",
+      "publishable": true,
+      "notes": "Uses vis(3) library function -- may need to bundle",
+      "readiness": {
+        "score": 0.0,
+        "tier": "unanalyzed"
+      },
+      "hardware_fit": {
+        "stock_a1200": "unknown",
+        "a1200_accel": "unknown",
+        "a4000_030": "unknown"
+      }
+    },
+    {
+      "id": "rs",
+      "name": "rs",
+      "description": "Reshape data array",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream": {
+        "source": "openbsd",
+        "version": "latest",
+        "license": "BSD-3-Clause",
+        "url": "https://cvsweb.openbsd.org/src/usr.bin/rs/",
+        "files": null,
+        "lines_of_code": null
+      },
+      "status": "candidate",
+      "analysis_status": "pending",
+      "publishable": true,
+      "notes": "Matrix reshape; pure stdio + malloc",
+      "readiness": {
+        "score": 0.0,
+        "tier": "unanalyzed"
+      },
+      "hardware_fit": {
+        "stock_a1200": "unknown",
+        "a1200_accel": "unknown",
+        "a4000_030": "unknown"
+      }
+    },
+    {
+      "id": "dc",
+      "name": "dc",
+      "description": "Desk calculator (reverse Polish notation)",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream": {
+        "source": "openbsd",
+        "version": "latest",
+        "license": "ISC",
+        "url": "https://cvsweb.openbsd.org/src/usr.bin/dc/",
+        "files": null,
+        "lines_of_code": null
+      },
+      "status": "candidate",
+      "analysis_status": "pending",
+      "publishable": true,
+      "notes": "Arbitrary precision; companion to bc; pure C",
+      "readiness": {
+        "score": 0.0,
+        "tier": "unanalyzed"
+      },
+      "hardware_fit": {
+        "stock_a1200": "unknown",
+        "a1200_accel": "unknown",
+        "a4000_030": "unknown"
+      }
+    },
+    {
+      "id": "apply",
+      "name": "apply",
+      "description": "Apply command to arguments",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream": {
+        "source": "openbsd",
+        "version": "latest",
+        "license": "BSD-3-Clause",
+        "url": "https://cvsweb.openbsd.org/src/usr.bin/apply/",
+        "files": null,
+        "lines_of_code": null
+      },
+      "status": "candidate",
+      "analysis_status": "pending",
+      "publishable": true,
+      "notes": "Uses system() -- maps to SystemTagList on Amiga",
+      "readiness": {
+        "score": 0.0,
+        "tier": "unanalyzed"
+      },
+      "hardware_fit": {
+        "stock_a1200": "unknown",
+        "a1200_accel": "unknown",
+        "a4000_030": "unknown"
+      }
+    },
+    {
+      "id": "awk-plan9",
+      "name": "awk",
+      "description": "Pattern scanning and processing language",
+      "amiport_category": "scripting",
+      "aminet_category": "dev/lang",
+      "upstream": {
+        "source": "plan9",
+        "version": "latest",
+        "license": "Lucent-1.02",
+        "url": "https://github.com/9fans/plan9port/tree/master/src/cmd/awk",
+        "files": null,
+        "lines_of_code": null
+      },
+      "status": "candidate",
+      "analysis_status": "pending",
+      "publishable": true,
+      "notes": "Plan 9 awk is one true awk (BWK); simpler than gawk, no fork needed",
+      "readiness": {
+        "score": 0.0,
+        "tier": "unanalyzed"
+      },
+      "hardware_fit": {
+        "stock_a1200": "unknown",
+        "a1200_accel": "unknown",
+        "a4000_030": "unknown"
+      }
+    },
+    {
+      "id": "getopt",
+      "name": "getopt",
+      "description": "Parse command options",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream": {
+        "source": "openbsd",
+        "version": "latest",
+        "license": "ISC",
+        "url": "https://cvsweb.openbsd.org/src/usr.bin/getopt/",
+        "files": null,
+        "lines_of_code": null
+      },
+      "status": "candidate",
+      "analysis_status": "pending",
+      "publishable": true,
+      "notes": "Trivial wrapper around getopt(3); useful for shell scripts",
+      "readiness": {
+        "score": 0.0,
+        "tier": "unanalyzed"
+      },
+      "hardware_fit": {
+        "stock_a1200": "unknown",
+        "a1200_accel": "unknown",
+        "a4000_030": "unknown"
+      }
+    },
+    {
+      "id": "sbase-seq",
+      "name": "seq",
+      "description": "Print a sequence of numbers",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream": {
+        "source": "sbase",
+        "version": "latest",
+        "license": "MIT",
+        "url": "https://git.suckless.org/sbase/file/seq.c.html",
+        "files": null,
+        "lines_of_code": null
+      },
+      "status": "candidate",
+      "analysis_status": "pending",
+      "publishable": true,
+      "notes": "Single-file sbase implementation; simpler than OpenBSD jot",
+      "readiness": {
+        "score": 0.0,
+        "tier": "unanalyzed"
+      },
+      "hardware_fit": {
+        "stock_a1200": "unknown",
+        "a1200_accel": "unknown",
+        "a4000_030": "unknown"
+      }
+    },
+    {
+      "id": "sbase-tac",
+      "name": "tac",
+      "description": "Concatenate files in reverse line order",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream": {
+        "source": "sbase",
+        "version": "latest",
+        "license": "MIT",
+        "url": "https://git.suckless.org/sbase/file/tac.c.html",
+        "files": null,
+        "lines_of_code": null
+      },
+      "status": "candidate",
+      "analysis_status": "pending",
+      "publishable": true,
+      "notes": "Single-file reverse cat; uses malloc + lseek",
+      "readiness": {
+        "score": 0.0,
+        "tier": "unanalyzed"
+      },
+      "hardware_fit": {
+        "stock_a1200": "unknown",
+        "a1200_accel": "unknown",
+        "a4000_030": "unknown"
+      }
+    },
+    {
+      "id": "sbase-sponge",
+      "name": "sponge",
+      "description": "Soak up stdin and write to file",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream": {
+        "source": "sbase",
+        "version": "latest",
+        "license": "MIT",
+        "url": "https://git.suckless.org/sbase/file/sponge.c.html",
+        "files": null,
+        "lines_of_code": null
+      },
+      "status": "candidate",
+      "analysis_status": "pending",
+      "publishable": true,
+      "notes": "Single file; reads all stdin then writes to file; uses tmpfile",
+      "readiness": {
+        "score": 0.0,
+        "tier": "unanalyzed"
+      },
+      "hardware_fit": {
+        "stock_a1200": "unknown",
+        "a1200_accel": "unknown",
+        "a4000_030": "unknown"
+      }
+    },
+    {
+      "id": "sbase-xinstall",
+      "name": "install",
+      "description": "Copy files and set attributes",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream": {
+        "source": "sbase",
+        "version": "latest",
+        "license": "MIT",
+        "url": "https://git.suckless.org/sbase/file/install.c.html",
+        "files": null,
+        "lines_of_code": null
+      },
+      "status": "candidate",
+      "analysis_status": "pending",
+      "publishable": true,
+      "notes": "File copy with mode bits; chmod is a no-op but copy is useful",
+      "readiness": {
+        "score": 0.0,
+        "tier": "unanalyzed"
+      },
+      "hardware_fit": {
+        "stock_a1200": "unknown",
+        "a1200_accel": "unknown",
+        "a4000_030": "unknown"
+      }
+    },
+    {
+      "id": "9base-unicode",
+      "name": "unicode",
+      "description": "Interpret Unicode characters",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream": {
+        "source": "plan9",
+        "version": "latest",
+        "license": "Lucent-1.02",
+        "url": "https://github.com/9fans/plan9port/tree/master/src/cmd/unicode",
+        "files": null,
+        "lines_of_code": null
+      },
+      "status": "candidate",
+      "analysis_status": "pending",
+      "publishable": true,
+      "notes": "UTF-8/codepoint lookup; pure C, no OS deps",
+      "readiness": {
+        "score": 0.0,
+        "tier": "unanalyzed"
+      },
+      "hardware_fit": {
+        "stock_a1200": "unknown",
+        "a1200_accel": "unknown",
+        "a4000_030": "unknown"
+      }
+    },
+    {
+      "id": "9base-freq",
+      "name": "freq",
+      "description": "Print histogram of character frequencies",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream": {
+        "source": "plan9",
+        "version": "latest",
+        "license": "Lucent-1.02",
+        "url": "https://github.com/9fans/plan9port/tree/master/src/cmd/freq",
+        "files": null,
+        "lines_of_code": null
+      },
+      "status": "candidate",
+      "analysis_status": "pending",
+      "publishable": true,
+      "notes": "Byte frequency counter; trivial single-file",
+      "readiness": {
+        "score": 0.0,
+        "tier": "unanalyzed"
+      },
+      "hardware_fit": {
+        "stock_a1200": "unknown",
+        "a1200_accel": "unknown",
+        "a4000_030": "unknown"
+      }
+    },
+    {
+      "id": "9base-ascii",
+      "name": "ascii",
+      "description": "ASCII character set reference",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream": {
+        "source": "plan9",
+        "version": "latest",
+        "license": "Lucent-1.02",
+        "url": "https://github.com/9fans/plan9port/tree/master/src/cmd/ascii",
+        "files": null,
+        "lines_of_code": null
+      },
+      "status": "candidate",
+      "analysis_status": "pending",
+      "publishable": true,
+      "notes": "ASCII table display; trivial, no OS deps",
+      "readiness": {
+        "score": 0.0,
+        "tier": "unanalyzed"
+      },
+      "hardware_fit": {
+        "stock_a1200": "unknown",
+        "a1200_accel": "unknown",
+        "a4000_030": "unknown"
+      }
+    },
+    {
+      "id": "9base-hoc",
+      "name": "hoc",
+      "description": "Interactive floating point language",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream": {
+        "source": "plan9",
+        "version": "latest",
+        "license": "Lucent-1.02",
+        "url": "https://github.com/9fans/plan9port/tree/master/src/cmd/hoc",
+        "files": null,
+        "lines_of_code": null
+      },
+      "status": "candidate",
+      "analysis_status": "pending",
+      "publishable": true,
+      "notes": "K&R calculator; uses yacc-generated parser, may need FPU emulation",
+      "readiness": {
+        "score": 0.0,
+        "tier": "unanalyzed"
+      },
+      "hardware_fit": {
+        "stock_a1200": "unknown",
+        "a1200_accel": "unknown",
+        "a4000_030": "unknown"
+      }
+    },
+    {
+      "id": "sbase-uuencode",
+      "name": "uuencode",
+      "description": "Encode binary file to ASCII",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream": {
+        "source": "sbase",
+        "version": "latest",
+        "license": "MIT",
+        "url": "https://git.suckless.org/sbase/file/uuencode.c.html",
+        "files": null,
+        "lines_of_code": null
+      },
+      "status": "candidate",
+      "analysis_status": "pending",
+      "publishable": true,
+      "notes": "Single file; pure stdio encoding",
+      "readiness": {
+        "score": 0.0,
+        "tier": "unanalyzed"
+      },
+      "hardware_fit": {
+        "stock_a1200": "unknown",
+        "a1200_accel": "unknown",
+        "a4000_030": "unknown"
+      }
+    },
+    {
+      "id": "sbase-uudecode",
+      "name": "uudecode",
+      "description": "Decode uuencoded file",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream": {
+        "source": "sbase",
+        "version": "latest",
+        "license": "MIT",
+        "url": "https://git.suckless.org/sbase/file/uudecode.c.html",
+        "files": null,
+        "lines_of_code": null
+      },
+      "status": "candidate",
+      "analysis_status": "pending",
+      "publishable": true,
+      "notes": "Single file; companion to uuencode",
+      "readiness": {
+        "score": 0.0,
+        "tier": "unanalyzed"
+      },
+      "hardware_fit": {
+        "stock_a1200": "unknown",
+        "a1200_accel": "unknown",
+        "a4000_030": "unknown"
+      }
+    },
+    {
+      "id": "sbase-base64",
+      "name": "base64",
+      "description": "Encode and decode base64",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream": {
+        "source": "sbase",
+        "version": "latest",
+        "license": "MIT",
+        "url": "https://git.suckless.org/sbase/file/base64.c.html",
+        "files": null,
+        "lines_of_code": null
+      },
+      "status": "candidate",
+      "analysis_status": "pending",
+      "publishable": true,
+      "notes": "Single file; pure encoding algorithm",
+      "readiness": {
+        "score": 0.0,
+        "tier": "unanalyzed"
+      },
+      "hardware_fit": {
+        "stock_a1200": "unknown",
+        "a1200_accel": "unknown",
+        "a4000_030": "unknown"
+      }
+    },
+    {
+      "id": "sbase-sha256sum",
+      "name": "sha256sum",
+      "description": "Compute SHA-256 message digest",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream": {
+        "source": "sbase",
+        "version": "latest",
+        "license": "MIT",
+        "url": "https://git.suckless.org/sbase/file/sha256sum.c.html",
+        "files": null,
+        "lines_of_code": null
+      },
+      "status": "candidate",
+      "analysis_status": "pending",
+      "publishable": true,
+      "notes": "Pure C hash; single file with bundled sha256",
+      "readiness": {
+        "score": 0.0,
+        "tier": "unanalyzed"
+      },
+      "hardware_fit": {
+        "stock_a1200": "unknown",
+        "a1200_accel": "unknown",
+        "a4000_030": "unknown"
+      }
+    },
+    {
+      "id": "sbase-md5sum",
+      "name": "md5sum",
+      "description": "Compute MD5 message digest",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream": {
+        "source": "sbase",
+        "version": "latest",
+        "license": "MIT",
+        "url": "https://git.suckless.org/sbase/file/md5sum.c.html",
+        "files": null,
+        "lines_of_code": null
+      },
+      "status": "candidate",
+      "analysis_status": "pending",
+      "publishable": true,
+      "notes": "Pure C hash; single file with bundled md5",
+      "readiness": {
+        "score": 0.0,
+        "tier": "unanalyzed"
+      },
+      "hardware_fit": {
+        "stock_a1200": "unknown",
+        "a1200_accel": "unknown",
+        "a4000_030": "unknown"
+      }
+    },
+    {
+      "id": "sbase-xd",
+      "name": "xd",
+      "description": "Hexadecimal dump",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream": {
+        "source": "sbase",
+        "version": "latest",
+        "license": "MIT",
+        "url": "https://git.suckless.org/sbase/file/od.c.html",
+        "files": null,
+        "lines_of_code": null
+      },
+      "status": "candidate",
+      "analysis_status": "pending",
+      "publishable": true,
+      "notes": "Hex/octal dump; single file, pure stdio",
+      "readiness": {
+        "score": 0.0,
+        "tier": "unanalyzed"
+      },
+      "hardware_fit": {
+        "stock_a1200": "unknown",
+        "a1200_accel": "unknown",
+        "a4000_030": "unknown"
+      }
+    },
+    {
+      "id": "sbase-split",
+      "name": "split",
+      "description": "Split a file into pieces",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream": {
+        "source": "sbase",
+        "version": "latest",
+        "license": "MIT",
+        "url": "https://git.suckless.org/sbase/file/split.c.html",
+        "files": null,
+        "lines_of_code": null
+      },
+      "status": "candidate",
+      "analysis_status": "pending",
+      "publishable": true,
+      "notes": "Single file; uses stdio for reading and writing chunks",
+      "readiness": {
+        "score": 0.0,
+        "tier": "unanalyzed"
+      },
+      "hardware_fit": {
+        "stock_a1200": "unknown",
+        "a1200_accel": "unknown",
+        "a4000_030": "unknown"
+      }
+    },
+    {
+      "id": "sbase-od",
+      "name": "od",
+      "description": "Octal, decimal, hex, ASCII dump",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream": {
+        "source": "sbase",
+        "version": "latest",
+        "license": "MIT",
+        "url": "https://git.suckless.org/sbase/file/od.c.html",
+        "files": null,
+        "lines_of_code": null
+      },
+      "status": "candidate",
+      "analysis_status": "pending",
+      "publishable": true,
+      "notes": "Octal dump with multiple formats; single file",
+      "readiness": {
+        "score": 0.0,
+        "tier": "unanalyzed"
+      },
+      "hardware_fit": {
+        "stock_a1200": "unknown",
+        "a1200_accel": "unknown",
+        "a4000_030": "unknown"
+      }
+    },
+    {
+      "id": "sbase-sha1sum",
+      "name": "sha1sum",
+      "description": "Compute SHA-1 message digest",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream": {
+        "source": "sbase",
+        "version": "latest",
+        "license": "MIT",
+        "url": "https://git.suckless.org/sbase/file/sha1sum.c.html",
+        "files": null,
+        "lines_of_code": null
+      },
+      "status": "candidate",
+      "analysis_status": "pending",
+      "publishable": true,
+      "notes": "Pure C hash; single file with bundled sha1",
+      "readiness": {
+        "score": 0.0,
+        "tier": "unanalyzed"
+      },
+      "hardware_fit": {
+        "stock_a1200": "unknown",
+        "a1200_accel": "unknown",
+        "a4000_030": "unknown"
+      }
+    }
+  ],
+  "ported": [
+    {
+      "id": "cal",
+      "name": "cal",
+      "version": "1.32",
+      "description": "Unix-style calendar display",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream_source": "openbsd",
+      "upstream_license": "BSD-3-Clause",
+      "port_date": "2026-03-18",
+      "aminet_status": "submitted",
+      "aminet_url": "https://aminet.net/package/util/cli/cal-1.0",
+      "measured_binary_kb": null,
+      "measured_stack_kb": null,
+      "test_count": null,
+      "test_pass_rate": 1.0,
+      "hardware_verified": [
+        "a1200_accel"
+      ]
+    },
+    {
+      "id": "cut",
+      "name": "cut",
+      "version": "1.28",
+      "description": "Extract fields/columns from text",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream_source": "openbsd",
+      "upstream_license": "BSD-3-Clause",
+      "port_date": "2026-03-18",
+      "aminet_status": "submitted",
+      "aminet_url": "https://aminet.net/package/util/cli/cut-1.0",
+      "measured_binary_kb": null,
+      "measured_stack_kb": null,
+      "test_count": null,
+      "test_pass_rate": 1.0,
+      "hardware_verified": [
+        "a1200_accel"
+      ]
+    },
+    {
+      "id": "diff",
+      "name": "diff",
+      "version": "1.95",
+      "description": "File comparison utility",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream_source": "openbsd",
+      "upstream_license": "ISC",
+      "port_date": "2026-03-19",
+      "aminet_status": "submitted",
+      "measured_binary_kb": 59,
+      "measured_stack_kb": 256,
+      "test_count": null,
+      "test_pass_rate": 1.0,
+      "hardware_verified": [
+        "a1200_accel"
+      ]
+    },
+    {
+      "id": "grep",
+      "name": "grep",
+      "version": "1.68",
+      "description": "Pattern search (regex/fixed string)",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream_source": "openbsd",
+      "upstream_license": "BSD-2-Clause",
+      "port_date": "2026-03-19",
+      "aminet_status": "submitted",
+      "aminet_url": "https://aminet.net/package/util/cli/grep-1.68",
+      "measured_binary_kb": 63,
+      "measured_stack_kb": 32,
+      "test_count": 50,
+      "test_pass_rate": 1.0,
+      "hardware_verified": [
+        "a1200_accel"
+      ]
+    },
+    {
+      "id": "sed",
+      "name": "sed",
+      "version": "1.47",
+      "description": "Stream editor (text transformation)",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream_source": "openbsd",
+      "upstream_license": "BSD-3-Clause",
+      "port_date": "2026-03-19",
+      "aminet_status": "submitted",
+      "aminet_url": "https://aminet.net/package/util/cli/sed-1.47",
+      "measured_binary_kb": 62,
+      "measured_stack_kb": 64,
+      "test_count": null,
+      "test_pass_rate": 1.0,
+      "hardware_verified": [
+        "a1200_accel"
+      ]
+    },
+    {
+      "id": "lua",
+      "name": "lua",
+      "version": "5.4.7",
+      "description": "Lua scripting language",
+      "amiport_category": "scripting",
+      "aminet_category": "dev/lang",
+      "upstream_source": "puc-rio",
+      "upstream_license": "MIT",
+      "port_date": "2026-03-20",
+      "aminet_status": "submitted",
+      "measured_binary_kb": 247,
+      "measured_stack_kb": 256,
+      "test_count": 65,
+      "test_pass_rate": 1.0,
+      "hardware_verified": [
+        "a1200_accel"
+      ]
+    },
+    {
+      "id": "tail",
+      "name": "tail",
+      "version": "1.24",
+      "description": "Display last part of a file",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream_source": "openbsd",
+      "upstream_license": "BSD-3-Clause",
+      "port_date": "2026-03-20",
+      "aminet_status": "not_submitted",
+      "measured_binary_kb": null,
+      "measured_stack_kb": null,
+      "test_count": null,
+      "test_pass_rate": 1.0,
+      "hardware_verified": [
+        "a1200_accel"
+      ]
+    },
+    {
+      "id": "tee",
+      "name": "tee",
+      "version": "1.15",
+      "description": "Duplicate standard input",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream_source": "openbsd",
+      "upstream_license": "BSD-3-Clause",
+      "port_date": "2026-03-20",
+      "aminet_status": "submitted",
+      "aminet_url": "https://aminet.net/package/util/cli/tee-1.15",
+      "measured_binary_kb": null,
+      "measured_stack_kb": null,
+      "test_count": null,
+      "test_pass_rate": 1.0,
+      "hardware_verified": [
+        "a1200_accel"
+      ]
+    },
+    {
+      "id": "head",
+      "name": "head",
+      "version": "1.24",
+      "description": "Print first lines of files",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream_source": "openbsd",
+      "upstream_license": "BSD-3-Clause",
+      "port_date": "2026-03-20",
+      "aminet_status": "submitted",
+      "aminet_url": "https://aminet.net/package/util/cli/head-1.24",
+      "measured_binary_kb": null,
+      "measured_stack_kb": null,
+      "test_count": null,
+      "test_pass_rate": 1.0,
+      "hardware_verified": [
+        "a1200_accel"
+      ]
+    },
+    {
+      "id": "wc",
+      "name": "wc",
+      "version": "1.32",
+      "description": "Count lines, words, and characters",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream_source": "openbsd",
+      "upstream_license": "BSD-3-Clause",
+      "port_date": "2026-03-20",
+      "aminet_status": "not_submitted",
+      "measured_binary_kb": null,
+      "measured_stack_kb": null,
+      "test_count": null,
+      "test_pass_rate": 1.0,
+      "hardware_verified": [
+        "a1200_accel"
+      ]
+    },
+    {
+      "id": "sort",
+      "name": "sort",
+      "version": "1.0",
+      "description": "Sort lines of text files",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream_source": "plan9",
+      "upstream_license": "Lucent-1.02",
+      "port_date": "2026-03-20",
+      "aminet_status": "not_submitted",
+      "measured_binary_kb": null,
+      "measured_stack_kb": null,
+      "test_count": null,
+      "test_pass_rate": 1.0,
+      "hardware_verified": [
+        "a1200_accel"
+      ]
+    },
+    {
+      "id": "uniq",
+      "name": "uniq",
+      "version": "1.33",
+      "description": "Filter/report repeated lines in files",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream_source": "openbsd",
+      "upstream_license": "BSD-3-Clause",
+      "port_date": "2026-03-21",
+      "aminet_status": "not_submitted",
+      "measured_binary_kb": 40,
+      "measured_stack_kb": 32,
+      "test_count": 29,
+      "test_pass_rate": 1.0,
+      "hardware_verified": [
+        "a1200_accel"
+      ]
+    },
+    {
+      "id": "yes",
+      "name": "yes",
+      "version": "1.9",
+      "description": "Repeatedly output a string",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream_source": "openbsd",
+      "upstream_license": "BSD-3-Clause",
+      "port_date": "2026-03-20",
+      "aminet_status": "submitted",
+      "aminet_url": "https://aminet.net/package/util/cli/yes-1.9",
+      "measured_binary_kb": null,
+      "measured_stack_kb": null,
+      "test_count": null,
+      "test_pass_rate": 1.0,
+      "hardware_verified": [
+        "a1200_accel"
+      ]
+    },
+    {
+      "id": "jq",
+      "name": "jq",
+      "version": "1.7.1",
+      "description": "Lightweight command-line JSON processor",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream_source": "jqlang",
+      "upstream_license": "MIT",
+      "port_date": "2026-03-23",
+      "aminet_status": "submitted",
+      "measured_binary_kb": 368,
+      "measured_stack_kb": 128,
+      "test_count": 50,
+      "test_pass_rate": 1.0,
+      "hardware_verified": [
+        "a1200_accel"
+      ]
+    },
+    {
+      "id": "bc",
+      "name": "bc",
+      "version": "1.07.1",
+      "description": "Arbitrary precision calculator",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream_source": "gnu",
+      "upstream_license": "GPL-3.0",
+      "port_date": "2026-03-23",
+      "aminet_status": "submitted",
+      "measured_binary_kb": 105,
+      "measured_stack_kb": 64,
+      "test_count": 37,
+      "test_pass_rate": 1.0,
+      "hardware_verified": [
+        "a1200_accel"
+      ]
+    },
+    {
+      "id": "patch",
+      "name": "patch",
+      "version": "1.78",
+      "description": "Apply diff patches to source files",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream_source": "openbsd",
+      "upstream_license": "ISC",
+      "port_date": "2026-03-23",
+      "aminet_status": "not_submitted",
+      "measured_binary_kb": 85,
+      "measured_stack_kb": 64,
+      "test_count": 42,
+      "test_pass_rate": 1.0,
+      "hardware_verified": [
+        "a1200_accel"
+      ]
+    },
+    {
+      "id": "less",
+      "name": "less",
+      "version": "692",
+      "description": "Terminal pager with search and scroll",
+      "amiport_category": "console_ui",
+      "aminet_category": "text/show",
+      "upstream_source": "gnu",
+      "upstream_license": "GPL-3.0",
+      "port_date": "2026-03-23",
+      "aminet_status": "not_submitted",
+      "measured_binary_kb": 233,
+      "measured_stack_kb": 64,
+      "test_count": 20,
+      "test_pass_rate": 1.0,
+      "hardware_verified": [
+        "a1200_accel"
+      ]
+    },
+    {
+      "id": "mg",
+      "name": "mg",
+      "version": "3.7",
+      "description": "Micro Emacs-like text editor",
+      "amiport_category": "console_ui",
+      "aminet_category": "text/edit",
+      "upstream_source": "troglobit",
+      "upstream_license": "Public Domain",
+      "port_date": "2026-03-24",
+      "aminet_status": "not_submitted",
+      "measured_binary_kb": 193,
+      "measured_stack_kb": 64,
+      "test_count": 18,
+      "test_pass_rate": 1.0,
+      "hardware_verified": [
+        "a1200_accel"
+      ]
+    }
+  ]
+}

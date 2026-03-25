@@ -44,6 +44,8 @@ The porting pipeline has 5 stages, each backed by a Claude skill:
 - `tests/` — Unit tests (shim/, emu/, console/, net/, common/)
 - `ports/` — Output directory for real ports (each port gets original/, ported/, Makefile, PORT.md)
 - `ports/templates/` — Canonical templates for per-port artifacts (Makefile, PORT.md, .readme, directory structure)
+- `data/catalog.json` — Porting Tech Tree: candidate inventory, readiness scoring, shim unlock index, hardware profiles
+- `scripts/catalog-score.py` — Catalog scoring, validation, status dashboard, next-candidate selection, diff reports
 
 ## Using the Pipeline — CRITICAL (ENFORCED BY HOOKS)
 
@@ -75,6 +77,7 @@ The `/port-project` skill has GATE checks — it will not proceed to the next st
 | `site-manager` | Website operations — deployment, manifest generation, security scanning, testing |
 | `visual-test-expert` | Visual test authoring and debugging — SCRAPE/SCREEN_READ/EXPECT_TRAP_CURSOR (ADR-024/025) |
 | `amiport-publisher` | Publish ports to amiport.platesteel.net — test-gated, never automatic |
+| `catalog-engineer` | Catalog management — candidate enumeration, dry-run analysis, scoring, batch dispatch |
 
 ## Documentation Rules — IMPORTANT
 

@@ -1432,3 +1432,24 @@ a:focus-visible {
         width: 100%;
     }
 }
+
+/* --- Catalog: Summary Bar (sticky) --- */
+.catalog-summary {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-md);
+    padding: var(--sp-sm) var(--sp-md);
+    background: var(--title-bar);
+    color: var(--cream);
+    border-bottom: 1px solid var(--title-bar-shadow);
+    border-top: 1px solid var(--title-bar-shine);
+    font-size: var(--fs-sm);
+    margin-bottom: var(--sp-md);
+}
+
+.catalog-summary__item strong {
+    color: var(--amber-light);
+}
