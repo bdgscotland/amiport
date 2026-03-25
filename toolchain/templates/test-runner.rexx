@@ -211,10 +211,25 @@ DO i = 1 TO testcount
         /* Wait for program to initialize (3 seconds) */
         ADDRESS COMMAND 'Wait 3'
 
-        /* Inject keystrokes via KeyInject.
-         * Do NOT use SAY here -- it writes to the shared console and
-         * contaminates the interactive program's display. */
-        ADDRESS COMMAND 'WORK:KeyInject' tkeys
+        /* Request host-side key injection (ADR-025 overhaul).
+         * Write the key sequence to a sentinel file; the host reads it,
+         * injects via osascript (same path as physical keypresses),
+         * then writes keys-done-N. This replaces KeyInject/AddIEvents
+         * which doesn't reliably deliver to the active Amiga window. */
+        keysreqfile = 'RESULTS:keys-request-' || i
+        keysdonefile = 'RESULTS:keys-done-' || i
+        IF OPEN('krf', keysreqfile, 'W') THEN DO
+            CALL WRITELN('krf', tkeys)
+            CALL CLOSE('krf')
+        END
+        /* Wait for host to inject keys (up to 30s) */
+        DO keys_wait = 1 TO 60
+            IF EXISTS(keysdonefile) THEN DO
+                ADDRESS COMMAND 'Delete >NIL:' keysdonefile
+                LEAVE
+            END
+            ADDRESS COMMAND 'Wait 1'
+        END
 
         /* Signal host to take a screenshot (visual verification).
          * Write sentinel; host captures screenshot and deletes it.
@@ -277,12 +292,23 @@ DO i = 1 TO testcount
             END
         END
 
-        /* ADR-025: If CLEANUP keys specified, inject them now to quit
-         * the program cleanly after SCRAPE/SCREEN_READ captured state. */
+        /* ADR-025: If CLEANUP keys specified, request host-side injection
+         * to quit the program cleanly after SCRAPE/SCREEN_READ. */
         tcleanup = cleanup_keys.i
         IF tcleanup ~= 'CLEANUP_KEYS.' || i THEN DO
-            IF EXISTS('WORK:KeyInject') THEN
-                ADDRESS COMMAND 'WORK:KeyInject' tcleanup
+            cleanreqfile = 'RESULTS:keys-request-cleanup-' || i
+            cleandonefile = 'RESULTS:keys-done-cleanup-' || i
+            IF OPEN('crf', cleanreqfile, 'W') THEN DO
+                CALL WRITELN('crf', tcleanup)
+                CALL CLOSE('crf')
+            END
+            DO clean_wait = 1 TO 20
+                IF EXISTS(cleandonefile) THEN DO
+                    ADDRESS COMMAND 'Delete >NIL:' cleandonefile
+                    LEAVE
+                END
+                ADDRESS COMMAND 'Wait 1'
+            END
         END
 
         /* Wait for program to process quit key and exit (3 seconds) */

@@ -278,6 +278,10 @@ fast_memory = 8192
 # Headless settings
 window_width = 720
 window_height = 568
+
+# Disable joystick port 1 keyboard emulation so arrow keys reach
+# console.device instead of being captured by joystick emulation.
+joystick_port_1_mode = nothing
 EOF
     else
         # Fallback: directory mount
@@ -306,6 +310,10 @@ fast_memory = 8192
 # Headless settings
 window_width = 720
 window_height = 568
+
+# Disable joystick port 1 keyboard emulation so arrow keys reach
+# console.device instead of being captured by joystick emulation.
+joystick_port_1_mode = nothing
 EOF
     fi
 
@@ -409,6 +417,41 @@ run_emulator() {
                 fi
             fi
             rm -f "$sentinel_file"
+        done
+
+        # ADR-025: Check for key injection requests from ARexx harness.
+        # The harness writes RESULTS:keys-request-N with the key sequence;
+        # we inject via osascript, then write RESULTS:keys-done-N.
+        for keys_req in "$RESULTS_DIR"/keys-request-*; do
+            [ -f "$keys_req" ] || continue
+            case "$keys_req" in *.uaem) rm -f "$keys_req"; continue;; esac
+            local req_num
+            req_num=$(basename "$keys_req" | sed 's/keys-request-//')
+            local key_seq
+            key_seq=$(head -1 "$keys_req")
+            if [ -n "$key_seq" ]; then
+                echo "  Injecting keys for test $req_num: $key_seq"
+                bash "$SCRIPT_DIR/inject-keys.sh" "$fsuae_pid" "$key_seq" || true
+            fi
+            # Signal ARexx that keys have been injected
+            echo "done" > "$RESULTS_DIR/keys-done-${req_num}"
+            rm -f "$keys_req"
+        done
+
+        # Also handle cleanup key requests (same mechanism, different prefix)
+        for keys_req in "$RESULTS_DIR"/keys-request-cleanup-*; do
+            [ -f "$keys_req" ] || continue
+            case "$keys_req" in *.uaem) rm -f "$keys_req"; continue;; esac
+            local req_num
+            req_num=$(basename "$keys_req" | sed 's/keys-request-cleanup-//')
+            local key_seq
+            key_seq=$(head -1 "$keys_req")
+            if [ -n "$key_seq" ]; then
+                echo "  Injecting cleanup keys for test $req_num: $key_seq"
+                bash "$SCRIPT_DIR/inject-keys.sh" "$fsuae_pid" "$key_seq" || true
+            fi
+            echo "done" > "$RESULTS_DIR/keys-done-cleanup-${req_num}"
+            rm -f "$keys_req"
         done
 
         # ADR-024: Check for SCRAPE sentinels (visual verification).
