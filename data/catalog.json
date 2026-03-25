@@ -4204,7 +4204,9 @@
         "estimated_stack_kb": 64,
         "estimated_binary_kb": 80,
         "estimated_data_kb": 32
-      }
+      },
+      "aminet_status": "missing",
+      "aminet_notes": "Only ATT-awk-1_0 (1995) on Aminet \u2014 traditional AWK, not Plan 9 one true awk"
     },
     {
       "id": "getopt",
@@ -4300,7 +4302,9 @@
         "estimated_stack_kb": 8,
         "estimated_binary_kb": 12,
         "estimated_data_kb": 1
-      }
+      },
+      "aminet_status": "missing",
+      "aminet_notes": "Not on Aminet"
     },
     {
       "id": "sbase-tac",
@@ -4328,7 +4332,9 @@
         "stock_a1200": "unknown",
         "a1200_accel": "unknown",
         "a4000_030": "unknown"
-      }
+      },
+      "aminet_status": "missing",
+      "aminet_notes": "Source doesn't exist in sbase"
     },
     {
       "id": "sbase-sponge",
@@ -4376,7 +4382,9 @@
         "estimated_stack_kb": 8,
         "estimated_binary_kb": 10,
         "estimated_data_kb": 1
-      }
+      },
+      "aminet_status": "missing",
+      "aminet_notes": "Not on Aminet"
     },
     {
       "id": "sbase-xinstall",
@@ -4424,7 +4432,9 @@
         "estimated_stack_kb": 16,
         "estimated_binary_kb": 15,
         "estimated_data_kb": 2
-      }
+      },
+      "aminet_status": "exists",
+      "aminet_notes": "xinstall.lha at util/boot \u2014 different purpose (Amiga install tool)"
     },
     {
       "id": "9base-unicode",
@@ -4473,7 +4483,9 @@
         "estimated_stack_kb": 8,
         "estimated_binary_kb": 12,
         "estimated_data_kb": 1
-      }
+      },
+      "aminet_status": "missing",
+      "aminet_notes": "Not on Aminet"
     },
     {
       "id": "9base-freq",
@@ -4522,7 +4534,9 @@
         "estimated_stack_kb": 16,
         "estimated_binary_kb": 12,
         "estimated_data_kb": 8192
-      }
+      },
+      "aminet_status": "missing",
+      "aminet_notes": "Not on Aminet"
     },
     {
       "id": "9base-ascii",
@@ -4571,7 +4585,9 @@
         "estimated_stack_kb": 8,
         "estimated_binary_kb": 14,
         "estimated_data_kb": 2
-      }
+      },
+      "aminet_status": "exists",
+      "aminet_notes": "ascii.lha at util/cli"
     },
     {
       "id": "9base-hoc",
@@ -4622,7 +4638,9 @@
         "estimated_stack_kb": 32,
         "estimated_binary_kb": 30,
         "estimated_data_kb": 8
-      }
+      },
+      "aminet_status": "missing",
+      "aminet_notes": "Not on Aminet \u2014 calculator tools exist but not hoc"
     },
     {
       "id": "sbase-uuencode",
@@ -4670,7 +4688,9 @@
         "estimated_stack_kb": 8,
         "estimated_binary_kb": 12,
         "estimated_data_kb": 1
-      }
+      },
+      "aminet_status": "exists",
+      "aminet_notes": "UUCode.lha at util/arc"
     },
     {
       "id": "sbase-uudecode",
@@ -4718,7 +4738,9 @@
         "estimated_stack_kb": 8,
         "estimated_binary_kb": 14,
         "estimated_data_kb": 2
-      }
+      },
+      "aminet_status": "exists",
+      "aminet_notes": "UUCode.lha at util/arc"
     },
     {
       "id": "sbase-base64",
@@ -4746,7 +4768,9 @@
         "stock_a1200": "unknown",
         "a1200_accel": "unknown",
         "a4000_030": "unknown"
-      }
+      },
+      "aminet_status": "missing",
+      "aminet_notes": "Source doesn't exist in sbase"
     },
     {
       "id": "sbase-sha256sum",
@@ -4794,7 +4818,9 @@
         "estimated_stack_kb": 8,
         "estimated_binary_kb": 14,
         "estimated_data_kb": 1
-      }
+      },
+      "aminet_status": "exists",
+      "aminet_notes": "sha256.lha at util/cli"
     },
     {
       "id": "sbase-md5sum",
@@ -4842,7 +4868,9 @@
         "estimated_stack_kb": 8,
         "estimated_binary_kb": 14,
         "estimated_data_kb": 1
-      }
+      },
+      "aminet_status": "exists",
+      "aminet_notes": "MD5SUM.lha at util/crypt"
     },
     {
       "id": "sbase-xd",
@@ -4870,7 +4898,9 @@
         "stock_a1200": "unknown",
         "a1200_accel": "unknown",
         "a4000_030": "unknown"
-      }
+      },
+      "aminet_status": "missing",
+      "aminet_notes": "Source doesn't exist in sbase"
     },
     {
       "id": "sbase-split",
@@ -4918,7 +4948,9 @@
         "estimated_stack_kb": 8,
         "estimated_binary_kb": 12,
         "estimated_data_kb": 1
-      }
+      },
+      "aminet_status": "missing",
+      "aminet_notes": "No POSIX text split on Aminet"
     },
     {
       "id": "sbase-od",
@@ -4967,7 +4999,9 @@
         "estimated_stack_kb": 8,
         "estimated_binary_kb": 16,
         "estimated_data_kb": 2
-      }
+      },
+      "aminet_status": "missing",
+      "aminet_notes": "No octal dump utility on Aminet"
     },
     {
       "id": "sbase-sha1sum",
@@ -5015,7 +5049,9 @@
         "estimated_stack_kb": 8,
         "estimated_binary_kb": 14,
         "estimated_data_kb": 1
-      }
+      },
+      "aminet_status": "exists",
+      "aminet_notes": "sha.i386-aros.lha \u2014 AROS i386 only, no m68k version"
     },
     {
       "id": "awk-plan9",
