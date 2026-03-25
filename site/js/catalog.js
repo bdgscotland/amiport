@@ -85,18 +85,18 @@
     }
 
     function hwDots(hw) {
-        var frag = document.createDocumentFragment();
+        var wrapper = el('span', { style: { whiteSpace: 'nowrap' } });
         var profiles = ['stock_a1200', 'a1200_accel', 'a4000_030'];
         var labels = ['A1200', '+Accel', 'A4000'];
         for (var i = 0; i < profiles.length; i++) {
             var fit = (hw || {})[profiles[i]] || 'unknown';
-            frag.appendChild(el('span', {
+            wrapper.appendChild(el('span', {
                 title: labels[i] + ': ' + (fitLabels[fit] || ''),
                 style: { color: fitColors[fit] || '#606060', cursor: 'default' }
             }, fitSymbols[fit] || '?'));
-            if (i < 2) frag.appendChild(text(' '));
+            if (i < 2) wrapper.appendChild(text(' '));
         }
-        return frag;
+        return wrapper;
     }
 
     // --- Fetch ---
@@ -211,8 +211,36 @@
 
     function toggleDetail(e) {
         var id = this.getAttribute('data-id');
-        expandedId = (expandedId === id) ? null : id;
-        renderCandidates();
+        var clickedRow = this;
+
+        // Remove any existing detail row
+        var existing = tbody.querySelector('.cat-detail-row');
+        if (existing) existing.parentNode.removeChild(existing);
+
+        // Also un-highlight previous row
+        var prev = tbody.querySelector('.cat-row--expanded');
+        if (prev) prev.className = prev.className.replace(' cat-row--expanded', '');
+
+        if (expandedId === id) {
+            // Collapse — already removed above
+            expandedId = null;
+        } else {
+            // Expand — insert detail row right after clicked row
+            expandedId = id;
+            clickedRow.className += ' cat-row--expanded';
+            var c = null;
+            for (var i = 0; i < candidates.length; i++) {
+                if (candidates[i].id === id) { c = candidates[i]; break; }
+            }
+            if (c) {
+                var detailRow = buildDetailRow(c);
+                if (clickedRow.nextSibling) {
+                    tbody.insertBefore(detailRow, clickedRow.nextSibling);
+                } else {
+                    tbody.appendChild(detailRow);
+                }
+            }
+        }
     }
 
     function buildDetailRow(c) {
