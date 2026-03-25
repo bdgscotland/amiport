@@ -392,6 +392,7 @@ After generating test-fsemu-cases.txt (and test-fsemu-visual-cases.txt for Categ
 11. **Every EXPECT: value was derived from running the native tool** — not guessed
 12. **Multi-line output tests use EXPECT_LINE:** to verify at least one non-first line
 13. **No EXPECT_CONTAINS: where EXPECT: would work** — exact match is always preferred for deterministic output
+14. **NEVER weaken assertions to pass** — if a test fails, the CODE is wrong, not the test. Do not replace EXPECT: with EXPECT_CONTAINS: to hide output differences. See `.claude/rules/never-weaken-tests.md`.
 
 ## Coverage Report
 

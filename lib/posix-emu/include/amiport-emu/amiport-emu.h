@@ -17,5 +17,6 @@
 #include <amiport-emu/pipe.h>
 #include <amiport-emu/alarm.h>
 #include <amiport-emu/regex.h>
+#include <amiport-emu/popen.h>
 
 #endif /* AMIPORT_EMU_H */

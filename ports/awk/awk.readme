@@ -1,0 +1,40 @@
+Short:        Pattern scanning and processing language
+Type:         dev/lang
+Architecture: m68k-amigaos >= 3.0
+Uploader:     duncan@bowring.us
+Author:       Brian W. Kernighan (ported by Duncan Bowring)
+Version:      2024.12.25
+
+awk - Pattern scanning and processing language
+
+The "One True AWK" by Brian Kernighan -- the canonical implementation
+by the original author. Replaces ATT-awk-1_0 (1994) with 30 years of
+bug fixes and improvements.
+
+Ported by Duncan Bowring using amiport (AI-assisted porting toolkit).
+Project: https://github.com/bdgscotland/amiport
+
+Cross-compiled with m68k-amigaos-gcc for AmigaOS 3.x (68000+).
+Tested in vamos emulator and FS-UAE.
+
+Usage:
+  awk 'pattern { action }' file ...
+  awk -f progfile file ...
+  awk -F: '{ print $1 }' /etc/passwd
+
+Examples:
+  awk '{ print NR, $0 }' file.txt       Number each line
+  awk -F, '{ print $2 }' data.csv       Print second CSV field
+  awk '/pattern/' file.txt               Print matching lines (like grep)
+  awk '{ sum += $1 } END { print sum }' numbers.txt   Sum column 1
+  awk 'NF > 0' file.txt                 Remove blank lines
+  awk '{ print length, $0 }' file.txt   Print line lengths
+
+Limitations on AmigaOS:
+  - Pipe commands (print | "cmd") use temp files, not concurrent pipes
+  - Shell syntax in pipe commands limited to AmigaDOS (no &&, ||)
+  - Multibyte/UTF-8 disabled -- operates on raw bytes (ISO 8859-1)
+  - ENVIRON array is empty (AmigaOS has no environ)
+
+Includes full source code (original and ported versions)
+and PORT.md documenting every transformation applied.

@@ -1,0 +1,1 @@
+{ sub(/hello/, "goodbye"); print }

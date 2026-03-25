@@ -1,0 +1,248 @@
+# test-fsemu-cases.txt -- FS-UAE test suite for awk (One True Awk)
+# Category 2 (Scripting) -- minimum 20 tests
+# Uses input file instead of piping (ARexx limitation)
+# Dollar signs in awk programs placed in .awk files (AmigaDOS $ expansion)
+
+# === FUNCTIONAL TESTS: flags and basic features ===
+
+TEST: --version flag prints version string
+CMD: WORK:awk --version
+EXPECT_CONTAINS: awk version
+EXPECT_RC: 0
+
+TEST: -version flag (single dash) prints version string
+CMD: WORK:awk -version
+EXPECT_CONTAINS: awk version
+EXPECT_RC: 0
+
+TEST: -F flag sets field separator (colon-delimited file)
+CMD: WORK:awk -F : -f WORK:test-awk-fields.awk WORK:test-awk-colon.txt
+EXPECT: root
+EXPECT_RC: 0
+
+TEST: -v flag sets variable before program runs
+CMD: WORK:awk -v x=42 "BEGIN { print x }" WORK:test-empty.txt
+EXPECT: 42
+EXPECT_RC: 0
+
+TEST: -f flag reads program from file
+CMD: WORK:awk -f WORK:test-awk-arith.awk WORK:test-empty.txt
+EXPECT: 42
+EXPECT_RC: 0
+
+TEST: BEGIN block executes before input
+CMD: WORK:awk -f WORK:test-awk-beginend.awk WORK:test-awk-numbers.txt
+EXPECT: START
+EXPECT_RC: 0
+
+TEST: END block executes after all input
+CMD: WORK:awk -f WORK:test-awk-beginend.awk WORK:test-awk-numbers.txt
+EXPECT_CONTAINS: END
+EXPECT_RC: 0
+
+TEST: NR built-in variable tracks record number
+CMD: WORK:awk -f WORK:test-awk-nr.awk WORK:test-awk-numbers.txt
+EXPECT: 1 10
+EXPECT_RC: 0
+
+TEST: NF and dollar-NF built-in variables
+CMD: WORK:awk -f WORK:test-awk-nf.awk WORK:test-multiline.txt
+EXPECT: 2 world
+EXPECT_RC: 0
+
+TEST: OFS output field separator applied on print list
+CMD: WORK:awk -f WORK:test-awk-ofs.awk WORK:test-multiline.txt
+EXPECT: hello:world
+EXPECT_RC: 0
+
+# === FUNCTIONAL TESTS: string functions ===
+
+TEST: substr() extracts substring
+CMD: WORK:awk -f WORK:test-awk-substr.awk WORK:test-oneline.txt
+EXPECT: hello
+EXPECT_RC: 0
+
+TEST: index() finds position of substring
+CMD: WORK:awk -f WORK:test-awk-index.awk WORK:test-oneline.txt
+EXPECT: 7
+EXPECT_RC: 0
+
+TEST: length() returns string length
+CMD: WORK:awk -f WORK:test-awk-length.awk WORK:test-oneline.txt
+EXPECT: 11
+EXPECT_RC: 0
+
+TEST: tolower() converts to lowercase
+CMD: WORK:awk -f WORK:test-awk-tolower.awk WORK:test-multiline.txt
+EXPECT_CONTAINS: uppercase line
+EXPECT_RC: 0
+
+TEST: gsub() replaces all occurrences globally
+CMD: WORK:awk -f WORK:test-awk-gsub.awk WORK:test-oneline.txt
+EXPECT: hell0 w0rld
+EXPECT_RC: 0
+
+TEST: sub() replaces first occurrence only
+CMD: WORK:awk -f WORK:test-awk-sub.awk WORK:test-oneline.txt
+EXPECT: goodbye world
+EXPECT_RC: 0
+
+TEST: match() sets RSTART and RLENGTH
+CMD: WORK:awk -f WORK:test-awk-match.awk WORK:test-multiline.txt
+EXPECT: 1 5
+EXPECT_RC: 0
+
+TEST: split() splits string into array returns count
+CMD: WORK:awk -f WORK:test-awk-split.awk WORK:test-awk-colon.txt
+EXPECT: 3 root
+EXPECT_RC: 0
+
+TEST: sprintf() formats string without printing
+CMD: WORK:awk -f WORK:test-awk-sprintf.awk WORK:test-awk-words.txt
+EXPECT: hello     |    1
+EXPECT_RC: 0
+
+# === FUNCTIONAL TESTS: math and printf ===
+
+TEST: printf with zero-padded integer format
+CMD: WORK:awk -f WORK:test-awk-printf.awk WORK:test-empty.txt
+EXPECT: 00042
+EXPECT_RC: 0
+
+TEST: sqrt() math function
+CMD: WORK:awk -f WORK:test-awk-math.awk WORK:test-empty.txt
+EXPECT: 1.4142
+EXPECT_RC: 0
+
+TEST: Arithmetic operators (multiply)
+CMD: WORK:awk -f WORK:test-awk-arith.awk WORK:test-empty.txt
+EXPECT: 42
+EXPECT_RC: 0
+
+# === FUNCTIONAL TESTS: control flow ===
+
+TEST: for loop with if-else produces alternating output
+CMD: WORK:awk -f WORK:test-awk-control.awk WORK:test-empty.txt
+EXPECT: 1 odd
+EXPECT_RC: 0
+
+# === FUNCTIONAL TESTS: arrays ===
+
+TEST: Associative array with for-in and delete
+CMD: WORK:awk -f WORK:test-awk-delete.awk WORK:test-empty.txt
+EXPECT: 2
+EXPECT_RC: 0
+
+TEST: Array counting word frequency
+CMD: WORK:awk -f WORK:test-awk-array.awk WORK:test-awk-words.txt
+EXPECT_CONTAINS: hello 1
+EXPECT_RC: 0
+
+# === FUNCTIONAL TESTS: user-defined functions ===
+
+TEST: User-defined function (square)
+CMD: WORK:awk -f WORK:test-awk-func.awk WORK:test-empty.txt
+EXPECT: 49
+EXPECT_RC: 0
+
+# === FUNCTIONAL TESTS: multiple rules ===
+
+TEST: Multiple pattern-action rules match independently
+CMD: WORK:awk -f WORK:test-awk-multipattern.awk WORK:test-multiline.txt
+EXPECT: found: hello world
+EXPECT_RC: 0
+
+# === FUNCTIONAL TESTS: getline ===
+
+TEST: getline reads from file in BEGIN block
+CMD: WORK:awk -f WORK:test-awk-getline.awk WORK:test-empty.txt
+EXPECT: HELLO
+EXPECT_RC: 0
+
+# === FUNCTIONAL TESTS: --csv mode ===
+
+TEST: --csv mode splits comma-separated fields
+CMD: WORK:awk --csv -f WORK:test-awk-csv.awk WORK:test-awk-csv-data.txt
+EXPECT: 3 age
+EXPECT_RC: 0
+
+# === ERROR PATH TESTS ===
+
+TEST: Syntax error in awk program (unclosed brace) exits RC 2
+CMD: WORK:awk "{ print" WORK:test-oneline.txt
+EXPECT_RC: 2
+
+TEST: Missing -f program file exits with FATAL RC 2
+CMD: WORK:awk -f WORK:test-awk-nonexistent-program.awk WORK:test-oneline.txt
+EXPECT_RC: 2
+
+TEST: Invalid -v argument (no equals sign) exits RC 2
+CMD: WORK:awk -v badvar "BEGIN{}" WORK:test-empty.txt
+EXPECT_RC: 2
+
+# === EDGE CASE TESTS ===
+
+TEST: Empty input file produces no output (BEGIN-only check)
+CMD: WORK:awk "BEGIN { x=1 } END { print NR }" WORK:test-empty.txt
+EXPECT: 0
+EXPECT_RC: 0
+
+TEST: Empty input file with pattern rule is silent
+CMD: WORK:awk -f WORK:test-awk-length.awk WORK:test-empty.txt
+EXPECT_RC: 0
+
+TEST: Long line input processed without truncation
+CMD: WORK:awk -f WORK:test-awk-length.awk WORK:test-longline.txt
+EXPECT_RC: 0
+
+# === AMIGA-SPECIFIC TESTS ===
+
+TEST: WORK: volume path for input file (Amiga path handling)
+CMD: WORK:awk -f WORK:test-awk-fields.awk WORK:test-awk-colon.txt
+EXPECT: root
+EXPECT_RC: 0
+
+TEST: -v flag with Amiga WORK: path in variable value
+CMD: WORK:awk -v sep=: "BEGIN { print sep }" WORK:test-empty.txt
+EXPECT: :
+EXPECT_RC: 0
+
+# === REAL-WORLD TESTS ===
+
+TEST: Word count simulation (NR words chars)
+CMD: WORK:awk -f WORK:test-awk-wc.awk WORK:test-awk-stressfile.txt
+EXPECT: 20 60 458
+EXPECT_RC: 0
+
+TEST: Sum column of numbers (real-world data extraction)
+CMD: WORK:awk -f WORK:test-awk-sum.awk WORK:test-awk-numbers.txt
+EXPECT: 150
+EXPECT_RC: 0
+
+TEST: Extract second field from colon-delimited passwd-style file
+CMD: WORK:awk -F : -f WORK:test-awk-csv.awk WORK:test-awk-colon.txt
+EXPECT: 3 0
+EXPECT_RC: 0
+
+# === STRESS TESTS ===
+
+TEST: 10000-iteration loop accumulates correct sum
+CMD: WORK:awk -f WORK:test-awk-stress.awk WORK:test-empty.txt
+EXPECT: 50005000
+EXPECT_RC: 0
+
+TEST: Recursive function fib(20) without stack overflow
+CMD: WORK:awk -f WORK:test-awk-recursion.awk WORK:test-empty.txt
+EXPECT: 6765
+EXPECT_RC: 0
+
+TEST: Process 20-line file building associative array
+CMD: WORK:awk -f WORK:test-awk-array.awk WORK:test-awk-stressfile.txt
+EXPECT_RC: 0
+
+# === PRECISION TEST ===
+
+TEST: atan2(0,-1) computes pi to 10 decimal places
+CMD: WORK:awk -f WORK:test-awk-picomp.awk WORK:test-empty.txt
+EXPECT: 3.1415926536
+EXPECT_RC: 0

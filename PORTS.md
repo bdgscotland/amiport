@@ -25,6 +25,7 @@ Programs ported to AmigaOS 3.x using the amiport pipeline.
 | [comm](ports/comm/) | 1.11 | Compare two sorted files line by line | CLI | OpenBSD comm v1.11 (BSD 3-Clause) | Built & tested (30/30 FS-UAE) | Not submitted |
 | [rev](ports/rev/) | 1.16 | Reverse lines character by character | CLI | OpenBSD rev v1.16 (BSD 3-Clause) | Built & tested (24/24 FS-UAE) | Not submitted |
 | [expand](ports/expand/) | 1.15 | Convert tabs to spaces | CLI | OpenBSD expand v1.15 (BSD 3-Clause) | Built & tested (29/29 FS-UAE) | Not submitted |
+| [awk](ports/awk/) | 2024.12.25 | Pattern scanning and processing language | Scripting | BWK "One True Awk" (MIT-like) | WIP -- libnix %g format bug, ~12/44 tests failing | Not submitted |
 
 ## Aminet Publication Tracking
 
