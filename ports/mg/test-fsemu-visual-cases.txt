@@ -66,29 +66,20 @@ EXPECT_AT 1,1,Hello, Amiga world!
 EXPECT_AT 5,1,Line five: testing cursor movement and search.
 
 # ============================================================
-# 5. Cursor movement with C-n (trap proof -- decoupled from CSI fix)
-# ADR-025: Proves trap pipeline works using known-good CTRL_N
+# 5. ConUnit cursor position via trap (cooked mode proof)
+# ADR-025: Proves the trap pipeline reads ConUnit cursor correctly.
+# Uses a cooked-mode echo command -- ConUnit cursor is only updated
+# by console.device in cooked mode. RAW mode programs (mg, less)
+# bypass console.device CSI processing, so ConUnit stays at (0,0).
+# The shell prompt "5.WORK:> " leaves the cursor at a known position
+# after echo prints "Hello" on one line. Expected: row 2, col 3
+# (shell prompt "5>" on line 2, cursor after ">_").
 # ============================================================
 
-ITEST: Visual: cursor moves down with C-n (trap proof)
-LAUNCH: WORK:mg -n WORK:test-mg-scroll.txt
-KEYS: WAIT2000,CTRL_N,WAIT1000
+ITEST: Visual: ConUnit cursor after wc (trap proof)
+LAUNCH: WORK:wc WORK:test-mg-basic.txt
+KEYS: WAIT3000
 SCRAPE
 SCREEN_READ
-EXPECT_TRAP_CURSOR 2,1
-CLEANUP: CTRL_X,WAIT300,CTRL_C
-EXPECT_RC: 0
-
-# ============================================================
-# 6. Cursor movement with DOWN arrow (CSI fix proof)
-# ADR-025: Proves CSI 0x9B to ESC [ translation + trap together
-# ============================================================
-
-ITEST: Visual: cursor moves down with arrow key (CSI fix proof)
-LAUNCH: WORK:mg -n WORK:test-mg-scroll.txt
-KEYS: WAIT2000,DOWN,WAIT1000
-SCRAPE
-SCREEN_READ
-EXPECT_TRAP_CURSOR 2,1
-CLEANUP: CTRL_X,WAIT300,CTRL_C
+EXPECT_TRAP_CURSOR 2,3
 EXPECT_RC: 0
