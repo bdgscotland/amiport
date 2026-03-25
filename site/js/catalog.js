@@ -11,13 +11,14 @@
     var catalog = null;
     var candidates = [];
     var expandedId = null;
+    var currentSort = { key: 'score', dir: 'desc' };
 
     // DOM refs
     var tbody       = document.getElementById('cat-tbody');
     var searchInput = document.getElementById('cat-search');
     var categorySel = document.getElementById('cat-category');
     var tierSel     = document.getElementById('cat-tier');
-    var sortSel     = document.getElementById('cat-sort');
+    var catTable    = document.getElementById('cat-table');
     var countEl     = document.getElementById('cat-count');
     var emptyEl     = document.getElementById('cat-empty');
     var errorEl     = document.getElementById('cat-error');
@@ -177,12 +178,24 @@
             if (q && ((c.name || '') + ' ' + (c.description || '') + ' ' + (c.notes || '')).toLowerCase().indexOf(q) === -1) continue;
             result.push(c);
         }
-        var sortKey = sortSel.value;
+        var sk = currentSort.key;
+        var dir = currentSort.dir === 'asc' ? 1 : -1;
         result.sort(function(a, b) {
-            if (sortKey === 'score') return ((b.readiness || {}).score || 0) - ((a.readiness || {}).score || 0);
-            if (sortKey === 'complexity') return ((b.analysis || {}).source_complexity || 0) - ((a.analysis || {}).source_complexity || 0);
-            if (sortKey === 'value') return (b.community_value || 0) - (a.community_value || 0);
-            return (a.name || '').localeCompare(b.name || '');
+            var va, vb;
+            if (sk === 'name') { va = a.name || ''; vb = b.name || ''; return dir * va.localeCompare(vb); }
+            if (sk === 'score') { va = (a.readiness || {}).score || 0; vb = (b.readiness || {}).score || 0; }
+            else if (sk === 'tier') {
+                var order = { ready: 4, feasible: 3, blocked: 2, infeasible: 1, unanalyzed: 0 };
+                va = order[(a.readiness || {}).tier] || 0; vb = order[(b.readiness || {}).tier] || 0;
+            }
+            else if (sk === 'source') { va = (a.upstream || {}).source || ''; vb = (b.upstream || {}).source || ''; return dir * va.localeCompare(vb); }
+            else if (sk === 'aminet') {
+                var ao = { missing: 3, outdated: 2, exists: 1 };
+                va = ao[a.aminet_status] || 0; vb = ao[b.aminet_status] || 0;
+            }
+            else if (sk === 'value') { va = a.community_value || 0; vb = b.community_value || 0; }
+            else { va = 0; vb = 0; }
+            return dir * (va - vb);
         });
         return result;
     }
@@ -399,7 +412,36 @@
     searchInput.addEventListener('input', function() { expandedId = null; renderCandidates(); });
     categorySel.addEventListener('change', function() { expandedId = null; renderCandidates(); });
     tierSel.addEventListener('change', function() { expandedId = null; renderCandidates(); });
-    sortSel.addEventListener('change', function() { expandedId = null; renderCandidates(); });
+
+    // Sortable column headers
+    var sortHeaders = catTable.querySelectorAll('th.sortable');
+    for (var si = 0; si < sortHeaders.length; si++) {
+        sortHeaders[si].addEventListener('click', function() {
+            var key = this.getAttribute('data-sort');
+            if (currentSort.key === key) {
+                currentSort.dir = currentSort.dir === 'desc' ? 'asc' : 'desc';
+            } else {
+                currentSort.key = key;
+                currentSort.dir = (key === 'name' || key === 'source') ? 'asc' : 'desc';
+            }
+            updateSortIndicators();
+            expandedId = null;
+            renderCandidates();
+        });
+    }
+
+    function updateSortIndicators() {
+        var headers = catTable.querySelectorAll('th.sortable');
+        for (var i = 0; i < headers.length; i++) {
+            var h = headers[i];
+            var base = h.textContent.replace(/ [\u25B2\u25BC]$/, '');
+            if (h.getAttribute('data-sort') === currentSort.key) {
+                h.textContent = base + (currentSort.dir === 'asc' ? ' \u25B2' : ' \u25BC');
+            } else {
+                h.textContent = base;
+            }
+        }
+    }
 
     document.getElementById('cat-clear-filter').addEventListener('click', function(e) {
         e.preventDefault();

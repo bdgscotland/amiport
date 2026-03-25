@@ -88,12 +88,6 @@
                     <option value="infeasible">Infeasible</option>
                     <option value="unanalyzed">Unanalyzed</option>
                 </select>
-                <select class="wb-select" id="cat-sort" aria-label="Sort by">
-                    <option value="score">Score (high first)</option>
-                    <option value="name">Name (A-Z)</option>
-                    <option value="complexity">Complexity (simple first)</option>
-                    <option value="value">Community value (high first)</option>
-                </select>
             </div>
 
             <!-- Count -->
@@ -105,14 +99,14 @@
                     <caption class="hidden">Porting candidates</caption>
                     <thead>
                         <tr>
-                            <th scope="col">Name</th>
-                            <th scope="col">Score</th>
-                            <th scope="col">Tier</th>
+                            <th scope="col" class="sortable" data-sort="name" style="cursor:pointer">Name</th>
+                            <th scope="col" class="sortable" data-sort="score" style="cursor:pointer">Score</th>
+                            <th scope="col" class="sortable" data-sort="tier" style="cursor:pointer">Tier</th>
                             <th scope="col">Description</th>
-                            <th scope="col">Source</th>
+                            <th scope="col" class="sortable" data-sort="source" style="cursor:pointer">Source</th>
                             <th scope="col" title="stock A1200 / A1200+accel / A4000">HW</th>
-                            <th scope="col" title="Does this tool already exist on Aminet?">Aminet</th>
-                            <th scope="col" title="How useful is this for the Amiga community?">Value</th>
+                            <th scope="col" class="sortable" data-sort="aminet" style="cursor:pointer" title="Does this tool already exist on Aminet?">Aminet</th>
+                            <th scope="col" class="sortable" data-sort="value" style="cursor:pointer" title="How useful is this for the Amiga community?">Value</th>
                         </tr>
                     </thead>
                     <tbody id="cat-tbody">
