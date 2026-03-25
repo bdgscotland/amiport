@@ -278,3 +278,5 @@ if (use_metakey && (c & METABIT)) { ... }
 ```
 
 This affects ALL ported programs that handle keyboard input with VT100 escape sequences. Check during code-transformer stage for any `METABIT` or `0x80` bit-stripping code.
+
+**ALSO:** FS-UAE defaults to mapping host arrow keys to joystick port 1. This steals arrow keys from the keyboard entirely -- console.device receives zero bytes. Fix: `joystick_port_1_mode = nothing` in the FS-UAE config. This must be set for ANY interactive console testing. See `toolchain/configs/amiport-test.fs-uae`.
