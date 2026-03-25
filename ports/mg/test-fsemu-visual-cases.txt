@@ -6,10 +6,15 @@
 # that writes all lines to the console on open). Interactive echo
 # (typed chars, cursor movement) is NOT captured by CMD_WRITE --
 # mg renders those through a different console.device path.
-# Interactive verification requires ADR-025 (direct screen buffer read).
 #
-# These tests verify: file content renders correctly, correct file loaded,
-# different files produce different output, flags affect display.
+# ADR-025 adds SCREEN_READ + EXPECT_TRAP_CURSOR for cursor position
+# verification via a custom FS-UAE trap that reads ConUnit fields directly.
+# EXPECT_TRAP_CURSOR reads from .screen JSON (ConUnit trap, authoritative
+# for interactive ops). EXPECT_CURSOR reads from pyte (ANSI reconstruction,
+# static display only).
+#
+# Tests 1-4: file content display (EXPECT_AT, ADR-024)
+# Tests 5-6: cursor movement (EXPECT_TRAP_CURSOR, ADR-025)
 
 # ============================================================
 # 1. Basic file -- all 5 lines verified
@@ -59,3 +64,31 @@ KEYS: WAIT3000
 SCRAPE
 EXPECT_AT 1,1,Hello, Amiga world!
 EXPECT_AT 5,1,Line five: testing cursor movement and search.
+
+# ============================================================
+# 5. Cursor movement with C-n (trap proof -- decoupled from CSI fix)
+# ADR-025: Proves trap pipeline works using known-good CTRL_N
+# ============================================================
+
+ITEST: Visual: cursor moves down with C-n (trap proof)
+LAUNCH: WORK:mg -n WORK:test-mg-scroll.txt
+KEYS: WAIT2000,CTRL_N,WAIT1000
+SCRAPE
+SCREEN_READ
+EXPECT_TRAP_CURSOR 2,1
+CLEANUP: CTRL_X,WAIT300,CTRL_C
+EXPECT_RC: 0
+
+# ============================================================
+# 6. Cursor movement with DOWN arrow (CSI fix proof)
+# ADR-025: Proves CSI 0x9B to ESC [ translation + trap together
+# ============================================================
+
+ITEST: Visual: cursor moves down with arrow key (CSI fix proof)
+LAUNCH: WORK:mg -n WORK:test-mg-scroll.txt
+KEYS: WAIT2000,DOWN,WAIT1000
+SCRAPE
+SCREEN_READ
+EXPECT_TRAP_CURSOR 2,1
+CLEANUP: CTRL_X,WAIT300,CTRL_C
+EXPECT_RC: 0
