@@ -54,11 +54,13 @@ You merge the DryRunResult into the candidate entry and set `analysis_status: "c
 
 **Batch recovery:** Checkpoint after every 10 candidates — run `catalog-score.py --score` to save. On agent failure, set `analysis_status: "failed"` with error message and continue.
 
-### 3. Aminet Gap Check
+### 3. Aminet Gap Check (MANDATORY — run alongside or immediately after dry-run analysis)
 For each candidate, dispatch `aminet-researcher` agent to check if the tool already exists on Aminet:
 - `aminet_status: "missing"` — not on Aminet (highest porting value)
 - `aminet_status: "outdated"` — exists but ancient version
 - `aminet_status: "exists"` — recent version already on Aminet
+
+**This step is not optional.** Every analyzed candidate must have an `aminet_status` field before it can be considered for dispatch. Programs that already exist on Aminet with a recent version are deprioritized in the readiness scoring.
 
 ### 4. Scoring and Indexing
 Run `python3 scripts/catalog-score.py --score` to:
