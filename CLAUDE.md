@@ -36,8 +36,9 @@ The porting pipeline has 5 stages, each backed by a Claude skill:
   - `site/js/terminal-anim.js` — Hero typing animation (respects prefers-reduced-motion)
   - `site/api/v1/` — PHP API endpoints (packages, stats, download, vote, request)
 - `toolchain/` — Cross-compiler Docker images, build scripts, target profiles
-- `toolchain/keyinject/` — KeyInject: keyboard event injector for automated interactive testing (ADR-023)
+- `toolchain/keyinject/` — KeyInject: keyboard event injector for functional interactive testing via AddIEvents() (ADR-023)
 - `toolchain/screenread/` — ScreenRead: ConUnit cursor reader for visual test cursor verification (ADR-025)
+- `scripts/inject-keys.sh` — Host-side key injection via macOS osascript for visual tests (ADR-025). Batches all keystrokes into a single osascript call (~1.7s overhead)
 - `docs/` — Architecture docs, API mapping tables, porting guide, tier classification
 - `docs/references/adcd/` — Complete ADCD 2.1 in agent-optimized markdown (Libraries, Devices, Hardware, Amiga Mail, Autodocs)
 - `docs/references/amiga-intern/` — "Amiga Intern" (1992) converted to markdown — 68030 CPU internals, custom chip architecture, memory map, hardware programming
@@ -141,11 +142,13 @@ Use **vamos** (from amitools) for CLI program testing (Categories 1-2) — it pr
 
 For console UI apps (Category 3), network apps (Category 4), GUI programs, or hardware-dependent code, use **FS-UAE** with a configured AmigaOS 3.x installation. See ADR-014 for automated FS-UAE testing design.
 
-For interactive console programs (Category 3+), the test harness supports `ITEST:` blocks that use **KeyInject** (`toolchain/keyinject/`) to inject keystrokes via `commodities.library/AddIEvents()`. Interactive tests are skipped on vamos (KeyInject requires AmigaOS). See ADR-023.
+For interactive console programs (Category 3+), the test harness supports `ITEST:` blocks that use **KeyInject** (`toolchain/keyinject/`) to inject keystrokes via `commodities.library/AddIEvents()` for functional tests (exit code verification). Interactive tests are skipped on vamos (KeyInject requires AmigaOS). See ADR-023.
 
 For **visual verification** (ADR-024), use a **separate test file** (`test-fsemu-visual-cases.txt`) with `SCRAPE`, `EXPECT_AT row,col,text`, and `EXPECT_CURSOR row,col` directives. **Functional and visual tests MUST be separate FS-UAE passes** -- never mix them in one suite. Resource exhaustion at ~13 ITESTs is a hard wall. Run visual tests with `make test-fsemu TARGET=ports/<name> VISUAL=1` (passes `--visual` to `scripts/test-fsemu.sh`). The forked FS-UAE (`~/Developer/fs-uae/`) captures per-unit ANSI output; host-side `scripts/verify-screen.py` uses pyte for screen reconstruction. ARexx syntax validated by `scripts/check-arexx-syntax.py` / `make check-arexx`. Note: `CMD_WRITE` captures static display (file load, help text) but NOT interactive echo (typed chars, cursor movement).
 
-For **cursor position verification** (ADR-025), use `EXPECT_TRAP_CURSOR row,col` in visual test files. This reads cursor position directly from the ConUnit struct via a custom FS-UAE trap (mode 150), not from ANSI reconstruction. Requires `SCREEN_READ` directive and the ScreenRead binary (`toolchain/screenread/`). `EXPECT_TRAP_CURSOR` is authoritative for interactive cursor operations; `EXPECT_CURSOR` (pyte-based) is for static display only.
+For **visual test key injection** (ADR-025), visual ITEST blocks use **host-side injection** via `scripts/inject-keys.sh` instead of Amiga-side KeyInject. This sends keystrokes through macOS `osascript` (System Events) into FS-UAE's SDL input path -- the same path as physical keypresses. AddIEvents() does not reliably deliver to RAW mode programs in visual tests. The ARexx harness coordinates via sentinel files (`keys-request-N` / `keys-done-N`). The `CLEANUP:` directive sends quit keys after SCRAPE capture.
+
+For **cursor position verification** (ADR-025), use `EXPECT_TRAP_CURSOR row,col` in visual test files for COOKED mode programs. This reads cursor position directly from the ConUnit struct via a custom FS-UAE trap (mode 150). Requires `SCREEN_READ` directive and the ScreenRead binary (`toolchain/screenread/`). For RAW mode programs (mg, less, nano), ConUnit cursor stays at (0,0) -- verify cursor via the program's status line using `EXPECT_AT` instead.
 
 ## Design System
 

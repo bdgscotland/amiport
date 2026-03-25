@@ -170,7 +170,7 @@ make test-fsemu TARGET=ports/grep   # Automated FS-UAE test with ARexx harness
 
 **Visual verification** — character-level screen assertions using a forked FS-UAE with ANSI console capture. Add `SCRAPE`, `EXPECT_AT row,col,text`, and `EXPECT_CURSOR row,col` to ITEST blocks. Requires `~/Developer/fs-uae/` (forked FS-UAE with console capture). See [ADR-024](docs/adr/024-visual-verification.md).
 
-**Cursor position verification** — trap-based ConUnit reading via ScreenRead (`toolchain/screenread/`). Add `SCREEN_READ` and `EXPECT_TRAP_CURSOR row,col` to visual test blocks. See [ADR-025](docs/adr/025-screen-read-trap.md).
+**Cursor position verification** — trap-based ConUnit reading via ScreenRead (`toolchain/screenread/`). Add `SCREEN_READ` and `EXPECT_TRAP_CURSOR row,col` to visual test blocks (COOKED mode only). For RAW mode programs, use `EXPECT_AT` on the program's status line. Visual tests use host-side key injection (`scripts/inject-keys.sh` via macOS osascript) instead of Amiga-side KeyInject. See [ADR-025](docs/adr/025-screen-read-trap.md).
 
 **Manual testing** — for manual exploration on a full Amiga desktop:
 

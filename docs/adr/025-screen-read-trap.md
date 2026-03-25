@@ -82,6 +82,45 @@ into ESC + [ (the correct VT100 sequence). Guarded by `#ifdef __AMIGA__`.
 This is a general pitfall affecting ALL console programs that use VT100
 key bindings on AmigaOS.
 
+### 5. Host-Side Key Injection via osascript
+
+AddIEvents() (used by KeyInject) does not reliably deliver keystrokes to RAW
+mode programs in visual test passes. The emulated input.device processes
+AddIEvents() events differently from SDL-injected keyboard events.
+
+Solution: `scripts/inject-keys.sh` sends keystrokes from the macOS host via
+`osascript` (System Events), which feeds into FS-UAE's SDL input path -- the
+same path as physical keypresses.
+
+Sentinel handshake protocol:
+1. ARexx harness writes `T:keys-request-N` with the KEYS token sequence
+2. Host-side `test-fsemu.sh` polls for sentinel, calls inject-keys.sh
+3. inject-keys.sh batches all keystrokes into ONE osascript call (~1.7s total)
+4. Host writes `T:keys-done-N` to signal completion
+5. ARexx harness polls for `keys-done-N` before proceeding
+
+The `CLEANUP:` directive sends quit keys after SCRAPE capture is complete.
+
+### 6. ConUnit Cursor Limitations in RAW Mode
+
+cu_XCCP/cu_YCCP are only updated in COOKED mode. When a program switches to
+RAW mode via SetMode(fh, 1), console.device's CSI processing is bypassed and
+the cursor fields stay at (0,0). RastPort cp_x/cp_y also always read (0,0)
+because console.device uses Layer-level rendering.
+
+For RAW mode programs, cursor position is verified via the program's own
+status line. mg's status line (row 29 on a 30-row window) shows (line,col)
+and is updated via CMD_WRITE, so ANSI capture + pyte reconstruction can
+read it with EXPECT_AT.
+
+### 7. FS-UAE Joystick Port 1 Arrow Key Theft
+
+FS-UAE defaults to mapping host arrow keys to joystick port 1. This must be
+disabled with `joystick_port_1_mode = nothing` in BOTH the static config
+(`toolchain/configs/amiport-test.fs-uae`) AND the generated config in
+`scripts/test-fsemu.sh`. Without this, arrow keys produce zero bytes in
+RAW mode programs.
+
 ## Consequences
 
 ### Positive
@@ -90,14 +129,20 @@ key bindings on AmigaOS.
 - mg cursor keys work correctly on AmigaOS
 - Trap mechanism is extensible (future modes can read character maps, window state)
 - ScreenRead follows the KeyInject pattern (familiar to contributors)
+- Host-side key injection (osascript) reliably delivers to RAW mode programs
+- Status line scraping provides cursor verification without ConUnit access
+- Sentinel handshake gives clean host/guest synchronization
 
 ### Negative
 
 - Requires forked FS-UAE (not stock)
 - Cross-repo dependency (FS-UAE + amiport)
 - unit_logs[] selection assumes highest-address unit is the test target
+- Host-side injection is macOS-specific (osascript)
+- EXPECT_TRAP_CURSOR only works for COOKED mode programs
 
 ### Neutral
 
 - EXPECT_TRAP_CURSOR and EXPECT_CURSOR coexist with different data sources
 - ScreenRead is test-only infrastructure, not shipped to users
+- Two key injection paths: KeyInject (functional) vs inject-keys.sh (visual)

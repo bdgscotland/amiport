@@ -89,9 +89,11 @@ EXPECT_AT 1,1,Hello, Amiga world!
 EXPECT_RC: 0
 ```
 
-**Current limitation:** `CMD_WRITE` captures static display (file load, help text) but NOT interactive echo (typed characters, cursor movement). Use `EXPECT_TRAP_CURSOR` for interactive cursor verification.
+**Current limitation:** `CMD_WRITE` captures static display (file load, help text) but NOT interactive echo (typed characters, cursor movement). For RAW mode programs (mg, less, nano), ConUnit cursor fields stay at (0,0) -- use status line scraping via EXPECT_AT instead.
 
 **Cursor position verification (ADR-025):**
+
+For COOKED mode programs, use `EXPECT_TRAP_CURSOR` with ScreenRead:
 ```
 ITEST: Visual: cursor moves after keystroke
 LAUNCH: WORK:program WORK:test-file.txt
@@ -103,7 +105,35 @@ CLEANUP: CTRL_X,WAIT300,CTRL_C
 EXPECT_RC: 0
 ```
 
-`SCREEN_READ` triggers the ScreenRead binary to dump ConUnit cursor position via FS-UAE trap. `EXPECT_TRAP_CURSOR row,col` reads the .screen JSON. This is authoritative for interactive cursor operations -- `EXPECT_CURSOR` (pyte-based) only works for static display.
+For RAW mode programs (mg, less, nano), verify cursor via the program's status line:
+```
+ITEST: Visual: cursor at line 2 after DOWN
+LAUNCH: WORK:mg -n WORK:test-file.txt
+KEYS: WAIT2000,DOWN,WAIT1000
+SCRAPE
+EXPECT_AT 29,28,2:1
+CLEANUP: CTRL_X,WAIT300,CTRL_C
+EXPECT_RC: 0
+```
+
+`SCREEN_READ` triggers the ScreenRead binary to dump ConUnit cursor position via FS-UAE trap. `EXPECT_TRAP_CURSOR row,col` reads the .screen JSON. This is authoritative for COOKED mode interactive cursor operations. For RAW mode, ConUnit stays at (0,0) -- use EXPECT_AT on the program's own status line instead.
+
+### Host-Side Key Injection for Visual Tests (ADR-025)
+
+Visual ITEST blocks use **host-side key injection** via `scripts/inject-keys.sh` instead of Amiga-side KeyInject. This is necessary because `AddIEvents()` does not reliably deliver keystrokes to RAW mode programs in visual test passes.
+
+**How it works:**
+1. The ARexx harness writes a sentinel file `T:keys-request-N` containing the KEYS token sequence
+2. The host-side `test-fsemu.sh` detects the sentinel and calls `inject-keys.sh <pid> <keys>`
+3. `inject-keys.sh` builds a single `osascript` (macOS System Events) call with all keystrokes batched (~1.7s total overhead vs ~5s per individual keystroke)
+4. After injection completes, the host writes `T:keys-done-N` to signal the harness
+5. The ARexx harness polls for `keys-done-N` before proceeding
+
+**CLEANUP directive:** Visual tests use `CLEANUP: <keys>` to send quit keystrokes AFTER SCRAPE capture completes. This ensures the program's display is stable when captured, then the program is cleanly exited. Example: `CLEANUP: CTRL_X,WAIT300,CTRL_C` for mg.
+
+**Key injection rule of thumb:**
+- **Functional ITESTs** (test-fsemu-cases.txt): Amiga-side KeyInject via AddIEvents() -- works reliably for exit code verification
+- **Visual ITESTs** (test-fsemu-visual-cases.txt): Host-side inject-keys.sh via osascript -- required for RAW mode programs
 
 ### Manual Interactive Verification (supplemental)
 

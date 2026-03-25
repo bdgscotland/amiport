@@ -13,7 +13,10 @@
  */
 
 #include <exec/types.h>
+#include <proto/exec.h>
 #include <proto/dos.h>
+
+#include <stdio.h>
 
 static const char __attribute__((used)) *verstag =
 	"$VER: ScreenRead 1.0 (24.03.2026)";
@@ -30,10 +33,17 @@ static const ULONG rtarea_candidates[] = {
 static ULONG find_trap_addr(void)
 {
 	int i;
+	UWORD opcode;
 	for (i = 0; rtarea_candidates[i]; i++) {
 		volatile UWORD *p = (volatile UWORD *)rtarea_candidates[i];
-		if ((*p & 0xF000) == 0xA000)  /* A-line trap opcode */
+		opcode = *p;
+		printf("ScreenRead: probe 0x%08lx -> opcode 0x%04x",
+		       (unsigned long)rtarea_candidates[i], (unsigned int)opcode);
+		if ((opcode & 0xF000) == 0xA000) {
+			printf(" [A-line trap -- FOUND]\n");
 			return rtarea_candidates[i];
+		}
+		printf(" [not A-line]\n");
 	}
 	return 0;
 }
@@ -44,15 +54,35 @@ extern LONG call_screen_trap(ULONG trap_addr);
 int main(void)
 {
 	ULONG trap_addr;
+	LONG result;
+
+	printf("ScreenRead: starting (ADR-025 trap trigger)\n");
+	printf("ScreenRead: SysBase = 0x%08lx\n", (unsigned long)SysBase);
 
 	trap_addr = find_trap_addr();
 	if (!trap_addr) {
-		PutStr((STRPTR)"ScreenRead: no UAE trap found (not FS-UAE?)\n");
+		printf("ScreenRead: ERROR -- no UAE trap found at any candidate address\n");
+		printf("ScreenRead: not running in FS-UAE with ADR-025 consolehook?\n");
+		fflush(stdout);
 		return 10;
 	}
-	if (!call_screen_trap(trap_addr)) {
-		PutStr((STRPTR)"ScreenRead: trap returned failure\n");
+
+	printf("ScreenRead: calling trap at 0x%08lx (D1=150, A1=0)\n",
+	       (unsigned long)trap_addr);
+	fflush(stdout);
+
+	result = call_screen_trap(trap_addr);
+
+	printf("ScreenRead: trap returned %ld\n", (long)result);
+	fflush(stdout);
+
+	if (!result) {
+		printf("ScreenRead: ERROR -- trap returned 0 (no ConUnit or no log dir)\n");
+		fflush(stdout);
 		return 10;
 	}
+
+	printf("ScreenRead: SUCCESS -- .screen file written to host\n");
+	fflush(stdout);
 	return 0;
 }

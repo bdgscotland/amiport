@@ -279,4 +279,40 @@ if (use_metakey && (c & METABIT)) { ... }
 
 This affects ALL ported programs that handle keyboard input with VT100 escape sequences. Check during code-transformer stage for any `METABIT` or `0x80` bit-stripping code.
 
-**ALSO:** FS-UAE defaults to mapping host arrow keys to joystick port 1. This steals arrow keys from the keyboard entirely -- console.device receives zero bytes. Fix: `joystick_port_1_mode = nothing` in the FS-UAE config. This must be set for ANY interactive console testing. See `toolchain/configs/amiport-test.fs-uae`.
+**ALSO:** FS-UAE defaults to mapping host arrow keys to joystick port 1. This steals arrow keys from the keyboard entirely -- console.device receives zero bytes. Fix: `joystick_port_1_mode = nothing` in the FS-UAE config. This must be set for ANY interactive console testing. See `toolchain/configs/amiport-test.fs-uae`. This setting must also appear in the `test-fsemu.sh` generated config -- the static config is not enough if the script generates its own.
+
+## FS-UAE Joystick Port 1 Steals Arrow Keys
+
+FS-UAE maps host arrow keys to Amiga joystick port 1 by default. In RAW mode programs (mg, less, nano), this means arrow keys produce zero bytes -- console.device never sees them. The program appears unresponsive to cursor movement. This is NOT a bug in the ported code.
+
+**Fix:** Set `joystick_port_1_mode = nothing` in ALL FS-UAE config files:
+- `toolchain/configs/amiport-test.fs-uae` (static config)
+- Generated config in `scripts/test-fsemu.sh` (dynamic config)
+
+Both must have this setting. If only the static config has it but the test script generates its own config, arrow keys will still be stolen. Discovered during ADR-025 mg visual testing -- arrow keys worked in manual FS-UAE sessions (which used the static config) but failed in automated tests (which used the generated config).
+
+## ConUnit Cursor Not Updated in RAW Mode
+
+ConUnit fields `cu_XCCP` and `cu_YCCP` (offsets +62, +64) track the cursor column and row -- but ONLY in COOKED mode. When a program switches to RAW mode via `SetMode(fh, 1)` (as all console editors and pagers do), console.device's CSI processing is bypassed. The program writes raw ANSI escape sequences directly, and ConUnit's cursor fields stay at (0,0).
+
+Similarly, `RastPort cp_x/cp_y` always reads (0,0) because console.device uses Layer-level rendering, not direct RastPort drawing.
+
+**Impact on EXPECT_TRAP_CURSOR:** The ScreenRead trap (ADR-025 mode 150) reads ConUnit cursor position. For RAW mode programs like mg, less, and nano, EXPECT_TRAP_CURSOR always returns (0,0) regardless of actual cursor position.
+
+**Workaround:** For RAW mode programs, verify cursor position indirectly via the program's own status line. mg's status line (row 29 on a 30-row window) shows `(line,col)` and is updated via CMD_WRITE, so EXPECT_AT can read it. Example:
+```
+EXPECT_AT 29,28,2:1    /* mg status shows line 2, col 1 after DOWN arrow */
+```
+Column offset varies by filename length in the status line. This is the proven approach from the mg 3.7 visual test suite.
+
+## AddIEvents() Does Not Reliably Deliver to Active Window in Visual Tests
+
+`commodities.library/AddIEvents()` (used by KeyInject) injects input events into the Amiga input.device event chain. While this works for functional ITEST blocks (exit code verification), the injected keys do NOT reliably reach the target program's console in visual test passes.
+
+The root cause is that FS-UAE's emulated input.device processes AddIEvents() events differently from SDL-injected keyboard events. Physical keypresses go through FS-UAE's host-side SDL -> Amiga rawkey pipeline, which follows a different path than AddIEvents().
+
+**Fix:** Use host-side key injection via `scripts/inject-keys.sh` for visual tests. This sends keystrokes through macOS `osascript` (System Events), which feeds into FS-UAE's SDL input -- the same path as physical keypresses. The ARexx harness coordinates via sentinel files (`keys-request-N` / `keys-done-N`).
+
+**Rule of thumb:**
+- **Functional ITESTs** (exit code only): KeyInject via AddIEvents() -- works reliably
+- **Visual ITESTs** (SCRAPE + EXPECT_AT): Host-side injection via inject-keys.sh -- required for RAW mode programs
