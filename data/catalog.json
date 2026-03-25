@@ -2624,7 +2624,9 @@
         "estimated_stack_kb": 16,
         "estimated_binary_kb": 28,
         "estimated_data_kb": 2
-      }
+      },
+      "aminet_status": "missing",
+      "aminet_notes": "No dedicated Aminet package found. Available in Geek Gadgets as part of GNU coreutils. AmigaOS 3.x lacks native equivalent."
     },
     {
       "id": "logname",
@@ -2674,7 +2676,9 @@
         "estimated_stack_kb": 16,
         "estimated_binary_kb": 13,
         "estimated_data_kb": 1
-      }
+      },
+      "aminet_status": "missing",
+      "aminet_notes": "No Aminet package found. Part of Geek Gadgets/coreutils. AmigaOS has no direct equivalent (uses $LOGNAME env var when set)."
     },
     {
       "id": "tty",
@@ -2724,7 +2728,9 @@
         "estimated_stack_kb": 16,
         "estimated_binary_kb": 13,
         "estimated_data_kb": 1
-      }
+      },
+      "aminet_status": "missing",
+      "aminet_notes": "No standalone Aminet package found. Standard Unix utility; AmigaDOS uses different device model (CON: vs /dev/tty)."
     },
     {
       "id": "echo",
@@ -2818,7 +2824,9 @@
         "estimated_stack_kb": 16,
         "estimated_binary_kb": 34,
         "estimated_data_kb": 2
-      }
+      },
+      "aminet_status": "exists",
+      "aminet_notes": "Available as amiga.lib/printf() function in AmigaOS SDK, but shell command printf likely missing. Geek Gadgets has GNU printf."
     },
     {
       "id": "nl",
@@ -2866,7 +2874,9 @@
         "estimated_stack_kb": 16,
         "estimated_binary_kb": 28,
         "estimated_data_kb": 2
-      }
+      },
+      "aminet_status": "missing",
+      "aminet_notes": "No Aminet package found. GNU coreutils line numbering utility. Available via Geek Gadgets."
     },
     {
       "id": "colrm",
@@ -2916,7 +2926,9 @@
         "estimated_stack_kb": 8,
         "estimated_binary_kb": 12,
         "estimated_data_kb": 1
-      }
+      },
+      "aminet_status": "missing",
+      "aminet_notes": "No Aminet package found. BSD/GNU utility. Not part of standard Amiga distribution."
     },
     {
       "id": "cat",
@@ -2964,7 +2976,9 @@
         "estimated_stack_kb": 8,
         "estimated_binary_kb": 14,
         "estimated_data_kb": 2
-      }
+      },
+      "aminet_status": "exists",
+      "aminet_notes": "AmigaDOS TYPE command is the native equivalent. Unix-style cat may exist in Geek Gadgets; not confirmed on standalone Aminet."
     },
     {
       "id": "true",
@@ -3166,7 +3180,9 @@
         "estimated_stack_kb": 16,
         "estimated_binary_kb": 18,
         "estimated_data_kb": 2
-      }
+      },
+      "aminet_status": "exists",
+      "aminet_notes": "AmigaDOS DATE command exists (adate.lha also available on Aminet). Unix date format differs from AmigaDOS."
     },
     {
       "id": "expr",
@@ -3215,7 +3231,9 @@
         "estimated_stack_kb": 16,
         "estimated_binary_kb": 20,
         "estimated_data_kb": 2
-      }
+      },
+      "aminet_status": "missing",
+      "aminet_notes": "No standalone Aminet package found. Part of Geek Gadgets. AmigaOS lacks native shell arithmetic."
     },
     {
       "id": "test",
@@ -3265,7 +3283,9 @@
         "estimated_stack_kb": 8,
         "estimated_binary_kb": 18,
         "estimated_data_kb": 1
-      }
+      },
+      "aminet_status": "missing",
+      "aminet_notes": "AmigaDOS has IF conditional syntax. Unix test/[ builtin not found standalone on Aminet. Available via Geek Gadgets."
     },
     {
       "id": "seq",
@@ -3313,7 +3333,9 @@
         "estimated_stack_kb": 8,
         "estimated_binary_kb": 16,
         "estimated_data_kb": 1
-      }
+      },
+      "aminet_status": "missing",
+      "aminet_notes": "No Aminet package found. GNU utility for generating number sequences. Not in standard Amiga tools."
     },
     {
       "id": "jot",
@@ -3363,7 +3385,9 @@
         "estimated_stack_kb": 8,
         "estimated_binary_kb": 16,
         "estimated_data_kb": 1
-      }
+      },
+      "aminet_status": "missing",
+      "aminet_notes": "BSD utility. No Aminet package found. Not in standard Amiga distribution."
     },
     {
       "id": "factor",
@@ -3409,7 +3433,9 @@
         "estimated_stack_kb": 8,
         "estimated_binary_kb": 14,
         "estimated_data_kb": 1
-      }
+      },
+      "aminet_status": "missing",
+      "aminet_notes": "No Aminet package found. Niche mathematical utility. Not in standard Amiga tools."
     },
     {
       "id": "which",
@@ -3461,7 +3487,9 @@
         "estimated_stack_kb": 8,
         "estimated_binary_kb": 14,
         "estimated_data_kb": 1
-      }
+      },
+      "aminet_status": "missing",
+      "aminet_notes": "No standalone Aminet package found. AmigaDOS uses PATH: equivalent; \"which\" functionality not standard. Available via Geek Gadgets."
     },
     {
       "id": "nohup",
@@ -3511,7 +3539,9 @@
         "estimated_stack_kb": 8,
         "estimated_binary_kb": 12,
         "estimated_data_kb": 1
-      }
+      },
+      "aminet_status": "missing",
+      "aminet_notes": "No Aminet package found. Unix job control utility. AmigaDOS Run command provides similar \"detach\" functionality."
     },
     {
       "id": "look",
@@ -3559,7 +3589,9 @@
         "estimated_stack_kb": 8,
         "estimated_binary_kb": 16,
         "estimated_data_kb": 1
-      }
+      },
+      "aminet_status": "missing",
+      "aminet_notes": "No Aminet package found. BSD word lookup utility. Not in standard Amiga tools."
     },
     {
       "id": "strings",
@@ -3605,7 +3637,9 @@
         "estimated_stack_kb": 8,
         "estimated_binary_kb": 14,
         "estimated_data_kb": 1
-      }
+      },
+      "aminet_status": "missing",
+      "aminet_notes": "No standalone Aminet package found. Binary analysis tool. Not in standard Amiga distribution."
     },
     {
       "id": "cmp",
@@ -3651,7 +3685,9 @@
         "estimated_stack_kb": 16,
         "estimated_binary_kb": 18,
         "estimated_data_kb": 2
-      }
+      },
+      "aminet_status": "missing",
+      "aminet_notes": "No standalone Aminet package found. File comparison tool. Not in standard Amiga tools."
     },
     {
       "id": "cksum",
@@ -3697,7 +3733,9 @@
         "estimated_stack_kb": 8,
         "estimated_binary_kb": 14,
         "estimated_data_kb": 1
-      }
+      },
+      "aminet_status": "missing",
+      "aminet_notes": "No standalone Aminet package found. Checksum utility. Not in standard Amiga tools."
     },
     {
       "id": "md5",
@@ -3751,7 +3789,9 @@
         "estimated_stack_kb": 32,
         "estimated_binary_kb": 60,
         "estimated_data_kb": 8
-      }
+      },
+      "aminet_status": "exists",
+      "aminet_notes": "MD5SUM.lha (util/crypt), md5sum2.lha (util/misc), ARexxMD5.lha, and md5.lha all available on Aminet. Multiple implementations."
     },
     {
       "id": "pr",
@@ -3803,7 +3843,9 @@
         "estimated_stack_kb": 32,
         "estimated_binary_kb": 30,
         "estimated_data_kb": 4
-      }
+      },
+      "aminet_status": "missing",
+      "aminet_notes": "No Aminet package found. Print file formatter. Not in standard Amiga tools."
     },
     {
       "id": "col",
@@ -3851,7 +3893,9 @@
         "estimated_stack_kb": 16,
         "estimated_binary_kb": 18,
         "estimated_data_kb": 2
-      }
+      },
+      "aminet_status": "missing",
+      "aminet_notes": "No Aminet package found. Filter for reverse line feeds. Not in standard Amiga tools."
     },
     {
       "id": "vis",
@@ -3902,7 +3946,9 @@
         "estimated_stack_kb": 8,
         "estimated_binary_kb": 14,
         "estimated_data_kb": 1
-      }
+      },
+      "aminet_status": "missing",
+      "aminet_notes": "No Aminet package found. Display non-printing characters (BSD utility). Not in standard Amiga tools."
     },
     {
       "id": "rs",
@@ -3951,7 +3997,9 @@
         "estimated_stack_kb": 16,
         "estimated_binary_kb": 18,
         "estimated_data_kb": 4
-      }
+      },
+      "aminet_status": "missing",
+      "aminet_notes": "No Aminet package found. Reshape tool for data manipulation. Not in standard Amiga tools."
     },
     {
       "id": "dc",
@@ -4001,7 +4049,9 @@
         "estimated_stack_kb": 32,
         "estimated_binary_kb": 80,
         "estimated_data_kb": 16
-      }
+      },
+      "aminet_status": "missing",
+      "aminet_notes": "No Aminet package found. Desk calculator (arbitrary precision). Not in standard Amiga tools."
     },
     {
       "id": "apply",
@@ -4051,7 +4101,9 @@
         "estimated_stack_kb": 16,
         "estimated_binary_kb": 15,
         "estimated_data_kb": 2
-      }
+      },
+      "aminet_status": "missing",
+      "aminet_notes": "No apply tool found on Aminet. Typical POSIX shell utility for applying commands to argument lists."
     },
     {
       "id": "awk-plan9",
@@ -4148,7 +4200,9 @@
         "estimated_stack_kb": 8,
         "estimated_binary_kb": 10,
         "estimated_data_kb": 1
-      }
+      },
+      "aminet_status": "missing",
+      "aminet_notes": "getopt_long.lha exists but is a C library package (dev/c), not a CLI tool. No standalone getopt CLI found."
     },
     {
       "id": "sbase-seq",
