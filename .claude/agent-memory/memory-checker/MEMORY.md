@@ -75,3 +75,10 @@
   - Fixes still needed: first_cmd_at_prompt leak (~64 bytes), ttyin_name leak (~10-128 bytes)
   - Root cause: Partial fix applied but overlooked 2 of 4 global leaks in quit() cleanup
   - Optimizations reviewed: Static ansi_pool (CLEAN), OUTBUF_SIZE increase (CLEAN)
+
+- [memory-audit-comm.md](memory-audit-comm.md) - ports/comm v1.11 memory safety review (2026-03-24)
+  - Status: CLEAN
+  - Verdict: Approved for shipping — zero dynamic allocations, no leaks
+  - Summary: Simple CLI comparison tool with static line buffers, perfectly balanced file handle usage
+  - Key findings: No malloc/calloc/strdup (static buffers only), file handles never explicitly closed (AmigaOS auto-cleanup is correct), stdin/stdout handling avoids Workbench crash pitfall
+  - All exit paths safe, no error path leaks

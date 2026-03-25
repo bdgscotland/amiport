@@ -9,3 +9,6 @@
 - [port_bc_perf.md](port_bc_perf.md) - Performance findings for ports/bc 1.07.1 — DIVU in multiply loops, malloc pressure in execute stack, MUL_BASE_DIGITS tuning reviewed 2026-03-23
 - [port_less_perf.md](port_less_perf.md) - Performance findings for ports/less 692 — all first-round fixes verified, ch.c/output.c/screen.c deep scan, no new HIGH findings reviewed 2026-03-23
 - [port_mg_perf.md](port_mg_perf.md) - Performance findings for ports/mg (Micro GNU Emacs) — display rendering, ttyio buffer, ldelete memmove, ntabstop division, ffgetline getc loop reviewed 2026-03-24
+- [port_comm_perf.md](port_comm_perf.md) - Performance findings for ports/comm 1.11 — printf hotpath, strcoll overhead, amiport_check_break batching reviewed 2026-03-24
+- [port_rev_perf.md](port_rev_perf.md) - Performance findings for ports/rev 1.16 — putchar-per-byte hotloop replaced with in-place swap + fwrite, multibyte dead branch removed 2026-03-25
+- [port_expand_perf.md](port_expand_perf.md) - Performance findings for ports/expand 1.15 — getchar/putchar per-byte hotloop, fgets+fwrite rewrite recommended reviewed 2026-03-25

@@ -5,32 +5,58 @@
 | Field | Value |
 |-------|-------|
 | Port | mg |
-| Date | 2026-03-24 17:15:34 |
-| Duration | 191s |
+| Date | 2026-03-25 13:08:10 |
+| Duration | 307s |
 | Platform | FS-UAE 3.2.35 (A1200, Kickstart 3.1) |
-| Binary | `WORK:mg` (193K) |
+| Binary | `WORK:mg` (194K) |
 | Test method | ARexx harness → TAP output |
-| Result | **PASS** — 4/4 passed |
+| Result | **PASS** — 17/17 passed |
 
 ## Test Results
 
 ```
-1..4
-ok 1 - Visual: basic file content correct on all 5 lines
-ok 2 - Visual: scroll file displays numbered lines
-ok 3 - Visual: -R read-only mode still displays file
-ok 4 - Visual: -R flag displays all 5 lines
-# passed: 4 failed: 0 total: 4
+1..17
+ok 1 - -h flag prints usage and exits with RC 0
+ok 2 - Unknown flag exits with RC 10
+ok 3 - -f with unknown function name exits with RC 10
+ok 4 - -b and -u flags are mutually exclusive, exits with RC 10
+ok 5 - -u with nonexistent config file exits with RC 10
+ok 6 - Search forward with C-s for a word, then quit
+ok 7 - Search backward with C-r for a word, then quit
+ok 8 - Open mg with no file and quit cleanly with C-x C-c
+ok 9 - Open a file and quit without saving using C-x C-c
+ok 10 - Open read-only with -R flag and quit
+ok 11 - Use +number to start at line 3 then quit
+ok 12 - Type text into scratch buffer and quit discarding with y
+ok 13 - Open file, add a character, undo with C-x u, quit
+ok 14 - Kill a line with C-k and yank it back with C-y, quit discarding
+ok 15 - Move cursor to end of line with C-e, beginning with C-a, quit
+ok 16 - Move cursor forward and back with C-f and C-b then quit
+ok 17 - Move cursor down and up with C-n and C-p then quit
+# passed: 17 failed: 0 total: 17
 ```
 
 ### Breakdown
 
 | # | Test | Status | Details |
 |---|------|--------|---------|
-| 1 | Visual: basic file content correct on all 5 lines | PASS | |
-| 2 | Visual: scroll file displays numbered lines | PASS | |
-| 3 | Visual: -R read-only mode still displays file | PASS | |
-| 4 | Visual: -R flag displays all 5 lines | PASS | |
+| 1 | -h flag prints usage and exits with RC 0 | PASS | |
+| 2 | Unknown flag exits with RC 10 | PASS | |
+| 3 | -f with unknown function name exits with RC 10 | PASS | |
+| 4 | -b and -u flags are mutually exclusive, exits with RC 10 | PASS | |
+| 5 | -u with nonexistent config file exits with RC 10 | PASS | |
+| 6 | Search forward with C-s for a word, then quit | PASS | |
+| 7 | Search backward with C-r for a word, then quit | PASS | |
+| 8 | Open mg with no file and quit cleanly with C-x C-c | PASS | |
+| 9 | Open a file and quit without saving using C-x C-c | PASS | |
+| 10 | Open read-only with -R flag and quit | PASS | |
+| 11 | Use +number to start at line 3 then quit | PASS | |
+| 12 | Type text into scratch buffer and quit discarding with y | PASS | |
+| 13 | Open file, add a character, undo with C-x u, quit | PASS | |
+| 14 | Kill a line with C-k and yank it back with C-y, quit discarding | PASS | |
+| 15 | Move cursor to end of line with C-e, beginning with C-a, quit | PASS | |
+| 16 | Move cursor forward and back with C-f and C-b then quit | PASS | |
+| 17 | Move cursor down and up with C-n and C-p then quit | PASS | |
 
 ## Environment
 
@@ -189,9 +215,9 @@ Written by the ARexx harness when all tests complete:
 
 ```
 TESTS_COMPLETE
-passed=4
+passed=17
 failed=0
-total=4
+total=17
 ```
 
 ---

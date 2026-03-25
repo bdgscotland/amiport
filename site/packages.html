@@ -126,6 +126,47 @@
                 <!-- Metadata -->
                 <dl class="pkg-detail__meta mt-md" id="pkg-detail-meta">
                 </dl>
+
+                <!-- Bug Report Form -->
+                <div class="mt-md">
+                    <button class="btn" id="pkg-report-toggle" type="button">Report Issue</button>
+                </div>
+                <div id="pkg-report-form-wrap" class="hidden mt-md">
+                    <div class="group-frame">
+                        <div class="group-frame__title">Report an Issue</div>
+                        <div class="group-frame__body">
+                            <div id="pkg-report-alert" class="hidden mb-sm"></div>
+                            <form id="pkg-report-form" class="request-form">
+                                <input type="hidden" id="report-package" name="package">
+
+                                <label for="report-desc">What happened? <span aria-hidden="true">*</span></label>
+                                <textarea id="report-desc" name="description" class="wb-textarea mb-sm"
+                                    placeholder="Describe what went wrong" required maxlength="1000" rows="3"></textarea>
+
+                                <label for="report-cmd">Command you ran (optional)</label>
+                                <input type="text" id="report-cmd" name="command" class="wb-input mb-sm"
+                                    placeholder="e.g. sed 's/old/new/' file.txt" maxlength="500">
+
+                                <label for="report-setup">Your Amiga setup (optional)</label>
+                                <input type="text" id="report-setup" name="setup" class="wb-input mb-sm"
+                                    placeholder="e.g. A1200 + 68030 + Roadshow" maxlength="200">
+
+                                <label for="report-email">Email for follow-up (optional)</label>
+                                <input type="email" id="report-email" name="email" class="wb-input mb-md"
+                                    placeholder="your@email.com" maxlength="200">
+
+                                <!-- Honeypot -->
+                                <div style="position:absolute;left:-9999px" aria-hidden="true">
+                                    <label for="report-website">Website:</label>
+                                    <input type="text" id="report-website" name="website" tabindex="-1" autocomplete="off">
+                                </div>
+
+                                <p class="text-muted" style="font-size:13px;margin-bottom:8px">Your report will be tracked as a public <a href="https://github.com/bdgscotland/amiport/issues" target="_blank" rel="noopener">GitHub issue</a>. Email is only used for follow-up and won't appear publicly.</p>
+                                <button type="submit" class="btn btn--primary" id="pkg-report-submit">Submit Report</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
             </div>
         </section>
 

@@ -16,6 +16,7 @@
  *     EXPECT: expected output (exact first-line match)
  *   Optional assertion lines (can combine with EXPECT:):
  *     EXPECT_CONTAINS: substring to find in output (instead of EXPECT:)
+ *     EXPECT_LINE: N,text  -- exact match of line N (1-indexed) of stdout
  *     EXPECT_RC: expected Amiga return code (0, 5, 10, or 20)
  *
  *   Interactive tests (ADR-023) use ITEST: blocks:
@@ -123,6 +124,15 @@ DO WHILE ~EOF('tf')
         WHEN LEFT(line, 16) = 'EXPECT_CONTAINS:' THEN DO
             expect.testcount = STRIP(SUBSTR(line, 17))
             expect_mode.testcount = 'CONTAINS'
+        END
+        WHEN LEFT(line, 12) = 'EXPECT_LINE:' THEN DO
+            /* EXPECT_LINE: N,text -- exact match of line N (1-indexed).
+             * Accumulated as newline-separated string (ARexx has no
+             * multi-level compound variables). */
+            IF expect_lines.testcount = 'EXPECT_LINES.' || testcount THEN
+                expect_lines.testcount = line
+            ELSE
+                expect_lines.testcount = expect_lines.testcount || '0a'x || line
         END
         WHEN LEFT(line, 10) = 'EXPECT_RC:' THEN DO
             expect_rc.testcount = STRIP(SUBSTR(line, 11))
@@ -452,6 +462,47 @@ DO i = 1 TO testcount
         IF STRIP(firstline) = STRIP(texpect) THEN match = 1
     END
 
+    /* Check EXPECT_LINE: assertions (line-specific exact match).
+     * Split actual output into lines, then check each EXPECT_LINE. */
+    line_ok = 1
+    line_diag = ''
+    texpect_lines = expect_lines.i
+    IF texpect_lines ~= 'EXPECT_LINES.' || i THEN DO
+        /* Split actual output into indexed lines */
+        tmp_actual = actual
+        actual_lc = 0
+        DO WHILE tmp_actual ~= ''
+            PARSE VAR tmp_actual aline '0a'x tmp_actual
+            actual_lc = actual_lc + 1
+            actual_line.actual_lc = aline
+        END
+        /* Process each EXPECT_LINE assertion */
+        tmp_el = texpect_lines
+        DO WHILE tmp_el ~= ''
+            PARSE VAR tmp_el el_entry '0a'x tmp_el
+            /* Parse "EXPECT_LINE: N,text" */
+            el_spec = STRIP(SUBSTR(el_entry, 13))
+            PARSE VAR el_spec el_num ',' el_text
+            el_num = STRIP(el_num)
+            el_text = STRIP(el_text)
+            IF DATATYPE(el_num, 'W') THEN DO
+                IF el_num > 0 THEN DO
+                    IF el_num <= actual_lc THEN DO
+                        IF STRIP(actual_line.el_num) ~= el_text THEN DO
+                            line_ok = 0
+                            line_diag = line_diag || '#   line' el_num 'expected:' el_text || '0a'x
+                            line_diag = line_diag || '#   line' el_num 'actual:  ' STRIP(actual_line.el_num) || '0a'x
+                        END
+                    END
+                    ELSE DO
+                        line_ok = 0
+                        line_diag = line_diag || '#   line' el_num 'expected but output has only' actual_lc 'lines' || '0a'x
+                    END
+                END
+            END
+        END
+    END
+
     /* Check exit code if EXPECT_RC: was specified */
     rc_ok = 1
     trc = expect_rc.i
@@ -460,7 +511,7 @@ DO i = 1 TO testcount
         IF cmdrc ~= trc THEN rc_ok = 0
     END
 
-    IF match = 1 & rc_ok = 1 THEN DO
+    IF match = 1 & rc_ok = 1 & line_ok = 1 THEN DO
         CALL WRITELN('rf', 'ok' i '- ' || tdesc)
         passed = passed + 1
     END
@@ -473,6 +524,8 @@ DO i = 1 TO testcount
                 CALL WRITELN('rf', '#   expected:' texpect)
             CALL WRITELN('rf', '#   actual:  ' actual)
         END
+        IF line_ok = 0 THEN
+            CALL WRITECH('rf', line_diag)
         IF rc_ok = 0 THEN
             CALL WRITELN('rf', '#   expected RC:' trc '  actual RC:' cmdrc)
         failed = failed + 1

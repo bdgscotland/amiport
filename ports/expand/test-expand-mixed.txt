@@ -1,0 +1,3 @@
+word1   	word2
+   	after3spaces
+col1	col2	col3

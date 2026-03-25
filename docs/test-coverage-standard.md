@@ -132,10 +132,18 @@ EXPECT_RC: 0
 ```
 
 - `EXPECT:` — exact match of first line of stdout (empty = no output expected)
-- `EXPECT_CONTAINS:` — substring match (for multi-line output)
+- `EXPECT_LINE: N,text` — exact match of line N (1-indexed) of stdout. Use for multi-line output verification.
+- `EXPECT_CONTAINS:` — substring match (for multi-line output). **Use only when exact match is not possible** (non-deterministic output, variable line positions).
 - `EXPECT_RC:` — expected Amiga return code (optional but RECOMMENDED for every test)
 - Input files must be pre-created (no piping in ARexx)
 - **stderr is NOT captured** — error messages from `warn()`, `err()`, `fprintf(stderr,...)` do not appear in test output. For error path tests, use `EXPECT_RC:` only. Do not use `EXPECT:` or `EXPECT_CONTAINS:` for error messages.
+
+### Output Verification Requirements
+
+1. **Every `EXPECT:` and `EXPECT_LINE:` value must be derived from running the native tool**, not guessed or hand-crafted. The test-designer must run the native macOS tool to compute exact expected output.
+2. **Prefer `EXPECT:` over `EXPECT_CONTAINS:`** for deterministic output. `EXPECT_CONTAINS:` is a last resort for non-deterministic or position-variable output.
+3. **Multi-line output programs must verify beyond line 1.** Use `EXPECT_LINE:` to check at least one non-first line. For N-line output, verify line 1 (EXPECT:) and line N or a late line (EXPECT_LINE:).
+4. **Spacing/alignment programs (expand, comm, cut) must use exact `EXPECT:`**, never `EXPECT_CONTAINS:` for column verification.
 
 ### 6. Visual Verification Tests (Category 3+ — ADR-024)
 

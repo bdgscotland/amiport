@@ -5,17 +5,17 @@
 | Field | Value |
 |-------|-------|
 | Port | sed |
-| Date | 2026-03-22 17:30:41 |
-| Duration | 61s |
+| Date | 2026-03-25 12:43:48 |
+| Duration | 49s |
 | Platform | FS-UAE 3.2.35 (A1200, Kickstart 3.1) |
-| Binary | `WORK:sed` (63K) |
+| Binary | `WORK:sed` (62K) |
 | Test method | ARexx harness → TAP output |
-| Result | **PASS** — 59/59 passed |
+| Result | **PASS** — 60/60 passed |
 
 ## Test Results
 
 ```
-1..59
+1..60
 ok 1 - s command substitutes first occurrence on each line
 ok 2 - -n flag suppresses auto-print (silent mode)
 ok 3 - -e flag specifies expression on command line
@@ -71,11 +71,12 @@ ok 52 - single-line file processed correctly
 ok 53 - file with no trailing newline handled correctly
 ok 54 - l command shows line terminator dollar on long line
 ok 55 - multiple input files processed in sequence
-ok 56 - WORK: volume path accepted as input file argument
-ok 57 - two -e and -f flags combined (both flag types together)
-ok 58 - -E with grouping and alternation (extended regex features)
-ok 59 - line number output uses Amiga LONG format (no sign issues)
-# passed: 59 failed: 0 total: 59
+ok 56 - -f with script containing spaces in pattern (AmigaDOS quoting workaround)
+ok 57 - WORK: volume path accepted as input file argument
+ok 58 - two -e and -f flags combined (both flag types together)
+ok 59 - -E with grouping and alternation (extended regex features)
+ok 60 - line number output uses Amiga LONG format (no sign issues)
+# passed: 60 failed: 0 total: 60
 ```
 
 ### Breakdown
@@ -137,10 +138,11 @@ ok 59 - line number output uses Amiga LONG format (no sign issues)
 | 53 | file with no trailing newline handled correctly | PASS | |
 | 54 | l command shows line terminator dollar on long line | PASS | |
 | 55 | multiple input files processed in sequence | PASS | |
-| 56 | WORK: volume path accepted as input file argument | PASS | |
-| 57 | two -e and -f flags combined (both flag types together) | PASS | |
-| 58 | -E with grouping and alternation (extended regex features) | PASS | |
-| 59 | line number output uses Amiga LONG format (no sign issues) | PASS | |
+| 56 | -f with script containing spaces in pattern (AmigaDOS quoting workaround) | PASS | |
+| 57 | WORK: volume path accepted as input file argument | PASS | |
+| 58 | two -e and -f flags combined (both flag types together) | PASS | |
+| 59 | -E with grouping and alternation (extended regex features) | PASS | |
+| 60 | line number output uses Amiga LONG format (no sign issues) | PASS | |
 
 ## Environment
 
@@ -444,6 +446,12 @@ EXPECT_RC: 0
 
 # --- Amiga-specific tests ---
 
+TEST: -f with script containing spaces in pattern (AmigaDOS quoting workaround)
+CMD: WORK:sed -f WORK:test-sed-spaces.sed WORK:test-sed-input.txt
+EXPECT: hello world
+EXPECT_CONTAINS: FOO BAR baz
+EXPECT_RC: 0
+
 TEST: WORK: volume path accepted as input file argument
 CMD: WORK:sed -n 1p WORK:test-sed-input.txt
 EXPECT: hello world
@@ -477,9 +485,9 @@ Written by the ARexx harness when all tests complete:
 
 ```
 TESTS_COMPLETE
-passed=59
+passed=60
 failed=0
-total=59
+total=60
 ```
 
 ---

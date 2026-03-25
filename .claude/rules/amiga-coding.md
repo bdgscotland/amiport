@@ -4,11 +4,19 @@ Paths: ports/**/*.c, ports/**/*.h, lib/**/*.c, lib/**/*.h, examples/**/*.c, exam
 
 These rules apply to ALL C code targeting AmigaOS in this project.
 
-## API Documentation — MANDATORY LOOKUP
+## API Documentation — MANDATORY LOOKUP (ENFORCED BY HOOK)
 
-When writing code that calls AmigaOS functions (exec.library, dos.library, timer.device, intuition, graphics, etc.), **invoke the `/amiga-api-lookup` skill** to load the ADCD reference documentation. Do NOT guess at function signatures, struct layouts, or usage patterns — look them up. The ADCD is the authoritative source.
+**HARD RULE: Before writing ANY code that includes `<proto/*.h>`, `<devices/*.h>`, `<exec/*.h>`, or references AmigaOS structs (ConUnit, MsgPort, IOStdReq, FileHandle, etc.):**
 
-This applies to: shim implementations, new library features (profiler, crash handler, etc.), code review of AmigaOS calls, and any design work involving AmigaOS APIs.
+1. **Invoke `/amiga-api-lookup`** to load the ADCD reference documentation
+2. **Dispatch `hardware-expert` agent** for any hardware assumptions (memory layout, CPU features, struct sizes, field offsets)
+3. **Verify struct offsets** against the ADCD header — NEVER compute offsets from memory or guess them
+
+A PreToolUse hook (`enforce-adcd-lookup.sh`) fires on every Edit/Write to C files containing AmigaOS API includes. It warns if ADCD docs weren't loaded. This is not optional.
+
+**Why this is enforced:** Agents repeatedly guess at AmigaOS struct offsets (ConUnit fields, MsgPort size, FileHandle layout) and function signatures, producing subtle bugs that waste hours of debugging. The cost of looking it up is 5 seconds. The cost of guessing wrong is hours.
+
+This applies to: shim implementations, new library features (profiler, crash handler, etc.), code review of AmigaOS calls, design work involving AmigaOS APIs, and FS-UAE trap handlers that read emulated memory.
 
 ## Character Encoding — ASCII ONLY
 

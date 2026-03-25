@@ -1,0 +1,25 @@
+Short:        Convert tabs to spaces
+Type:         util/cli
+Architecture: m68k-amigaos >= 3.0
+Uploader:     duncan@bowring.us
+Author:       University of California, Berkeley (ported by Duncan Bowring)
+Version:      1.15
+
+expand - Convert tabs to spaces
+
+Original author: University of California, Berkeley
+Ported by Duncan Bowring using amiport (AI-assisted porting toolkit).
+Project: https://github.com/bdgscotland/amiport
+
+Cross-compiled with m68k-amigaos-gcc for AmigaOS 3.x (68000+).
+Tested in vamos emulator and FS-UAE.
+
+Usage:
+  expand [-t tablist] [file ...]
+
+  expand file.txt           Expand tabs to spaces (8-column stops)
+  expand -t 4 file.txt      Use 4-column tab stops
+  expand -t 4,8,12 file.txt Custom tab stops at columns 4, 8, 12
+
+Includes full source code (original POSIX and ported Amiga versions)
+and PORT.md documenting every transformation applied.

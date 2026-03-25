@@ -15,12 +15,22 @@ Cross-compiled with m68k-amigaos-gcc for AmigaOS 3.x (68000+).
 Tested in vamos emulator.
 
 Usage:
-  sed 's/old/new/' file.txt          Substitute first match per line
-  sed 's/old/new/g' file.txt         Substitute all matches
-  sed -n '10,20p' file.txt           Print lines 10-20
-  sed '/pattern/d' file.txt          Delete matching lines
-  echo "hello" | sed 'y/helo/HELO/'  Transliterate characters
-  sed -e 's/a/A/' -e 's/b/B/' file   Multiple expressions
+  sed s/old/new/ file.txt            Substitute first match per line
+  sed s/old/new/g file.txt           Substitute all matches
+  sed -n 10,20p file.txt             Print lines 10-20
+  sed /pattern/d file.txt            Delete matching lines
+  sed -f script.sed file.txt         Run commands from script file
+  sed -e s/a/A/ -e s/b/B/ file      Multiple expressions
+
+AmigaDOS shell note:
+  AmigaDOS does NOT support single quotes (') for grouping.
+  Unix:    sed 's/; old/ new/' file    <-- WILL NOT WORK
+  Amiga:   sed "s/; old/ new/" file    <-- use double quotes
+  Amiga:   sed -f script.sed file      <-- best: use a script file
+
+  If your sed expression contains spaces, use double quotes or
+  put the expression in a file and use -f. Expressions without
+  spaces (like s/foo/bar/) need no quotes at all.
 
 Exit codes (Amiga-native):
   0  = success (RETURN_OK)

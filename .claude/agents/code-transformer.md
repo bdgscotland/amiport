@@ -9,6 +9,7 @@ skills:
   - c89-reference
   - crash-patterns
   - libnix-reference
+  - amiga-api-lookup
 hooks:
   PostToolUse:
     - matcher: Edit|Write

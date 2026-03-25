@@ -1,0 +1,22 @@
+{
+    "name": "comm",
+    "version": "1.11",
+    "description": "Compare two sorted files line by line",
+    "category": "util/cli",
+    "source": "OpenBSD comm v1.11",
+    "license": "BSD 3-Clause",
+    "size": 16473,
+    "sha256": "4165661a508a41f96aecde27674607dff7688923c2507b8d5e3fd8721cfb52c1",
+    "download": "/packages/comm-1.11.lha",
+    "requires": [],
+    "aminet": "",
+    "stack": 32768,
+    "status": "stable",
+    "revision": 1,
+    "published_at": "2026-03-25T12:39:00Z",
+    "readme": "Short:        Compare two sorted files line by line\nType:         util/cli\nArchitecture: m68k-amigaos >= 3.0\nUploader:     duncan (at) bowring (dot) us\nAuthor:       University of California, Berkeley (ported by Duncan Bowring)\nVersion:      1.11\n\ncomm - Compare two sorted files line by line\n\nOriginal author: University of California, Berkeley (Case Larsen)\nPorted by Duncan Bowring using amiport (AI-assisted porting toolkit).\nProject: https://github.com/bdgscotland/amiport\n\nCross-compiled with m68k-amigaos-gcc for AmigaOS 3.x (68000+).\nTested in vamos emulator and FS-UAE.\n\nUsage:\n  comm [-123f] file1 file2\n\n  comm file1 file2       Show all three columns\n  comm -12 file1 file2   Show only common lines (column 3)\n  comm -23 file1 file2   Show lines only in file1\n  comm -13 file1 file2   Show lines only in file2\n  comm -f file1 file2    Case-insensitive comparison\n\nIncludes full source code (original POSIX and ported Amiga versions)\nand PORT.md documenting every transformation applied.\n",
+    "test_count": 30,
+    "test_pass": 30,
+    "porting_notes": "Single-file EASY port (179 lines, pure C89). Standard Tier 1 transformations: pledge() stubbed as macro, exit(1) changed to exit(10) (RETURN_ERROR), LINE_MAX guarded with #ifndef fallback, __stack = 32768 cookie added, $VER string added. Review-amiga improvements: amiport_check_break() added to both comparison loops batched every 64 iterations (Ctrl-C handling); fclose(stdout) replaced with fflush(stdout) to avoid closing shell handle; line buffers made static to reduce stack pressure. Perf-optimizer: printf replaced with fputs (avoids format dispatch overhead on 7MHz 68000); strcoll replaced with strcmp (libnix has no real locale support). Memory audit CLEAN -- no dynamic allocation, no leaks, all exit paths safe. 30/30 FS-UAE tests pass including flag combinations, error paths, edge cases (empty files, single-line files, no-common-lines), long lines, stress test with 200-line files, and real-world use cases.",
+    "known_limitations": "strcoll() collation depends on AmigaOS locale; for non-ASCII filenames results may differ from POSIX sort order. -f flag uses tolower() which only handles ASCII case folding (no locale-aware case comparison on AmigaOS 3.x)."
+}

@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "generated": "2026-03-24T22:38:11.409759Z",
+  "generated": "2026-03-25T12:39:00Z",
   "shim_library_version": "1.0",
   "hardware_profiles": {
     "stock_a1200": {
@@ -1500,56 +1500,6 @@
       "aminet_notes": "GNU coreutils 5.2.1-9 (m68k, 2010). Note: version is from 2005, 20+ years old but functional.",
       "community_value": 4,
       "community_value_reason": "Relational join of sorted files \u2014 data processing tool."
-    },
-    {
-      "id": "comm",
-      "name": "comm",
-      "description": "Select or reject lines common to two files",
-      "amiport_category": "cli",
-      "aminet_category": "util/cli",
-      "upstream": {
-        "source": "openbsd",
-        "version": "latest",
-        "license": "BSD-3-Clause",
-        "url": "https://cvsweb.openbsd.org/src/usr.bin/comm/",
-        "files": 1,
-        "lines_of_code": 160
-      },
-      "status": "candidate",
-      "analysis_status": "complete",
-      "publishable": true,
-      "notes": "Single file, pure stdio",
-      "analysis": {
-        "analyzed_date": "2026-03-25",
-        "analyzer_version": "1.0",
-        "shim_library_version": "1.0",
-        "posix_tier_mix": {
-          "tier1": 3,
-          "tier2": 0,
-          "tier3": 0
-        },
-        "missing_shims": [],
-        "blocking_shims": [],
-        "blocker_workaround": null,
-        "dependencies": [],
-        "source_complexity": 0.98,
-        "estimated_stack_kb": 8,
-        "estimated_binary_kb": 12,
-        "estimated_data_kb": 1
-      },
-      "readiness": {
-        "score": 0.997,
-        "tier": "ready"
-      },
-      "hardware_fit": {
-        "stock_a1200": "fits",
-        "a1200_accel": "fits",
-        "a4000_030": "fits"
-      },
-      "aminet_status": "missing",
-      "aminet_notes": "Not available as standalone utility. GNU coreutils-bin v5.2.1-9 (2006) includes it.",
-      "community_value": 4,
-      "community_value_reason": "Compare sorted files \u2014 useful for diff workflows alongside diff."
     },
     {
       "id": "tsort",
@@ -6039,6 +5989,26 @@
       "measured_binary_kb": 193,
       "measured_stack_kb": 64,
       "test_count": 18,
+      "test_pass_rate": 1.0,
+      "hardware_verified": [
+        "a1200_accel"
+      ]
+    },
+    {
+      "id": "comm",
+      "name": "comm",
+      "version": "1.11",
+      "description": "Compare two sorted files line by line",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream_source": "openbsd",
+      "upstream_license": "BSD-3-Clause",
+      "port_date": "2026-03-25",
+      "aminet_status": "missing",
+      "aminet_url": "",
+      "measured_binary_kb": 28,
+      "measured_stack_kb": 32,
+      "test_count": 30,
       "test_pass_rate": 1.0,
       "hardware_verified": [
         "a1200_accel"

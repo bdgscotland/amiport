@@ -33,14 +33,83 @@ Each test in `test-fsemu-cases.txt` uses this format. Blank lines separate tests
     EXPECT: expected first-line output (exact match)
     EXPECT_RC: expected Amiga return code (0, 5, 10, or 20)
 
-Assertion types (can combine EXPECT + EXPECT_RC on same test):
+Assertion types (can combine multiple on same test):
 - `EXPECT:` — exact match of first line of stdout
+- `EXPECT_LINE: N,text` — exact match of line N (1-indexed) of stdout
 - `EXPECT_CONTAINS:` — substring match anywhere in output
 - `EXPECT_RC:` — expected Amiga return code
 
 `WORK:` is the FS-UAE volume where binaries and test files are mounted. All paths in CMD must use `WORK:` prefix.
 
 ARexx `ADDRESS COMMAND` does NOT support stdin piping. If a program reads from stdin, create a pre-built input file and pass it as a file argument instead.
+
+## Output Verification Strategy — CRITICAL
+
+**Tests must verify exact correctness, not just "something came out."**
+
+### 1. Pre-Compute Expected Output from Native Tool
+
+For every functional test, **run the native tool on macOS** to compute the exact expected output. Do not guess or hand-craft expected values.
+
+```bash
+# Run the native tool to get exact expected output
+echo -e "hello\tworld" | expand > /tmp/expected.txt
+head -1 /tmp/expected.txt   # Use this as the EXPECT: value
+```
+
+Add a comment above each test showing the native command used:
+```
+# Native: expand test-expand-tabs.txt | head -1
+TEST: Default 8-column tab stop expands single tab
+CMD: WORK:expand WORK:test-expand-tabs.txt
+EXPECT: hello   world
+EXPECT_RC: 0
+```
+
+### 2. Prefer EXPECT: Over EXPECT_CONTAINS:
+
+- **Use `EXPECT:` (exact first line)** as the default for all tests with deterministic output
+- **Use `EXPECT_LINE: N,text`** for multi-line output — verify first line, last line, and at least one middle line
+- **Only use `EXPECT_CONTAINS:`** when output is non-deterministic (timestamps, memory addresses, randomized order) or when verifying a substring in multi-line output where exact line position varies
+
+**BAD — too loose:**
+```
+TEST: Reverse a word
+CMD: WORK:rev WORK:test-rev-basic.txt
+EXPECT_CONTAINS: olleh
+```
+
+**GOOD — exact verification:**
+```
+# Native: rev test-rev-basic.txt | head -1
+TEST: Reverse a word
+CMD: WORK:rev WORK:test-rev-basic.txt
+EXPECT: olleh
+EXPECT_LINE: 2,dlrow
+EXPECT_RC: 0
+```
+
+### 3. Multi-Line Output Verification
+
+For programs that produce multi-line output, use `EXPECT_LINE:` to verify specific lines beyond the first:
+
+```
+# Native: comm test-file1.txt test-file2.txt
+TEST: Default output shows all three columns
+CMD: WORK:comm WORK:test-comm-file1.txt WORK:test-comm-file2.txt
+EXPECT: apple
+EXPECT_LINE: 3,		cherry
+EXPECT_LINE: 5,	date
+EXPECT_RC: 0
+```
+
+**Minimum multi-line verification:** If a test produces N output lines and N > 1, verify at least:
+- Line 1 (via `EXPECT:`)
+- Line N or a late line (via `EXPECT_LINE:`)
+
+### 4. Spacing and Alignment Verification
+
+For programs where column alignment matters (expand, comm, cut, paste), **always use `EXPECT:` with exact spacing**, never `EXPECT_CONTAINS:`. Pre-compute by running the native tool and counting characters.
 
 ## Source Analysis Methodology
 
@@ -320,6 +389,9 @@ After generating test-fsemu-cases.txt (and test-fsemu-visual-cases.txt for Categ
 8. **Every `WORK:test-*.sed` reference has a matching file** in the port directory
 9. **No SCRAPE tests in test-fsemu-cases.txt** — they belong in test-fsemu-visual-cases.txt only
 10. **Category 3+ ports have test-fsemu-visual-cases.txt** with at least 3 SCRAPE tests
+11. **Every EXPECT: value was derived from running the native tool** — not guessed
+12. **Multi-line output tests use EXPECT_LINE:** to verify at least one non-first line
+13. **No EXPECT_CONTAINS: where EXPECT: would work** — exact match is always preferred for deterministic output
 
 ## Coverage Report
 

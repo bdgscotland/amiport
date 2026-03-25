@@ -22,6 +22,9 @@ Programs ported to AmigaOS 3.x using the amiport pipeline.
 | [patch](ports/patch/) | 1.78 | Apply diff patches to source files | CLI | OpenBSD patch v1.78 (ISC + BSD) | Built & tested (42/42 FS-UAE) | Not submitted |
 | [less](ports/less/) | 692 | Terminal pager with search and scroll | Console UI | GNU less 692 (GPL-3.0 / Less License) | Built & tested (20/20 FS-UAE) | Not submitted |
 | [mg](ports/mg/) | 3.7 | Micro Emacs-like text editor | Console UI | troglobit/mg 3.7 (Public Domain) | Built & tested (18/18 FS-UAE) | Not submitted |
+| [comm](ports/comm/) | 1.11 | Compare two sorted files line by line | CLI | OpenBSD comm v1.11 (BSD 3-Clause) | Built & tested (30/30 FS-UAE) | Not submitted |
+| [rev](ports/rev/) | 1.16 | Reverse lines character by character | CLI | OpenBSD rev v1.16 (BSD 3-Clause) | Built & tested (24/24 FS-UAE) | Not submitted |
+| [expand](ports/expand/) | 1.15 | Convert tabs to spaces | CLI | OpenBSD expand v1.15 (BSD 3-Clause) | Built & tested (29/29 FS-UAE) | Not submitted |
 
 ## Aminet Publication Tracking
 
@@ -65,6 +68,9 @@ Each port exercises different parts of the posix-shim library:
 | patch | `stat/fstat`, `open/read/write/close/lseek`, `unlink/rename/mkdir/chdir/chmod`, `signal`, `getline/mkstemp`, `getopt_long`, `recallocarray`, `opendir/readdir/closedir`, `strtonum/warnc`, `emu_mmap/emu_munmap` |
 | bc | `signal`, `isatty`, `getenv`, `check_break` |
 | jq | `stat/fstat`, `isatty`, `realpath`, `gettimeofday` |
+| comm | `err`, `check_break` |
+| rev | `err/warn`, `getline` |
+| expand | `err/errx`, `expand_argv/free_argv` |
 
 ## How to Build
 

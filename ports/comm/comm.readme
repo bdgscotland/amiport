@@ -1,0 +1,27 @@
+Short:        Compare two sorted files line by line
+Type:         util/cli
+Architecture: m68k-amigaos >= 3.0
+Uploader:     duncan@bowring.us
+Author:       University of California, Berkeley (ported by Duncan Bowring)
+Version:      1.11
+
+comm - Compare two sorted files line by line
+
+Original author: University of California, Berkeley (Case Larsen)
+Ported by Duncan Bowring using amiport (AI-assisted porting toolkit).
+Project: https://github.com/bdgscotland/amiport
+
+Cross-compiled with m68k-amigaos-gcc for AmigaOS 3.x (68000+).
+Tested in vamos emulator and FS-UAE.
+
+Usage:
+  comm [-123f] file1 file2
+
+  comm file1 file2       Show all three columns
+  comm -12 file1 file2   Show only common lines (column 3)
+  comm -23 file1 file2   Show lines only in file1
+  comm -13 file1 file2   Show lines only in file2
+  comm -f file1 file2    Case-insensitive comparison
+
+Includes full source code (original POSIX and ported Amiga versions)
+and PORT.md documenting every transformation applied.

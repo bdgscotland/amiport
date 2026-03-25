@@ -282,6 +282,12 @@ EXPECT_RC: 0
 
 # --- Amiga-specific tests ---
 
+TEST: -f with script containing spaces in pattern (AmigaDOS quoting workaround)
+CMD: WORK:sed -f WORK:test-sed-spaces.sed WORK:test-sed-input.txt
+EXPECT: hello world
+EXPECT_CONTAINS: FOO BAR baz
+EXPECT_RC: 0
+
 TEST: WORK: volume path accepted as input file argument
 CMD: WORK:sed -n 1p WORK:test-sed-input.txt
 EXPECT: hello world

@@ -316,3 +316,29 @@ The root cause is that FS-UAE's emulated input.device processes AddIEvents() eve
 **Rule of thumb:**
 - **Functional ITESTs** (exit code only): KeyInject via AddIEvents() -- works reliably
 - **Visual ITESTs** (SCRAPE + EXPECT_AT): Host-side injection via inject-keys.sh -- required for RAW mode programs
+
+## AmigaDOS Has No Single-Quote Grouping
+
+AmigaDOS shells do not treat `'` (single quote/tick) as a grouping character. On Unix, `sed 's/; old/ new/' file` passes `s/; old/ new/` as a single argv entry. On AmigaDOS, the `'` is literal and spaces split the argument, so sed receives `'s/;` as argv[1] -- a broken expression starting with `'`. This happens BEFORE the program runs; there is no code-level fix.
+
+This affects ALL ports that accept expression arguments with spaces: sed, grep (-e), awk, and any program where Unix users would single-quote an argument.
+
+**Impact on readmes and documentation:** Usage examples in `.readme` files must NOT use single quotes. Show expressions without quotes when possible (`sed s/old/new/ file`), or with double quotes when spaces are needed (`sed "s/; old/ new/" file`). Always recommend `-f script.sed` as the most reliable approach for complex expressions.
+
+**Impact on testing:** The FS-UAE test harness passes arguments directly via ARexx `ADDRESS COMMAND`, bypassing shell quoting entirely. This means quoting issues are invisible to the test suite. Consider adding `-f` script file tests for expressions that would need quoting in real usage. Discovered via user report on sed port (2026-03-25).
+
+## atexit Cleanup of getline() Buffer Requires NULL After free()
+
+When using `getline()` with a static tracking pointer for atexit cleanup (the standard pattern for catching err() exit paths), the tracking pointer MUST be set to NULL after `free(p)` in the normal path. Otherwise, atexit cleanup calls `free()` on an already-freed pointer -- a double-free.
+
+On Unix this is undefined behavior that often silently succeeds. On AmigaOS it is **always fatal**: Guru Meditation `8100 0005` (AN_MemCorrupt) -- non-recoverable memory list corruption requiring a hard reboot.
+
+The bug is especially insidious in programs that process multiple files sequentially (e.g., `rev file1 file2`): the first `rev_file()` call frees the buffer but leaves the static pointer dangling. The second call allocates a new buffer and overwrites the pointer. After both calls complete, atexit frees the (already freed) second buffer.
+
+**Fix:** Always NULL the tracking pointer after free:
+```c
+free(p);
+getline_buf = NULL;  /* prevent double-free in atexit cleanup */
+```
+
+Discovered in the rev 1.16 port -- multi-file invocations crashed with AN_MemCorrupt.

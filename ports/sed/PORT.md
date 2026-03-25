@@ -102,7 +102,8 @@ Tested via vamos (smoke tests) and FS-UAE (comprehensive suite). **59/59 tests p
 
 ## Known Limitations
 
-- **In-place editing (`-i`) not functional**: `fdopen()` is not available in libnix; stubbed to return NULL. The `-i` flag will fail with a warning. Workaround: use shell redirection (`sed 's/old/new/' file > file.new`).
+- **Single quotes not supported in AmigaDOS shell**: AmigaDOS has no single-quote grouping. `sed 's/old/new/' file` passes literal `'` characters to sed, causing "unknown command '". Use double quotes (`sed "s/old/new/" file`) or `-f script.sed` for expressions containing spaces. Expressions without spaces need no quotes (`sed s/old/new/ file`). The `-f` approach is most reliable since `$` inside double quotes may trigger AmigaDOS variable expansion. Reported by user (2026-03-25).
+- **In-place editing (`-i`) not functional**: `fdopen()` is not available in libnix; stubbed to return NULL. The `-i` flag will fail with a warning. Workaround: use shell redirection (`sed "s/old/new/" file > file.new`).
 - **Regex limitations**: Tier 2 regex emulation does not support POSIX character classes (`[:alpha:]`, `[:digit:]`), locale-dependent collation, or `REG_NEWLINE`. Maximum 9 capture groups, 512-byte pattern limit.
 - **No Ctrl-C break handling**: Long-running sed operations cannot be interrupted gracefully. The program must be killed externally.
 - **Terminal width**: Uses `COLUMNS` environment variable or defaults to 80. No dynamic terminal detection (no `ioctl`/`TIOCGWINSZ`).

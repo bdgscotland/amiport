@@ -153,6 +153,21 @@ Set `published_at` to the current ISO 8601 timestamp when publishing or updating
 "published_at": "2026-03-22T17:30:00Z"
 ```
 
+## Post-Deploy: Catalog Sync (MANDATORY)
+
+After successful deployment, update `site/data/catalog.json` to keep the porting tech tree in sync with published state:
+
+1. Find the port's entry in `catalog.json` by `"id": "<name>"`
+2. Update these fields to match the published package JSON:
+   - `test_count` — from the latest FS-UAE test run
+   - `test_pass_rate` — 1.0 if all pass, else actual ratio
+   - `measured_binary_kb` — from the LHA binary size
+   - `measured_stack_kb` — from the `__stack` cookie value / 1024
+   - `description` — match the .readme Short field if it changed
+3. If any catalog fields were updated, include the catalog.json in the rsync deploy
+
+This prevents catalog drift where published packages show stale test counts or metadata in the tech tree dashboard.
+
 ## Relationship to aminet-publisher
 
 This agent handles amiport.platesteel.net publishing. The `aminet-publisher` agent handles Aminet publishing. They are independent — a port can be on amiport but not Aminet, or vice versa. Both require explicit user approval. Neither auto-publishes.

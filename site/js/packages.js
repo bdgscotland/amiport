@@ -39,6 +39,14 @@
     var detailMeta     = document.getElementById('pkg-detail-meta');
     var notFoundEl     = document.getElementById('pkg-not-found');
 
+    // Bug report DOM refs
+    var reportToggle   = document.getElementById('pkg-report-toggle');
+    var reportFormWrap = document.getElementById('pkg-report-form-wrap');
+    var reportForm     = document.getElementById('pkg-report-form');
+    var reportAlert    = document.getElementById('pkg-report-alert');
+    var reportPackage  = document.getElementById('report-package');
+    var reportSubmit   = document.getElementById('pkg-report-submit');
+
     // --- Helpers ---
 
     function formatSize(bytes) {
@@ -560,6 +568,12 @@
             detailMeta.appendChild(row);
         }
 
+        // Bug report: set package name, reset form state
+        reportPackage.value = pkg.name;
+        reportFormWrap.classList.add('hidden');
+        reportToggle.textContent = 'Report Issue';
+        reportAlert.classList.add('hidden');
+
         // Copy button
         detailCopy.onclick = function() {
             var cmd = 'amiget install ' + pkg.name;
@@ -666,6 +680,78 @@
         e.preventDefault();
         errorEl.classList.add('hidden');
         fetchPackages();
+    });
+
+    // --- Bug Report Form ---
+
+    reportToggle.addEventListener('click', function() {
+        var isHidden = reportFormWrap.classList.contains('hidden');
+        reportFormWrap.classList.toggle('hidden');
+        reportToggle.textContent = isHidden ? 'Cancel Report' : 'Report Issue';
+        if (isHidden) {
+            reportAlert.classList.add('hidden');
+            reportForm.reset();
+        }
+    });
+
+    reportForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        reportSubmit.disabled = true;
+        reportSubmit.textContent = 'Sending...';
+        reportAlert.classList.add('hidden');
+
+        var data = {
+            package:     reportPackage.value,
+            description: document.getElementById('report-desc').value,
+            command:     document.getElementById('report-cmd').value,
+            setup:       document.getElementById('report-setup').value,
+            email:       document.getElementById('report-email').value,
+            website:     document.getElementById('report-website').value
+        };
+
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', 'api/v1/report-bug.php', true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.onload = function() {
+            reportSubmit.disabled = false;
+            reportSubmit.textContent = 'Submit Report';
+            try {
+                var resp = JSON.parse(xhr.responseText);
+                if (resp.ok) {
+                    reportAlert.className = 'alert alert--success mb-sm';
+                    while (reportAlert.firstChild) reportAlert.removeChild(reportAlert.firstChild);
+                    reportAlert.appendChild(document.createTextNode(resp.message || 'Report submitted!'));
+                    if (resp.github_url && /^https:\/\/github\.com\//.test(resp.github_url)) {
+                        reportAlert.appendChild(document.createTextNode(' '));
+                        var ghLink = document.createElement('a');
+                        ghLink.href = resp.github_url;
+                        ghLink.target = '_blank';
+                        ghLink.rel = 'noopener';
+                        ghLink.textContent = 'View on GitHub';
+                        reportAlert.appendChild(ghLink);
+                    }
+                    reportAlert.classList.remove('hidden');
+                    reportForm.reset();
+                    reportPackage.value = data.package;
+                } else {
+                    reportAlert.className = 'alert alert--error mb-sm';
+                    reportAlert.textContent = resp.error || 'Could not submit report.';
+                    reportAlert.classList.remove('hidden');
+                }
+            } catch (err) {
+                reportAlert.className = 'alert alert--error mb-sm';
+                reportAlert.textContent = 'Could not submit report.';
+                reportAlert.classList.remove('hidden');
+            }
+        };
+        xhr.onerror = function() {
+            reportSubmit.disabled = false;
+            reportSubmit.textContent = 'Submit Report';
+            reportAlert.className = 'alert alert--error mb-sm';
+            reportAlert.textContent = 'Network error. Please try again.';
+            reportAlert.classList.remove('hidden');
+        };
+        xhr.send(JSON.stringify(data));
     });
 
     // --- Init ---

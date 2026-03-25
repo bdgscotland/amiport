@@ -1,0 +1,22 @@
+{
+    "name": "rev",
+    "version": "1.16",
+    "description": "Reverse lines character by character",
+    "category": "util/cli",
+    "source": "OpenBSD rev v1.16",
+    "license": "BSD 3-Clause",
+    "size": 28788,
+    "sha256": "936ad29291402dff391e88bd26d31db603df99b1f8e3f951ab3762275f870f5b",
+    "download": "/packages/rev-1.16.lha",
+    "requires": [],
+    "aminet": "",
+    "stack": 16384,
+    "status": "stable",
+    "revision": 1,
+    "published_at": "2026-03-25T14:30:00Z",
+    "readme": "Short:        Reverse lines character by character\nType:         util/cli\nArchitecture: m68k-amigaos >= 3.0\nUploader:     duncan (at) bowring (dot) us\nAuthor:       University of California, Berkeley (ported by Duncan Bowring)\nVersion:      1.16\n\nrev - Reverse lines character by character\n\nOriginal author: University of California, Berkeley\nPorted by Duncan Bowring using amiport (AI-assisted porting toolkit).\nProject: https://github.com/bdgscotland/amiport\n\nCross-compiled with m68k-amigaos-gcc for AmigaOS 3.x (68000+).\nTested in vamos emulator and FS-UAE.\n\nUsage:\n  rev [file ...]\n\n  rev file.txt            Reverse each line of file.txt\n  rev file1 file2         Reverse lines from multiple files\n  echo \"Hello\" | rev      Reverse from stdin: \"olleH\"\n\nIncludes full source code (original POSIX and ported Amiga versions)\nand PORT.md documenting every transformation applied.",
+    "test_count": 24,
+    "test_pass": 24,
+    "porting_notes": "Single-file OpenBSD port (130 lines, pure C89). Key transformations: getline() via amiport/stdio_ext.h shim, err()/warn() via amiport/err.h, MB_CUR_MAX guarded with #ifndef __AMIGA__ (crash-patterns #11), fclose(stdin) guarded. Double-free bug fixed: getline_buf=NULL after free() prevents AN_MemCorrupt on multi-file usage. Performance: replaced per-character putchar() loop with in-place reversal + single fwrite() (~40x fewer I/O calls per line). Memory: CLEAN per memory audit. 24/24 FS-UAE tests pass.",
+    "known_limitations": "Multibyte/UTF-8 support disabled (AmigaOS has no wchar support). Operates on raw bytes -- correct for ISO 8859-1 (Amiga standard)."
+}

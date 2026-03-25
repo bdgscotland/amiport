@@ -48,6 +48,11 @@
             "type": "command",
             "command": "bash scripts/hooks/enforce-agents.sh",
             "statusMessage": "Checking agent usage..."
+          },
+          {
+            "type": "command",
+            "command": "bash scripts/hooks/enforce-adcd-lookup.sh",
+            "statusMessage": "Checking ADCD requirements..."
           }
         ]
       },
