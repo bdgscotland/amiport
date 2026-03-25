@@ -979,7 +979,9 @@
         "a4000_030": "fits"
       },
       "aminet_status": "exists",
-      "aminet_notes": "ARPClones-37.1 (1995) and BP102 (1992) provide Amiga variants. GNU coreutils-bin v5.2.1-9 (2006) includes POSIX-compliant basename."
+      "aminet_notes": "ARPClones-37.1 (1995) and BP102 (1992) provide Amiga variants. GNU coreutils-bin v5.2.1-9 (2006) includes POSIX-compliant basename.",
+      "community_value": 4,
+      "community_value_reason": "Extract filename from path \u2014 useful in scripts."
     },
     {
       "id": "dirname",
@@ -1027,7 +1029,9 @@
         "a4000_030": "fits"
       },
       "aminet_status": "missing",
-      "aminet_notes": "Not available as standalone utility. GNU coreutils-bin v5.2.1-9 (2006) includes it."
+      "aminet_notes": "Not available as standalone utility. GNU coreutils-bin v5.2.1-9 (2006) includes it.",
+      "community_value": 4,
+      "community_value_reason": "Extract directory from path \u2014 useful in scripts."
     },
     {
       "id": "tr",
@@ -1075,7 +1079,9 @@
         "estimated_data_kb": 2
       },
       "aminet_status": "exists",
-      "aminet_notes": "GNU coreutils 5.2.1-9 (m68k, 2010). Note: version is from 2005, 20+ years old but functional."
+      "aminet_notes": "GNU coreutils 5.2.1-9 (m68k, 2010). Note: version is from 2005, 20+ years old but functional.",
+      "community_value": 5,
+      "community_value_reason": "Text transformation \u2014 no AmigaDOS equivalent. Essential for scripts."
     },
     {
       "id": "fmt",
@@ -1128,7 +1134,9 @@
         "estimated_data_kb": 2
       },
       "aminet_status": "exists",
-      "aminet_notes": "GNU coreutils 5.2.1-9 (m68k, 2010). Note: version is from 2005, 20+ years old but functional."
+      "aminet_notes": "GNU coreutils 5.2.1-9 (m68k, 2010). Note: version is from 2005, 20+ years old but functional.",
+      "community_value": 3,
+      "community_value_reason": "Reformat paragraphs \u2014 useful for text processing."
     },
     {
       "id": "fold",
@@ -1180,7 +1188,9 @@
         "estimated_data_kb": 1
       },
       "aminet_status": "exists",
-      "aminet_notes": "GNU coreutils 5.2.1-9 (m68k, 2010). Note: version is from 2005, 20+ years old but functional."
+      "aminet_notes": "GNU coreutils 5.2.1-9 (m68k, 2010). Note: version is from 2005, 20+ years old but functional.",
+      "community_value": 3,
+      "community_value_reason": "Wrap lines to width \u2014 useful for text formatting."
     },
     {
       "id": "rev",
@@ -1228,7 +1238,9 @@
         "a4000_030": "fits"
       },
       "aminet_status": "exists",
-      "aminet_notes": "AlterASCII (1997) provides text reversal/transformation, but differs in purpose from POSIX rev. Not a direct port."
+      "aminet_notes": "AlterASCII (1997) provides text reversal/transformation, but differs in purpose from POSIX rev. Not a direct port.",
+      "community_value": 3,
+      "community_value_reason": "Reverse line characters \u2014 niche but no AmigaDOS equivalent."
     },
     {
       "id": "column",
@@ -1281,7 +1293,9 @@
         "estimated_data_kb": 2
       },
       "aminet_status": "missing",
-      "aminet_notes": "Not found on Aminet. Not in GNU coreutils. NICHE: BSD column(1) may exist separately, but not located. HIGH PORTING VALUE."
+      "aminet_notes": "Not found on Aminet. Not in GNU coreutils. NICHE: BSD column(1) may exist separately, but not located. HIGH PORTING VALUE.",
+      "community_value": 4,
+      "community_value_reason": "Columnate output \u2014 makes CLI output readable. No equivalent."
     },
     {
       "id": "expand",
@@ -1329,7 +1343,9 @@
         "a4000_030": "fits"
       },
       "aminet_status": "exists",
-      "aminet_notes": "Expand.lha (1992) provides 'TABs to spaces and vice versa'\u2014older standalone implementation."
+      "aminet_notes": "Expand.lha (1992) provides 'TABs to spaces and vice versa'\u2014older standalone implementation.",
+      "community_value": 3,
+      "community_value_reason": "Tabs to spaces \u2014 useful for code formatting."
     },
     {
       "id": "unexpand",
@@ -1377,7 +1393,9 @@
         "a4000_030": "fits"
       },
       "aminet_status": "missing",
-      "aminet_notes": "Not found on Aminet. GNU coreutils-bin v5.2.1-9 (2006) includes it."
+      "aminet_notes": "Not found on Aminet. GNU coreutils-bin v5.2.1-9 (2006) includes it.",
+      "community_value": 3,
+      "community_value_reason": "Spaces to tabs \u2014 useful for code formatting."
     },
     {
       "id": "paste",
@@ -1425,7 +1443,9 @@
         "estimated_data_kb": 1
       },
       "aminet_status": "exists",
-      "aminet_notes": "GNU coreutils 5.2.1-9 (m68k, 2010). Note: version is from 2005, 20+ years old but functional."
+      "aminet_notes": "GNU coreutils 5.2.1-9 (m68k, 2010). Note: version is from 2005, 20+ years old but functional.",
+      "community_value": 4,
+      "community_value_reason": "Merge file lines side-by-side \u2014 no AmigaDOS equivalent."
     },
     {
       "id": "join",
@@ -1477,7 +1497,9 @@
         "estimated_data_kb": 2
       },
       "aminet_status": "exists",
-      "aminet_notes": "GNU coreutils 5.2.1-9 (m68k, 2010). Note: version is from 2005, 20+ years old but functional."
+      "aminet_notes": "GNU coreutils 5.2.1-9 (m68k, 2010). Note: version is from 2005, 20+ years old but functional.",
+      "community_value": 4,
+      "community_value_reason": "Relational join of sorted files \u2014 data processing tool."
     },
     {
       "id": "comm",
@@ -1525,7 +1547,9 @@
         "a4000_030": "fits"
       },
       "aminet_status": "missing",
-      "aminet_notes": "Not available as standalone utility. GNU coreutils-bin v5.2.1-9 (2006) includes it."
+      "aminet_notes": "Not available as standalone utility. GNU coreutils-bin v5.2.1-9 (2006) includes it.",
+      "community_value": 4,
+      "community_value_reason": "Compare sorted files \u2014 useful for diff workflows alongside diff."
     },
     {
       "id": "tsort",
@@ -1573,7 +1597,9 @@
         "estimated_data_kb": 4
       },
       "aminet_status": "exists",
-      "aminet_notes": "GNU coreutils 5.2.1-9 (m68k, 2010). Note: version is from 2005, 20+ years old but functional."
+      "aminet_notes": "GNU coreutils 5.2.1-9 (m68k, 2010). Note: version is from 2005, 20+ years old but functional.",
+      "community_value": 3,
+      "community_value_reason": "Topological sort \u2014 niche but useful for build systems."
     },
     {
       "id": "ls",
@@ -1643,7 +1669,9 @@
         "estimated_data_kb": 4
       },
       "aminet_status": "exists",
-      "aminet_notes": "GNU coreutils 5.2.1-9 (m68k, 2010). Note: version is from 2005, 20+ years old but functional."
+      "aminet_notes": "GNU coreutils 5.2.1-9 (m68k, 2010). Note: version is from 2005, 20+ years old but functional.",
+      "community_value": 5,
+      "community_value_reason": "Directory listing \u2014 AmigaDOS LIST/DIR exist but lack Unix flags (-la, -R, etc). High value."
     },
     {
       "id": "file",
@@ -1702,7 +1730,9 @@
         "estimated_data_kb": 8
       },
       "aminet_status": "missing",
-      "aminet_notes": "Not found on Aminet. GNU file utility exists but not ported. MODERATE PORTING VALUE (niche use case)."
+      "aminet_notes": "Not found on Aminet. GNU file utility exists but not ported. MODERATE PORTING VALUE (niche use case).",
+      "community_value": 3,
+      "community_value_reason": "Identify file type \u2014 niche but useful for developers."
     },
     {
       "id": "du",
@@ -1758,7 +1788,9 @@
         "estimated_data_kb": 2
       },
       "aminet_status": "exists",
-      "aminet_notes": "GNU coreutils 5.2.1-9 (m68k, 2010). Note: version is from 2005, 20+ years old but functional."
+      "aminet_notes": "GNU coreutils 5.2.1-9 (m68k, 2010). Note: version is from 2005, 20+ years old but functional.",
+      "community_value": 4,
+      "community_value_reason": "Disk usage \u2014 no AmigaDOS equivalent. Useful."
     },
     {
       "id": "find",
@@ -1836,7 +1868,9 @@
         "estimated_data_kb": 4
       },
       "aminet_status": "exists",
-      "aminet_notes": "GNU findutils 4.1 (m68k, 1998). Note: very old version (1998), missing modern features (UPGRADE candidate)."
+      "aminet_notes": "GNU findutils 4.1 (m68k, 1998). Note: very old version (1998), missing modern features (UPGRADE candidate).",
+      "community_value": 5,
+      "community_value_reason": "Search for files \u2014 nothing like this on AmigaDOS. Very high value."
     },
     {
       "id": "xargs",
@@ -1893,7 +1927,9 @@
         "estimated_data_kb": 2
       },
       "aminet_status": "exists",
-      "aminet_notes": "GNU findutils 4.1 (m68k, 1998). Note: very old version (1998), missing modern features (UPGRADE candidate)."
+      "aminet_notes": "GNU findutils 4.1 (m68k, 1998). Note: very old version (1998), missing modern features (UPGRADE candidate).",
+      "community_value": 4,
+      "community_value_reason": "Build commands from input \u2014 powerful for scripting."
     },
     {
       "id": "touch",
@@ -1944,7 +1980,9 @@
         "estimated_data_kb": 2
       },
       "aminet_status": "exists",
-      "aminet_notes": "GNU coreutils 5.2.1-9 (m68k, 2010). Note: version is from 2005, 20+ years old but functional."
+      "aminet_notes": "GNU coreutils 5.2.1-9 (m68k, 2010). Note: version is from 2005, 20+ years old but functional.",
+      "community_value": 3,
+      "community_value_reason": "Create/update timestamps \u2014 AmigaDOS MAKEDIR creates files differently."
     },
     {
       "id": "ln",
@@ -1996,7 +2034,9 @@
         "estimated_data_kb": 1
       },
       "aminet_status": "exists",
-      "aminet_notes": "GNU coreutils 5.2.1-9 (m68k, 2010). Note: version is from 2005, 20+ years old but functional."
+      "aminet_notes": "GNU coreutils 5.2.1-9 (m68k, 2010). Note: version is from 2005, 20+ years old but functional.",
+      "community_value": 2,
+      "community_value_reason": "Symlinks \u2014 classic AmigaOS FFS has no symlinks."
     },
     {
       "id": "cp",
@@ -2066,7 +2106,9 @@
         "estimated_data_kb": 2
       },
       "aminet_status": "exists",
-      "aminet_notes": "GNU coreutils 5.2.1-9 (m68k, 2010). Note: version is from 2005, 20+ years old but functional."
+      "aminet_notes": "GNU coreutils 5.2.1-9 (m68k, 2010). Note: version is from 2005, 20+ years old but functional.",
+      "community_value": 4,
+      "community_value_reason": "Copy files \u2014 AmigaDOS COPY exists but lacks recursive, preserve modes."
     },
     {
       "id": "mv",
@@ -2120,7 +2162,9 @@
         "estimated_data_kb": 2
       },
       "aminet_status": "exists",
-      "aminet_notes": "GNU coreutils 5.2.1-9 (m68k, 2010). Note: version is from 2005, 20+ years old but functional."
+      "aminet_notes": "GNU coreutils 5.2.1-9 (m68k, 2010). Note: version is from 2005, 20+ years old but functional.",
+      "community_value": 3,
+      "community_value_reason": "Move files \u2014 AmigaDOS RENAME exists and works for most cases."
     },
     {
       "id": "rm",
@@ -2178,7 +2222,9 @@
         "estimated_data_kb": 2
       },
       "aminet_status": "exists",
-      "aminet_notes": "GNU coreutils 5.2.1-9 (m68k, 2010). Note: version is from 2005, 20+ years old but functional."
+      "aminet_notes": "GNU coreutils 5.2.1-9 (m68k, 2010). Note: version is from 2005, 20+ years old but functional.",
+      "community_value": 3,
+      "community_value_reason": "Delete files \u2014 AmigaDOS DELETE exists and works."
     },
     {
       "id": "mkdir",
@@ -2226,7 +2272,9 @@
         "estimated_data_kb": 1
       },
       "aminet_status": "exists",
-      "aminet_notes": "GNU coreutils 5.2.1-9 (m68k, 2010). Note: version is from 2005, 20+ years old but functional."
+      "aminet_notes": "GNU coreutils 5.2.1-9 (m68k, 2010). Note: version is from 2005, 20+ years old but functional.",
+      "community_value": 2,
+      "community_value_reason": "AmigaDOS MAKEDIR already exists and works well."
     },
     {
       "id": "rmdir",
@@ -2274,7 +2322,9 @@
         "estimated_data_kb": 1
       },
       "aminet_status": "exists",
-      "aminet_notes": "GNU coreutils 5.2.1-9 (m68k, 2010). Note: version is from 2005, 20+ years old but functional."
+      "aminet_notes": "GNU coreutils 5.2.1-9 (m68k, 2010). Note: version is from 2005, 20+ years old but functional.",
+      "community_value": 2,
+      "community_value_reason": "AmigaDOS DELETE already removes empty directories."
     },
     {
       "id": "chmod",
@@ -2332,7 +2382,9 @@
         "estimated_data_kb": 2
       },
       "aminet_status": "exists",
-      "aminet_notes": "GNU coreutils 5.2.1-9 (m68k, 2010). Note: version is from 2005, 20+ years old but functional."
+      "aminet_notes": "GNU coreutils 5.2.1-9 (m68k, 2010). Note: version is from 2005, 20+ years old but functional.",
+      "community_value": 1,
+      "community_value_reason": "Permission bits \u2014 AmigaOS protection bits have inverted semantics, rarely used."
     },
     {
       "id": "env",
@@ -2384,7 +2436,9 @@
         "estimated_data_kb": 1
       },
       "aminet_status": "exists",
-      "aminet_notes": "GNU coreutils 5.2.1-9 (m68k, 2010). Note: version is from 2005, 20+ years old but functional."
+      "aminet_notes": "GNU coreutils 5.2.1-9 (m68k, 2010). Note: version is from 2005, 20+ years old but functional.",
+      "community_value": 3,
+      "community_value_reason": "Print/set environment \u2014 AmigaDOS SET/SETENV partially overlaps."
     },
     {
       "id": "printenv",
@@ -2432,7 +2486,9 @@
         "estimated_data_kb": 1
       },
       "aminet_status": "exists",
-      "aminet_notes": "GNU coreutils 5.2.1-9 (m68k, 2010). Note: version is from 2005, 20+ years old but functional."
+      "aminet_notes": "GNU coreutils 5.2.1-9 (m68k, 2010). Note: version is from 2005, 20+ years old but functional.",
+      "community_value": 2,
+      "community_value_reason": "Print environment vars \u2014 AmigaDOS SET already does this."
     },
     {
       "id": "uname",
@@ -2482,7 +2538,9 @@
         "estimated_data_kb": 1
       },
       "aminet_status": "exists",
-      "aminet_notes": "GNU coreutils 5.2.1-9 (m68k, 2010). Note: version is from 2005, 20+ years old but functional."
+      "aminet_notes": "GNU coreutils 5.2.1-9 (m68k, 2010). Note: version is from 2005, 20+ years old but functional.",
+      "community_value": 3,
+      "community_value_reason": "System info \u2014 could report AmigaOS version. Useful for portability."
     },
     {
       "id": "hostname",
@@ -2536,7 +2594,9 @@
         "estimated_data_kb": 1
       },
       "aminet_status": "exists",
-      "aminet_notes": "GNU coreutils 5.2.1-9 (m68k, 2010). Note: version is from 2005, 20+ years old but functional."
+      "aminet_notes": "GNU coreutils 5.2.1-9 (m68k, 2010). Note: version is from 2005, 20+ years old but functional.",
+      "community_value": 2,
+      "community_value_reason": "Only meaningful with TCP/IP stack installed."
     },
     {
       "id": "id",
@@ -2606,7 +2666,9 @@
         "estimated_data_kb": 2
       },
       "aminet_status": "exists",
-      "aminet_notes": "GNU coreutils 5.2.1-9 (m68k, 2010). Note: version is from 2005, 20+ years old but functional."
+      "aminet_notes": "GNU coreutils 5.2.1-9 (m68k, 2010). Note: version is from 2005, 20+ years old but functional.",
+      "community_value": 2,
+      "community_value_reason": "AmigaOS is single-user \u2014 always returns same values."
     },
     {
       "id": "whoami",
@@ -2676,7 +2738,9 @@
         "estimated_data_kb": 2
       },
       "aminet_status": "missing",
-      "aminet_notes": "No dedicated Aminet package found. Available in Geek Gadgets as part of GNU coreutils. AmigaOS 3.x lacks native equivalent."
+      "aminet_notes": "No dedicated Aminet package found. Available in Geek Gadgets as part of GNU coreutils. AmigaOS 3.x lacks native equivalent.",
+      "community_value": 2,
+      "community_value_reason": "AmigaOS is single-user \u2014 always 'user'."
     },
     {
       "id": "logname",
@@ -2728,7 +2792,9 @@
         "estimated_data_kb": 1
       },
       "aminet_status": "missing",
-      "aminet_notes": "No Aminet package found. Part of Geek Gadgets/coreutils. AmigaOS has no direct equivalent (uses $LOGNAME env var when set)."
+      "aminet_notes": "No Aminet package found. Part of Geek Gadgets/coreutils. AmigaOS has no direct equivalent (uses $LOGNAME env var when set).",
+      "community_value": 1,
+      "community_value_reason": "AmigaOS has no login system."
     },
     {
       "id": "tty",
@@ -2780,7 +2846,9 @@
         "estimated_data_kb": 1
       },
       "aminet_status": "missing",
-      "aminet_notes": "No standalone Aminet package found. Standard Unix utility; AmigaDOS uses different device model (CON: vs /dev/tty)."
+      "aminet_notes": "No standalone Aminet package found. Standard Unix utility; AmigaDOS uses different device model (CON: vs /dev/tty).",
+      "community_value": 2,
+      "community_value_reason": "Report terminal name \u2014 limited meaning on AmigaOS."
     },
     {
       "id": "echo",
@@ -2828,7 +2896,9 @@
         "a4000_030": "fits"
       },
       "aminet_status": "exists",
-      "aminet_notes": "Not found as standalone. GNU coreutils-bin v5.2.1-9 (2006) includes POSIX echo. AlterASCII (1997) exists but is unrelated reversal tool."
+      "aminet_notes": "Not found as standalone. GNU coreutils-bin v5.2.1-9 (2006) includes POSIX echo. AlterASCII (1997) exists but is unrelated reversal tool.",
+      "community_value": 2,
+      "community_value_reason": "AmigaDOS ECHO exists and works fine."
     },
     {
       "id": "printf",
@@ -2876,7 +2946,9 @@
         "estimated_data_kb": 2
       },
       "aminet_status": "exists",
-      "aminet_notes": "Available as amiga.lib/printf() function in AmigaOS SDK, but shell command printf likely missing. Geek Gadgets has GNU printf."
+      "aminet_notes": "Available as amiga.lib/printf() function in AmigaOS SDK, but shell command printf likely missing. Geek Gadgets has GNU printf.",
+      "community_value": 5,
+      "community_value_reason": "Formatted output \u2014 ECHO is primitive. Essential for scripts."
     },
     {
       "id": "nl",
@@ -2926,7 +2998,9 @@
         "estimated_data_kb": 2
       },
       "aminet_status": "missing",
-      "aminet_notes": "No Aminet package found. GNU coreutils line numbering utility. Available via Geek Gadgets."
+      "aminet_notes": "No Aminet package found. GNU coreutils line numbering utility. Available via Geek Gadgets.",
+      "community_value": 4,
+      "community_value_reason": "Number lines \u2014 useful for code review and log analysis."
     },
     {
       "id": "colrm",
@@ -2978,7 +3052,9 @@
         "estimated_data_kb": 1
       },
       "aminet_status": "missing",
-      "aminet_notes": "No Aminet package found. BSD/GNU utility. Not part of standard Amiga distribution."
+      "aminet_notes": "No Aminet package found. BSD/GNU utility. Not part of standard Amiga distribution.",
+      "community_value": 3,
+      "community_value_reason": "Remove columns \u2014 niche text processing."
     },
     {
       "id": "cat",
@@ -3028,7 +3104,9 @@
         "estimated_data_kb": 2
       },
       "aminet_status": "exists",
-      "aminet_notes": "AmigaDOS TYPE command is the native equivalent. Unix-style cat may exist in Geek Gadgets; not confirmed on standalone Aminet."
+      "aminet_notes": "AmigaDOS TYPE command is the native equivalent. Unix-style cat may exist in Geek Gadgets; not confirmed on standalone Aminet.",
+      "community_value": 5,
+      "community_value_reason": "File concatenation + pipe input. AmigaDOS TYPE is limited (no stdin)."
     },
     {
       "id": "true",
@@ -3076,7 +3154,9 @@
         "a4000_030": "fits"
       },
       "aminet_status": "missing",
-      "aminet_notes": "Not available as standalone utility. GNU coreutils-bin v5.2.1-9 (2006) includes it."
+      "aminet_notes": "Not available as standalone utility. GNU coreutils-bin v5.2.1-9 (2006) includes it.",
+      "community_value": 3,
+      "community_value_reason": "Needed for scripts. AmigaDOS has no direct equivalent."
     },
     {
       "id": "false",
@@ -3124,7 +3204,9 @@
         "a4000_030": "fits"
       },
       "aminet_status": "missing",
-      "aminet_notes": "Not available as standalone utility. GNU coreutils-bin v5.2.1-9 (2006) includes it."
+      "aminet_notes": "Not available as standalone utility. GNU coreutils-bin v5.2.1-9 (2006) includes it.",
+      "community_value": 3,
+      "community_value_reason": "Needed for scripts. AmigaDOS has no direct equivalent."
     },
     {
       "id": "sleep",
@@ -3175,7 +3257,9 @@
         "a4000_030": "fits"
       },
       "aminet_status": "outdated",
-      "aminet_notes": "wsz13 (1993) is a window mover/sizer with sleep feature\u2014not a standalone sleep utility. GNU coreutils-bin v5.2.1-9 (2006) includes POSIX sleep."
+      "aminet_notes": "wsz13 (1993) is a window mover/sizer with sleep feature\u2014not a standalone sleep utility. GNU coreutils-bin v5.2.1-9 (2006) includes POSIX sleep.",
+      "community_value": 3,
+      "community_value_reason": "AmigaDOS WAIT exists but lacks POSIX seconds syntax."
     },
     {
       "id": "date",
@@ -3232,7 +3316,9 @@
         "estimated_data_kb": 2
       },
       "aminet_status": "exists",
-      "aminet_notes": "AmigaDOS DATE command exists (adate.lha also available on Aminet). Unix date format differs from AmigaDOS."
+      "aminet_notes": "AmigaDOS DATE command exists (adate.lha also available on Aminet). Unix date format differs from AmigaDOS.",
+      "community_value": 5,
+      "community_value_reason": "Date formatting \u2014 AmigaDOS DATE lacks POSIX format strings."
     },
     {
       "id": "expr",
@@ -3283,7 +3369,9 @@
         "estimated_data_kb": 2
       },
       "aminet_status": "missing",
-      "aminet_notes": "No standalone Aminet package found. Part of Geek Gadgets. AmigaOS lacks native shell arithmetic."
+      "aminet_notes": "No standalone Aminet package found. Part of Geek Gadgets. AmigaOS lacks native shell arithmetic.",
+      "community_value": 5,
+      "community_value_reason": "Shell arithmetic \u2014 no AmigaDOS equivalent. Scripts need this."
     },
     {
       "id": "test",
@@ -3335,7 +3423,9 @@
         "estimated_data_kb": 1
       },
       "aminet_status": "missing",
-      "aminet_notes": "AmigaDOS has IF conditional syntax. Unix test/[ builtin not found standalone on Aminet. Available via Geek Gadgets."
+      "aminet_notes": "AmigaDOS has IF conditional syntax. Unix test/[ builtin not found standalone on Aminet. Available via Geek Gadgets.",
+      "community_value": 5,
+      "community_value_reason": "Shell conditionals ([ ]) \u2014 critical for any script automation."
     },
     {
       "id": "seq",
@@ -3385,7 +3475,9 @@
         "estimated_data_kb": 1
       },
       "aminet_status": "missing",
-      "aminet_notes": "No Aminet package found. GNU utility for generating number sequences. Not in standard Amiga tools."
+      "aminet_notes": "No Aminet package found. GNU utility for generating number sequences. Not in standard Amiga tools.",
+      "community_value": 4,
+      "community_value_reason": "Generate number sequences \u2014 useful for loop scripting."
     },
     {
       "id": "jot",
@@ -3437,7 +3529,9 @@
         "estimated_data_kb": 1
       },
       "aminet_status": "missing",
-      "aminet_notes": "BSD utility. No Aminet package found. Not in standard Amiga distribution."
+      "aminet_notes": "BSD utility. No Aminet package found. Not in standard Amiga distribution.",
+      "community_value": 4,
+      "community_value_reason": "Generate data sequences \u2014 OpenBSD's seq equivalent."
     },
     {
       "id": "factor",
@@ -3485,7 +3579,9 @@
         "estimated_data_kb": 1
       },
       "aminet_status": "missing",
-      "aminet_notes": "No Aminet package found. Niche mathematical utility. Not in standard Amiga tools."
+      "aminet_notes": "No Aminet package found. Niche mathematical utility. Not in standard Amiga tools.",
+      "community_value": 3,
+      "community_value_reason": "Prime factorization \u2014 fun/educational."
     },
     {
       "id": "which",
@@ -3539,7 +3635,9 @@
         "estimated_data_kb": 1
       },
       "aminet_status": "missing",
-      "aminet_notes": "No standalone Aminet package found. AmigaDOS uses PATH: equivalent; \"which\" functionality not standard. Available via Geek Gadgets."
+      "aminet_notes": "No standalone Aminet package found. AmigaDOS uses PATH: equivalent; \"which\" functionality not standard. Available via Geek Gadgets.",
+      "community_value": 3,
+      "community_value_reason": "Find command location \u2014 useful for debugging PATH issues."
     },
     {
       "id": "nohup",
@@ -3591,7 +3689,9 @@
         "estimated_data_kb": 1
       },
       "aminet_status": "missing",
-      "aminet_notes": "No Aminet package found. Unix job control utility. AmigaDOS Run command provides similar \"detach\" functionality."
+      "aminet_notes": "No Aminet package found. Unix job control utility. AmigaDOS Run command provides similar \"detach\" functionality.",
+      "community_value": 1,
+      "community_value_reason": "No SIGHUP on AmigaOS \u2014 conceptually meaningless."
     },
     {
       "id": "look",
@@ -3641,7 +3741,9 @@
         "estimated_data_kb": 1
       },
       "aminet_status": "missing",
-      "aminet_notes": "No Aminet package found. BSD word lookup utility. Not in standard Amiga tools."
+      "aminet_notes": "No Aminet package found. BSD word lookup utility. Not in standard Amiga tools.",
+      "community_value": 3,
+      "community_value_reason": "Binary search in sorted file \u2014 niche but fast."
     },
     {
       "id": "strings",
@@ -3689,7 +3791,9 @@
         "estimated_data_kb": 1
       },
       "aminet_status": "missing",
-      "aminet_notes": "No standalone Aminet package found. Binary analysis tool. Not in standard Amiga distribution."
+      "aminet_notes": "No standalone Aminet package found. Binary analysis tool. Not in standard Amiga distribution.",
+      "community_value": 4,
+      "community_value_reason": "Find printable strings in binaries \u2014 useful for developers."
     },
     {
       "id": "cmp",
@@ -3737,7 +3841,9 @@
         "estimated_data_kb": 2
       },
       "aminet_status": "missing",
-      "aminet_notes": "No standalone Aminet package found. File comparison tool. Not in standard Amiga tools."
+      "aminet_notes": "No standalone Aminet package found. File comparison tool. Not in standard Amiga tools.",
+      "community_value": 4,
+      "community_value_reason": "Byte-level file comparison \u2014 AmigaDOS has no equivalent."
     },
     {
       "id": "cksum",
@@ -3785,7 +3891,9 @@
         "estimated_data_kb": 1
       },
       "aminet_status": "missing",
-      "aminet_notes": "No standalone Aminet package found. Checksum utility. Not in standard Amiga tools."
+      "aminet_notes": "No standalone Aminet package found. Checksum utility. Not in standard Amiga tools.",
+      "community_value": 3,
+      "community_value_reason": "File checksums \u2014 useful for verifying downloads."
     },
     {
       "id": "md5",
@@ -3841,7 +3949,9 @@
         "estimated_data_kb": 8
       },
       "aminet_status": "exists",
-      "aminet_notes": "MD5SUM.lha (util/crypt), md5sum2.lha (util/misc), ARexxMD5.lha, and md5.lha all available on Aminet. Multiple implementations."
+      "aminet_notes": "MD5SUM.lha (util/crypt), md5sum2.lha (util/misc), ARexxMD5.lha, and md5.lha all available on Aminet. Multiple implementations.",
+      "community_value": 4,
+      "community_value_reason": "MD5 hash \u2014 useful for verifying downloads and integrity."
     },
     {
       "id": "pr",
@@ -3895,7 +4005,9 @@
         "estimated_data_kb": 4
       },
       "aminet_status": "missing",
-      "aminet_notes": "No Aminet package found. Print file formatter. Not in standard Amiga tools."
+      "aminet_notes": "No Aminet package found. Print file formatter. Not in standard Amiga tools.",
+      "community_value": 3,
+      "community_value_reason": "Paginate for printing \u2014 less relevant without printers."
     },
     {
       "id": "col",
@@ -3945,7 +4057,9 @@
         "estimated_data_kb": 2
       },
       "aminet_status": "missing",
-      "aminet_notes": "No Aminet package found. Filter for reverse line feeds. Not in standard Amiga tools."
+      "aminet_notes": "No Aminet package found. Filter for reverse line feeds. Not in standard Amiga tools.",
+      "community_value": 3,
+      "community_value_reason": "Filter reverse line feeds \u2014 very niche."
     },
     {
       "id": "vis",
@@ -3998,7 +4112,9 @@
         "estimated_data_kb": 1
       },
       "aminet_status": "missing",
-      "aminet_notes": "No Aminet package found. Display non-printing characters (BSD utility). Not in standard Amiga tools."
+      "aminet_notes": "No Aminet package found. Display non-printing characters (BSD utility). Not in standard Amiga tools.",
+      "community_value": 2,
+      "community_value_reason": "Encode non-printable chars \u2014 very niche."
     },
     {
       "id": "rs",
@@ -4049,7 +4165,9 @@
         "estimated_data_kb": 4
       },
       "aminet_status": "missing",
-      "aminet_notes": "No Aminet package found. Reshape tool for data manipulation. Not in standard Amiga tools."
+      "aminet_notes": "No Aminet package found. Reshape tool for data manipulation. Not in standard Amiga tools.",
+      "community_value": 2,
+      "community_value_reason": "Reshape data arrays \u2014 very niche."
     },
     {
       "id": "dc",
@@ -4101,7 +4219,9 @@
         "estimated_data_kb": 16
       },
       "aminet_status": "missing",
-      "aminet_notes": "No Aminet package found. Desk calculator (arbitrary precision). Not in standard Amiga tools."
+      "aminet_notes": "No Aminet package found. Desk calculator (arbitrary precision). Not in standard Amiga tools.",
+      "community_value": 3,
+      "community_value_reason": "Desk calculator (RPN) \u2014 bc is already ported and more useful."
     },
     {
       "id": "apply",
@@ -4153,7 +4273,9 @@
         "estimated_data_kb": 2
       },
       "aminet_status": "missing",
-      "aminet_notes": "No apply tool found on Aminet. Typical POSIX shell utility for applying commands to argument lists."
+      "aminet_notes": "No apply tool found on Aminet. Typical POSIX shell utility for applying commands to argument lists.",
+      "community_value": 2,
+      "community_value_reason": "Apply command to args \u2014 very niche, mostly superseded by xargs."
     },
     {
       "id": "awk-plan9",
@@ -4206,7 +4328,9 @@
         "estimated_data_kb": 32
       },
       "aminet_status": "missing",
-      "aminet_notes": "Only ATT-awk-1_0 (1995) on Aminet \u2014 traditional AWK, not Plan 9 one true awk"
+      "aminet_notes": "Only ATT-awk-1_0 (1995) on Aminet \u2014 traditional AWK, not Plan 9 one true awk",
+      "community_value": 5,
+      "community_value_reason": "AWK \u2014 essential text processing. No standalone AWK on Aminet."
     },
     {
       "id": "getopt",
@@ -4254,7 +4378,9 @@
         "estimated_data_kb": 1
       },
       "aminet_status": "missing",
-      "aminet_notes": "getopt_long.lha exists but is a C library package (dev/c), not a CLI tool. No standalone getopt CLI found."
+      "aminet_notes": "getopt_long.lha exists but is a C library package (dev/c), not a CLI tool. No standalone getopt CLI found.",
+      "community_value": 3,
+      "community_value_reason": "Parse command options \u2014 mostly useful for shell scripts."
     },
     {
       "id": "sbase-seq",
@@ -4304,7 +4430,9 @@
         "estimated_data_kb": 1
       },
       "aminet_status": "missing",
-      "aminet_notes": "Not on Aminet"
+      "aminet_notes": "Not on Aminet",
+      "community_value": 4,
+      "community_value_reason": "Generate number sequences \u2014 sbase implementation."
     },
     {
       "id": "sbase-tac",
@@ -4334,7 +4462,9 @@
         "a4000_030": "unknown"
       },
       "aminet_status": "missing",
-      "aminet_notes": "Source doesn't exist in sbase"
+      "aminet_notes": "Source doesn't exist in sbase",
+      "community_value": 3,
+      "community_value_reason": "Reverse file lines \u2014 no AmigaDOS equivalent."
     },
     {
       "id": "sbase-sponge",
@@ -4384,7 +4514,9 @@
         "estimated_data_kb": 1
       },
       "aminet_status": "missing",
-      "aminet_notes": "Not on Aminet"
+      "aminet_notes": "Not on Aminet",
+      "community_value": 4,
+      "community_value_reason": "Soak stdin then write \u2014 solves the 'sort file > file' problem."
     },
     {
       "id": "sbase-xinstall",
@@ -4434,7 +4566,9 @@
         "estimated_data_kb": 2
       },
       "aminet_status": "exists",
-      "aminet_notes": "xinstall.lha at util/boot \u2014 different purpose (Amiga install tool)"
+      "aminet_notes": "xinstall.lha at util/boot \u2014 different purpose (Amiga install tool)",
+      "community_value": 2,
+      "community_value_reason": "Install files with permissions \u2014 less relevant on AmigaOS."
     },
     {
       "id": "9base-unicode",
@@ -4485,7 +4619,9 @@
         "estimated_data_kb": 1
       },
       "aminet_status": "missing",
-      "aminet_notes": "Not on Aminet"
+      "aminet_notes": "Not on Aminet",
+      "community_value": 2,
+      "community_value_reason": "Unicode table lookup \u2014 very niche on 68k."
     },
     {
       "id": "9base-freq",
@@ -4536,7 +4672,9 @@
         "estimated_data_kb": 8192
       },
       "aminet_status": "missing",
-      "aminet_notes": "Not on Aminet"
+      "aminet_notes": "Not on Aminet",
+      "community_value": 3,
+      "community_value_reason": "Character frequency counter \u2014 useful for text analysis."
     },
     {
       "id": "9base-ascii",
@@ -4587,7 +4725,9 @@
         "estimated_data_kb": 2
       },
       "aminet_status": "exists",
-      "aminet_notes": "ascii.lha at util/cli"
+      "aminet_notes": "ascii.lha at util/cli",
+      "community_value": 3,
+      "community_value_reason": "ASCII table \u2014 handy reference utility."
     },
     {
       "id": "9base-hoc",
@@ -4640,7 +4780,9 @@
         "estimated_data_kb": 8
       },
       "aminet_status": "missing",
-      "aminet_notes": "Not on Aminet \u2014 calculator tools exist but not hoc"
+      "aminet_notes": "Not on Aminet \u2014 calculator tools exist but not hoc",
+      "community_value": 3,
+      "community_value_reason": "Calculator language \u2014 bc is already ported."
     },
     {
       "id": "sbase-uuencode",
@@ -4690,7 +4832,9 @@
         "estimated_data_kb": 1
       },
       "aminet_status": "exists",
-      "aminet_notes": "UUCode.lha at util/arc"
+      "aminet_notes": "UUCode.lha at util/arc",
+      "community_value": 2,
+      "community_value_reason": "UUencode \u2014 legacy encoding, mostly replaced by base64/MIME."
     },
     {
       "id": "sbase-uudecode",
@@ -4740,7 +4884,9 @@
         "estimated_data_kb": 2
       },
       "aminet_status": "exists",
-      "aminet_notes": "UUCode.lha at util/arc"
+      "aminet_notes": "UUCode.lha at util/arc",
+      "community_value": 2,
+      "community_value_reason": "UUdecode \u2014 legacy encoding."
     },
     {
       "id": "sbase-base64",
@@ -4770,7 +4916,9 @@
         "a4000_030": "unknown"
       },
       "aminet_status": "missing",
-      "aminet_notes": "Source doesn't exist in sbase"
+      "aminet_notes": "Source doesn't exist in sbase",
+      "community_value": 3,
+      "community_value_reason": "Base64 encode/decode \u2014 useful for data handling."
     },
     {
       "id": "sbase-sha256sum",
@@ -4820,7 +4968,9 @@
         "estimated_data_kb": 1
       },
       "aminet_status": "exists",
-      "aminet_notes": "sha256.lha at util/cli"
+      "aminet_notes": "sha256.lha at util/cli",
+      "community_value": 4,
+      "community_value_reason": "SHA-256 hash \u2014 modern integrity checking."
     },
     {
       "id": "sbase-md5sum",
@@ -4870,7 +5020,9 @@
         "estimated_data_kb": 1
       },
       "aminet_status": "exists",
-      "aminet_notes": "MD5SUM.lha at util/crypt"
+      "aminet_notes": "MD5SUM.lha at util/crypt",
+      "community_value": 3,
+      "community_value_reason": "MD5 hash \u2014 older but still used for checksums."
     },
     {
       "id": "sbase-xd",
@@ -4900,7 +5052,9 @@
         "a4000_030": "unknown"
       },
       "aminet_status": "missing",
-      "aminet_notes": "Source doesn't exist in sbase"
+      "aminet_notes": "Source doesn't exist in sbase",
+      "community_value": 2,
+      "community_value_reason": "Hex dump \u2014 AmigaOS has TYPE HEX."
     },
     {
       "id": "sbase-split",
@@ -4950,7 +5104,9 @@
         "estimated_data_kb": 1
       },
       "aminet_status": "missing",
-      "aminet_notes": "No POSIX text split on Aminet"
+      "aminet_notes": "No POSIX text split on Aminet",
+      "community_value": 3,
+      "community_value_reason": "Split files into pieces \u2014 useful for floppy-era file transfer."
     },
     {
       "id": "sbase-od",
@@ -5001,7 +5157,9 @@
         "estimated_data_kb": 2
       },
       "aminet_status": "missing",
-      "aminet_notes": "No octal dump utility on Aminet"
+      "aminet_notes": "No octal dump utility on Aminet",
+      "community_value": 3,
+      "community_value_reason": "Octal dump \u2014 developer tool for binary inspection."
     },
     {
       "id": "sbase-sha1sum",
@@ -5051,7 +5209,9 @@
         "estimated_data_kb": 1
       },
       "aminet_status": "exists",
-      "aminet_notes": "sha.i386-aros.lha \u2014 AROS i386 only, no m68k version"
+      "aminet_notes": "sha.i386-aros.lha \u2014 AROS i386 only, no m68k version",
+      "community_value": 3,
+      "community_value_reason": "SHA-1 hash \u2014 intermediate security."
     },
     {
       "id": "awk-plan9",
@@ -5081,7 +5241,9 @@
         "stock_a1200": "unknown",
         "a1200_accel": "unknown",
         "a4000_030": "unknown"
-      }
+      },
+      "community_value": 5,
+      "community_value_reason": "AWK \u2014 essential text processing. No standalone AWK on Aminet."
     },
     {
       "id": "sbase-seq",
@@ -5111,7 +5273,9 @@
         "stock_a1200": "unknown",
         "a1200_accel": "unknown",
         "a4000_030": "unknown"
-      }
+      },
+      "community_value": 4,
+      "community_value_reason": "Generate number sequences \u2014 sbase implementation."
     },
     {
       "id": "sbase-sponge",
@@ -5141,7 +5305,9 @@
         "stock_a1200": "unknown",
         "a1200_accel": "unknown",
         "a4000_030": "unknown"
-      }
+      },
+      "community_value": 4,
+      "community_value_reason": "Soak stdin then write \u2014 solves the 'sort file > file' problem."
     },
     {
       "id": "sbase-xinstall",
@@ -5171,7 +5337,9 @@
         "stock_a1200": "unknown",
         "a1200_accel": "unknown",
         "a4000_030": "unknown"
-      }
+      },
+      "community_value": 2,
+      "community_value_reason": "Install files with permissions \u2014 less relevant on AmigaOS."
     },
     {
       "id": "9base-unicode",
@@ -5201,7 +5369,9 @@
         "stock_a1200": "unknown",
         "a1200_accel": "unknown",
         "a4000_030": "unknown"
-      }
+      },
+      "community_value": 2,
+      "community_value_reason": "Unicode table lookup \u2014 very niche on 68k."
     },
     {
       "id": "9base-freq",
@@ -5231,7 +5401,9 @@
         "stock_a1200": "unknown",
         "a1200_accel": "unknown",
         "a4000_030": "unknown"
-      }
+      },
+      "community_value": 3,
+      "community_value_reason": "Character frequency counter \u2014 useful for text analysis."
     },
     {
       "id": "9base-ascii",
@@ -5261,7 +5433,9 @@
         "stock_a1200": "unknown",
         "a1200_accel": "unknown",
         "a4000_030": "unknown"
-      }
+      },
+      "community_value": 3,
+      "community_value_reason": "ASCII table \u2014 handy reference utility."
     },
     {
       "id": "9base-hoc",
@@ -5291,7 +5465,9 @@
         "stock_a1200": "unknown",
         "a1200_accel": "unknown",
         "a4000_030": "unknown"
-      }
+      },
+      "community_value": 3,
+      "community_value_reason": "Calculator language \u2014 bc is already ported."
     },
     {
       "id": "sbase-uuencode",
@@ -5321,7 +5497,9 @@
         "stock_a1200": "unknown",
         "a1200_accel": "unknown",
         "a4000_030": "unknown"
-      }
+      },
+      "community_value": 2,
+      "community_value_reason": "UUencode \u2014 legacy encoding, mostly replaced by base64/MIME."
     },
     {
       "id": "sbase-uudecode",
@@ -5351,7 +5529,9 @@
         "stock_a1200": "unknown",
         "a1200_accel": "unknown",
         "a4000_030": "unknown"
-      }
+      },
+      "community_value": 2,
+      "community_value_reason": "UUdecode \u2014 legacy encoding."
     },
     {
       "id": "sbase-sha256sum",
@@ -5381,7 +5561,9 @@
         "stock_a1200": "unknown",
         "a1200_accel": "unknown",
         "a4000_030": "unknown"
-      }
+      },
+      "community_value": 4,
+      "community_value_reason": "SHA-256 hash \u2014 modern integrity checking."
     },
     {
       "id": "sbase-md5sum",
@@ -5411,7 +5593,9 @@
         "stock_a1200": "unknown",
         "a1200_accel": "unknown",
         "a4000_030": "unknown"
-      }
+      },
+      "community_value": 3,
+      "community_value_reason": "MD5 hash \u2014 older but still used for checksums."
     },
     {
       "id": "sbase-split",
@@ -5441,7 +5625,9 @@
         "stock_a1200": "unknown",
         "a1200_accel": "unknown",
         "a4000_030": "unknown"
-      }
+      },
+      "community_value": 3,
+      "community_value_reason": "Split files into pieces \u2014 useful for floppy-era file transfer."
     },
     {
       "id": "sbase-od",
@@ -5471,7 +5657,9 @@
         "stock_a1200": "unknown",
         "a1200_accel": "unknown",
         "a4000_030": "unknown"
-      }
+      },
+      "community_value": 3,
+      "community_value_reason": "Octal dump \u2014 developer tool for binary inspection."
     },
     {
       "id": "sbase-sha1sum",
@@ -5501,7 +5689,9 @@
         "stock_a1200": "unknown",
         "a1200_accel": "unknown",
         "a4000_030": "unknown"
-      }
+      },
+      "community_value": 3,
+      "community_value_reason": "SHA-1 hash \u2014 intermediate security."
     }
   ],
   "ported": [

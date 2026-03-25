@@ -84,6 +84,27 @@
         }}, tier || 'unknown');
     }
 
+    function valueBadge(val) {
+        if (!val) return text('--');
+        var colors = { 5: '#448844', 4: '#6B8E23', 3: '#B8860B', 2: '#4A4A4A', 1: '#BB4444' };
+        var labels = { 5: 'essential', 4: 'valuable', 3: 'useful', 2: 'low', 1: 'skip' };
+        return el('span', { style: {
+            color: colors[val] || '#4A4A4A', fontSize: '12px',
+            fontWeight: val >= 4 ? 'bold' : 'normal'
+        }}, labels[val] || String(val));
+    }
+
+    function aminetBadge(status) {
+        if (!status) return el('span', { className: 'text-muted', style: { fontSize: '12px' } }, '?');
+        var color = status === 'missing' ? '#448844' :
+                   status === 'outdated' ? '#B8860B' : '#4A4A4A';
+        var label = status === 'missing' ? 'missing' :
+                   status === 'outdated' ? 'outdated' : 'exists';
+        return el('span', { style: {
+            color: color, fontSize: '12px', fontWeight: status === 'missing' ? 'bold' : 'normal'
+        }}, label);
+    }
+
     function hwDots(hw) {
         var wrapper = el('span', { style: { whiteSpace: 'nowrap' } });
         var profiles = ['stock_a1200', 'a1200_accel', 'a4000_030'];
@@ -160,6 +181,7 @@
         result.sort(function(a, b) {
             if (sortKey === 'score') return ((b.readiness || {}).score || 0) - ((a.readiness || {}).score || 0);
             if (sortKey === 'complexity') return ((b.analysis || {}).source_complexity || 0) - ((a.analysis || {}).source_complexity || 0);
+            if (sortKey === 'value') return (b.community_value || 0) - (a.community_value || 0);
             return (a.name || '').localeCompare(b.name || '');
         });
         return result;
@@ -196,7 +218,9 @@
                 el('td', null, tierBadge(tier)),
                 el('td', null, c.description || ''),
                 el('td', null, (c.upstream || {}).source || '?'),
-                el('td', null, hwDots(c.hardware_fit))
+                el('td', null, hwDots(c.hardware_fit)),
+                el('td', null, aminetBadge(c.aminet_status)),
+                el('td', null, valueBadge(c.community_value))
             ]);
             tr.addEventListener('click', toggleDetail);
             tr.addEventListener('keydown', function(e) { if (e.key === 'Enter') toggleDetail.call(this, e); });
@@ -314,13 +338,31 @@
                 u.lines_of_code + ' lines, ' + (u.files || '?') + ' file(s)'));
         }
 
+        // Aminet status
+        if (c.aminet_status) {
+            right.appendChild(el('div', { style: { fontSize: '13px', fontWeight: 'bold', marginTop: '8px', marginBottom: '4px' } }, 'Aminet'));
+            right.appendChild(el('div', { style: { fontSize: '13px' } }, [
+                aminetBadge(c.aminet_status),
+                text(c.aminet_notes ? ' -- ' + c.aminet_notes : '')
+            ]));
+        }
+
+        // Community value
+        if (c.community_value) {
+            right.appendChild(el('div', { style: { fontSize: '13px', fontWeight: 'bold', marginTop: '8px', marginBottom: '4px' } }, 'Community Value'));
+            right.appendChild(el('div', { style: { fontSize: '13px' } }, [
+                valueBadge(c.community_value),
+                text(' -- ' + (c.community_value_reason || ''))
+            ]));
+        }
+
         if (c.notes) {
             right.appendChild(el('div', { style: { fontSize: '13px', color: '#4A4A4A', marginTop: '8px', fontStyle: 'italic' } }, c.notes));
         }
 
         // Wrap in a detail row spanning all columns
         var content = el('div', { style: { display: 'flex', gap: '24px', flexWrap: 'wrap', padding: '8px 0' } }, [left, right]);
-        var td = el('td', { colspan: '6', style: { background: '#A8A8A8', borderTop: '1px solid #606060' } }, content);
+        var td = el('td', { colspan: '8', style: { background: '#A8A8A8', borderTop: '1px solid #606060' } }, content);
         return el('tr', { className: 'cat-detail-row' }, td);
     }
 
