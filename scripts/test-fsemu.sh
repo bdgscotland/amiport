@@ -696,7 +696,8 @@ parse_results() {
             local assertions_file="$RESULTS_DIR/${scrape_base}.assertions"
             if [ -f "$assertions_file" ]; then
                 echo "  Test $scrape_num:"
-                if python3 "$SCRIPT_DIR/verify-screen.py" "$scrape_log" "$assertions_file" 2>&1 | sed 's/^/    /'; then
+                # ADR-025: pass --screen-dir for EXPECT_TRAP_CURSOR assertions
+                if python3 "$SCRIPT_DIR/verify-screen.py" "$scrape_log" "$assertions_file" --screen-dir "$RESULTS_DIR/ansi-logs" 2>&1 | sed 's/^/    /'; then
                     echo -e "    ${GREEN}Visual assertions passed${NC}"
                 else
                     echo -e "    ${RED}Visual assertions FAILED${NC}"

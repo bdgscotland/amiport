@@ -13,6 +13,7 @@ Usage:
 Assertions file format (one per line):
     EXPECT_AT row,col,text
     EXPECT_CURSOR row,col
+    EXPECT_TRAP_CURSOR row,col   (requires --screen-dir)
 
 Row and col are 1-based (matching ANSI conventions).
 
@@ -26,6 +27,8 @@ Architecture: ADR-024 (FS-UAE Visual Verification)
 
 import sys
 import os
+import glob
+import json
 
 try:
     import pyte
@@ -104,6 +107,19 @@ def parse_assertions(assertions_path):
                 row, col = int(parts[0]), int(parts[1])
                 assertions.append(("EXPECT_CURSOR", row, col))
 
+            elif line.startswith("EXPECT_TRAP_CURSOR "):
+                # ADR-025: cursor position from ConUnit trap (.screen JSON)
+                rest = line[len("EXPECT_TRAP_CURSOR ") :]
+                parts = rest.split(",", 1)
+                if len(parts) != 2:
+                    print(
+                        f"ERROR: line {line_num}: EXPECT_TRAP_CURSOR needs row,col",
+                        file=sys.stderr,
+                    )
+                    sys.exit(2)
+                row, col = int(parts[0]), int(parts[1])
+                assertions.append(("EXPECT_TRAP_CURSOR", row, col))
+
             else:
                 print(
                     f"WARNING: line {line_num}: unknown assertion: {line}",
@@ -113,8 +129,11 @@ def parse_assertions(assertions_path):
     return assertions
 
 
-def check_assertions(screen, assertions):
-    """Run assertions against screen. Returns (passed, failed, details)."""
+def check_assertions(screen, assertions, screen_data=None):
+    """Run assertions against screen. Returns (passed, failed, details).
+
+    screen_data: dict from .screen JSON (ADR-025 trap), or None.
+    """
     passed = 0
     failed = 0
     details = []
@@ -169,7 +188,41 @@ def check_assertions(screen, assertions):
                 )
                 failed += 1
 
+        elif assertion[0] == "EXPECT_TRAP_CURSOR":
+            # ADR-025: cursor position from ConUnit trap (.screen JSON)
+            _, row, col = assertion
+            if not screen_data:
+                details.append(
+                    f"FAIL: EXPECT_TRAP_CURSOR {row},{col}"
+                    f" -- no .screen file found (did ScreenRead run?)"
+                )
+                failed += 1
+                continue
+            actual_row = screen_data["cursor_row"]
+            actual_col = screen_data["cursor_col"]
+            if actual_row == row and actual_col == col:
+                details.append(f"PASS: EXPECT_TRAP_CURSOR {row},{col}")
+                passed += 1
+            else:
+                details.append(
+                    f"FAIL: EXPECT_TRAP_CURSOR {row},{col}"
+                    f" -- actual: {actual_row},{actual_col}"
+                )
+                failed += 1
+
     return passed, failed, details
+
+
+def load_screen_data(screen_dir):
+    """Load .screen JSON from ADR-025 trap dump. Returns dict or None."""
+    if not screen_dir:
+        return None
+    screen_files = sorted(glob.glob(os.path.join(screen_dir, "*.screen")))
+    if not screen_files:
+        return None
+    # Use the last (newest) .screen file
+    with open(screen_files[-1]) as f:
+        return json.load(f)
 
 
 def main():
@@ -183,9 +236,10 @@ def main():
         print(f"ERROR: ANSI log not found: {ansi_log_path}", file=sys.stderr)
         sys.exit(2)
 
-    # Optional: --cols N --rows N
+    # Optional: --cols N --rows N --screen-dir PATH
     cols = 77
     rows = 30
+    screen_dir = None
     i = 3
     while i < len(sys.argv):
         if sys.argv[i] == "--cols" and i + 1 < len(sys.argv):
@@ -193,6 +247,9 @@ def main():
             i += 2
         elif sys.argv[i] == "--rows" and i + 1 < len(sys.argv):
             rows = int(sys.argv[i + 1])
+            i += 2
+        elif sys.argv[i] == "--screen-dir" and i + 1 < len(sys.argv):
+            screen_dir = sys.argv[i + 1]
             i += 2
         else:
             i += 1
@@ -215,7 +272,8 @@ def main():
         print("WARNING: No assertions found in file", file=sys.stderr)
         sys.exit(0)
 
-    passed, failed, details = check_assertions(screen, assertions)
+    screen_data = load_screen_data(screen_dir)
+    passed, failed, details = check_assertions(screen, assertions, screen_data)
 
     for detail in details:
         print(detail)

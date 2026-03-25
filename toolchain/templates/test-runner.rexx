@@ -79,6 +79,11 @@ DO WHILE ~EOF('tf')
              * Accepts both "SCRAPE" and "SCRAPE:" */
             scrape.testcount = 1
         END
+        WHEN LEFT(line, 11) = 'SCREEN_READ' THEN DO
+            /* ADR-025: Trigger ScreenRead to dump ConUnit cursor position
+             * via FS-UAE trap mode 150. Runs after KeyInject + wait. */
+            screen_read.testcount = 1
+        END
         WHEN LEFT(line, 10) = 'EXPECT_AT ' THEN DO
             /* ADR-024: Visual assertion -- stored for host-side verify-screen.py.
              * Accumulated as newline-separated string (ARexx has no multi-level
@@ -94,6 +99,18 @@ DO WHILE ~EOF('tf')
                 visual_asserts.testcount = line
             ELSE
                 visual_asserts.testcount = visual_asserts.testcount || '0a'x || line
+        END
+        WHEN LEFT(line, 19) = 'EXPECT_TRAP_CURSOR ' THEN DO
+            /* ADR-025: ConUnit trap cursor assertion -- stored for host-side. */
+            IF visual_asserts.testcount = 'VISUAL_ASSERTS.' || testcount THEN
+                visual_asserts.testcount = line
+            ELSE
+                visual_asserts.testcount = visual_asserts.testcount || '0a'x || line
+        END
+        WHEN LEFT(line, 8) = 'CLEANUP:' THEN DO
+            /* ADR-025: Cleanup keys sent after SCRAPE/SCREEN_READ to quit
+             * the program cleanly. Separate from KEYS (action keys). */
+            cleanup_keys.testcount = STRIP(SUBSTR(line, 9))
         END
         WHEN LEFT(line, 5) = 'TEST:' THEN DO
             testcount = testcount + 1
@@ -216,6 +233,20 @@ DO i = 1 TO testcount
             ADDRESS COMMAND 'Wait 1'
         END
 
+        /* ADR-025: If SCREEN_READ is requested, trigger ScreenRead to
+         * dump ConUnit cursor position via FS-UAE trap mode 150.
+         * Runs after KeyInject so the cursor has moved.
+         * ScreenRead writes .screen JSON to AMIPORT_ANSI_LOG_DIR. */
+        tscreen_read = screen_read.i
+        IF tscreen_read = 1 THEN DO
+            IF EXISTS('WORK:ScreenRead') THEN DO
+                ADDRESS COMMAND 'WORK:ScreenRead'
+                ADDRESS COMMAND 'Wait 1'
+            END
+            ELSE
+                SAY '  SCREEN_READ: ScreenRead not found on WORK:'
+        END
+
         /* ADR-024: If SCRAPE is requested, write visual assertions file
          * and signal host to snapshot the ANSI log for screen verification.
          * Host copies ANSI log, runs verify-screen.py after all tests. */
@@ -244,6 +275,14 @@ DO i = 1 TO testcount
                 IF ~EXISTS(scrapefile) THEN LEAVE
                 ADDRESS COMMAND 'Wait 1'
             END
+        END
+
+        /* ADR-025: If CLEANUP keys specified, inject them now to quit
+         * the program cleanly after SCRAPE/SCREEN_READ captured state. */
+        tcleanup = cleanup_keys.i
+        IF tcleanup ~= 'CLEANUP_KEYS.' || i THEN DO
+            IF EXISTS('WORK:KeyInject') THEN
+                ADDRESS COMMAND 'WORK:KeyInject' tcleanup
         END
 
         /* Wait for program to process quit key and exit (3 seconds) */
