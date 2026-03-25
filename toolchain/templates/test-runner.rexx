@@ -211,24 +211,33 @@ DO i = 1 TO testcount
         /* Wait for program to initialize (3 seconds) */
         ADDRESS COMMAND 'Wait 3'
 
-        /* Request host-side key injection (ADR-025 overhaul).
-         * Write the key sequence to a sentinel file; the host reads it,
-         * injects via osascript (same path as physical keypresses),
-         * then writes keys-done-N. This replaces KeyInject/AddIEvents
-         * which doesn't reliably deliver to the active Amiga window. */
-        keysreqfile = 'RESULTS:keys-request-' || i
-        keysdonefile = 'RESULTS:keys-done-' || i
-        IF OPEN('krf', keysreqfile, 'W') THEN DO
-            CALL WRITELN('krf', tkeys)
-            CALL CLOSE('krf')
-        END
-        /* Wait for host to inject keys (up to 30s) */
-        DO keys_wait = 1 TO 60
-            IF EXISTS(keysdonefile) THEN DO
-                ADDRESS COMMAND 'Delete >NIL:' keysdonefile
-                LEAVE
+        /* Key injection: two modes (ADR-025).
+         * 1. KeyInject (Amiga-side AddIEvents) -- for functional tests
+         * 2. Host sentinel handshake -- for visual tests (SCRAPE)
+         * KeyInject works for exit-code-only tests. For visual tests
+         * where cursor movement must reach RAW mode programs, host-side
+         * osascript injection is required. Visual tests set scrape.N=1
+         * which we use to choose the injection mode. */
+        IF scrape.i = 1 THEN DO
+            /* Visual mode: request host-side injection */
+            keysreqfile = 'RESULTS:keys-request-' || i
+            keysdonefile = 'RESULTS:keys-done-' || i
+            IF OPEN('krf', keysreqfile, 'W') THEN DO
+                CALL WRITELN('krf', tkeys)
+                CALL CLOSE('krf')
             END
-            ADDRESS COMMAND 'Wait 1'
+            DO keys_wait = 1 TO 60
+                IF EXISTS(keysdonefile) THEN DO
+                    ADDRESS COMMAND 'Delete >NIL:' keysdonefile
+                    LEAVE
+                END
+                ADDRESS COMMAND 'Wait 1'
+            END
+        END
+        ELSE DO
+            /* Functional mode: use KeyInject (Amiga-side) */
+            IF EXISTS('WORK:KeyInject') THEN
+                ADDRESS COMMAND 'WORK:KeyInject' tkeys
         END
 
         /* Signal host to take a screenshot (visual verification).
@@ -292,22 +301,28 @@ DO i = 1 TO testcount
             END
         END
 
-        /* ADR-025: If CLEANUP keys specified, request host-side injection
-         * to quit the program cleanly after SCRAPE/SCREEN_READ. */
+        /* ADR-025: If CLEANUP keys specified, inject them to quit cleanly. */
         tcleanup = cleanup_keys.i
         IF tcleanup ~= 'CLEANUP_KEYS.' || i THEN DO
-            cleanreqfile = 'RESULTS:keys-request-cleanup-' || i
-            cleandonefile = 'RESULTS:keys-done-cleanup-' || i
-            IF OPEN('crf', cleanreqfile, 'W') THEN DO
-                CALL WRITELN('crf', tcleanup)
-                CALL CLOSE('crf')
-            END
-            DO clean_wait = 1 TO 20
-                IF EXISTS(cleandonefile) THEN DO
-                    ADDRESS COMMAND 'Delete >NIL:' cleandonefile
-                    LEAVE
+            IF scrape.i = 1 THEN DO
+                /* Visual mode: host-side injection */
+                cleanreqfile = 'RESULTS:keys-request-cleanup-' || i
+                cleandonefile = 'RESULTS:keys-done-cleanup-' || i
+                IF OPEN('crf', cleanreqfile, 'W') THEN DO
+                    CALL WRITELN('crf', tcleanup)
+                    CALL CLOSE('crf')
                 END
-                ADDRESS COMMAND 'Wait 1'
+                DO clean_wait = 1 TO 20
+                    IF EXISTS(cleandonefile) THEN DO
+                        ADDRESS COMMAND 'Delete >NIL:' cleandonefile
+                        LEAVE
+                    END
+                    ADDRESS COMMAND 'Wait 1'
+                END
+            END
+            ELSE DO
+                IF EXISTS('WORK:KeyInject') THEN
+                    ADDRESS COMMAND 'WORK:KeyInject' tcleanup
             END
         END
 
