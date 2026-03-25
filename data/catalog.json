@@ -1073,7 +1073,9 @@
         "estimated_stack_kb": 32,
         "estimated_binary_kb": 38,
         "estimated_data_kb": 2
-      }
+      },
+      "aminet_status": "exists",
+      "aminet_notes": "GNU coreutils 5.2.1-9 (m68k, 2010). Note: version is from 2005, 20+ years old but functional."
     },
     {
       "id": "fmt",
@@ -1124,7 +1126,9 @@
         "estimated_stack_kb": 32,
         "estimated_binary_kb": 46,
         "estimated_data_kb": 2
-      }
+      },
+      "aminet_status": "exists",
+      "aminet_notes": "GNU coreutils 5.2.1-9 (m68k, 2010). Note: version is from 2005, 20+ years old but functional."
     },
     {
       "id": "fold",
@@ -1174,7 +1178,9 @@
         "estimated_stack_kb": 16,
         "estimated_binary_kb": 23,
         "estimated_data_kb": 1
-      }
+      },
+      "aminet_status": "exists",
+      "aminet_notes": "GNU coreutils 5.2.1-9 (m68k, 2010). Note: version is from 2005, 20+ years old but functional."
     },
     {
       "id": "rev",
@@ -1273,7 +1279,9 @@
         "estimated_stack_kb": 16,
         "estimated_binary_kb": 27,
         "estimated_data_kb": 2
-      }
+      },
+      "aminet_status": "missing",
+      "aminet_notes": "Not found on Aminet. Not in GNU coreutils. NICHE: BSD column(1) may exist separately, but not located. HIGH PORTING VALUE."
     },
     {
       "id": "expand",
@@ -1321,7 +1329,7 @@
         "a4000_030": "fits"
       },
       "aminet_status": "exists",
-      "aminet_notes": "Expand.lha (1992) provides 'TABs to spaces and vice versa'\u2014older standalone implementation."
+      "aminet_notes": "Expand.lha (1992) provides 'TABs to spaces and vice versa'—older standalone implementation."
     },
     {
       "id": "unexpand",
@@ -1415,7 +1423,9 @@
         "estimated_stack_kb": 16,
         "estimated_binary_kb": 22,
         "estimated_data_kb": 1
-      }
+      },
+      "aminet_status": "exists",
+      "aminet_notes": "GNU coreutils 5.2.1-9 (m68k, 2010). Note: version is from 2005, 20+ years old but functional."
     },
     {
       "id": "join",
@@ -1465,7 +1475,9 @@
         "estimated_stack_kb": 32,
         "estimated_binary_kb": 41,
         "estimated_data_kb": 2
-      }
+      },
+      "aminet_status": "exists",
+      "aminet_notes": "GNU coreutils 5.2.1-9 (m68k, 2010). Note: version is from 2005, 20+ years old but functional."
     },
     {
       "id": "comm",
@@ -1559,7 +1571,9 @@
         "estimated_stack_kb": 32,
         "estimated_binary_kb": 60,
         "estimated_data_kb": 4
-      }
+      },
+      "aminet_status": "exists",
+      "aminet_notes": "GNU coreutils 5.2.1-9 (m68k, 2010). Note: version is from 2005, 20+ years old but functional."
     },
     {
       "id": "ls",
@@ -1627,7 +1641,9 @@
         "estimated_stack_kb": 64,
         "estimated_binary_kb": 72,
         "estimated_data_kb": 4
-      }
+      },
+      "aminet_status": "exists",
+      "aminet_notes": "GNU coreutils 5.2.1-9 (m68k, 2010). Note: version is from 2005, 20+ years old but functional."
     },
     {
       "id": "file",
@@ -1678,13 +1694,15 @@
           "fork",
           "wait"
         ],
-        "blocker_workaround": "fork/wait used for sandboxed magic testing \u2014 can run unsandboxed on AmigaOS (no privilege separation needed). getpw*/getuid stubs. readlink returns -1.",
+        "blocker_workaround": "fork/wait used for sandboxed magic testing — can run unsandboxed on AmigaOS (no privilege separation needed). getpw*/getuid stubs. readlink returns -1.",
         "dependencies": [],
         "source_complexity": 0.63,
         "estimated_stack_kb": 64,
         "estimated_binary_kb": 195,
         "estimated_data_kb": 8
-      }
+      },
+      "aminet_status": "missing",
+      "aminet_notes": "Not found on Aminet. GNU file utility exists but not ported. MODERATE PORTING VALUE (niche use case)."
     },
     {
       "id": "du",
@@ -1738,7 +1756,9 @@
         "estimated_stack_kb": 64,
         "estimated_binary_kb": 26,
         "estimated_data_kb": 2
-      }
+      },
+      "aminet_status": "exists",
+      "aminet_notes": "GNU coreutils 5.2.1-9 (m68k, 2010). Note: version is from 2005, 20+ years old but functional."
     },
     {
       "id": "find",
@@ -1814,7 +1834,9 @@
         "estimated_stack_kb": 64,
         "estimated_binary_kb": 150,
         "estimated_data_kb": 4
-      }
+      },
+      "aminet_status": "exists",
+      "aminet_notes": "GNU findutils 4.1 (m68k, 1998). Note: very old version (1998), missing modern features (UPGRADE candidate)."
     },
     {
       "id": "xargs",
@@ -1863,13 +1885,15 @@
           "vfork",
           "waitpid"
         ],
-        "blocker_workaround": "Core function is fork+exec \u2014 could use AmigaDOS SystemTags() but would be a major rewrite",
+        "blocker_workaround": "Core function is fork+exec — could use AmigaDOS SystemTags() but would be a major rewrite",
         "dependencies": [],
         "source_complexity": 0.93,
         "estimated_stack_kb": 32,
         "estimated_binary_kb": 46,
         "estimated_data_kb": 2
-      }
+      },
+      "aminet_status": "exists",
+      "aminet_notes": "GNU findutils 4.1 (m68k, 1998). Note: very old version (1998), missing modern features (UPGRADE candidate)."
     },
     {
       "id": "touch",
@@ -1912,13 +1936,15 @@
           "futimens"
         ],
         "blocking_shims": [],
-        "blocker_workaround": "utimensat/futimens can be shimmed via AmigaOS SetFileDate() \u2014 straightforward Tier 2 shim",
+        "blocker_workaround": "utimensat/futimens can be shimmed via AmigaOS SetFileDate() — straightforward Tier 2 shim",
         "dependencies": [],
         "source_complexity": 0.97,
         "estimated_stack_kb": 16,
         "estimated_binary_kb": 27,
         "estimated_data_kb": 2
-      }
+      },
+      "aminet_status": "exists",
+      "aminet_notes": "GNU coreutils 5.2.1-9 (m68k, 2010). Note: version is from 2005, 20+ years old but functional."
     },
     {
       "id": "ln",
@@ -1968,7 +1994,9 @@
         "estimated_stack_kb": 16,
         "estimated_binary_kb": 20,
         "estimated_data_kb": 1
-      }
+      },
+      "aminet_status": "exists",
+      "aminet_notes": "GNU coreutils 5.2.1-9 (m68k, 2010). Note: version is from 2005, 20+ years old but functional."
     },
     {
       "id": "cp",
@@ -2036,7 +2064,9 @@
         "estimated_stack_kb": 64,
         "estimated_binary_kb": 50,
         "estimated_data_kb": 2
-      }
+      },
+      "aminet_status": "exists",
+      "aminet_notes": "GNU coreutils 5.2.1-9 (m68k, 2010). Note: version is from 2005, 20+ years old but functional."
     },
     {
       "id": "mv",
@@ -2082,13 +2112,15 @@
           "fchmod",
           "fchown"
         ],
-        "blocker_workaround": "fchmod/fchown can be no-op stubs \u2014 AmigaOS has limited permission model. Uses cpmain/rmmain directly (no fork).",
+        "blocker_workaround": "fchmod/fchown can be no-op stubs — AmigaOS has limited permission model. Uses cpmain/rmmain directly (no fork).",
         "dependencies": [],
         "source_complexity": 0.96,
         "estimated_stack_kb": 16,
         "estimated_binary_kb": 29,
         "estimated_data_kb": 2
-      }
+      },
+      "aminet_status": "exists",
+      "aminet_notes": "GNU coreutils 5.2.1-9 (m68k, 2010). Note: version is from 2005, 20+ years old but functional."
     },
     {
       "id": "rm",
@@ -2144,7 +2176,9 @@
         "estimated_stack_kb": 64,
         "estimated_binary_kb": 32,
         "estimated_data_kb": 2
-      }
+      },
+      "aminet_status": "exists",
+      "aminet_notes": "GNU coreutils 5.2.1-9 (m68k, 2010). Note: version is from 2005, 20+ years old but functional."
     },
     {
       "id": "mkdir",
@@ -2190,7 +2224,9 @@
         "estimated_stack_kb": 16,
         "estimated_binary_kb": 18,
         "estimated_data_kb": 1
-      }
+      },
+      "aminet_status": "exists",
+      "aminet_notes": "GNU coreutils 5.2.1-9 (m68k, 2010). Note: version is from 2005, 20+ years old but functional."
     },
     {
       "id": "rmdir",
@@ -2209,7 +2245,7 @@
       "status": "candidate",
       "analysis_status": "complete",
       "publishable": true,
-      "notes": "Remove empty directories. Trivial \u2014 just rmdir() + getopt + err.",
+      "notes": "Remove empty directories. Trivial — just rmdir() + getopt + err.",
       "readiness": {
         "score": 0.999,
         "tier": "ready"
@@ -2236,7 +2272,9 @@
         "estimated_stack_kb": 16,
         "estimated_binary_kb": 15,
         "estimated_data_kb": 1
-      }
+      },
+      "aminet_status": "exists",
+      "aminet_notes": "GNU coreutils 5.2.1-9 (m68k, 2010). Note: version is from 2005, 20+ years old but functional."
     },
     {
       "id": "chmod",
@@ -2292,7 +2330,9 @@
         "estimated_stack_kb": 64,
         "estimated_binary_kb": 27,
         "estimated_data_kb": 2
-      }
+      },
+      "aminet_status": "exists",
+      "aminet_notes": "GNU coreutils 5.2.1-9 (m68k, 2010). Note: version is from 2005, 20+ years old but functional."
     },
     {
       "id": "env",
@@ -2336,13 +2376,15 @@
         "blocking_shims": [
           "execvp"
         ],
-        "blocker_workaround": "execvp can be replaced with AmigaDOS SystemTags() for running the command \u2014 moderate rewrite of exec path",
+        "blocker_workaround": "execvp can be replaced with AmigaDOS SystemTags() for running the command — moderate rewrite of exec path",
         "dependencies": [],
         "source_complexity": 0.99,
         "estimated_stack_kb": 16,
         "estimated_binary_kb": 15,
         "estimated_data_kb": 1
-      }
+      },
+      "aminet_status": "exists",
+      "aminet_notes": "GNU coreutils 5.2.1-9 (m68k, 2010). Note: version is from 2005, 20+ years old but functional."
     },
     {
       "id": "printenv",
@@ -2361,7 +2403,7 @@
       "status": "candidate",
       "analysis_status": "complete",
       "publishable": true,
-      "notes": "Print environment variables. Trivial \u2014 uses extern environ + getenv. Maps to AmigaOS GetVar/ScanVars.",
+      "notes": "Print environment variables. Trivial — uses extern environ + getenv. Maps to AmigaOS GetVar/ScanVars.",
       "readiness": {
         "score": 0.999,
         "tier": "ready"
@@ -2388,7 +2430,9 @@
         "estimated_stack_kb": 16,
         "estimated_binary_kb": 13,
         "estimated_data_kb": 1
-      }
+      },
+      "aminet_status": "exists",
+      "aminet_notes": "GNU coreutils 5.2.1-9 (m68k, 2010). Note: version is from 2005, 20+ years old but functional."
     },
     {
       "id": "uname",
@@ -2436,7 +2480,9 @@
         "estimated_stack_kb": 16,
         "estimated_binary_kb": 17,
         "estimated_data_kb": 1
-      }
+      },
+      "aminet_status": "exists",
+      "aminet_notes": "GNU coreutils 5.2.1-9 (m68k, 2010). Note: version is from 2005, 20+ years old but functional."
     },
     {
       "id": "hostname",
@@ -2488,7 +2534,9 @@
         "estimated_stack_kb": 16,
         "estimated_binary_kb": 14,
         "estimated_data_kb": 1
-      }
+      },
+      "aminet_status": "exists",
+      "aminet_notes": "GNU coreutils 5.2.1-9 (m68k, 2010). Note: version is from 2005, 20+ years old but functional."
     },
     {
       "id": "id",
@@ -2556,7 +2604,9 @@
         "estimated_stack_kb": 16,
         "estimated_binary_kb": 28,
         "estimated_data_kb": 2
-      }
+      },
+      "aminet_status": "exists",
+      "aminet_notes": "GNU coreutils 5.2.1-9 (m68k, 2010). Note: version is from 2005, 20+ years old but functional."
     },
     {
       "id": "whoami",
@@ -2618,7 +2668,7 @@
           "getpwnam",
           "getgrgid"
         ],
-        "blocker_workaround": "Same as id \u2014 whoami is a symlink to id on OpenBSD. Stub user functions to return \"amiga\".",
+        "blocker_workaround": "Same as id — whoami is a symlink to id on OpenBSD. Stub user functions to return \"amiga\".",
         "dependencies": [],
         "source_complexity": 0.96,
         "estimated_stack_kb": 16,
@@ -2670,7 +2720,7 @@
         "blocking_shims": [
           "getlogin"
         ],
-        "blocker_workaround": "getlogin() stubbed to return \"amiga\" \u2014 AmigaOS is single-user",
+        "blocker_workaround": "getlogin() stubbed to return \"amiga\" — AmigaOS is single-user",
         "dependencies": [],
         "source_complexity": 0.99,
         "estimated_stack_kb": 16,
@@ -2722,7 +2772,7 @@
         "blocking_shims": [
           "ttyname"
         ],
-        "blocker_workaround": "ttyname() stubbed to return \"CON:\" or \"*\" \u2014 AmigaOS console device name",
+        "blocker_workaround": "ttyname() stubbed to return \"CON:\" or \"*\" — AmigaOS console device name",
         "dependencies": [],
         "source_complexity": 0.99,
         "estimated_stack_kb": 16,
@@ -2868,7 +2918,7 @@
           "setlocale"
         ],
         "blocking_shims": [],
-        "blocker_workaround": "setlocale() is a no-op on AmigaOS \u2014 stub to return \"C\"",
+        "blocker_workaround": "setlocale() is a no-op on AmigaOS — stub to return \"C\"",
         "dependencies": [],
         "source_complexity": 0.96,
         "estimated_stack_kb": 16,
@@ -3125,7 +3175,7 @@
         "a4000_030": "fits"
       },
       "aminet_status": "outdated",
-      "aminet_notes": "wsz13 (1993) is a window mover/sizer with sleep feature\u2014not a standalone sleep utility. GNU coreutils-bin v5.2.1-9 (2006) includes POSIX sleep."
+      "aminet_notes": "wsz13 (1993) is a window mover/sizer with sleep feature—not a standalone sleep utility. GNU coreutils-bin v5.2.1-9 (2006) includes POSIX sleep."
     },
     {
       "id": "date",
@@ -3533,7 +3583,7 @@
         "blocking_shims": [
           "execvp"
         ],
-        "blocker_workaround": "execvp could be replaced with SystemTagList() to launch command, but nohup semantics (ignore SIGHUP) are meaningless on AmigaOS \u2014 no SIGHUP exists",
+        "blocker_workaround": "execvp could be replaced with SystemTagList() to launch command, but nohup semantics (ignore SIGHUP) are meaningless on AmigaOS — no SIGHUP exists",
         "dependencies": [],
         "source_complexity": 0.99,
         "estimated_stack_kb": 8,
@@ -3610,7 +3660,7 @@
       "status": "candidate",
       "analysis_status": "complete",
       "publishable": true,
-      "notes": "NOT a standalone OpenBSD utility \u2014 strings is from binutils/ELF toolchain. Need alternative source (FreeBSD or sbase). Analysis deferred.",
+      "notes": "NOT a standalone OpenBSD utility — strings is from binutils/ELF toolchain. Need alternative source (FreeBSD or sbase). Analysis deferred.",
       "readiness": {
         "score": 0.995,
         "tier": "ready"
@@ -3706,7 +3756,7 @@
       "status": "candidate",
       "analysis_status": "complete",
       "publishable": true,
-      "notes": "NOT a standalone OpenBSD utility \u2014 cksum is handled by bin/md5 on OpenBSD. FreeBSD has standalone cksum (~95 LOC, simple CRC32/sum). Could port FreeBSD version.",
+      "notes": "NOT a standalone OpenBSD utility — cksum is handled by bin/md5 on OpenBSD. FreeBSD has standalone cksum (~95 LOC, simple CRC32/sum). Could port FreeBSD version.",
       "readiness": {
         "score": 0.999,
         "tier": "ready"
@@ -3754,7 +3804,7 @@
       "status": "candidate",
       "analysis_status": "complete",
       "publishable": true,
-      "notes": "Handles MD5/SHA1/SHA256/SHA512/RMD160/CKSUM; depends on libc hash implementations (MD5_*, SHA256_*, etc.) which are NOT in libnix \u2014 need to bundle. Uses getline/getrusage.",
+      "notes": "Handles MD5/SHA1/SHA256/SHA512/RMD160/CKSUM; depends on libc hash implementations (MD5_*, SHA256_*, etc.) which are NOT in libnix — need to bundle. Uses getline/getrusage.",
       "readiness": {
         "score": 0.585,
         "tier": "blocked"
@@ -3914,7 +3964,7 @@
       "status": "candidate",
       "analysis_status": "complete",
       "publishable": true,
-      "notes": "Small utility but depends on vis(3) library function from libc \u2014 NOT in libnix. Need to bundle vis.c from OpenBSD libc.",
+      "notes": "Small utility but depends on vis(3) library function from libc — NOT in libnix. Need to bundle vis.c from OpenBSD libc.",
       "readiness": {
         "score": 0.597,
         "tier": "blocked"
@@ -4018,7 +4068,7 @@
       "status": "candidate",
       "analysis_status": "complete",
       "publishable": true,
-      "notes": "Arbitrary precision calculator (5 .c files + 3 .h); DEPENDS ON OpenSSL BN_* (BIGNUM) for arbitrary precision \u2014 major external dependency. Uses signal, reallocarray, err/errx/warn/warnx, strlcpy, fstat, asprintf.",
+      "notes": "Arbitrary precision calculator (5 .c files + 3 .h); DEPENDS ON OpenSSL BN_* (BIGNUM) for arbitrary precision — major external dependency. Uses signal, reallocarray, err/errx/warn/warnx, strlcpy, fstat, asprintf.",
       "readiness": {
         "score": 0.569,
         "tier": "blocked"
