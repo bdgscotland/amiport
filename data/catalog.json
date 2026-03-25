@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "generated": "2026-03-25T00:00:00Z",
+  "generated": "2026-03-24T22:38:11.409759Z",
   "shim_library_version": "1.0",
   "hardware_profiles": {
     "stock_a1200": {
@@ -1329,7 +1329,7 @@
         "a4000_030": "fits"
       },
       "aminet_status": "exists",
-      "aminet_notes": "Expand.lha (1992) provides 'TABs to spaces and vice versa'—older standalone implementation."
+      "aminet_notes": "Expand.lha (1992) provides 'TABs to spaces and vice versa'\u2014older standalone implementation."
     },
     {
       "id": "unexpand",
@@ -1694,7 +1694,7 @@
           "fork",
           "wait"
         ],
-        "blocker_workaround": "fork/wait used for sandboxed magic testing — can run unsandboxed on AmigaOS (no privilege separation needed). getpw*/getuid stubs. readlink returns -1.",
+        "blocker_workaround": "fork/wait used for sandboxed magic testing \u2014 can run unsandboxed on AmigaOS (no privilege separation needed). getpw*/getuid stubs. readlink returns -1.",
         "dependencies": [],
         "source_complexity": 0.63,
         "estimated_stack_kb": 64,
@@ -1885,7 +1885,7 @@
           "vfork",
           "waitpid"
         ],
-        "blocker_workaround": "Core function is fork+exec — could use AmigaDOS SystemTags() but would be a major rewrite",
+        "blocker_workaround": "Core function is fork+exec \u2014 could use AmigaDOS SystemTags() but would be a major rewrite",
         "dependencies": [],
         "source_complexity": 0.93,
         "estimated_stack_kb": 32,
@@ -1936,7 +1936,7 @@
           "futimens"
         ],
         "blocking_shims": [],
-        "blocker_workaround": "utimensat/futimens can be shimmed via AmigaOS SetFileDate() — straightforward Tier 2 shim",
+        "blocker_workaround": "utimensat/futimens can be shimmed via AmigaOS SetFileDate() \u2014 straightforward Tier 2 shim",
         "dependencies": [],
         "source_complexity": 0.97,
         "estimated_stack_kb": 16,
@@ -2112,7 +2112,7 @@
           "fchmod",
           "fchown"
         ],
-        "blocker_workaround": "fchmod/fchown can be no-op stubs — AmigaOS has limited permission model. Uses cpmain/rmmain directly (no fork).",
+        "blocker_workaround": "fchmod/fchown can be no-op stubs \u2014 AmigaOS has limited permission model. Uses cpmain/rmmain directly (no fork).",
         "dependencies": [],
         "source_complexity": 0.96,
         "estimated_stack_kb": 16,
@@ -2245,7 +2245,7 @@
       "status": "candidate",
       "analysis_status": "complete",
       "publishable": true,
-      "notes": "Remove empty directories. Trivial — just rmdir() + getopt + err.",
+      "notes": "Remove empty directories. Trivial \u2014 just rmdir() + getopt + err.",
       "readiness": {
         "score": 0.999,
         "tier": "ready"
@@ -2376,7 +2376,7 @@
         "blocking_shims": [
           "execvp"
         ],
-        "blocker_workaround": "execvp can be replaced with AmigaDOS SystemTags() for running the command — moderate rewrite of exec path",
+        "blocker_workaround": "execvp can be replaced with AmigaDOS SystemTags() for running the command \u2014 moderate rewrite of exec path",
         "dependencies": [],
         "source_complexity": 0.99,
         "estimated_stack_kb": 16,
@@ -2403,7 +2403,7 @@
       "status": "candidate",
       "analysis_status": "complete",
       "publishable": true,
-      "notes": "Print environment variables. Trivial — uses extern environ + getenv. Maps to AmigaOS GetVar/ScanVars.",
+      "notes": "Print environment variables. Trivial \u2014 uses extern environ + getenv. Maps to AmigaOS GetVar/ScanVars.",
       "readiness": {
         "score": 0.999,
         "tier": "ready"
@@ -2668,7 +2668,7 @@
           "getpwnam",
           "getgrgid"
         ],
-        "blocker_workaround": "Same as id — whoami is a symlink to id on OpenBSD. Stub user functions to return \"amiga\".",
+        "blocker_workaround": "Same as id \u2014 whoami is a symlink to id on OpenBSD. Stub user functions to return \"amiga\".",
         "dependencies": [],
         "source_complexity": 0.96,
         "estimated_stack_kb": 16,
@@ -2720,7 +2720,7 @@
         "blocking_shims": [
           "getlogin"
         ],
-        "blocker_workaround": "getlogin() stubbed to return \"amiga\" — AmigaOS is single-user",
+        "blocker_workaround": "getlogin() stubbed to return \"amiga\" \u2014 AmigaOS is single-user",
         "dependencies": [],
         "source_complexity": 0.99,
         "estimated_stack_kb": 16,
@@ -2772,7 +2772,7 @@
         "blocking_shims": [
           "ttyname"
         ],
-        "blocker_workaround": "ttyname() stubbed to return \"CON:\" or \"*\" — AmigaOS console device name",
+        "blocker_workaround": "ttyname() stubbed to return \"CON:\" or \"*\" \u2014 AmigaOS console device name",
         "dependencies": [],
         "source_complexity": 0.99,
         "estimated_stack_kb": 16,
@@ -2918,7 +2918,7 @@
           "setlocale"
         ],
         "blocking_shims": [],
-        "blocker_workaround": "setlocale() is a no-op on AmigaOS — stub to return \"C\"",
+        "blocker_workaround": "setlocale() is a no-op on AmigaOS \u2014 stub to return \"C\"",
         "dependencies": [],
         "source_complexity": 0.96,
         "estimated_stack_kb": 16,
@@ -3175,7 +3175,7 @@
         "a4000_030": "fits"
       },
       "aminet_status": "outdated",
-      "aminet_notes": "wsz13 (1993) is a window mover/sizer with sleep feature—not a standalone sleep utility. GNU coreutils-bin v5.2.1-9 (2006) includes POSIX sleep."
+      "aminet_notes": "wsz13 (1993) is a window mover/sizer with sleep feature\u2014not a standalone sleep utility. GNU coreutils-bin v5.2.1-9 (2006) includes POSIX sleep."
     },
     {
       "id": "date",
@@ -3583,7 +3583,7 @@
         "blocking_shims": [
           "execvp"
         ],
-        "blocker_workaround": "execvp could be replaced with SystemTagList() to launch command, but nohup semantics (ignore SIGHUP) are meaningless on AmigaOS — no SIGHUP exists",
+        "blocker_workaround": "execvp could be replaced with SystemTagList() to launch command, but nohup semantics (ignore SIGHUP) are meaningless on AmigaOS \u2014 no SIGHUP exists",
         "dependencies": [],
         "source_complexity": 0.99,
         "estimated_stack_kb": 8,
@@ -3660,7 +3660,7 @@
       "status": "candidate",
       "analysis_status": "complete",
       "publishable": true,
-      "notes": "NOT a standalone OpenBSD utility — strings is from binutils/ELF toolchain. Need alternative source (FreeBSD or sbase). Analysis deferred.",
+      "notes": "NOT a standalone OpenBSD utility \u2014 strings is from binutils/ELF toolchain. Need alternative source (FreeBSD or sbase). Analysis deferred.",
       "readiness": {
         "score": 0.995,
         "tier": "ready"
@@ -3756,7 +3756,7 @@
       "status": "candidate",
       "analysis_status": "complete",
       "publishable": true,
-      "notes": "NOT a standalone OpenBSD utility — cksum is handled by bin/md5 on OpenBSD. FreeBSD has standalone cksum (~95 LOC, simple CRC32/sum). Could port FreeBSD version.",
+      "notes": "NOT a standalone OpenBSD utility \u2014 cksum is handled by bin/md5 on OpenBSD. FreeBSD has standalone cksum (~95 LOC, simple CRC32/sum). Could port FreeBSD version.",
       "readiness": {
         "score": 0.999,
         "tier": "ready"
@@ -3804,7 +3804,7 @@
       "status": "candidate",
       "analysis_status": "complete",
       "publishable": true,
-      "notes": "Handles MD5/SHA1/SHA256/SHA512/RMD160/CKSUM; depends on libc hash implementations (MD5_*, SHA256_*, etc.) which are NOT in libnix — need to bundle. Uses getline/getrusage.",
+      "notes": "Handles MD5/SHA1/SHA256/SHA512/RMD160/CKSUM; depends on libc hash implementations (MD5_*, SHA256_*, etc.) which are NOT in libnix \u2014 need to bundle. Uses getline/getrusage.",
       "readiness": {
         "score": 0.585,
         "tier": "blocked"
@@ -3964,7 +3964,7 @@
       "status": "candidate",
       "analysis_status": "complete",
       "publishable": true,
-      "notes": "Small utility but depends on vis(3) library function from libc — NOT in libnix. Need to bundle vis.c from OpenBSD libc.",
+      "notes": "Small utility but depends on vis(3) library function from libc \u2014 NOT in libnix. Need to bundle vis.c from OpenBSD libc.",
       "readiness": {
         "score": 0.597,
         "tier": "blocked"
@@ -4068,7 +4068,7 @@
       "status": "candidate",
       "analysis_status": "complete",
       "publishable": true,
-      "notes": "Arbitrary precision calculator (5 .c files + 3 .h); DEPENDS ON OpenSSL BN_* (BIGNUM) for arbitrary precision — major external dependency. Uses signal, reallocarray, err/errx/warn/warnx, strlcpy, fstat, asprintf.",
+      "notes": "Arbitrary precision calculator (5 .c files + 3 .h); DEPENDS ON OpenSSL BN_* (BIGNUM) for arbitrary precision \u2014 major external dependency. Uses signal, reallocarray, err/errx/warn/warnx, strlcpy, fstat, asprintf.",
       "readiness": {
         "score": 0.569,
         "tier": "blocked"
@@ -5015,6 +5015,456 @@
         "estimated_stack_kb": 8,
         "estimated_binary_kb": 14,
         "estimated_data_kb": 1
+      }
+    },
+    {
+      "id": "awk-plan9",
+      "name": "awk-plan9",
+      "description": "AWK (Plan 9 variant)",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream": {
+        "source": "9base",
+        "version": "latest",
+        "license": "MIT",
+        "url": "",
+        "files": 1,
+        "lines_of_code": 0
+      },
+      "status": "candidate",
+      "analysis_status": "not_started",
+      "publishable": false,
+      "notes": "Research-only. processing utility from 9base project.",
+      "aminet_status": "missing",
+      "aminet_notes": "Plan 9 AWK variant not found on Aminet. Only ATT-awk-1_0 (traditional AT&T AWK) exists.",
+      "readiness": {
+        "score": 0.0,
+        "tier": "unanalyzed"
+      },
+      "hardware_fit": {
+        "stock_a1200": "unknown",
+        "a1200_accel": "unknown",
+        "a4000_030": "unknown"
+      }
+    },
+    {
+      "id": "sbase-seq",
+      "name": "sbase-seq",
+      "description": "seq - Generate sequences",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream": {
+        "source": "sbase",
+        "version": "latest",
+        "license": "MIT",
+        "url": "",
+        "files": 1,
+        "lines_of_code": 0
+      },
+      "status": "candidate",
+      "analysis_status": "not_started",
+      "publishable": false,
+      "notes": "Research-only. text_processing utility from sbase project.",
+      "aminet_status": "missing",
+      "aminet_notes": "seq utility (sbase implementation) not found on Aminet.",
+      "readiness": {
+        "score": 0.0,
+        "tier": "unanalyzed"
+      },
+      "hardware_fit": {
+        "stock_a1200": "unknown",
+        "a1200_accel": "unknown",
+        "a4000_030": "unknown"
+      }
+    },
+    {
+      "id": "sbase-sponge",
+      "name": "sbase-sponge",
+      "description": "sponge - Absorb stdin into memory",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream": {
+        "source": "sbase",
+        "version": "latest",
+        "license": "MIT",
+        "url": "",
+        "files": 1,
+        "lines_of_code": 0
+      },
+      "status": "candidate",
+      "analysis_status": "not_started",
+      "publishable": false,
+      "notes": "Research-only. text_processing utility from sbase project.",
+      "aminet_status": "missing",
+      "aminet_notes": "sponge utility (from moreutils) not found on Aminet. sbase does not include sponge.",
+      "readiness": {
+        "score": 0.0,
+        "tier": "unanalyzed"
+      },
+      "hardware_fit": {
+        "stock_a1200": "unknown",
+        "a1200_accel": "unknown",
+        "a4000_030": "unknown"
+      }
+    },
+    {
+      "id": "sbase-xinstall",
+      "name": "sbase-xinstall",
+      "description": "xinstall - Install files (sbase)",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream": {
+        "source": "sbase",
+        "version": "latest",
+        "license": "MIT",
+        "url": "",
+        "files": 1,
+        "lines_of_code": 0
+      },
+      "status": "candidate",
+      "analysis_status": "not_started",
+      "publishable": false,
+      "notes": "Research-only. system_admin utility from sbase project.",
+      "aminet_status": "exists",
+      "aminet_notes": "xinstall.lha exists at https://aminet.net/package/util/boot/xinstall. Amiga-native install utility, not sbase variant. Different purpose from sbase-xinstall.",
+      "readiness": {
+        "score": 0.0,
+        "tier": "unanalyzed"
+      },
+      "hardware_fit": {
+        "stock_a1200": "unknown",
+        "a1200_accel": "unknown",
+        "a4000_030": "unknown"
+      }
+    },
+    {
+      "id": "9base-unicode",
+      "name": "9base-unicode",
+      "description": "unicode - Unicode utilities (9base)",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream": {
+        "source": "9base",
+        "version": "latest",
+        "license": "MIT",
+        "url": "",
+        "files": 1,
+        "lines_of_code": 0
+      },
+      "status": "candidate",
+      "analysis_status": "not_started",
+      "publishable": false,
+      "notes": "Research-only. development utility from 9base project.",
+      "aminet_status": "missing",
+      "aminet_notes": "9base unicode tools not found. Unicode support packages exist but not specifically 9base.",
+      "readiness": {
+        "score": 0.0,
+        "tier": "unanalyzed"
+      },
+      "hardware_fit": {
+        "stock_a1200": "unknown",
+        "a1200_accel": "unknown",
+        "a4000_030": "unknown"
+      }
+    },
+    {
+      "id": "9base-freq",
+      "name": "9base-freq",
+      "description": "freq - Frequency analysis (9base)",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream": {
+        "source": "9base",
+        "version": "latest",
+        "license": "MIT",
+        "url": "",
+        "files": 1,
+        "lines_of_code": 0
+      },
+      "status": "candidate",
+      "analysis_status": "not_started",
+      "publishable": false,
+      "notes": "Research-only. text_processing utility from 9base project.",
+      "aminet_status": "missing",
+      "aminet_notes": "freq tool (9base implementation) not found on Aminet.",
+      "readiness": {
+        "score": 0.0,
+        "tier": "unanalyzed"
+      },
+      "hardware_fit": {
+        "stock_a1200": "unknown",
+        "a1200_accel": "unknown",
+        "a4000_030": "unknown"
+      }
+    },
+    {
+      "id": "9base-ascii",
+      "name": "9base-ascii",
+      "description": "ascii - ASCII utilities (9base)",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream": {
+        "source": "9base",
+        "version": "latest",
+        "license": "MIT",
+        "url": "",
+        "files": 1,
+        "lines_of_code": 0
+      },
+      "status": "candidate",
+      "analysis_status": "not_started",
+      "publishable": false,
+      "notes": "Research-only. cli utility from 9base project.",
+      "aminet_status": "exists",
+      "aminet_notes": "ascii.lha exists at https://aminet.net/package/util/cli/ascii.lha. Appears to be ASCII utility but verification needed whether it is 9base port.",
+      "readiness": {
+        "score": 0.0,
+        "tier": "unanalyzed"
+      },
+      "hardware_fit": {
+        "stock_a1200": "unknown",
+        "a1200_accel": "unknown",
+        "a4000_030": "unknown"
+      }
+    },
+    {
+      "id": "9base-hoc",
+      "name": "9base-hoc",
+      "description": "hoc - Calculator (9base)",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream": {
+        "source": "9base",
+        "version": "latest",
+        "license": "MIT",
+        "url": "",
+        "files": 1,
+        "lines_of_code": 0
+      },
+      "status": "candidate",
+      "analysis_status": "not_started",
+      "publishable": false,
+      "notes": "Research-only. math utility from 9base project.",
+      "aminet_status": "missing",
+      "aminet_notes": "hoc calculator (9base implementation) not found on Aminet. Several Amiga calculator tools exist but not 9base hoc.",
+      "readiness": {
+        "score": 0.0,
+        "tier": "unanalyzed"
+      },
+      "hardware_fit": {
+        "stock_a1200": "unknown",
+        "a1200_accel": "unknown",
+        "a4000_030": "unknown"
+      }
+    },
+    {
+      "id": "sbase-uuencode",
+      "name": "sbase-uuencode",
+      "description": "uuencode - Encode binary to text",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream": {
+        "source": "sbase",
+        "version": "latest",
+        "license": "MIT",
+        "url": "",
+        "files": 1,
+        "lines_of_code": 0
+      },
+      "status": "candidate",
+      "analysis_status": "not_started",
+      "publishable": false,
+      "notes": "Research-only. archiving utility from sbase project.",
+      "aminet_status": "exists",
+      "aminet_notes": "UUCode.lha exists at https://www.aminet.net/package/util/arc/UUCode.lha. Handles both encoding and decoding.",
+      "readiness": {
+        "score": 0.0,
+        "tier": "unanalyzed"
+      },
+      "hardware_fit": {
+        "stock_a1200": "unknown",
+        "a1200_accel": "unknown",
+        "a4000_030": "unknown"
+      }
+    },
+    {
+      "id": "sbase-uudecode",
+      "name": "sbase-uudecode",
+      "description": "uudecode - Decode uuencoded text",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream": {
+        "source": "sbase",
+        "version": "latest",
+        "license": "MIT",
+        "url": "",
+        "files": 1,
+        "lines_of_code": 0
+      },
+      "status": "candidate",
+      "analysis_status": "not_started",
+      "publishable": false,
+      "notes": "Research-only. archiving utility from sbase project.",
+      "aminet_status": "exists",
+      "aminet_notes": "UUCode.lha exists at https://www.aminet.net/package/util/arc/UUCode.lha. Handles both encoding and decoding.",
+      "readiness": {
+        "score": 0.0,
+        "tier": "unanalyzed"
+      },
+      "hardware_fit": {
+        "stock_a1200": "unknown",
+        "a1200_accel": "unknown",
+        "a4000_030": "unknown"
+      }
+    },
+    {
+      "id": "sbase-sha256sum",
+      "name": "sbase-sha256sum",
+      "description": "sha256sum - SHA256 hash",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream": {
+        "source": "sbase",
+        "version": "latest",
+        "license": "MIT",
+        "url": "",
+        "files": 1,
+        "lines_of_code": 0
+      },
+      "status": "candidate",
+      "analysis_status": "not_started",
+      "publishable": false,
+      "notes": "Research-only. text_processing utility from sbase project.",
+      "aminet_status": "exists",
+      "aminet_notes": "sha256.lha exists at https://aminet.net/package/util/cli/sha256. Dedicated SHA256 utility for Amiga. Version/age unknown, needs verification.",
+      "readiness": {
+        "score": 0.0,
+        "tier": "unanalyzed"
+      },
+      "hardware_fit": {
+        "stock_a1200": "unknown",
+        "a1200_accel": "unknown",
+        "a4000_030": "unknown"
+      }
+    },
+    {
+      "id": "sbase-md5sum",
+      "name": "sbase-md5sum",
+      "description": "md5sum - MD5 hash",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream": {
+        "source": "sbase",
+        "version": "latest",
+        "license": "MIT",
+        "url": "",
+        "files": 1,
+        "lines_of_code": 0
+      },
+      "status": "candidate",
+      "analysis_status": "not_started",
+      "publishable": false,
+      "notes": "Research-only. text_processing utility from sbase project.",
+      "aminet_status": "exists",
+      "aminet_notes": "MD5SUM.lha exists at https://aminet.net/package/util/crypt/MD5SUM. Dedicated MD5 utility for Amiga. Version/age unknown, needs verification.",
+      "readiness": {
+        "score": 0.0,
+        "tier": "unanalyzed"
+      },
+      "hardware_fit": {
+        "stock_a1200": "unknown",
+        "a1200_accel": "unknown",
+        "a4000_030": "unknown"
+      }
+    },
+    {
+      "id": "sbase-split",
+      "name": "sbase-split",
+      "description": "split - Split files",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream": {
+        "source": "sbase",
+        "version": "latest",
+        "license": "MIT",
+        "url": "",
+        "files": 1,
+        "lines_of_code": 0
+      },
+      "status": "candidate",
+      "analysis_status": "not_started",
+      "publishable": false,
+      "notes": "Research-only. text_processing utility from sbase project.",
+      "aminet_status": "missing",
+      "aminet_notes": "split utility (sbase implementation) not found. Amiga has splitter tools (SimpleSplitter, splitter) but they appear to split archive files, not text files per POSIX split.",
+      "readiness": {
+        "score": 0.0,
+        "tier": "unanalyzed"
+      },
+      "hardware_fit": {
+        "stock_a1200": "unknown",
+        "a1200_accel": "unknown",
+        "a4000_030": "unknown"
+      }
+    },
+    {
+      "id": "sbase-od",
+      "name": "sbase-od",
+      "description": "od - Octal dump",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream": {
+        "source": "sbase",
+        "version": "latest",
+        "license": "MIT",
+        "url": "",
+        "files": 1,
+        "lines_of_code": 0
+      },
+      "status": "candidate",
+      "analysis_status": "not_started",
+      "publishable": false,
+      "notes": "Research-only. text_processing utility from sbase project.",
+      "aminet_status": "missing",
+      "aminet_notes": "od (octal dump) utility not found on Aminet. No direct match in search results.",
+      "readiness": {
+        "score": 0.0,
+        "tier": "unanalyzed"
+      },
+      "hardware_fit": {
+        "stock_a1200": "unknown",
+        "a1200_accel": "unknown",
+        "a4000_030": "unknown"
+      }
+    },
+    {
+      "id": "sbase-sha1sum",
+      "name": "sbase-sha1sum",
+      "description": "sha1sum - SHA1 hash",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream": {
+        "source": "sbase",
+        "version": "latest",
+        "license": "MIT",
+        "url": "",
+        "files": 1,
+        "lines_of_code": 0
+      },
+      "status": "candidate",
+      "analysis_status": "not_started",
+      "publishable": false,
+      "notes": "Research-only. text_processing utility from sbase project.",
+      "aminet_status": "exists",
+      "aminet_notes": "sha.i386-aros.lha exists at http://aminet.net/package/util/crypt/sha (AROS i386 only, not m68k). No 68k SHA1 tool found on Aminet.",
+      "readiness": {
+        "score": 0.0,
+        "tier": "unanalyzed"
+      },
+      "hardware_fit": {
+        "stock_a1200": "unknown",
+        "a1200_accel": "unknown",
+        "a4000_030": "unknown"
       }
     }
   ],
