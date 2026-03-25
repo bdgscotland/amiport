@@ -103,6 +103,20 @@ getkey(int flag)
 		else if (c == CCHR('?'))
 			c = CCHR('H');
 	}
+#ifdef __AMIGA__
+	/* amiport: AmigaOS console.device sends CSI (0x9B) for cursor keys,
+	 * function keys, and other special keys. CSI is the 8-bit equivalent
+	 * of ESC [ (0x1B 0x5B). Decompose it here so the VT100 escape
+	 * sequence bindings in ansi.c (key_up = "\e[A", etc.) match correctly.
+	 * Must check BEFORE the METABIT handler, which would incorrectly
+	 * treat 0x9B as Meta-ESC (pushing 0x1B, returning ESC -> ESC ESC).
+	 * See ADR-025, known-pitfalls.md. */
+	if (c == 0x9B) {
+		pushedc = '[';
+		pushed = TRUE;
+		c = CCHR('[');	/* ESC = 0x1B */
+	} else
+#endif
 	if (use_metakey && (c & METABIT)) {
 		pushedc = c & ~METABIT;
 		pushed = TRUE;
