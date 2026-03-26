@@ -41,7 +41,10 @@ Assertion types (can combine multiple on same test):
 
 `WORK:` is the FS-UAE volume where binaries and test files are mounted. All paths in CMD must use `WORK:` prefix.
 
-ARexx `ADDRESS COMMAND` does NOT support stdin piping. If a program reads from stdin, create a pre-built input file and pass it as a file argument instead.
+ARexx `ADDRESS COMMAND` does NOT support stdin piping. If a program reads from stdin:
+- **If the program accepts file arguments** (like `sort`, `wc`, `cat`): pass the input file as a file argument (`CMD: WORK:sort WORK:test-input.txt`)
+- **If the program is stdin-ONLY** (like `rs`, `colrm`, `tr`): use AmigaDOS `<` redirection in the CMD line (`CMD: WORK:rs 2 3 <WORK:test-input.txt`). This works because CMD lines are written into Execute scripts where the shell parses `<` as stdin redirection.
+- **Always check the source** — grep for `fopen` of argv entries vs `stdin`-only reads before deciding which pattern to use.
 
 ## Output Verification Strategy — CRITICAL
 
@@ -122,6 +125,8 @@ Follow `docs/test-coverage-standard.md` "Deriving Test Cases" section:
 
 ## Required Test Categories
 
+**CRITICAL: Read actual test data files before writing EXPECT: values.** Port directories may have local copies of test data files (test-multiline.txt, test-special-chars.txt) that differ from ports/common-test-data/. The files that get deployed to WORK: are the PORT-LOCAL copies. Always `Read` the actual file in `ports/<name>/` to verify line count and content before computing expected output. Never assume file content based on the filename.
+
 Every test suite MUST include all six categories:
 
 1. **Functional tests** — at least one per documented flag/option
@@ -148,7 +153,10 @@ Use these for generic edge case tests. Create port-specific files as `ports/<nam
 
 ## Piping Detection
 
-If the source reads from stdin when no file argument is given (grep for `read(STDIN_FILENO`, `fgets(.*stdin`, `getline`, `scanf`, `getchar` without preceding `fopen`), create a pre-built input file and pass it as a file argument. Comment: `# Uses input file instead of piping (ARexx limitation)`.
+If the source reads from stdin when no file argument is given (grep for `read(STDIN_FILENO`, `fgets(.*stdin`, `getline`, `scanf`, `getchar` without preceding `fopen`):
+- **First check:** Does the program accept filename arguments? Grep for `fopen(argv` or `open(argv`. If YES, pass the file as an argument.
+- **If stdin-only** (no file argument support): Use `<WORK:file.txt` stdin redirection in the CMD line. Example: `CMD: WORK:rs 2 3 <WORK:test-rs-input.txt`. This works because CMD lines go through an Execute script where AmigaDOS parses `<` as stdin redirection.
+- Comment: `# Uses <WORK: stdin redirect (stdin-only program, ARexx limitation)`.
 
 ## AmigaDOS Shell Metacharacters in CMD Lines
 
@@ -370,6 +378,14 @@ Programs that accept stdin when no file argument is given will **hang forever** 
 - Test a flag/error that causes immediate exit before stdin is read (e.g., invalid flag `-Z`)
 
 **Never write a CMD that runs a program with no arguments and no input file.** Even if the program "should" print usage and exit, verify by reading the source — many programs try to read stdin before checking for missing arguments.
+
+## ARexx READLN Buffer Limit
+
+ARexx's `READLN` function has a practical line buffer limit of ~500-1000 bytes. For test output lines longer than this, the harness truncates the line. `EXPECT_CONTAINS:` assertions that check for content near the END of a long line will fail silently.
+
+**Rule:** For long-line tests (>500 chars), only assert content within the first ~256 bytes of the line. Use `EXPECT_CONTAINS:` with a prefix substring, not a marker placed at the end.
+
+Discovered in cat 1.34 — `AAAMARKER` at byte 998 of a 1007-char line was never seen by the harness.
 
 ## Script Files and Auxiliary Data — CRITICAL
 
