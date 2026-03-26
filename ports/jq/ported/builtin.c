@@ -927,7 +927,8 @@ static jv f_match(jq_state *jq, jv input, jv regex, jv modifiers, jv testmode) {
 
   onigret = onig_new(&reg, (const UChar*)jv_string_value(regex),
       (const UChar*)(jv_string_value(regex) + jv_string_length_bytes(jv_copy(regex))),
-      options, ONIG_ENCODING_UTF8, ONIG_SYNTAX_PERL_NG, &einfo);
+      /* amiport: ASCII encoding -- no Unicode property tables needed (saves 312KB) */
+      options, ONIG_ENCODING_ASCII, ONIG_SYNTAX_PERL_NG, &einfo);
   if (onigret != ONIG_NORMAL) {
     UChar ebuf[ONIG_MAX_ERROR_MESSAGE_LEN];
     onig_error_code_to_str(ebuf, onigret, &einfo);

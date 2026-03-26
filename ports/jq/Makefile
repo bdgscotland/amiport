@@ -28,8 +28,8 @@ VAMOS_STACK = 256
 # vamos default is 1MB which is insufficient to even load the binary.
 VAMOS_MEM = 8192
 
-# Internal include path for jq headers
-CFLAGS += -I ported
+# Internal include path for jq headers + oniguruma
+CFLAGS += -I ported -I ../../lib/oniguruma/include
 
 # Config flags for AmigaOS (replaces autotools config.h)
 # See ADR-022 for C99 rationale
@@ -74,12 +74,12 @@ JQ_MATH_DEFS = \
 # GNU math extensions NOT defined — jq stubs them at runtime with error messages
 
 # Disable optional features
-# - No oniguruma: regex builtins (test/match/capture) return runtime errors
+# - Oniguruma: ENABLED (ASCII-only build, lib/oniguruma)
 # - No decnum: uses IEEE 754 doubles (standard JSON behavior)
 # - No pthreads: single-threaded stubs in ported/amiga_pthread.h
 # - No __thread TLS: not available on AmigaOS
 JQ_DISABLE = \
-	-UHAVE_LIBONIG \
+	-DHAVE_LIBONIG=1 \
 	-UHAVE_PTHREAD \
 	-UHAVE_PTHREAD_KEY_CREATE \
 	-UHAVE_PTHREAD_ONCE \
@@ -92,8 +92,8 @@ JQ_DISABLE = \
 
 CFLAGS += $(JQ_DEFS) $(JQ_MATH_DEFS) $(JQ_DISABLE)
 
-# Additional libraries
-LDFLAGS += -lm
+# Additional libraries — oniguruma must come before -lm
+LDFLAGS += -L../../lib/oniguruma -loniguruma -lm
 
 # Source files (all in ported/)
 SOURCES = \
