@@ -3,10 +3,10 @@
 Modern Unix tools for the Commodore Amiga.
 
 [![CI](https://github.com/bdgscotland/amiport/actions/workflows/ci.yml/badge.svg)](https://github.com/bdgscotland/amiport/actions/workflows/ci.yml)
-[![Ports](https://img.shields.io/badge/ports-22-CC9933)](https://amiport.platesteel.net/packages.html)
-[![POSIX shim](https://img.shields.io/badge/POSIX_shim-150+_functions-776644)](docs/posix-tiers.md)
-[![Aminet](https://img.shields.io/badge/Aminet-7_live-CC9933)](https://aminet.net)
-[![amiport.platesteel.net](https://img.shields.io/badge/amiport-16_packages-776644)](https://amiport.platesteel.net)
+[![Ports](https://img.shields.io/badge/ports-22-8B6914)](https://amiport.platesteel.net/packages.html)
+[![POSIX shim](https://img.shields.io/badge/POSIX_shim-150+_functions-554433)](docs/posix-tiers.md)
+[![Aminet](https://img.shields.io/badge/Aminet-7_live-8B6914)](https://aminet.net)
+[![amiport.platesteel.net](https://img.shields.io/badge/amiport-16_packages-554433)](https://amiport.platesteel.net)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![GitHub stars](https://img.shields.io/github/stars/bdgscotland/amiport?style=social)](https://github.com/bdgscotland/amiport/stargazers)
 
