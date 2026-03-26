@@ -19,9 +19,19 @@ Update ALL of these:
 8. **PORTS.md** — Add to catalog table (name, version, description, category, source, status)
 9. **README.md** — Add to Ports summary table
 
+## When Changing a Port's Version, Binary, Tests, or Capabilities
+
+Any change to ported source, dependencies, or test suites requires updating:
+
+10. **PORTS.md** — Update version, test count, status
+11. **`data/catalog.json`** — Update version, `measured_binary_kb`, `test_count`, `test_pass_rate`
+12. **`site/api/v1/packages.json`** — Update version, revision, `test_count`, `test_pass`, `porting_notes`, `known_limitations`, `readme`
+
+This applies to version bumps (REVISION changes), dependency additions (e.g., adding Oniguruma), and test suite expansions. Do not consider a port update complete until catalog and site are updated.
+
 ## When Completing a Category 3+ Port
 
-10. **test-fsemu-visual-cases.txt** — Visual verification tests in a SEPARATE file from functional tests (ADR-024). Functional and visual MUST be separate FS-UAE passes.
+13. **test-fsemu-visual-cases.txt** — Visual verification tests in a SEPARATE file from functional tests (ADR-024). Functional and visual MUST be separate FS-UAE passes.
 
 ## When Making Cross-Cutting Convention Changes
 
@@ -46,4 +56,5 @@ A convention change (versioning, naming, coding standards, etc.) touches many fi
 - A port without a PORTS.md entry is **invisible**.
 - A Category 3+ port without `test-fsemu-visual-cases.txt` has **no visual verification**.
 - A cross-cutting change without a full audit of all touchpoints is **incomplete**.
+- A port update without catalog.json and packages.json changes is **invisible to users**.
 - Do not ask the user if they want docs updated — just do it.
