@@ -1,0 +1,22 @@
+{
+    "name": "paste",
+    "version": "1.27",
+    "revision": 1,
+    "description": "Merge lines of files side by side",
+    "category": "util/cli",
+    "source": "OpenBSD paste v1.27",
+    "license": "BSD-3-Clause",
+    "size": 21217,
+    "sha256": "d073b5056de539b0d2fd428523239554ff0d7cac6cd6d838264a416d60d67d6c",
+    "download": "/packages/paste-1.27.lha",
+    "requires": [],
+    "aminet": "",
+    "stack": 8192,
+    "status": "stable",
+    "published_at": "2026-03-26T12:00:00Z",
+    "readme": "Short:        Merge lines of files side by side\nType:         util/cli\nArchitecture: m68k-amigaos >= 3.0\nUploader:     duncan (at) bowring (dot) us\nAuthor:       Adam S. Moskowitz, UC Berkeley (ported by Duncan Bowring)\nVersion:      1.27\n\npaste - Merge lines of files side by side\n\nOriginal author: Adam S. Moskowitz, UC Berkeley\nPorted by Duncan Bowring using amiport (AI-assisted porting toolkit).\nProject: https://github.com/bdgscotland/amiport\n\nCross-compiled for AmigaOS 3.x (68000+).\nTested in vamos emulator and FS-UAE.\n\nUsage:\n  paste [options] [arguments]\n\nIncludes full source code (original POSIX and ported Amiga versions)",
+    "porting_notes": "Port from OpenBSD. Applied standard amiport transformations: exit codes mapped to AmigaOS conventions (0/10/20), __stack cookie set to 8192, argv wildcard expansion via amiport_expand_argv(). 24/24 FS-UAE tests pass.",
+    "test_count": 24,
+    "test_pass": 24,
+    "known_limitations": "None identified."
+}

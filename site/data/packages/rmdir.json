@@ -1,0 +1,22 @@
+{
+    "name": "rmdir",
+    "version": "1.15",
+    "revision": 1,
+    "description": "Remove directories",
+    "category": "util/dir",
+    "source": "OpenBSD rmdir v1.15",
+    "license": "BSD-3-Clause",
+    "size": 19478,
+    "sha256": "d531775c10b0eb92e6ab7a5049fd4b586be38060870a230c299c98083dcb0b82",
+    "download": "/packages/rmdir-1.15.lha",
+    "requires": [],
+    "aminet": "",
+    "stack": 8192,
+    "status": "stable",
+    "published_at": "2026-03-26T12:00:00Z",
+    "readme": "Short:        Remove directories\nType:         util/dir\nArchitecture: m68k-amigaos >= 3.0\nUploader:     duncan (at) bowring (dot) us\nAuthor:       University of California, Berkeley (ported by Duncan Bowring)\nVersion:      1.15\n\nrmdir - Remove directories\n\nOriginal author: University of California, Berkeley\nPorted by Duncan Bowring using amiport (AI-assisted porting toolkit).\nProject: https://github.com/bdgscotland/amiport\n\nCross-compiled for AmigaOS 3.x (68000+).\nTested in vamos emulator and FS-UAE.\n\nUsage:\n  rmdir [options] [arguments]\n\nIncludes full source code (original POSIX and ported Amiga versions)",
+    "porting_notes": "Straightforward port from OpenBSD. Applied standard amiport transformations: exit codes mapped to AmigaOS conventions (0/10/20), __stack cookie set to 8192, argv wildcard expansion via amiport_expand_argv(). 38/38 FS-UAE tests pass.",
+    "test_count": 38,
+    "test_pass": 38,
+    "known_limitations": "None identified."
+}

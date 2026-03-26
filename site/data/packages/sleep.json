@@ -1,0 +1,22 @@
+{
+    "name": "sleep",
+    "version": "1.29",
+    "revision": 1,
+    "description": "Suspend execution for an interval",
+    "category": "util/cli",
+    "source": "OpenBSD sleep v1.29",
+    "license": "BSD-3-Clause",
+    "size": 16882,
+    "sha256": "a61ff879383501d030f1d7bcf402e59359eaea74e002002e4b19748a9a2f54ed",
+    "download": "/packages/sleep-1.29.lha",
+    "requires": [],
+    "aminet": "",
+    "stack": 8192,
+    "status": "stable",
+    "published_at": "2026-03-26T12:00:00Z",
+    "readme": "Short:        Suspend execution for an interval\nType:         util/cli\nArchitecture: m68k-amigaos >= 3.0\nUploader:     duncan (at) bowring (dot) us\nAuthor:       University of California, Berkeley (ported by Duncan Bowring)\nVersion:      1.29\n\nsleep - Suspend execution for an interval\n\nOriginal author: University of California, Berkeley\nPorted by Duncan Bowring using amiport (AI-assisted porting toolkit).\nProject: https://github.com/bdgscotland/amiport\n\nCross-compiled for AmigaOS 3.x (68000+).\nTested in vamos emulator and FS-UAE.\n\nUsage:\n  sleep [options] [arguments]\n\nIncludes full source code (original POSIX and ported Amiga versions)",
+    "porting_notes": "Port from OpenBSD. Timing implemented via AmigaOS Delay() mapped to 50Hz ticks (fractional seconds rounded to nearest tick, minimum 1 tick). Applied standard amiport transformations: exit codes mapped to AmigaOS conventions (0/10/20), __stack cookie set to 8192. 25/25 FS-UAE tests pass.",
+    "test_count": 25,
+    "test_pass": 25,
+    "known_limitations": "None identified."
+}

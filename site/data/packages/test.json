@@ -1,0 +1,22 @@
+{
+    "name": "test",
+    "version": "1.23",
+    "revision": 1,
+    "description": "Condition evaluation utility",
+    "category": "util/cli",
+    "source": "OpenBSD test v1.23",
+    "license": "BSD-3-Clause",
+    "size": 20608,
+    "sha256": "ae28bfd954b69529787febd961926e0066eac9916174af39e80dfb4d71b5a827",
+    "download": "/packages/test-1.23.lha",
+    "requires": [],
+    "aminet": "",
+    "stack": 8192,
+    "status": "stable",
+    "published_at": "2026-03-26T12:00:00Z",
+    "readme": "Short:        Condition evaluation utility\nType:         util/cli\nArchitecture: m68k-amigaos >= 3.0\nUploader:     duncan (at) bowring (dot) us\nAuthor:       Erik Baalbergen (ported by Duncan Bowring)\nVersion:      1.23\n\ntest - Condition evaluation utility\n\nOriginal author: Erik Baalbergen\nPorted by Duncan Bowring using amiport (AI-assisted porting toolkit).\nProject: https://github.com/bdgscotland/amiport\n\nCross-compiled for AmigaOS 3.x (68000+).\nTested in vamos emulator and FS-UAE.\n\nUsage:\n  test [options] [arguments]\n\nIncludes full source code (original POSIX and ported Amiga versions)",
+    "porting_notes": "Port from OpenBSD. Applied standard amiport transformations: exit codes mapped to AmigaOS conventions (0/10/20), __stack cookie set to 8192. Supports the full set of POSIX test operators: string tests (-z, -n, =, !=), integer comparisons (-eq, -ne, -lt, -le, -gt, -ge), file tests (-e, -f, -d, -r, -w, -x, -s, -L, etc.), and boolean operators (-a, -o, !). 97/97 FS-UAE tests pass.",
+    "test_count": 97,
+    "test_pass": 97,
+    "known_limitations": "None identified."
+}

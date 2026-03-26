@@ -1,0 +1,22 @@
+{
+    "name": "cat",
+    "version": "1.34",
+    "revision": 1,
+    "description": "Concatenate and print files",
+    "category": "util/cli",
+    "source": "OpenBSD cat v1.34",
+    "license": "BSD-3-Clause",
+    "size": 19474,
+    "sha256": "84e01d65ae9661c7c3aaa0372166a46837a21134618a4ab76f4bf4caca71b11b",
+    "download": "/packages/cat-1.34.lha",
+    "requires": [],
+    "aminet": "",
+    "stack": 8192,
+    "status": "stable",
+    "published_at": "2026-03-26T12:00:00Z",
+    "readme": "Short:        Concatenate and print files\nType:         util/cli\nArchitecture: m68k-amigaos >= 3.0\nUploader:     duncan (at) bowring (dot) us\nAuthor:       University of California, Berkeley (ported by Duncan Bowring)\nVersion:      1.34\n\ncat - Concatenate and print files\n\nOriginal author: University of California, Berkeley\nPorted by Duncan Bowring using amiport (AI-assisted porting toolkit).\nProject: https://github.com/bdgscotland/amiport\n\nCross-compiled for AmigaOS 3.x (68000+).\nTested in vamos emulator and FS-UAE.\n\nUsage:\n  cat [options] [arguments]\n\nIncludes full source code (original POSIX and ported Amiga versions)",
+    "porting_notes": "Port from OpenBSD. Applied standard amiport transformations: exit codes mapped to AmigaOS conventions (0/10/20), __stack cookie set to 8192, argv wildcard expansion via amiport_expand_argv(). Supports -n (number all lines), -b (number non-blank lines), -e (show $ at EOL), -t (show tabs as ^I), -s (squeeze blank lines), -v (show non-printing). 30/30 FS-UAE tests pass.",
+    "test_count": 30,
+    "test_pass": 30,
+    "known_limitations": "None identified."
+}

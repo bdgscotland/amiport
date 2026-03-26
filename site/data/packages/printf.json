@@ -1,0 +1,22 @@
+{
+    "name": "printf",
+    "version": "1.28",
+    "revision": 1,
+    "description": "Format and print data",
+    "category": "util/cli",
+    "source": "OpenBSD printf v1.28",
+    "license": "BSD-3-Clause",
+    "size": 28167,
+    "sha256": "3ea1e87d2fd3b4525965bedb43d65027d2063f25eaece63d67a026b031144345",
+    "download": "/packages/printf-1.28.lha",
+    "requires": [],
+    "aminet": "",
+    "stack": 8192,
+    "status": "stable",
+    "published_at": "2026-03-26T12:00:00Z",
+    "readme": "Short:        Format and print data\nType:         util/cli\nArchitecture: m68k-amigaos >= 3.0\nUploader:     duncan (at) bowring (dot) us\nAuthor:       University of California, Berkeley (ported by Duncan Bowring)\nVersion:      1.28\n\nprintf - Format and print data\n\nOriginal author: University of California, Berkeley\nPorted by Duncan Bowring using amiport (AI-assisted porting toolkit).\nProject: https://github.com/bdgscotland/amiport\n\nCross-compiled for AmigaOS 3.x (68000+).\nTested in vamos emulator and FS-UAE.\n\nUsage:\n  printf [options] [arguments]\n\nIncludes full source code (original POSIX and ported Amiga versions)",
+    "porting_notes": "Port from OpenBSD. Comprehensive format string implementation. Applied standard amiport transformations: exit codes mapped to AmigaOS conventions (0/10/20), __stack cookie set to 8192. 51/51 FS-UAE tests pass covering all format specifiers (%d, %i, %u, %o, %x, %X, %f, %e, %g, %s, %c, %b, %q) and escape sequences.",
+    "test_count": 51,
+    "test_pass": 51,
+    "known_limitations": "None identified."
+}

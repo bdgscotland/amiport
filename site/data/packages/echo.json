@@ -1,0 +1,22 @@
+{
+    "name": "echo",
+    "version": "1.12",
+    "revision": 1,
+    "description": "Write arguments to standard output",
+    "category": "util/cli",
+    "source": "OpenBSD echo v1.12",
+    "license": "BSD-3-Clause",
+    "size": 13219,
+    "sha256": "3e9debee98d91a3951f9b62d179410e78056814810e3fd621bd27a6e864b3dc7",
+    "download": "/packages/echo-1.12.lha",
+    "requires": [],
+    "aminet": "",
+    "stack": 8192,
+    "status": "stable",
+    "published_at": "2026-03-26T12:00:00Z",
+    "readme": "Short:        Write arguments to standard output\nType:         util/cli\nArchitecture: m68k-amigaos >= 3.0\nUploader:     duncan (at) bowring (dot) us\nAuthor:       University of California, Berkeley (ported by Duncan Bowring)\nVersion:      1.12\n\necho - Write arguments to standard output\n\nOriginal author: University of California, Berkeley\nPorted by Duncan Bowring using amiport (AI-assisted porting toolkit).\nProject: https://github.com/bdgscotland/amiport\n\nCross-compiled for AmigaOS 3.x (68000+).\nTested in vamos emulator and FS-UAE.\n\nUsage:\n  echo [options] [arguments]\n\nIncludes full source code (original POSIX and ported Amiga versions)",
+    "porting_notes": "Straightforward single-file port from OpenBSD. Applied standard amiport transformations: exit codes mapped to AmigaOS conventions (0/10/20), __stack cookie set to 8192, argv wildcard expansion via amiport_expand_argv(). 37/37 FS-UAE tests pass.",
+    "test_count": 37,
+    "test_pass": 37,
+    "known_limitations": "None identified."
+}

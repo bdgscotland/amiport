@@ -7,7 +7,7 @@ set -euo pipefail
 #   - Category 1 (CLI): minimum 8 tests
 #   - Category 2 (Scripting): minimum 10 tests
 #   - Must have at least one success path (EXPECT_RC: 0 or 5)
-#   - Must have at least one error path (EXPECT_RC: 10)
+#   - Must have at least one error path (EXPECT_RC: 10 or EXPECT_RC: 20)
 #
 # Exit 0 if all ports pass, exit 1 if any fail.
 
@@ -61,8 +61,12 @@ for dir in "$PORTS_DIR"/*/; do
     has_rc5=$(grep -c '^EXPECT_RC: *5$' "$cases_file" || true)
     has_success=$(( has_rc0 + has_rc5 ))
 
-    # Check for error path (EXPECT_RC: 10)
+    # Check for error path (EXPECT_RC: 10 or EXPECT_RC: 20)
+    # RC=10 is RETURN_ERROR (standard error), RC=20 is RETURN_FAIL (fatal error)
+    # Both count as error paths. Some programs (e.g., test(1)) map POSIX exit 2
+    # to AmigaOS RETURN_FAIL=20 rather than RETURN_ERROR=10.
     has_rc10=$(grep -c '^EXPECT_RC: *10$' "$cases_file" || true)
+    has_rc20=$(grep -c '^EXPECT_RC: *20$' "$cases_file" || true)
 
     # Build failure reasons
     reasons=""
@@ -72,8 +76,8 @@ for dir in "$PORTS_DIR"/*/; do
     if [ "$has_success" -eq 0 ]; then
         reasons="$reasons missing success path (EXPECT_RC: 0 or 5);"
     fi
-    if [ "$has_rc10" -eq 0 ]; then
-        reasons="$reasons missing error path (EXPECT_RC: 10);"
+    if [ "$has_rc10" -eq 0 ] && [ "$has_rc20" -eq 0 ]; then
+        reasons="$reasons missing error path (EXPECT_RC: 10 or 20);"
     fi
 
     if [ -n "$reasons" ]; then
