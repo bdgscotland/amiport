@@ -423,17 +423,26 @@ mbssep(char **stringp, const char *delim)
 	if ((s = *stringp) == NULL)
 		return NULL;
 
-	/* count non-NUL delimiter characters (tabchar is at most 2 bytes) */
-	ndelim = 0;
-	while (delim[ndelim] != '\0')
-		ndelim++;
-
-	for (p = s; *p != '\0'; p++) {
-		for (i = 0; i < ndelim; i++) {
-			if (*p == delim[i]) {
+	/* amiport: perf -- fast path for single-char delimiter (common case) */
+	if (delim[0] != '\0' && delim[1] == '\0') {
+		for (p = s; *p != '\0'; p++) {
+			if (*p == delim[0]) {
 				*p = '\0';
 				*stringp = p + 1;
 				return s;
+			}
+		}
+	} else {
+		ndelim = 0;
+		while (delim[ndelim] != '\0')
+			ndelim++;
+		for (p = s; *p != '\0'; p++) {
+			for (i = 0; i < ndelim; i++) {
+				if (*p == delim[i]) {
+					*p = '\0';
+					*stringp = p + 1;
+					return s;
+				}
 			}
 		}
 	}

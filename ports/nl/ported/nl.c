@@ -131,6 +131,10 @@ static int delimlen;
 /* line numbering format */
 static const char *format = FORMAT_RN;
 
+/* amiport: perf -- precomputed format string and padding (avoids runtime %*d dispatch per line) */
+static char concrete_fmt[16];  /* e.g. "%6d", "%-6d", "%06d" */
+static char pad_str[32];       /* width spaces for unnumbered lines */
+
 /* increment value used to number logical page lines */
 static int incr = 1;
 
@@ -285,6 +289,15 @@ main(int argc, char *argv[])
 	delim[1] = delim2;
 	delimlen = 2;
 
+	/* amiport: perf -- precompute format string and padding once, not per-line */
+	if (format == FORMAT_LN)
+		snprintf(concrete_fmt, sizeof(concrete_fmt), "%%-%dd", width);
+	else if (format == FORMAT_RZ)
+		snprintf(concrete_fmt, sizeof(concrete_fmt), "%%0%dd", width);
+	else
+		snprintf(concrete_fmt, sizeof(concrete_fmt), "%%%dd", width);
+	snprintf(pad_str, sizeof(pad_str), "%*s", width, "");
+
 	/* Do the work. */
 	filter();
 
@@ -355,11 +368,13 @@ filter(void)
 		}
 
 		if (donumber) {
-			(void)printf(format, width, line);
+			/* amiport: perf -- use precomputed concrete_fmt (no runtime %*d dispatch) */
+			(void)printf(concrete_fmt, line);
 			line += incr;
 			(void)fputs(sep, stdout);
 		} else {
-			(void)printf("%*s", width, "");
+			/* amiport: perf -- use precomputed pad_str (no printf for spaces) */
+			(void)fputs(pad_str, stdout);
 		}
 		(void)fwrite(buffer, linelen, 1, stdout);
 

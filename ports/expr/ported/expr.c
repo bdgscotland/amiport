@@ -490,22 +490,22 @@ eval2(void)
 
 			switch (op) {
 			case GT:
-				v = (strcoll(l->u.s, r->u.s) > 0);
+				v = (strcmp(l->u.s, r->u.s) /* amiport: perf -- strcoll->strcmp, no functional locale on AmigaOS */ > 0);
 				break;
 			case GE:
-				v = (strcoll(l->u.s, r->u.s) >= 0);
+				v = (strcmp(l->u.s, r->u.s) /* amiport: perf -- strcoll->strcmp, no functional locale on AmigaOS */ >= 0);
 				break;
 			case LT:
-				v = (strcoll(l->u.s, r->u.s) < 0);
+				v = (strcmp(l->u.s, r->u.s) /* amiport: perf -- strcoll->strcmp, no functional locale on AmigaOS */ < 0);
 				break;
 			case LE:
-				v = (strcoll(l->u.s, r->u.s) <= 0);
+				v = (strcmp(l->u.s, r->u.s) /* amiport: perf -- strcoll->strcmp, no functional locale on AmigaOS */ <= 0);
 				break;
 			case EQ:
-				v = (strcoll(l->u.s, r->u.s) == 0);
+				v = (strcmp(l->u.s, r->u.s) /* amiport: perf -- strcoll->strcmp, no functional locale on AmigaOS */ == 0);
 				break;
 			case NE:
-				v = (strcoll(l->u.s, r->u.s) != 0);
+				v = (strcmp(l->u.s, r->u.s) /* amiport: perf -- strcoll->strcmp, no functional locale on AmigaOS */ != 0);
 				break;
 			default:
 				break;

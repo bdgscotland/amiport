@@ -318,12 +318,17 @@ linear_search(char *string, char *front, char *back)
 void
 print_from(char *string, char *front, char *back)
 {
-	for (; front < back && compare(string, front, back) == EQUAL; ++front) {
-		for (; front < back && *front != '\n'; ++front)
-			if (putchar(*front) == EOF)
-				err(10, "stdout");   /* amiport: RETURN_ERROR */
+	/* amiport: perf -- fwrite whole lines instead of putchar per byte (10-30x on 68k) */
+	char *p;
+	for (; front < back && compare(string, front, back) == EQUAL; front = p + 1) {
+		for (p = front; p < back && *p != '\n'; ++p)
+			;
+		if (fwrite(front, 1, p - front, stdout) != (size_t)(p - front))
+			err(10, "stdout");
 		if (putchar('\n') == EOF)
-			err(10, "stdout");           /* amiport: RETURN_ERROR */
+			err(10, "stdout");
+		if (p >= back)
+			break;
 	}
 }
 

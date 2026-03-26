@@ -96,11 +96,11 @@ ohash_hash_interval(const char *s, const char **end)
     const char *p = s;
     if (*end == NULL) {
         while (*p)
-            h = h * 31 + (unsigned char)*p++;
+            h = (h << 5) - h + (unsigned char)*p++; /* amiport: perf -- shift+sub vs MULU */
         *end = p;
     } else {
         while (p < *end)
-            h = h * 31 + (unsigned char)*p++;
+            h = (h << 5) - h + (unsigned char)*p++; /* amiport: perf -- shift+sub vs MULU */
     }
     return h;
 }
