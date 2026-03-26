@@ -24,6 +24,7 @@ The porting pipeline has 5 stages, each backed by a Claude skill:
 - `lib/console-shim/` — Minimal ncurses + termcap API mapped to Amiga console.device ANSI escapes (ADR-009). Includes termcap (tgetent/tgetstr/tgoto/tparm) for programs like less, and curses (initscr/getch/addch) for ncurses programs.
 - `lib/posix-shim/include/amiport/termios.h` — Minimal termios shim mapping tcgetattr/tcsetattr to AmigaOS SetMode() for raw/cooked console mode. Used by terminal programs (less, nano, vim).
 - `lib/bsdsocket-shim/` — BSD socket API via bsdsocket.library with auto lifecycle (ADR-010)
+- `lib/oniguruma/` — Oniguruma 6.9.9 regex engine (ASCII-only build, 156 KB). Perl-compatible regex with named captures. Used by jq for test/match/sub/gsub. Unicode data tables replaced with stubs to save 312 KB.
 - `site/` — Website source for amiport.platesteel.net
   - `site/css/style.css` — MUI warm gray design system (see DESIGN.md)
   - `site/index.html` — Landing page (hero terminal animation, featured packages, getting started, port request form)
@@ -128,6 +129,23 @@ make clean             # Remove build artifacts
 ```
 
 **Prerequisites:** Docker (for cross-compiler), Python + amitools (`pip install amitools`) for vamos testing.
+
+## Versioning
+
+Each port has two version components defined in its Makefile:
+
+- **VERSION** — upstream version (e.g., `1.68`). Only changes when pulling new upstream source.
+- **REVISION** — port revision (default `1`). Increment when `ported/`, Makefile, shim deps, or tests change but upstream version stays the same.
+
+`common.mk` computes **DISPLAY_VERSION**: `VERSION` for revision 1, `VERSION-REVISION` for revision 2+ (e.g., `1.68-2`). DISPLAY_VERSION flows to:
+
+- `$VER` string in source code
+- `.readme` `Version:` field
+- LHA filename (e.g., `grep-1.68-2.lha`)
+- Website package display
+- PORTS.md catalog
+
+Revision 1 is implicit — never shown. Run `make check-port-metadata` to validate version consistency across all touchpoints.
 
 ## Toolchain
 

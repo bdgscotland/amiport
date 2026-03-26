@@ -17,7 +17,7 @@
 extern char *dirname(char *path);
 
 /* amiport: Amiga version string */
-static const char *verstag = "$VER: jq 1.7.1 (22.03.2026)";
+static const char *verstag = "$VER: jq 1.7.1-2 (25.03.2026)";
 
 /* amiport: stack cookie — jq's recursive filter evaluator needs deep stack */
 /* amiport: increased to 128KB — at -O0, bison parser alloca + dos.library hidden

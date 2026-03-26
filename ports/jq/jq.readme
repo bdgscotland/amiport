@@ -3,7 +3,7 @@ Type:         util/cli
 Architecture: m68k-amigaos >= 3.0
 Uploader:     duncan@bowring.us
 Author:       Stephen Dolan / jqlang (ported by Duncan Bowring)
-Version:      1.7.1
+Version:      1.7.1-2
 
 jq - Lightweight command-line JSON processor
 
@@ -24,11 +24,26 @@ Usage:
   jq '.[] | select(.age > 30)' data.json
   jq -r '.results[].title' api_response.json
 
-Built without oniguruma regex library. Regex builtins (test,
-match, capture) return a runtime error message. All other jq
-functionality works: select, map, keys, has, add, reduce,
-group_by, sort_by, unique, flatten, range, path, env, debug,
-@base64, @uri, @csv, @tsv, @html, tojson/fromjson, and more.
+Includes Oniguruma 6.9.9 regex engine (ASCII-only build).
+All regex builtins work: test, match, capture, scan, sub, gsub.
+Named capture groups supported (Perl NG syntax).
 
-Includes full source code (original POSIX and ported Amiga versions)
-and PORT.md documenting every transformation applied.
+  echo '"2026-03-25"' | jq 'test("[0-9]{4}")'
+  echo '"Hello World"' | jq '[scan("[A-Z][a-z]+")]'
+
+All jq functionality works: select, map, keys, has, add,
+reduce, group_by, sort_by, unique, flatten, range, path, env,
+debug, @base64, @uri, @csv, @tsv, @html, tojson/fromjson,
+and more.
+
+Limitations:
+- Unicode character properties (\p{Letter}) not supported
+  (ASCII-only regex build)
+- IEEE 754 doubles only (no arbitrary-precision decimals)
+
+Changes in 1.7.1-2:
+- Added Oniguruma regex engine (test/match/sub/gsub now work)
+- Binary size: 377 KB -> 519 KB (+142 KB)
+
+Includes full source code (original POSIX and ported Amiga
+versions) and PORT.md documenting every transformation.

@@ -5,7 +5,7 @@
 | Field | Value |
 |-------|-------|
 | Program | jq |
-| Version | 1.7.1 |
+| Version | 1.7.1-2 |
 | Source | https://github.com/jqlang/jq (jq-1.7.1) |
 | Category | 1 — CLI |
 | License | MIT (jq), ICU (decNumber) |
@@ -108,8 +108,8 @@ Verdict: HARD
 | Compiler | m68k-amigaos-gcc 6.5.0 (bebbo) |
 | Target | m68k-amigaos, 68020+ |
 | CFLAGS | `-O0 -noixemul -std=gnu99 -m68000 -Wall` (see crash-patterns #16) |
-| Libraries | `-lamiport -lm` |
-| Binary size | 377 KB (unstripped), ~340 KB (stripped) |
+| Libraries | `-lamiport -loniguruma -lm` |
+| Binary size | 519 KB (unstripped) — includes Oniguruma 6.9.9 regex engine |
 
 ## Test Results
 
@@ -134,7 +134,7 @@ Verdict: HARD
 
 ## Known Limitations
 
-- **No regex:** `test()`, `match()`, `capture()`, `scan()`, `sub()`, `gsub()` return runtime errors (built without oniguruma)
+- **ASCII-only regex:** Unicode character properties (`\p{Letter}`) not supported. All other regex features work (test, match, capture, scan, sub, gsub, named groups).
 - **No arbitrary-precision decimals:** Uses IEEE 754 doubles (standard JSON behavior, but `1.1 + 2.2 != 3.3`)
 - **GNU math extensions unavailable:** Bessel functions (j0/j1/yn), tgamma, cbrt, erf, etc. return runtime errors
 - **-O0 mandatory:** bebbo-gcc 6.5.0b corrupts struct returns >8 bytes at -O1/-O2 (crash-patterns #16). Binary is ~12% larger than -O2.

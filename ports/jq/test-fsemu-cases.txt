@@ -1,7 +1,7 @@
 # jq FS-UAE test suite
 # jq 1.7.1 -- Category 1 (CLI), minimum 15 tests required
 # Uses input files instead of piping (ARexx limitation)
-# Built without oniguruma (regex builtins return runtime errors)
+# Includes Oniguruma 6.9.9 regex engine (ASCII-only build)
 # Built without decNumber (IEEE 754 doubles)
 #
 # Flags covered: -n -R -s -c -r -j -a -S -C -M -e -f -V -h
@@ -286,4 +286,66 @@ TEST: Group by status and count (group_by + map + from_entries)
 FILE: test-jq-packages.txt
 CMD: WORK:jq -c "[group_by(.status)[] | {(.[0].status): length}] | add" WORK:test-jq-packages.txt
 EXPECT: {"published":5,"submitted":1,"testing":1}
+EXPECT_RC: 0
+
+# --- Regex tests (Oniguruma 6.9.9, ASCII-only) ---
+
+TEST: Regex test() basic match
+FILE: test-jq-regex.txt
+CMD: WORK:jq ".text | test(\"Hello\")" WORK:test-jq-regex.txt
+EXPECT: true
+EXPECT_RC: 0
+
+TEST: Regex test() no match
+FILE: test-jq-regex.txt
+CMD: WORK:jq ".text | test(\"xyz\")" WORK:test-jq-regex.txt
+EXPECT: false
+EXPECT_RC: 0
+
+TEST: Regex test() with character class
+FILE: test-jq-regex.txt
+CMD: WORK:jq ".text | test(\"[0-9]+\")" WORK:test-jq-regex.txt
+EXPECT: true
+EXPECT_RC: 0
+
+TEST: Regex test() case-insensitive flag
+FILE: test-jq-regex.txt
+CMD: WORK:jq ".text | test(\"hello\"; \"i\")" WORK:test-jq-regex.txt
+EXPECT: true
+EXPECT_RC: 0
+
+TEST: Regex match() returns offset and string
+FILE: test-jq-regex.txt
+CMD: WORK:jq -c ".text | [match(\"[0-9]+\")] | .[0] | {offset, string}" WORK:test-jq-regex.txt
+EXPECT: {"offset":12,"string":"123"}
+EXPECT_RC: 0
+
+TEST: Regex capture() with named groups
+FILE: test-jq-regex.txt
+CMD: WORK:jq -c ".date | capture(\"(?<year>[0-9]{4})-(?<month>[0-9]{2})-(?<day>[0-9]{2})\")" WORK:test-jq-regex.txt
+EXPECT: {"year":"2026","month":"03","day":"25"}
+EXPECT_RC: 0
+
+TEST: Regex scan() returns all matches
+FILE: test-jq-regex.txt
+CMD: WORK:jq -c "[.text | scan(\"[A-Z][a-z]+\")]" WORK:test-jq-regex.txt
+EXPECT: ["Hello","World"]
+EXPECT_RC: 0
+
+TEST: Regex sub() single replacement
+FILE: test-jq-regex.txt
+CMD: WORK:jq ".text | sub(\"World\"; \"Amiga\")" WORK:test-jq-regex.txt
+EXPECT: "Hello Amiga 123"
+EXPECT_RC: 0
+
+TEST: Regex gsub() global replacement
+FILE: test-jq-regex.txt
+CMD: WORK:jq ".text | gsub(\"[0-9]\"; \"X\")" WORK:test-jq-regex.txt
+EXPECT: "Hello World XXX"
+EXPECT_RC: 0
+
+TEST: Regex test() anchored pattern
+FILE: test-jq-regex.txt
+CMD: WORK:jq ".email | test(\"^[a-z]+@[a-z]+\\\\.[a-z]+$\")" WORK:test-jq-regex.txt
+EXPECT: true
 EXPECT_RC: 0
