@@ -3,7 +3,7 @@ Type:         util/cli
 Architecture: m68k-amigaos >= 3.0
 Uploader:     duncan@bowring.us
 Author:       OpenBSD (ported by Duncan Bowring)
-Version:      1.22
+Version:      1.22-2
 
 tr - Translate, squeeze, or delete chars
 

@@ -18,7 +18,7 @@
 
 /* amiport: AmigaOS 3.x port of OpenBSD tsort 1.38 */
 /* amiport: Amiga version string */
-static const char * __attribute__((used)) verstag = "$VER: tsort 1.38 (26.03.2026)";
+static const char * __attribute__((used)) verstag = "$VER: tsort 1.38-2 (26.03.2026)";
 
 /* amiport: stack cookie -- graph traversal can recurse deeply */
 long __stack = 32768;

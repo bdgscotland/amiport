@@ -49,16 +49,17 @@ Version format: `upstream[-portrev]` — port revision is shown when > 1 (e.g., 
 | [rs](ports/rs/) | 1.30 | Reshape a data array | CLI | OpenBSD rs v1.30 (BSD 3-Clause) | Built & tested (16/37 FS-UAE) | Not submitted |
 | [sleep](ports/sleep/) | 1.29 | Suspend execution for an interval | CLI | OpenBSD sleep v1.29 (BSD 3-Clause) | Built & tested (25/25 FS-UAE) | Not submitted |
 | [test](ports/test/) | 1.23 | Condition evaluation utility | CLI | OpenBSD test v1.23 (BSD 3-Clause) | Built & tested (97/97 FS-UAE) | Not submitted |
-| [tr](ports/tr/) | 1.22 | Translate, squeeze, or delete chars | CLI | OpenBSD tr v1.22 (BSD 3-Clause) | Built & tested (27/27 FS-UAE) | Not submitted |
-| [fold](ports/fold/) | 1.18 | Fold long lines for fixed-width output | CLI | OpenBSD fold v1.18 (BSD 3-Clause) | Built & tested (19/19 FS-UAE) | Not submitted |
-| [nl](ports/nl/) | 1.8 | Line numbering filter | CLI | OpenBSD nl v1.8 (BSD 3-Clause) | Built & tested (42/42 FS-UAE) | Not submitted |
-| [join](ports/join/) | 1.34 | Relational join on sorted files | CLI | OpenBSD join v1.34 (BSD 3-Clause) | Built & tested (39/39 FS-UAE) | Not submitted |
-| [tsort](ports/tsort/) | 1.38 | Topological sort of a directed graph | CLI | OpenBSD tsort v1.38 (BSD 3-Clause) | Built & tested (25/25 FS-UAE) | Not submitted |
-| [column](ports/column/) | 1.27 | Columnate lists | CLI | OpenBSD column v1.27 (BSD 3-Clause) | Built & tested (25/25 FS-UAE) | Not submitted |
+| [tr](ports/tr/) | 1.22-2 | Translate, squeeze, or delete chars | CLI | OpenBSD tr v1.22 (BSD 3-Clause) | Built & tested (27/27 FS-UAE) | Not submitted |
+| [fold](ports/fold/) | 1.18-2 | Fold long lines for fixed-width output | CLI | OpenBSD fold v1.18 (BSD 3-Clause) | Built & tested (19/19 FS-UAE) | Not submitted |
+| [nl](ports/nl/) | 1.8-2 | Line numbering filter | CLI | OpenBSD nl v1.8 (BSD 3-Clause) | Built & tested (42/42 FS-UAE) | Not submitted |
+| [join](ports/join/) | 1.34-2 | Relational join on sorted files | CLI | OpenBSD join v1.34 (BSD 3-Clause) | Built & tested (39/39 FS-UAE) | Not submitted |
+| [tsort](ports/tsort/) | 1.38-2 | Topological sort of a directed graph | CLI | OpenBSD tsort v1.38 (BSD 3-Clause) | Built & tested (25/25 FS-UAE) | Not submitted |
+| [column](ports/column/) | 1.27-2 | Columnate lists | CLI | OpenBSD column v1.27 (BSD 3-Clause) | Built & tested (25/25 FS-UAE) | Not submitted |
 | [ln](ports/ln/) | 1.25 | Create hard and symbolic links | CLI | OpenBSD ln v1.25 (BSD 3-Clause) | Built & tested (12/12 FS-UAE) | Not submitted |
-| [expr](ports/expr/) | 1.28 | Evaluate string and math expressions | CLI | OpenBSD expr v1.28 (BSD 3-Clause) | Built & tested (58/58 FS-UAE) | Not submitted |
-| [look](ports/look/) | 1.27 | Display lines starting with a string | CLI | OpenBSD look v1.27 (BSD 3-Clause) | Built & tested (36/36 FS-UAE) | Not submitted |
+| [expr](ports/expr/) | 1.28-2 | Evaluate string and math expressions | CLI | OpenBSD expr v1.28 (BSD 3-Clause) | Built & tested (58/58 FS-UAE) | Not submitted |
+| [look](ports/look/) | 1.27-2 | Display lines starting with a string | CLI | OpenBSD look v1.27 (BSD 3-Clause) | Built & tested (36/36 FS-UAE) | Not submitted |
 | [tty](ports/tty/) | 1.14 | Print name of terminal | CLI | OpenBSD tty v1.14 (BSD 3-Clause) | Built & tested (11/11 FS-UAE) | Not submitted |
+| [tetris](ports/tetris/) | 1.35 | Terminal tetris game (first for AmigaOS!) | Console UI | OpenBSD tetris v1.35 (BSD 3-Clause) | Built & tested (18/18 FS-UAE) | Not submitted |
 
 ## Aminet Publication Tracking
 

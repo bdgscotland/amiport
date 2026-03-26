@@ -1,10 +1,9 @@
 # Makefile for look (amiport)
-include ../common.mk
 
 TARGET      = look
 SOURCES     = ported/look.c
 VERSION     = 1.27
-REVISION    = 1
+REVISION    = 2
 DESCRIPTION = Display lines starting with a string
 AUTHOR      = David Hitz, OpenBSD
 
@@ -16,6 +15,8 @@ LDFLAGS    += -L../../lib/posix-emu -lamiport-emu
 
 $(TARGET): $(SOURCES) $(SHIM_LIB) $(EMU_LIB)
 	$(CC) $(CFLAGS) -o $(TARGET) $(SOURCES) $(LDFLAGS)
+
+include ../common.mk
 
 .PHONY: all clean test package compare
 

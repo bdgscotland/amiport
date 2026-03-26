@@ -1,5 +1,4 @@
 # Makefile for ln (amiport)
-include ../common.mk
 
 TARGET      = ln
 SOURCES     = ported/ln.c
@@ -9,6 +8,8 @@ DESCRIPTION = Create hard and symbolic links
 AUTHOR      = OpenBSD
 
 AMINET_CAT  = util/cli
+
+include ../common.mk
 
 .PHONY: all clean test package compare
 

@@ -5,7 +5,7 @@
 | Field | Value |
 |-------|-------|
 | Port | fold |
-| Date | 2026-03-26 16:45:57 |
+| Date | 2026-03-26 19:22:58 |
 | Duration | 117s |
 | Platform | FS-UAE 3.2.35 (A1200, Kickstart 3.1) |
 | Binary | `WORK:fold` (41K) |

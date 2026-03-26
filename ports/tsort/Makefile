@@ -2,7 +2,7 @@
 TARGET      = tsort
 SOURCES     = ported/tsort.c
 VERSION     = 1.38
-REVISION    = 1
+REVISION    = 2
 DESCRIPTION = Topological sort of a directed graph
 AUTHOR      = Marc Espie, OpenBSD
 

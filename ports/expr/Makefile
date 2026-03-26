@@ -2,7 +2,7 @@
 TARGET      = expr
 SOURCES     = ported/expr.c
 VERSION     = 1.28
-REVISION    = 1
+REVISION    = 2
 DESCRIPTION = Evaluate string and math expressions
 AUTHOR      = OpenBSD
 

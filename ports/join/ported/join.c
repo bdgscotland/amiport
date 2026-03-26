@@ -35,7 +35,7 @@
 
 /* amiport: AmigaOS 3.x port of OpenBSD join 1.34 */
 /* amiport: $VER string for version command */
-static const char *verstag = "$VER: join 1.34 (26.03.2026)";
+static const char *verstag = "$VER: join 1.34-2 (26.03.2026)";
 
 /* amiport: stack cookie -- Amiga default 4KB is too small */
 long __stack = 16384;

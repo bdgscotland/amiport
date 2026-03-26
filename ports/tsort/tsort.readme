@@ -3,7 +3,7 @@ Type:         util/cli
 Architecture: m68k-amigaos >= 3.0
 Uploader:     duncan@bowring.us
 Author:       Marc Espie, OpenBSD (ported by Duncan Bowring)
-Version:      1.38
+Version:      1.38-2
 
 tsort - Topological sort of a directed graph
 

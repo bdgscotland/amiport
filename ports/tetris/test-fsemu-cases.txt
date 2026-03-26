@@ -1,0 +1,164 @@
+# test-fsemu-cases.txt -- FS-UAE test suite for tetris 1.35
+# Category 3 (Console UI) -- minimum 12 tests required
+#
+# Tetris is an interactive game. The -s flag is the only non-interactive
+# path (show high scores and exit). All other paths require ITEST: blocks
+# with KeyInject to start, play briefly, and quit cleanly.
+#
+# Quit flow: press q -> game loop exits -> scr_clear/scr_end (raw mode off)
+# -> prints "Your score: ..." -> prints "Hit RETURN to see high scores..."
+# -> waits for getchar() -> prints high score table -> exits RC 0.
+# ITEST quit sequence: WAIT2000,q,WAIT500,RETURN,WAIT1500
+#
+# Pause flow: press p -> waits for RETURN to unpause (rwait(NULL)).
+# Pause sequence: p,WAIT500,RETURN (press p, wait for display, press RETURN)
+#
+# Custom keys (-k abcdef): a=left b=rotate c=right d=drop e=pause f=quit.
+#
+# Functional and visual tests are in SEPARATE files (ADR-024).
+# Visual SCRAPE tests: test-fsemu-visual-cases.txt
+
+# ============================================================
+# Non-interactive tests (-s flag and error paths)
+# ============================================================
+
+# Native: tetris -s exits 0; with no score file prints "Tetris High Scores"
+# and "- none to date."
+TEST: -s flag shows high scores and exits RC 0 (no score file)
+CMD: WORK:tetris -s
+EXPECT_CONTAINS: Tetris High Scores
+EXPECT_RC: 0
+
+# Native: tetris -l 0 -> errx(10, "level must be from 1 to 9")
+TEST: Bad level -l 0 exits RC 10
+CMD: WORK:tetris -l 0
+EXPECT_RC: 10
+
+# Native: tetris -l 10 -> errx(10, "level must be from 1 to 9")
+TEST: Bad level -l 10 exits RC 10
+CMD: WORK:tetris -l 10
+EXPECT_RC: 10
+
+# Native: tetris -k aaaaaa -> errx(10, "duplicate command keys specified.")
+TEST: Duplicate keys -k aaaaaa exits RC 10
+CMD: WORK:tetris -k aaaaaa
+EXPECT_RC: 10
+
+# Native: tetris -k ab -> usage() -> errx -> RC 10 (strlen("ab") != 6)
+TEST: Wrong key count -k ab exits RC 10
+CMD: WORK:tetris -k ab
+EXPECT_RC: 10
+
+# Native: tetris -k abcdef -> valid 6 distinct chars -> no error at option parse stage
+# Tests that valid custom keys are accepted without immediate error
+TEST: Valid custom keys -k abcdef accepted (no parse error)
+CMD: WORK:tetris -k abcdef -s
+EXPECT_CONTAINS: Tetris High Scores
+EXPECT_RC: 0
+
+# Native: tetris foo -> argc > 0 after optind -> usage() -> RC 10
+TEST: Extra positional argument exits RC 10
+CMD: WORK:tetris foo
+EXPECT_RC: 10
+
+# Native: tetris -Z -> usage() -> RC 10 (unknown flag)
+TEST: Unknown flag -Z exits RC 10
+CMD: WORK:tetris -Z
+EXPECT_RC: 10
+
+# ============================================================
+# Interactive tests (KeyInject via ITEST:)
+# Max 13 ITEST blocks per file to avoid resource exhaustion.
+# ============================================================
+
+# Basic lifecycle: start game at default level 2, quit immediately with q,
+# send RETURN to skip waiting for score input -> game exits RC 0.
+ITEST: Start game and quit with q key (default level)
+LAUNCH: WORK:tetris
+KEYS: WAIT2000,q,WAIT500,RETURN,WAIT1500
+EXPECT_RC: 0
+
+# Start with preview mode (-p flag): same quit path but preview code
+# path exercised (showpreview=1, different score formula).
+ITEST: Start with preview -p and quit with q
+LAUNCH: WORK:tetris -p
+KEYS: WAIT2000,q,WAIT500,RETURN,WAIT1500
+EXPECT_RC: 0
+
+# Start in classic mode (-c flag): classic=1, SOstr/SEstr set to NULL
+# (no reverse video), rotc used for rotation. Quit same way.
+ITEST: Start in classic mode -c and quit with q
+LAUNCH: WORK:tetris -c
+KEYS: WAIT2000,q,WAIT500,RETURN,WAIT1500
+EXPECT_RC: 0
+
+# Level 1 (fastest fall rate 1s/level): confirm -l 1 accepted and runs.
+ITEST: Start at level 1 -l 1 and quit with q
+LAUNCH: WORK:tetris -l 1
+KEYS: WAIT2000,q,WAIT500,RETURN,WAIT1500
+EXPECT_RC: 0
+
+# Level 9 (fastest fall rate ~111ms/level): stress test timer path.
+ITEST: Start at level 9 -l 9 and quit with q
+LAUNCH: WORK:tetris -l 9
+KEYS: WAIT2000,q,WAIT500,RETURN,WAIT1500
+EXPECT_RC: 0
+
+# Move left (j key): exercises fits_in() + position decrement path.
+# Move right (l key): exercises fits_in() + position increment path.
+# Quit normally.
+ITEST: Move left with j and right with l then quit
+LAUNCH: WORK:tetris
+KEYS: WAIT2000,j,WAIT200,j,WAIT200,l,WAIT200,l,WAIT200,q,WAIT500,RETURN,WAIT1500
+EXPECT_RC: 0
+
+# Rotate (k key): exercises fits_in() + shape->rot lookup.
+# Drop (space key): exercises bottom-drop loop, score increment.
+ITEST: Rotate with k and drop with SPACE then quit
+LAUNCH: WORK:tetris
+KEYS: WAIT2000,k,WAIT300,SPACE,WAIT800,q,WAIT500,RETURN,WAIT1500
+EXPECT_RC: 0
+
+# Pause (p key): waits for rwait(NULL) which blocks until RETURN.
+# Unpauses on RETURN (not arbitrary key).
+ITEST: Pause with p then unpause with RETURN then quit
+LAUNCH: WORK:tetris
+KEYS: WAIT2000,p,WAIT500,RETURN,WAIT500,q,WAIT500,RETURN,WAIT1500
+EXPECT_RC: 0
+
+# Custom key bindings (-k abcdef): a=left b=rotate c=right d=drop e=pause f=quit.
+# Exercises the custom key parse + key_write[] snprintf path.
+ITEST: Custom keys -k abcdef then quit with f
+LAUNCH: WORK:tetris -k abcdef
+KEYS: WAIT2000,a,WAIT200,c,WAIT200,b,WAIT200,f,WAIT500,RETURN,WAIT1500
+EXPECT_RC: 0
+
+# Classic + preview combined: exercises both code paths simultaneously.
+# Preview with classic=1 means SOstr=NULL so preview draws [] instead of spaces.
+ITEST: Classic mode -c with preview -p combined then quit
+LAUNCH: WORK:tetris -c -p
+KEYS: WAIT2000,q,WAIT500,RETURN,WAIT1500
+EXPECT_RC: 0
+
+# Stress test: play longer before quitting. Multiple moves, drops, and
+# rotations to exercise the game loop and elide() row elimination.
+# Level 1 gives slowest fall (more time for key injection to land).
+ITEST: Stress test: extended play at level 1 with moves and drops
+LAUNCH: WORK:tetris -l 1
+KEYS: WAIT2000,j,WAIT200,SPACE,WAIT600,k,WAIT200,SPACE,WAIT600,l,WAIT200,SPACE,WAIT600,j,WAIT200,SPACE,WAIT600,q,WAIT500,RETURN,WAIT1500
+EXPECT_RC: 0
+
+# Real-world usage: -p -l 3 is a common casual player invocation.
+# Tests preview + mid-level combined.
+ITEST: Real-world: preview at level 3 -p -l 3 then quit
+LAUNCH: WORK:tetris -p -l 3
+KEYS: WAIT2000,q,WAIT500,RETURN,WAIT1500
+EXPECT_RC: 0
+
+# High-score path: after quitting, showscores(level) is called.
+# The -s flag tests showscores(0) non-interactively. This test verifies
+# the post-game showscores path runs without crash (RC 0).
+ITEST: Post-game high score display path does not crash
+LAUNCH: WORK:tetris -l 2
+KEYS: WAIT2000,q,WAIT500,RETURN,WAIT2000
+EXPECT_RC: 0

@@ -5,10 +5,10 @@
 | Field | Value |
 |-------|-------|
 | Port | column |
-| Date | 2026-03-26 16:46:44 |
+| Date | 2026-03-26 19:25:50 |
 | Duration | 42s |
 | Platform | FS-UAE 3.2.35 (A1200, Kickstart 3.1) |
-| Binary | `WORK:column` (unknown) |
+| Binary | `WORK:column` (44K) |
 | Test method | ARexx harness → TAP output |
 | Result | **PASS** — 25/25 passed |
 

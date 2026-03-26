@@ -5,7 +5,7 @@
 | Field | Value |
 |-------|-------|
 | Port | tsort |
-| Date | 2026-03-26 17:19:19 |
+| Date | 2026-03-26 19:43:05 |
 | Duration | 34s |
 | Platform | FS-UAE 3.2.35 (A1200, Kickstart 3.1) |
 | Binary | `WORK:tsort` (42K) |

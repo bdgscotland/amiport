@@ -3,7 +3,7 @@ Type:         util/cli
 Architecture: m68k-amigaos >= 3.0
 Uploader:     duncan@bowring.us
 Author:       OpenBSD (ported by Duncan Bowring)
-Version:      1.34
+Version:      1.34-2
 
 join - Relational join on sorted files
 

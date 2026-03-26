@@ -31,7 +31,7 @@
  */
 
 /* amiport: Amiga version string */
-static const char *verstag __attribute__((used)) = "$VER: nl 1.8 (26.03.2026)";
+static const char *verstag __attribute__((used)) = "$VER: nl 1.8-2 (26.03.2026)";
 
 /* amiport: stack cookie -- Amiga default 4KB is too small */
 long __stack = 16384;

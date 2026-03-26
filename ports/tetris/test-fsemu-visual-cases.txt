@@ -1,0 +1,88 @@
+# test-fsemu-visual-cases.txt -- Visual verification tests for tetris 1.35
+# Runs in a SEPARATE FS-UAE pass from functional tests (ADR-024).
+# Requires forked FS-UAE with per-unit ANSI capture support.
+# Run with: make test-fsemu TARGET=ports/tetris VISUAL=1
+#
+# Tetris uses termcap for all screen rendering. The game draws:
+#   - "Score: N" at HOstr (cursor home = top-left = ANSI row 1, col 1)
+#   - Board border cells drawn with CM cursor motion termcap
+#   - "Next shape:" at moveto(2,0) = ANSI row 3, col 1 (preview mode only)
+#   - Key help message near bottom, centered (row varies with terminal size)
+#
+# Key positions (80-column window, console-shim amiga termcap):
+#   Score text:   ANSI row 1, col 1 (HOstr = cursor home, always)
+#   Next shape:   ANSI row 3, col 1 (moveto(r-3,c-2) with r=5,c=2 fixed in code)
+#   Board L-wall: ANSI row 1, col 28 (CTOD(0)=27 0-indexed for 80-col + RTOD(1)=0)
+#
+# SCRAPE captures console state WHILE the game runs (before CLEANUP quit keys).
+# Classic mode (-c): SOstr=NULL so board borders draw "[]" instead of standout spaces.
+#
+# NOTE: Key injection for visual tests uses host-side osascript (ADR-025).
+# KEYS: WAIT3000 gives the game time to complete initial board draw before SCRAPE.
+# CLEANUP sends quit keys after capture completes.
+#
+# Max 13 ITEST blocks per file (resource exhaustion wall).
+
+# ============================================================
+# 1. Game board renders -- Score: 0 at top-left
+#    HOstr positions cursor at (0,0) before printf("Score: %d", score).
+#    score starts at 0. This is the most fundamental render check.
+# ============================================================
+
+ITEST: Visual: Score: 0 appears at top-left corner of game board
+LAUNCH: WORK:tetris
+KEYS: WAIT3000
+SCRAPE
+EXPECT_AT 1,1,Score: 0
+CLEANUP: q,WAIT500,RETURN,WAIT1500
+EXPECT_RC: 0
+
+# ============================================================
+# 2. Preview mode -- "Next shape:" label rendered
+#    scr_update() calls moveto(r-3, c-2) = moveto(2, 0) (0-indexed).
+#    0-indexed row 2, col 0 = ANSI row 3, col 1.
+#    This is a fixed computation in screen.c (r=5, c=2 are static vars).
+# ============================================================
+
+ITEST: Visual: Preview -p mode shows Next shape label at row 3 col 1
+LAUNCH: WORK:tetris -p
+KEYS: WAIT3000
+SCRAPE
+EXPECT_AT 1,1,Score: 0
+EXPECT_AT 3,1,Next shape:
+CLEANUP: q,WAIT500,RETURN,WAIT1500
+EXPECT_RC: 0
+
+# ============================================================
+# 3. Classic mode -- board border draws "[]" (SOstr=NULL, no standout)
+#    In normal mode the border is reverse-video spaces, invisible to SCRAPE.
+#    In classic mode (-c) SOstr=SEstr=NULL so board draws "[]" characters.
+#    Left wall: CTOD(0) = 0*2 + (((80-24)>>1)-1) = 27 (0-indexed) = ANSI col 28.
+#    Top row: RTOD(D_FIRST=1) = 0 (0-indexed) = ANSI row 1.
+#    So left-wall top cell renders "[]" at ANSI (1, 28).
+# ============================================================
+
+ITEST: Visual: Classic mode -c renders board border brackets at expected position
+LAUNCH: WORK:tetris -c
+KEYS: WAIT3000
+SCRAPE
+EXPECT_AT 1,1,Score: 0
+EXPECT_AT 1,28,[]
+CLEANUP: q,WAIT500,RETURN,WAIT1500
+EXPECT_RC: 0
+
+# ============================================================
+# 4. Classic + preview combined -- verify both features render simultaneously
+#    Tests interaction: -c sets SOstr=NULL, -p triggers Next shape: label.
+#    Both assertions must hold at the same time.
+# ============================================================
+
+ITEST: Visual: Classic -c and preview -p combined renders both correctly
+LAUNCH: WORK:tetris -c -p
+KEYS: WAIT3000
+SCRAPE
+EXPECT_AT 1,1,Score: 0
+EXPECT_AT 1,28,[]
+EXPECT_AT 3,1,Next shape:
+CLEANUP: q,WAIT500,RETURN,WAIT1500
+EXPECT_RC: 0

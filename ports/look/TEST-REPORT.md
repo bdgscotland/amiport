@@ -5,8 +5,8 @@
 | Field | Value |
 |-------|-------|
 | Port | look |
-| Date | 2026-03-26 16:36:21 |
-| Duration | 36s |
+| Date | 2026-03-26 19:41:15 |
+| Duration | 35s |
 | Platform | FS-UAE 3.2.35 (A1200, Kickstart 3.1) |
 | Binary | `WORK:look` (38K) |
 | Test method | ARexx harness → TAP output |

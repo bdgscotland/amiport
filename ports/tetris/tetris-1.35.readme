@@ -1,0 +1,46 @@
+Short:        Terminal tetris game from OpenBSD
+Type:         game/think
+Architecture: m68k-amigaos >= 3.0
+Uploader:     duncan@bowring.us
+Author:       Chris Torek, Darren F. Provine (ported by Duncan Bowring)
+Version:      1.35
+
+tetris - Terminal tetris game from OpenBSD
+
+The classic BSD Tetris game, running in your Amiga shell window.
+This is the first terminal-mode tetris for AmigaOS -- all existing
+Amiga tetris games use Intuition windows.
+
+Original authors: Chris Torek and Darren F. Provine (UC Berkeley).
+Ported by Duncan Bowring using amiport (AI-assisted porting toolkit).
+Project: https://github.com/bdgscotland/amiport
+
+Cross-compiled with m68k-amigaos-gcc for AmigaOS 3.x (68000+).
+Tested on AmigaOS 3.1 via FS-UAE emulator.
+
+Usage:
+  tetris [-cps] [-k keys] [-l level]
+
+Options:
+  -c        Classic mode (different rotation, no reverse video)
+  -k keys   Custom key bindings (6 chars: left rotate right drop pause quit)
+  -l level  Starting level 1-9 (default: 2, higher = faster)
+  -p        Show preview of next piece (score penalty)
+  -s        Show high scores and exit
+
+Default keys:
+  j - move left      k - rotate     l - move right
+  <space> - drop     p - pause      q - quit
+
+High scores are saved to PROGDIR:tetris.scores
+
+Requirements:
+  AmigaOS 3.0+, 68000+, any console window
+
+Known limitations:
+  - Timer granularity ~20ms (vs nanosecond on Unix). Playable at all levels.
+  - All scores recorded under "amiga" unless LOGNAME/USER env vars are set.
+  - No job control (Ctrl-Z) -- AmigaOS has no job control.
+
+Includes full source code (original POSIX and ported Amiga versions)
+and PORT.md documenting every transformation applied.

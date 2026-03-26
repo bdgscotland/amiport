@@ -2,7 +2,7 @@
 TARGET      = nl
 SOURCES     = ported/nl.c
 VERSION     = 1.8
-REVISION    = 1
+REVISION    = 2
 DESCRIPTION = Line numbering filter
 AUTHOR      = OpenBSD
 

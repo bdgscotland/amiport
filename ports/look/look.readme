@@ -3,7 +3,7 @@ Type:         util/cli
 Architecture: m68k-amigaos >= 3.0
 Uploader:     duncan@bowring.us
 Author:       David Hitz, OpenBSD (ported by Duncan Bowring)
-Version:      1.27
+Version:      1.27-2
 
 look - Display lines starting with a string
 

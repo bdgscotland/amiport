@@ -5,8 +5,8 @@
 | Field | Value |
 |-------|-------|
 | Port | nl |
-| Date | 2026-03-26 17:17:26 |
-| Duration | 281s |
+| Date | 2026-03-26 19:48:40 |
+| Duration | 280s |
 | Platform | FS-UAE 3.2.35 (A1200, Kickstart 3.1) |
 | Binary | `WORK:nl` (54K) |
 | Test method | ARexx harness → TAP output |

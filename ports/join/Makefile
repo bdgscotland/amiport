@@ -3,7 +3,7 @@
 TARGET      = join
 SOURCES     = ported/join.c
 VERSION     = 1.34
-REVISION    = 1
+REVISION    = 2
 DESCRIPTION = Relational join on sorted files
 AUTHOR      = OpenBSD
 

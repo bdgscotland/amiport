@@ -5,10 +5,10 @@
 | Field | Value |
 |-------|-------|
 | Port | join |
-| Date | 2026-03-26 16:47:37 |
+| Date | 2026-03-26 19:43:54 |
 | Duration | 49s |
 | Platform | FS-UAE 3.2.35 (A1200, Kickstart 3.1) |
-| Binary | `WORK:join` (44K) |
+| Binary | `WORK:join` (45K) |
 | Test method | ARexx harness → TAP output |
 | Result | **PASS** — 39/39 passed |
 

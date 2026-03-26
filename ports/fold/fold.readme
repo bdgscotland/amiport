@@ -3,7 +3,7 @@ Type:         util/cli
 Architecture: m68k-amigaos >= 3.0
 Uploader:     duncan@bowring.us
 Author:       Kevin Ruddy, UC Berkeley (ported by Duncan Bowring)
-Version:      1.18
+Version:      1.18-2
 
 fold - Fold long lines for fixed-width output
 
