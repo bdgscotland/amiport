@@ -191,6 +191,27 @@ Dispatch ALL memory-checkers and perf-optimizers for all passing ports in a sing
 
 If reviews find CRITICAL issues: fix, rebuild, re-run FS-UAE **serially** (same constraint as Phase 10).
 
+### Phase 11b: PORT.md Enrichment (PARALLEL — MANDATORY)
+
+**PORT.md quality must match single-port `/port-project` quality.** Batch ports must NOT have thin boilerplate PORT.md files. For all passing ports, dispatch agents to enrich PORT.md with:
+
+1. **Description** — 2-3 sentences, not one line
+2. **Portability Analysis** — Table of every POSIX dep, tier, resolution (read `/* amiport: */` comments)
+3. **Transformations Applied** — Table with File, Line, Original, Transformed, Comment
+4. **Build Configuration** — Stack size, CFLAGS, VAMOS_STACK, special flags
+5. **Test Results** — Count, pass rate, categories tested, notable edge cases
+6. **Memory Safety** — Verdict from memory-checker, allocation patterns
+7. **Performance Notes** — Key perf-optimizer findings
+8. **Known Limitations** — Anything discovered during testing
+
+Dispatch in parallel (5 ports per agent max):
+```
+Agent(subagent_type="general-purpose", run_in_background=true,
+      prompt="Enrich PORT.md for ports/<names>. Read ported source, agent-memory, test results. Match quality of ports/grep/PORT.md.")
+```
+
+**Do NOT skip this step.** Thin PORT.md files are a documentation debt that makes the port invisible to future maintainers.
+
 ### Phase 12: Catalog Update
 
 For each completed port:
