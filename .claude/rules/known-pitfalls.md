@@ -398,3 +398,22 @@ CMD: WORK:jq -f WORK:test-filter.txt WORK:input.txt
 Where `test-filter.txt` contains: `.text | test("Hello")`
 
 This is invisible to the vamos test suite (which pipes directly without ARexx), so tests pass on vamos but fail on FS-UAE. Discovered in jq 1.7.1-2 regex tests.
+
+## AmigaDOS Escaped Quotes in Execute Scripts Do Not Work
+
+AmigaDOS `Execute` does not handle escaped quotes (`\"`) inside double-quoted strings the way Unix shells do. A CMD line like `awk "BEGIN { print toupper(\"hello\") }"` will fail because AmigaDOS sees the backslash-quote sequence as literal characters, not as an escaped quote.
+
+This affects ALL test harness CMD lines and any program arguments that contain quotes. The ARexx test harness runs commands via `Execute scriptfile`, which processes the command through the AmigaDOS shell parser.
+
+**Fix:** For awk, sed, and any program that takes program text as an argument, ALWAYS put the program in a file and use `-f`:
+```
+# BAD -- escaped quotes break on AmigaDOS
+CMD: WORK:awk "BEGIN { print toupper(\"hello\") }"
+
+# GOOD -- program in .awk file, no quoting issues
+CMD: WORK:awk -f WORK:test-awk-toupper.awk WORK:test-empty.txt
+```
+
+This applies to: awk programs, sed expressions with quotes, grep patterns with quotes, and any argument containing literal quote characters.
+
+Discovered in the awk port -- 55 inline awk programs with escaped quotes all returned RC=2 (syntax error) on FS-UAE while working fine natively.
