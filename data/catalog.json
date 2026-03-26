@@ -5613,14 +5613,21 @@
       "description": "Strip directory and suffix from filenames"
     },
     {
+      "id": "dirname",
       "name": "dirname",
       "version": "1.17",
-      "source": "openbsd",
-      "category": "cli",
-      "status": "ported",
+      "description": "Strip last component from filename",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream_source": "openbsd",
+      "upstream_license": "ISC",
+      "port_date": "2026-03-25",
+      "aminet_status": "pending",
+      "measured_binary_kb": 33,
+      "measured_stack_kb": 16,
       "test_count": 24,
       "test_pass_rate": 1.0,
-      "measured_binary_kb": 33
+      "status": "ported"
     },
     {
       "id": "rev",
