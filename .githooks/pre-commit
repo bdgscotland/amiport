@@ -57,4 +57,14 @@ if git diff --cached --name-only | grep -qE '\.rexx$'; then
     make check-arexx
 fi
 
+echo "=== Pre-commit: checking catalog sync ==="
+# site/data/catalog.json must match data/catalog.json
+if [ -f "data/catalog.json" ] && [ -f "site/data/catalog.json" ]; then
+    if ! diff -q data/catalog.json site/data/catalog.json > /dev/null 2>&1; then
+        echo "BLOCKED: site/data/catalog.json is out of sync with data/catalog.json"
+        echo "Fix: cp data/catalog.json site/data/catalog.json"
+        exit 1
+    fi
+fi
+
 echo "=== Pre-commit: all checks passed ==="

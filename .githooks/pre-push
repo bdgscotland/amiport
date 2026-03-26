@@ -21,4 +21,18 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
+echo "=== Pre-push: deploying site to amiport.platesteel.net ==="
+# Sync site/ to Dreamhost on every push. This ensures the live site
+# always matches what's in git. Runs rsync with checksum mode.
+if command -v rsync >/dev/null 2>&1; then
+    rsync -az --checksum --delete \
+        --exclude='.DS_Store' \
+        site/ \
+        bdgscotland@amiport.platesteel.net:amiport.platesteel.net/ \
+        2>&1 | tail -5
+    echo "Site deployed."
+else
+    echo "WARNING: rsync not found — site not deployed."
+fi
+
 echo "=== Pre-push: all checks passed ==="

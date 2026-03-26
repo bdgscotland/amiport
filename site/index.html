@@ -73,11 +73,11 @@
     <!-- Big Stats -->
     <section class="home-stats" role="status" aria-label="Project statistics">
         <div class="home-stats__card">
-            <span class="home-stats__value" id="stats-ports">16</span>
+            <span class="home-stats__value" id="stats-ports">...</span>
             <span class="home-stats__label">ports shipped</span>
         </div>
         <div class="home-stats__card">
-            <span class="home-stats__value" id="stats-tests">500+</span>
+            <span class="home-stats__value" id="stats-tests">...</span>
             <span class="home-stats__label">tests passing</span>
         </div>
         <div class="home-stats__card">
@@ -130,7 +130,7 @@
                             <span class="popular-list__meta">3.7 &middot; screen editor</span>
                         </li>
                     </ul>
-                    <p class="mt-sm"><a href="packages.html">Browse all 16 packages &rarr;</a></p>
+                    <p class="mt-sm"><a href="packages.html">Browse all <span id="pkg-count">...</span> packages &rarr;</a></p>
                 </div>
             </div>
         </section>
@@ -308,6 +308,32 @@
         };
         xhr.send(JSON.stringify(data));
     });
+})();
+
+// Dynamic stats from API
+(function() {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', 'api/v1/packages.php');
+    xhr.onload = function() {
+        try {
+            var pkgs = JSON.parse(xhr.responseText);
+            if (!Array.isArray(pkgs)) return;
+            // Ports shipped
+            var portsEl = document.getElementById('stats-ports');
+            if (portsEl) portsEl.textContent = pkgs.length;
+            // Browse all N packages
+            var countEl = document.getElementById('pkg-count');
+            if (countEl) countEl.textContent = pkgs.length;
+            // Total tests passing
+            var totalTests = 0;
+            for (var i = 0; i < pkgs.length; i++) {
+                totalTests += (pkgs[i].test_pass || 0);
+            }
+            var testsEl = document.getElementById('stats-tests');
+            if (testsEl) testsEl.textContent = totalTests + '+';
+        } catch(e) {}
+    };
+    xhr.send();
 })();
 </script>
 
