@@ -934,3 +934,16 @@ These apply only to programs using terminal capabilities (less, nano, vim, htop)
 
 **When:** Program uses `civis`/`cnorm` termcap capabilities to hide/show cursor
 **Note:** Amiga console.device does not support DEC private mode `ESC[?25l`/`ESC[?25h`. These are silently ignored. Cursor remains visible during paging. Known limitation — document in PORT.md.
+
+---
+
+## Numeric Format Transforms
+
+### FMT-G-PRECISION: snprintf %g precision above 15 (crash-patterns #20)
+
+**When:** Source uses `snprintf(buf, size, "%.Ng", val)` where N > 15
+**Pattern:** `%.30g`, `%.20g`, `%.17g`, etc.
+**Replace:** `%.15g` -- maximum meaningful precision for IEEE 754 double
+**Comment:** `/* amiport: %.Ng -> %.15g -- libnix shows FP noise above 15 digits (crash-patterns #20) */`
+**Why:** libnix does not strip trailing zeros beyond 15 digits, so `%.30g` of `1.0` produces `1.0000000000` instead of `1`. The math is correct but the formatting is wrong.
+**Detection:** `grep -rn '%\.\(1[5-9]\|[2-9][0-9]\)g' ported/*.c`

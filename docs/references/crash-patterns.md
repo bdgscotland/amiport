@@ -520,3 +520,14 @@ The flag was originally added to fix exit code 252 on vamos (libnix init list pl
 - **Detection grep:** Look for two `fopen(..., "w")` calls on the same path variable without an intervening `fclose()`. Also check `init_output`/`init_reject` patterns followed by subroutines that re-open the same file.
 - **Port:** patch (OpenBSD v1.78)
 - **Date:** 2026-03-23
+
+## 20. libnix snprintf %.Ng Shows FP Noise Above 15 Significant Digits
+
+- **Signature:** Integers print as `1.0000000000` or `6765.00000000000056840000000000` instead of `1` or `6765`. Floating point accumulation appears wrong (`fib(20)` returns `6764.999...`).
+- **Root cause:** libnix's `snprintf` with `%g` format does not properly strip trailing zeros when the precision exceeds ~15 digits. `%.30g` of `1.0` produces `1.0000000000` instead of `1`. `%.15g` works correctly. The math is actually correct -- the formatting just shows IEEE 754 representation noise beyond the meaningful precision of a 64-bit double (~15.9 significant digits).
+- **Impact:** Any program using `snprintf(buf, size, "%.Ng", val)` where N > 15 will show FP noise on integer values.
+- **Fix:** Reduce `%g` precision to 15 or fewer significant digits.
+- **Detection grep:** `grep -rn '%\.\(1[5-9]\|[2-9][0-9]\)g' ported/*.c` -- finds `%g` with precision > 14.
+- **NOT a crash** -- wrong output only. But easily misdiagnosed as a FP precision or math error.
+- **Port:** awk (BWK "One True Awk" 2024.12.25)
+- **Date:** 2026-03-25

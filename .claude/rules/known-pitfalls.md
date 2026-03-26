@@ -342,3 +342,15 @@ getline_buf = NULL;  /* prevent double-free in atexit cleanup */
 ```
 
 Discovered in the rev 1.16 port -- multi-file invocations crashed with AN_MemCorrupt.
+
+## libnix snprintf %g Precision Must Not Exceed 15
+
+libnix's `snprintf` with `%g` format does not properly strip trailing zeros when precision exceeds ~15 digits. `%.30g` of `1.0` produces `1.0000000000` instead of `1`. `%.15g` works correctly.
+
+This is because IEEE 754 double has ~15.9 significant decimal digits. Beyond 15 digits, the representation noise in the least significant bits becomes visible, and libnix's `%g` formatter doesn't suppress the trailing zeros that result.
+
+**Fix:** Any `%g` format string with precision > 15 should be reduced to `%.15g`. This is the maximum meaningful precision for a 64-bit double.
+
+**Detection:** `grep -rn '%\.\(1[5-9]\|[2-9][0-9]\)g' ported/*.c`
+
+Discovered in the awk port -- upstream uses `%.30g` for integer formatting. Outputs like `1.0000000000` and `6765.00000000000056840000000000` were initially misdiagnosed as a libnix `%g` bug and FP accumulation errors respectively. See crash-patterns #20.

@@ -180,6 +180,7 @@ In QA mode, flag any code that doesn't match DESIGN.md.
 **Skill injection:** Knowledge base skills are injected into agent definitions via the `skills:` frontmatter field. When an agent is dispatched, its injected skills are loaded into context automatically. See individual agent definitions in `.claude/agents/` for the injection matrix.
 - `/extend-shim` — Invoke when adding new POSIX functions to the shim library.
 - `/review-amiga` — Invoke for Amiga-specific code review.
+- `/capture-learning` — Invoke when a bug, mistake, or process failure occurs. Routes the learning to the right enforcement mechanism (hook > rule > agent instruction > skill > pitfall > memory).
 
 **Architecture & guides:** `docs/architecture.md`, `docs/porting-guide.md`, `docs/api-mapping.md`
 
