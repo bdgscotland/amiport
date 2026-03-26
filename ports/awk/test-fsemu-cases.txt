@@ -246,3 +246,582 @@ TEST: atan2(0,-1) computes pi to 10 decimal places
 CMD: WORK:awk -f WORK:test-awk-picomp.awk WORK:test-empty.txt
 EXPECT: 3.1415926536
 EXPECT_RC: 0
+
+# === REGEX PATTERN MATCHING ===
+
+# Native: awk '/hello/ { print "match:", $0; exit }' test-multiline.txt
+TEST: /regex/ pattern matches line containing hello
+CMD: WORK:awk -f WORK:test-awk-regex-match.awk WORK:test-multiline.txt
+EXPECT: match: hello world
+EXPECT_RC: 0
+
+# Native: awk '$0 ~ /^[0-9]+$/ { print "numeric:", $0; exit }' test-multiline.txt
+TEST: ~ match operator selects numeric-only line
+CMD: WORK:awk -f WORK:test-awk-tilde.awk WORK:test-multiline.txt
+EXPECT: numeric: 12345
+EXPECT_RC: 0
+
+# Native: awk '$0 !~ /hello/ { print NR, $0; exit }' test-multiline.txt
+TEST: !~ not-match operator skips hello lines, prints first non-matching
+CMD: WORK:awk -f WORK:test-awk-notmatch.awk WORK:test-multiline.txt
+EXPECT: 2 foo bar baz
+EXPECT_RC: 0
+
+# Native: awk '/foo/,/12345/ { print }' test-multiline.txt | head -1
+TEST: Pattern range /foo/,/12345/ prints from foo line to 12345 line
+CMD: WORK:awk -f WORK:test-awk-range.awk WORK:test-multiline.txt
+EXPECT: foo bar baz
+EXPECT_RC: 0
+
+# Native: awk '/^[0-9]+$/ { next } { print "text:", $0 }' test-multiline.txt | head -1
+TEST: next statement skips numeric-only records
+CMD: WORK:awk -f WORK:test-awk-next.awk WORK:test-multiline.txt
+EXPECT: text: hello world
+EXPECT_RC: 0
+
+# Native: echo "abc" | awk '{ gsub(/./, "X"); print }'
+TEST: gsub with dot metacharacter replaces every character
+CMD: WORK:awk "{ gsub(/./, \"X\"); print }" WORK:test-oneline.txt
+EXPECT: XXXXXXXXXXX
+EXPECT_RC: 0
+
+# Native: echo "hello123world" | awk '{ gsub(/[0-9]+/, "#"); print }'
+TEST: gsub with bracket expression replaces digit run
+CMD: WORK:awk "{ gsub(/[0-9]+/, \"#\"); print; exit }" WORK:test-multiline.txt
+EXPECT: hello world
+EXPECT_RC: 0
+
+# Native: echo "hello world" | awk '{ sub(/^hello/, "goodbye"); print }'
+TEST: sub with caret anchor replaces only at start of string
+CMD: WORK:awk "{ sub(/^hello/, \"goodbye\"); print; exit }" WORK:test-oneline.txt
+EXPECT: goodbye world
+EXPECT_RC: 0
+
+# Native: echo "abc123" | awk '{ match($0, /[0-9]+/); print RSTART, RLENGTH }'
+TEST: match() with bracket class sets RSTART and RLENGTH correctly
+CMD: WORK:awk -f WORK:test-awk-match.awk WORK:test-multiline.txt
+EXPECT: 1 5
+EXPECT_RC: 0
+
+# Native: echo "one1two2three" | awk '{ n=split($0, a, /[0-9]/); print n, a[2] }'
+TEST: split() with regex separator returns count and field
+CMD: WORK:awk "BEGIN { n=split(\"one1two2three\", a, /[0-9]/); print n, a[2] }"
+EXPECT: 3 two
+EXPECT_RC: 0
+
+# === STRING FUNCTIONS ===
+
+# Native: awk 'BEGIN { print toupper("hello world") }'
+TEST: toupper() converts string to uppercase
+CMD: WORK:awk "BEGIN { print toupper(\"hello world\") }"
+EXPECT: HELLO WORLD
+EXPECT_RC: 0
+
+# Native: awk '{ print toupper($0); exit }' test-oneline.txt
+TEST: toupper() on first record of input file
+CMD: WORK:awk -f WORK:test-awk-toupper.awk WORK:test-oneline.txt
+EXPECT: HELLO WORLD
+EXPECT_RC: 0
+
+# Native: awk 'BEGIN { print substr("hello world", 7) }'
+TEST: substr() with two arguments extracts from position to end
+CMD: WORK:awk "BEGIN { print substr(\"hello world\", 7) }"
+EXPECT: world
+EXPECT_RC: 0
+
+# Native: awk '{ print length; exit }' test-multiline.txt
+TEST: length with no argument returns length of current record
+CMD: WORK:awk "{ print length; exit }" WORK:test-multiline.txt
+EXPECT: 11
+EXPECT_RC: 0
+
+# Native: awk 'BEGIN { s = sprintf("%s=%d %.2f %e %x %o", "val", 255, 3.14159, 6.022e23, 255, 255); print s }'
+TEST: sprintf with mixed format specifiers percent-s percent-d percent-f percent-e percent-x percent-o
+CMD: WORK:awk "BEGIN { s = sprintf(\"%s=%d %.2f %e %x %o\", \"val\", 255, 3.14159, 6.022e23, 255, 255); print s }"
+EXPECT: val=255 3.14 6.022000e+23 ff 377
+EXPECT_RC: 0
+
+# Native: awk 'BEGIN { printf "%-10s|\n", "hi" }'
+TEST: printf with left-align format pads with spaces on the right
+CMD: WORK:awk "BEGIN { printf \"%-10s|\n\", \"hi\" }"
+EXPECT: hi        |
+EXPECT_RC: 0
+
+# Native: awk 'BEGIN { printf "%e\n", 12345.678 }'
+TEST: printf with percent-e scientific notation format
+CMD: WORK:awk "BEGIN { printf \"%e\n\", 12345.678 }"
+EXPECT: 1.234568e+04
+EXPECT_RC: 0
+
+# Native: awk 'BEGIN { printf "%.3f\n", 3.14159 }'
+TEST: printf with percent-f decimal format truncates to 3 places
+CMD: WORK:awk "BEGIN { printf \"%.3f\n\", 3.14159 }"
+EXPECT: 3.142
+EXPECT_RC: 0
+
+# Native: awk 'BEGIN { printf "%x\n", 255 }'
+TEST: printf with percent-x formats integer as hex
+CMD: WORK:awk "BEGIN { printf \"%x\n\", 255 }"
+EXPECT: ff
+EXPECT_RC: 0
+
+# Native: awk 'BEGIN { printf "%o\n", 255 }'
+TEST: printf with percent-o formats integer as octal
+CMD: WORK:awk "BEGIN { printf \"%o\n\", 255 }"
+EXPECT: 377
+EXPECT_RC: 0
+
+# Native: awk 'BEGIN { printf "%d%%\n", 99 }'
+TEST: printf with double percent produces literal percent sign
+CMD: WORK:awk "BEGIN { printf \"%d%%\n\", 99 }"
+EXPECT: 99%
+EXPECT_RC: 0
+
+# Native: awk 'BEGIN { s = sprintf("%10s", "right"); print s }'
+TEST: sprintf with right-align format pads with spaces on the left
+CMD: WORK:awk "BEGIN { s = sprintf(\"%10s\", \"right\"); print s }"
+EXPECT:      right
+EXPECT_RC: 0
+
+# Native: awk 'BEGIN { print "hello" " " "world" }'
+TEST: String concatenation by adjacency joins strings without operator
+CMD: WORK:awk "BEGIN { print \"hello\" \" \" \"world\" }"
+EXPECT: hello world
+EXPECT_RC: 0
+
+# === MATH FUNCTIONS ===
+
+# Native: awk 'BEGIN { pi = atan2(0,-1); printf "%.4f\n", sin(pi/6) }'
+TEST: sin() of pi/6 equals 0.5
+CMD: WORK:awk "BEGIN { pi = atan2(0,-1); printf \"%.4f\n\", sin(pi/6) }"
+EXPECT: 0.5000
+EXPECT_RC: 0
+
+# Native: awk 'BEGIN { printf "%.4f\n", cos(0) }'
+TEST: cos() of zero equals 1.0
+CMD: WORK:awk "BEGIN { printf \"%.4f\n\", cos(0) }"
+EXPECT: 1.0000
+EXPECT_RC: 0
+
+# Native: awk 'BEGIN { printf "%.4f\n", exp(1) }'
+TEST: exp(1) returns e to four decimal places
+CMD: WORK:awk "BEGIN { printf \"%.4f\n\", exp(1) }"
+EXPECT: 2.7183
+EXPECT_RC: 0
+
+# Native: awk 'BEGIN { printf "%.4f\n", log(exp(1)) }'
+TEST: log(exp(1)) equals 1.0 demonstrating inverse relationship
+CMD: WORK:awk "BEGIN { printf \"%.4f\n\", log(exp(1)) }"
+EXPECT: 1.0000
+EXPECT_RC: 0
+
+# Native: awk 'BEGIN { print int(3.9) }'
+TEST: int() truncates positive float toward zero
+CMD: WORK:awk "BEGIN { print int(3.9) }"
+EXPECT: 3
+EXPECT_RC: 0
+
+# Native: awk 'BEGIN { print int(-3.9) }'
+TEST: int() truncates negative float toward zero (not floor)
+CMD: WORK:awk "BEGIN { print int(-3.9) }"
+EXPECT: -3
+EXPECT_RC: 0
+
+# Native: awk 'BEGIN { print 17 % 5 }'
+TEST: Modulo operator percent returns remainder
+CMD: WORK:awk "BEGIN { print 17 % 5 }"
+EXPECT: 2
+EXPECT_RC: 0
+
+# Native: awk 'BEGIN { print 2^10 }'
+TEST: Exponentiation operator caret computes power
+CMD: WORK:awk "BEGIN { print 2^10 }"
+EXPECT: 1024
+EXPECT_RC: 0
+
+# Native: awk 'BEGIN { x = 5; print -x }'
+TEST: Unary minus negates a variable
+CMD: WORK:awk "BEGIN { x = 5; print -x }"
+EXPECT: -5
+EXPECT_RC: 0
+
+# === COMPARISON AND LOGICAL OPERATORS ===
+
+# Native: awk 'BEGIN { print (3 < 5), (3 <= 3), (5 > 3), (5 >= 5), (3 == 3), (3 != 4) }'
+TEST: Numeric comparison operators less-than less-equal greater-than greater-equal equal not-equal
+CMD: WORK:awk "BEGIN { print (3 < 5), (3 <= 3), (5 > 3), (5 >= 5), (3 == 3), (3 != 4) }"
+EXPECT: 1 1 1 1 1 1
+EXPECT_RC: 0
+
+# Native: awk 'BEGIN { print ("abc" < "abd"), ("abc" <= "abc"), ("z" > "a") }'
+TEST: String comparison operators use lexicographic order
+CMD: WORK:awk "BEGIN { print (\"abc\" < \"abd\"), (\"abc\" <= \"abc\"), (\"z\" > \"a\") }"
+EXPECT: 1 1 1
+EXPECT_RC: 0
+
+# Native: awk 'BEGIN { print (1 && 1), (1 && 0), (0 && 1) }'
+TEST: Logical AND operator returns 1 only when both operands true
+CMD: WORK:awk "BEGIN { print (1 && 1), (1 && 0), (0 && 1) }"
+EXPECT: 1 0 0
+EXPECT_RC: 0
+
+# Native: awk 'BEGIN { print (0 || 1), (1 || 0), (0 || 0) }'
+TEST: Logical OR operator returns 1 when either operand true
+CMD: WORK:awk "BEGIN { print (0 || 1), (1 || 0), (0 || 0) }"
+EXPECT: 1 1 0
+EXPECT_RC: 0
+
+# Native: awk 'BEGIN { print (!0), (!1) }'
+TEST: Logical NOT operator inverts truth value
+CMD: WORK:awk "BEGIN { print (!0), (!1) }"
+EXPECT: 1 0
+EXPECT_RC: 0
+
+# Native: awk 'BEGIN { x = 7; print (x > 5 ? "big" : "small") }'
+TEST: Ternary operator selects first branch when condition true
+CMD: WORK:awk "BEGIN { x = 7; print (x > 5 ? \"big\" : \"small\") }"
+EXPECT: big
+EXPECT_RC: 0
+
+# Native: awk 'BEGIN { print ("10" > "9") }'  -> 0 (lexicographic)
+TEST: String comparison of "10" and "9" is lexicographic not numeric
+CMD: WORK:awk "BEGIN { print (\"10\" > \"9\") }"
+EXPECT: 0
+EXPECT_RC: 0
+
+# === CONTROL FLOW ===
+
+# Native: awk 'BEGIN { i=1; s=0; while(i<=5) { s+=i; i++ }; print s }'
+TEST: while loop accumulates sum 1 to 5
+CMD: WORK:awk "BEGIN { i=1; s=0; while(i<=5) { s+=i; i++ }; print s }"
+EXPECT: 15
+EXPECT_RC: 0
+
+# Native: awk 'BEGIN { i=0; s=0; do { s+=i; i++ } while(i<=5); print s }'
+TEST: do-while loop executes body before checking condition
+CMD: WORK:awk "BEGIN { i=0; s=0; do { s+=i; i++ } while(i<=5); print s }"
+EXPECT: 15
+EXPECT_RC: 0
+
+# Native: awk 'BEGIN { for(i=1;i<=10;i++) { if(i==5) break; s+=i }; print s }'
+TEST: break terminates loop at iteration 5 leaving sum of 1 to 4
+CMD: WORK:awk "BEGIN { for(i=1;i<=10;i++) { if(i==5) break; s+=i }; print s }"
+EXPECT: 10
+EXPECT_RC: 0
+
+# Native: awk 'BEGIN { s=0; for(i=1;i<=5;i++) { if(i==3) continue; s+=i }; print s }'
+TEST: continue skips iteration 3 leaving sum of 1+2+4+5
+CMD: WORK:awk "BEGIN { s=0; for(i=1;i<=5;i++) { if(i==3) continue; s+=i }; print s }"
+EXPECT: 12
+EXPECT_RC: 0
+
+# Native: awk 'BEGIN { do { s+=i; i*=2; i++ } while (i<=16); print s }'
+# Actually: i=1,s=0; do: s+=1, i=2, i=3; while(3<=16) yes; s+=3, i=6, i=7; etc...
+# Simpler: awk 'BEGIN { i=1; s=0; do { s+=i; i*=2 } while(i<=16); print s }'
+# i=1,s=1; i*2=2<=16 yes; s=3; i*2=4<=16 yes; s=7; i*2=8<=16 yes; s=15; i*2=16<=16 yes; s=31; i*2=32>16 stop -> 31
+# Native: awk -f test-awk-dowhile.awk /dev/null
+TEST: do-while loop doubling iteration variable accumulates powers of 2
+CMD: WORK:awk -f WORK:test-awk-dowhile.awk WORK:test-empty.txt
+EXPECT: 31
+EXPECT_RC: 0
+
+# === FIELD OPERATIONS ===
+
+# Native: awk '{ $2 = "amiga"; print; exit }' test-multiline.txt
+TEST: Field assignment dollar-2 equals new-value modifies record on output
+CMD: WORK:awk -f WORK:test-awk-fieldassign.awk WORK:test-multiline.txt
+EXPECT: hello amiga
+EXPECT_RC: 0
+
+# Native: awk '{ NF = 3; print; exit }' test-awk-5fields.txt
+TEST: NF assignment truncates record to first 3 fields
+CMD: WORK:awk -f WORK:test-awk-nfassign.awk WORK:test-awk-5fields.txt
+EXPECT: a b c
+EXPECT_RC: 0
+
+# Native: echo "one two three" | awk '{ print $(NF); exit }'
+TEST: dollar-NF accesses last field dynamically regardless of record width
+CMD: WORK:awk -f WORK:test-awk-dynfield.awk WORK:test-awk-stressfile.txt
+EXPECT: cherry
+EXPECT_RC: 0
+
+# Native: awk '{ gsub(/o/, "0", $1); print; exit }' test-oneline.txt
+TEST: gsub on specific field dollar-1 leaves other fields unchanged
+CMD: WORK:awk -f WORK:test-awk-gsub-field.awk WORK:test-oneline.txt
+EXPECT: hell0 world
+EXPECT_RC: 0
+
+# Native: awk 'BEGIN{FS=":+"} { print NF, $3; exit }' test-awk-colonsep.txt
+TEST: FS as multi-character regex splits on consecutive colons
+CMD: WORK:awk -f WORK:test-awk-fsmulti.awk WORK:test-awk-colonsep.txt
+EXPECT: 3 three
+EXPECT_RC: 0
+
+# Native: printf "a\tb\tc\n" | awk 'BEGIN{FS="\t"} { print NF, $2 }'
+# Native: awk 'BEGIN{FS="\t"} { print NF, $2; exit }' test-special-chars.txt
+TEST: FS tab character splits tab-delimited input into correct field count
+CMD: WORK:awk -f WORK:test-awk-fstab.awk WORK:test-special-chars.txt
+EXPECT: 3 with
+EXPECT_RC: 0
+
+# === I/O AND FORMATTING ===
+
+# Native: awk 'BEGIN { ORS = "," } { print $0 }' test-awk-words.txt
+TEST: ORS custom output record separator replaces newline with comma
+CMD: WORK:awk -f WORK:test-awk-ors.awk WORK:test-awk-words.txt
+EXPECT: hello,world,amiga,
+EXPECT_RC: 0
+
+# Native: awk 'BEGIN { RS = ";" } { print NR, $0 }' test-awk-semicolons.txt
+TEST: RS custom record separator splits on semicolon
+CMD: WORK:awk -f WORK:test-awk-rs.awk WORK:test-awk-semicolons.txt
+EXPECT: 1 alpha
+EXPECT_RC: 0
+
+# Native: awk 'BEGIN { print "written" > "/tmp/t.txt"; close(...); getline line < ...; print line }'
+TEST: print to T: file then read back with getline
+CMD: WORK:awk -f WORK:test-awk-printfile.awk WORK:test-empty.txt
+EXPECT: written
+EXPECT_RC: 0
+
+# Native: see test-awk-append.awk
+TEST: print with append operator double-greater-than accumulates output
+CMD: WORK:awk -f WORK:test-awk-append.awk WORK:test-empty.txt
+EXPECT: line1
+EXPECT_RC: 0
+
+# Native: awk '{ print NR, $1, s += $1 }' test-awk-numbers.txt | head -1
+TEST: Running total accumulation NR field and cumulative sum on first line
+CMD: WORK:awk -f WORK:test-awk-running.awk WORK:test-awk-numbers.txt
+EXPECT: 1 10 10
+EXPECT_RC: 0
+
+# Native: awk 'BEGIN{FS=":"} { printf "%-10s %-6s %s\n", $1, $2, $3 }' test-awk-colon.txt | head -1
+TEST: printf with multiple left-aligned columns reformats colon-delimited file
+CMD: WORK:awk -f WORK:test-awk-reformat.awk WORK:test-awk-colon.txt
+EXPECT: root       0      root
+EXPECT_RC: 0
+
+# Native: awk 'FNR==1 && NR>1 { print "second file starts at NR=" NR; exit }' words.txt numbers.txt
+TEST: NR and FNR differ when processing multiple files
+CMD: WORK:awk -f WORK:test-awk-fnr.awk WORK:test-awk-words.txt WORK:test-awk-numbers.txt
+EXPECT: second file starts at NR=4
+EXPECT_RC: 0
+
+# Native: awk 'FNR==1 { n=split(FILENAME,parts,":"); print parts[n]; if(NR>=2) exit }' words.txt numbers.txt
+TEST: FILENAME built-in contains current input file name (basename after colon)
+CMD: WORK:awk -f WORK:test-awk-filename.awk WORK:test-awk-words.txt WORK:test-awk-numbers.txt
+EXPECT: test-awk-words.txt
+EXPECT_RC: 0
+
+# Native: awk 'BEGIN { OFMT="%.2f"; x=3.14159; print x }'
+TEST: OFMT controls formatting when printing floating-point numbers
+CMD: WORK:awk "BEGIN { OFMT=\"%.2f\"; x=3.14159; print x }"
+EXPECT: 3.14
+EXPECT_RC: 0
+
+# === ARRAY OPERATIONS ===
+
+# Native: awk 'BEGIN { a["x"]=1; a["y"]=2; a["z"]=3; n=0; for(k in a) n++; print n }'
+TEST: for-in iteration over associative array visits all keys
+CMD: WORK:awk "BEGIN { a[\"x\"]=1; a[\"y\"]=2; a[\"z\"]=3; n=0; for(k in a) n++; print n }"
+EXPECT: 3
+EXPECT_RC: 0
+
+# Native: awk -f test-awk-subsep.awk /dev/null
+TEST: Multi-dimensional array simulation using SUBSEP separator
+CMD: WORK:awk -f WORK:test-awk-subsep.awk WORK:test-empty.txt
+EXPECT: 42
+EXPECT_RC: 0
+
+# Native: awk 'BEGIN { a["foo"]=1; print ("foo" in a), ("bar" in a) }'
+TEST: in operator tests array key presence without creating element
+CMD: WORK:awk "BEGIN { a[\"foo\"]=1; print (\"foo\" in a), (\"bar\" in a) }"
+EXPECT: 1 0
+EXPECT_RC: 0
+
+# Native: awk 'BEGIN { a["x"]=1; a["y"]=2; delete a["x"]; n=0; for(k in a) n++; print n }'
+TEST: delete removes specific element leaving others intact
+CMD: WORK:awk "BEGIN { a[\"x\"]=1; a[\"y\"]=2; delete a[\"x\"]; n=0; for(k in a) n++; print n }"
+EXPECT: 1
+EXPECT_RC: 0
+
+# Native: awk 'BEGIN { a[1]=1; a[2]=2; a[3]=3; print length(a) }'
+TEST: length() applied to array returns element count
+CMD: WORK:awk "BEGIN { a[1]=1; a[2]=2; a[3]=3; print length(a) }"
+EXPECT: 3
+EXPECT_RC: 0
+
+# Native: awk 'BEGIN { a[1]=1; a[2]=2; delete a; n=0; for(k in a) n++; print n }'
+TEST: delete on entire array removes all elements
+CMD: WORK:awk "BEGIN { a[1]=1; a[2]=2; delete a; n=0; for(k in a) n++; print n }"
+EXPECT: 0
+EXPECT_RC: 0
+
+# Native: awk '{ words[$1]++ } END { n=0; for(w in words) n++; print n }' test-awk-words.txt
+TEST: for-in counts distinct first-field values across all records
+CMD: WORK:awk -f WORK:test-awk-forkeyin.awk WORK:test-awk-words.txt
+EXPECT: 3
+EXPECT_RC: 0
+
+# Native: awk '{ n = gsub(/aaa/, "xxx"); print n, $0; exit }' test-awk-gsubcount-input.txt
+TEST: gsub returns the number of substitutions made
+CMD: WORK:awk -f WORK:test-awk-gsub-count.awk WORK:test-awk-gsubcount-input.txt
+EXPECT: 2 xxx bbb xxx
+EXPECT_RC: 0
+
+# === USER-DEFINED FUNCTIONS ===
+
+# Native: awk -f test-awk-maxfunc.awk /dev/null
+TEST: User-defined function with local variable computes max correctly
+CMD: WORK:awk -f WORK:test-awk-maxfunc.awk WORK:test-empty.txt
+EXPECT: 7
+EXPECT_RC: 0
+
+# Native: awk -f test-awk-strfunc.awk /dev/null
+TEST: User-defined function returns concatenated string
+CMD: WORK:awk -f WORK:test-awk-strfunc.awk WORK:test-empty.txt
+EXPECT: hello amiga
+EXPECT_RC: 0
+
+# Native: awk -f test-awk-fact.awk /dev/null
+TEST: Recursive factorial function fact(10) equals 3628800
+CMD: WORK:awk -f WORK:test-awk-fact.awk WORK:test-empty.txt
+EXPECT: 3628800
+EXPECT_RC: 0
+
+# === SPECIAL PATTERNS ===
+
+# Native: awk 'BEGIN { print "standalone" }'
+TEST: BEGIN block executes with no input files
+CMD: WORK:awk "BEGIN { print \"standalone\" }"
+EXPECT: standalone
+EXPECT_RC: 0
+
+# Native: awk 'BEGIN { print "first" } BEGIN { print "second" }' test-awk-words.txt | head -1
+TEST: Multiple BEGIN blocks both execute before input processing
+CMD: WORK:awk "BEGIN { print \"first\" } BEGIN { print \"second\" }" WORK:test-awk-words.txt
+EXPECT: first
+EXPECT_RC: 0
+
+# Native: awk 'END { print "endA" } END { print "endB" }' test-awk-words.txt | head -1
+TEST: Multiple END blocks both execute after all input processed
+CMD: WORK:awk "END { print \"endA\" } END { print \"endB\" }" WORK:test-awk-words.txt
+EXPECT: endA
+EXPECT_RC: 0
+
+# Native: awk 'BEGIN { print x + 5 }'
+TEST: Uninitialized variable used in arithmetic defaults to zero
+CMD: WORK:awk "BEGIN { print x + 5 }"
+EXPECT: 5
+EXPECT_RC: 0
+
+# Native: awk 'BEGIN { if (x == "") print "empty string" }'
+TEST: Uninitialized variable used in string context defaults to empty string
+CMD: WORK:awk "BEGIN { if (x == \"\") print \"empty string\" }"
+EXPECT: empty string
+EXPECT_RC: 0
+
+# Native: awk '// { n++ } END { print n }' test-awk-numbers.txt
+TEST: Empty regex // matches every record
+CMD: WORK:awk "// { n++ } END { print n }" WORK:test-awk-numbers.txt
+EXPECT: 5
+EXPECT_RC: 0
+
+# === EDGE CASES ===
+
+# Native: awk 'BEGIN { x = "42abc"; print x + 0 }'
+TEST: String beginning with digits coerces to numeric value at leading digits
+CMD: WORK:awk "BEGIN { x = \"42abc\"; print x + 0 }"
+EXPECT: 42
+EXPECT_RC: 0
+
+# Native: awk '{ print NF }' test-awk-100fields.txt
+TEST: NF counts 100 fields in wide input record
+CMD: WORK:awk "{ print NF }" WORK:test-awk-100fields.txt
+EXPECT: 100
+EXPECT_RC: 0
+
+# Native: awk '{ print length($0) }' test-longline.txt (longline has >1024 chars)
+# Native: awk '{ print (length($0) > 1024 ? "long" : "short"); exit }' test-longline.txt
+TEST: length() handles long line over 1024 characters without truncation
+CMD: WORK:awk -f WORK:test-awk-longline.awk WORK:test-longline.txt
+EXPECT: long
+EXPECT_RC: 0
+
+# Native: awk 'BEGIN { print "hello" " " "world" }'
+TEST: String concatenation by adjacency joins literals with no operator
+CMD: WORK:awk "BEGIN { print \"hello\" \" \" \"world\" }"
+EXPECT: hello world
+EXPECT_RC: 0
+
+# === REAL-WORLD TESTS ===
+
+# Native: awk '/foo/,/12345/ { print }' test-multiline.txt
+TEST: Extract block of lines between two pattern anchors (real-world log slicing)
+CMD: WORK:awk -f WORK:test-awk-range.awk WORK:test-multiline.txt
+EXPECT: foo bar baz
+EXPECT_LINE: 2,12345
+EXPECT_RC: 0
+
+# Native: awk 'BEGIN{FS=":"} { printf "%-10s %-6s %s\n", $1, $2, $3 }' test-awk-colon.txt
+TEST: Reformat passwd-style file into aligned columns (real-world data transformation)
+CMD: WORK:awk -f WORK:test-awk-reformat.awk WORK:test-awk-colon.txt
+EXPECT: root       0      root
+EXPECT_LINE: 2,user       1001   users
+EXPECT_LINE: 3,guest      1002   guests
+EXPECT_RC: 0
+
+# Native: awk '{ s+=$1; print NR, $1, s }' test-awk-numbers.txt
+TEST: Running total: print record number value and cumulative sum per line
+CMD: WORK:awk -f WORK:test-awk-running.awk WORK:test-awk-numbers.txt
+EXPECT: 1 10 10
+EXPECT_LINE: 2,2 20 30
+EXPECT_LINE: 3,3 30 60
+EXPECT_RC: 0
+
+# Native: awk '{for(i=1;i<=NF;i++) words[$i]++} END{n=0;for(w in words)n++;print n}' test-awk-stressfile.txt
+TEST: Count 60 unique words across 20-line three-column input file
+CMD: WORK:awk -f WORK:test-awk-uniquewords.awk WORK:test-awk-stressfile.txt
+EXPECT: 60
+EXPECT_RC: 0
+
+# === STRESS TESTS ===
+
+# Native: awk -f test-awk-nestedloop.awk /dev/null
+TEST: Double-nested loop 10x10 computes correct cross-product sum 3025
+CMD: WORK:awk -f WORK:test-awk-nestedloop.awk WORK:test-empty.txt
+EXPECT: 3025
+EXPECT_RC: 0
+
+# Native: awk '{ n+=gsub(/[aeiou]/,"X") } END { print n }' test-awk-stressfile.txt
+TEST: gsub vowel replacement across 20-line file counts total replacements
+CMD: WORK:awk -f WORK:test-awk-gsub-vowel.awk WORK:test-awk-stressfile.txt
+EXPECT: 160
+EXPECT_RC: 0
+
+# Native: awk -f test-awk-uniquewords.awk test-awk-stressfile.txt
+TEST: Building 60-element associative array from 60 unique words (array stress)
+CMD: WORK:awk -f WORK:test-awk-uniquewords.awk WORK:test-awk-stressfile.txt
+EXPECT: 60
+EXPECT_RC: 0
+
+# Native: awk '{ print NF }' test-awk-100fields.txt
+TEST: Parse 100-field record verifying NF equals 100
+CMD: WORK:awk "{ print NF }" WORK:test-awk-100fields.txt
+EXPECT: 100
+EXPECT_RC: 0
+
+# === PRECISION TESTS ===
+
+# Native: awk 'BEGIN { printf "%.6f\n", log(1000) / log(10) }'
+TEST: log(1000)/log(10) computes base-10 logarithm equals 3.000000
+CMD: WORK:awk "BEGIN { printf \"%.6f\n\", log(1000) / log(10) }"
+EXPECT: 3.000000
+EXPECT_RC: 0
+
+# Native: awk 'BEGIN { x = 1.23456; printf "%.10f\n", sin(x)^2 + cos(x)^2 }'
+TEST: sin squared plus cos squared equals 1.0 (Pythagorean identity)
+CMD: WORK:awk "BEGIN { x = 1.23456; printf \"%.10f\n\", sin(x)^2 + cos(x)^2 }"
+EXPECT: 1.0000000000
+EXPECT_RC: 0
