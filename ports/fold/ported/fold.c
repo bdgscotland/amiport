@@ -74,10 +74,15 @@ static void usage(void) __attribute__((noreturn));
 int count_bytes = 0;
 int split_words = 0;
 
+/* amiport: global tracking for fold() buffer -- needed for atexit cleanup */
+static char *fold_buf = NULL;
+
 /* amiport: cleanup function for atexit -- frees argv expansion, flushes stdout */
 static void
 cleanup(void)
 {
+	free(fold_buf);
+	fold_buf = NULL;
 	amiport_free_argv();
 	(void)fflush(stdout);
 }
@@ -174,7 +179,8 @@ main(int argc, char *argv[])
 static void
 fold(unsigned int max_width)
 {
-	static char	*buf = NULL;
+	/* amiport: buf aliased to file-scope fold_buf for atexit cleanup */
+#define buf fold_buf
 	static size_t	 bufsz = 2048;
 	char		*cp;	/* Current mb character. */
 	char		*np;	/* Next mb character. */

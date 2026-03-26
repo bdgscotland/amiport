@@ -448,3 +448,30 @@ When a local buffer's size is controlled by a macro defined in a header file (e.
 **Rule of thumb:** `sizeof(local_buffer) + 8192 < __stack` must hold for every function in the call chain.
 
 Discovered in factor 1.30 (2026-03-26) -- `TABSIZE=256*1024` in `primes.h` caused a 256KB stack allocation in `pr_bigfact()` with only 16KB `__stack`.
+
+## Console-Shim tgetnum() Returns Hardcoded 80x24
+
+`tgetnum("li")` and `tgetnum("co")` in `lib/console-shim/src/term.c` return `LINES` and `COLS` globals from `globals.c`, which are initialized to 24 and 80 respectively and **never updated**. Meanwhile, `amiport_ioctl(TIOCGWINSZ)` in `lib/posix-shim/src/file_io.c` correctly queries the actual console window size via CSI `0 q` window status request. But the termcap code path never calls this — it just returns the stale defaults.
+
+**Impact:** All termcap programs (tetris, less, mg) render in an 80x24 box even when the Amiga shell window is larger. The game board or text area only fills the top-left portion of a bigger window.
+
+**Fix (not yet applied):** `tgetent()` or a new `amiport_console_query_size()` function should send the same CSI `0 q` query that `amiport_ioctl` uses, parse the response, and update `COLS`/`LINES` globals. Programs that call `ioctl(TIOCGWINSZ)` work around this (the struct gets correct values), but programs using only `tgetnum` get stale 80x24.
+
+**Workaround for ports:** If a port calls `ioctl(TIOCGWINSZ)` and uses the result, it gets real dimensions. If it only calls `tgetnum("co")`/`tgetnum("li")`, it gets 80x24. Tetris calls both — ioctl overrides tgetnum — but the board is hardcoded to 20 rows so the extra space is still empty.
+
+Discovered across multiple Cat 3 ports (less, mg, tetris) on 2026-03-26.
+
+## Static Local Buffers in Helper Functions Must Be Global for atexit Cleanup
+
+When a helper function (e.g., `input()`, `fold()`, `slurp()`) allocates memory via `static` local variables or `getline()`, the `cleanup()` function registered via `atexit()` has NO visibility to free those allocations. On AmigaOS with `-noixemul`, these are permanent leaks -- there is no OS-level process memory cleanup.
+
+**Common patterns that leak:**
+- `static char *buf = NULL;` inside a function, grown by `malloc`/`realloc`/`getline`
+- `strdup()` results stored in globals but not tracked for cleanup
+- `obsolete()` argv rewrite pattern (malloc strings into argv)
+
+**Fix:** Promote ALL dynamic allocations to file-scope globals so `cleanup()` can free them. Use `#define buf global_buf` inside the function to minimize code changes. Track `strdup()` results and `obsolete()` mallocs in global arrays.
+
+**This is NOT optional.** Every port must have ALL dynamic allocations reachable from `cleanup()`. The memory-checker agent will flag this, but the code-transformer MUST apply this pattern during initial transformation -- do not defer to review.
+
+Discovered in 10-port batch (2026-03-26) -- fold, join, column, expr all had unreachable allocations. 4 out of 10 ports failed memory audit on first pass.

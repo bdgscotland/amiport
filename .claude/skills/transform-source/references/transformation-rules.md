@@ -963,3 +963,39 @@ These apply only to programs using terminal capabilities (less, nano, vim, htop)
 **Comment:** `/* amiport: %.Ng -> %.15g -- libnix shows FP noise above 15 digits (crash-patterns #20) */`
 **Why:** libnix does not strip trailing zeros beyond 15 digits, so `%.30g` of `1.0` produces `1.0000000000` instead of `1`. The math is correct but the formatting is wrong.
 **Detection:** `grep -rn '%\.\(1[5-9]\|[2-9][0-9]\)g' ported/*.c`
+
+---
+
+## Memory Safety Transforms (MANDATORY)
+
+### MEM-STATIC-BUF: Promote static local buffers to file scope for atexit cleanup
+
+**When:** ANY function allocates memory via `static char *buf`, `getline(&buf, ...)`, `malloc()` into a static local, or `strdup()` into a local/global that isn't tracked
+**Pattern:** `static char *buf = NULL;` inside a helper function (e.g., fold(), input(), slurp())
+**Replace:** Move to file scope: `static char *funcname_buf = NULL;` at top of file. Inside the function, add `#define buf funcname_buf`. Add `free(funcname_buf); funcname_buf = NULL;` to `cleanup()`.
+**Comment:** `/* amiport: buf promoted to file scope for atexit cleanup -- AmigaOS has no GC */`
+**Why:** AmigaOS with -noixemul has NO automatic process memory cleanup. atexit(cleanup) is the ONLY cleanup mechanism. Static locals inside helper functions are invisible to cleanup(). Every dynamic allocation must be reachable from cleanup().
+
+### MEM-OBSOLETE-TRACK: Track obsolete() argv rewrite mallocs
+
+**When:** An `obsolete()` function mallocs strings and stores them in argv
+**Pattern:** `*p = t;` where `t = malloc(...)` inside obsolete()
+**Replace:** Add global tracking array: `static char *obsolete_allocs[MAX]; static int obsolete_alloc_count;`. After malloc: `if (count < MAX) obsolete_allocs[count++] = t;`. In cleanup: `for (i = 0; i < count; i++) free(obsolete_allocs[i]);`
+**Comment:** `/* amiport: track for atexit cleanup -- AmigaOS has no GC */`
+**Why:** obsolete() rewrites argv entries with malloc'd strings that are never freed. Affects: grep, tail, uniq, join, and any OpenBSD tool with obsolete().
+
+### MEM-ERRX-CLEANUP: Free intermediate values before errx() in recursive-descent parsers
+
+**When:** eval*() functions allocate intermediate values (struct val, etc.) and call errx() on error paths without freeing
+**Pattern:** `l = eval*(); r = eval*(); if (error) errx(10, ...);`
+**Replace:** `l = eval*(); r = eval*(); if (error) { free_value(l); free_value(r); errx(10, ...); }`
+**Comment:** `/* amiport: free intermediates before exit -- AmigaOS has no GC */`
+**Why:** errx() exits immediately, bypassing any cleanup except atexit(). Intermediate allocations in the call chain are permanently leaked.
+
+### MEM-STRCOLL-STRCMP: Replace strcoll() with strcmp() on AmigaOS
+
+**When:** Source uses `strcoll()` for string comparison
+**Pattern:** `strcoll(a, b)`
+**Replace:** `strcmp(a, b)`
+**Comment:** `/* amiport: strcoll -> strcmp -- no functional locale on AmigaOS 3.x */`
+**Why:** strcoll() invokes locale infrastructure even in C locale, adding ~30% overhead per comparison. AmigaOS has no functional locale support, so strcoll() == strcmp() semantically but costs more.

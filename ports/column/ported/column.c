@@ -81,11 +81,18 @@ int *maxwidths;			/* longest record per column */
 struct field **table;		/* one array of pointers per line */
 /* amiport: replaced wchar_t *separator with char * -- no wchar on AmigaOS 3.x */
 char *separator = "\t ";	/* field separator for table option */
+/* amiport: global tracking for input() allocations -- needed for atexit cleanup */
+static char *input_buf = NULL;
+static char *sep_alloc = NULL;  /* tracks strdup'd separator for cleanup */
 
 static void
 cleanup(void)
 {
-	/* amiport: free expanded argv and flush stdout on all exit paths */
+	/* amiport: free input() getline buffer, separator strdup, argv expansion */
+	free(input_buf);
+	input_buf = NULL;
+	free(sep_alloc);
+	sep_alloc = NULL;
 	amiport_free_argv();
 	(void)fflush(stdout);
 }
@@ -137,8 +144,10 @@ main(int argc, char *argv[])
 		case 's':
 			/* amiport: replaced mbstowcs/wchar_t separator with plain char* strdup --
 			 * no wchar support on AmigaOS 3.x; separator comparison uses strchr below */
+			/* amiport: track strdup'd separator for atexit cleanup */
 			if ((separator = strdup(optarg)) == NULL)
 				err(10, NULL);  /* amiport: RETURN_ERROR */
+			sep_alloc = separator;
 			break;
 		case 't':
 			tflag = 1;
@@ -272,7 +281,9 @@ input(FILE *fp)
 	size_t blen;
 	/* amiport: ssize_t -- libnix provides this via getline() */
 	ssize_t llen;
-	char *p, *s, *buf = NULL;
+	/* amiport: buf aliased to file-scope input_buf for atexit cleanup */
+	char *p, *s;
+#define buf input_buf
 
 	/*
 	 * amiport: wchar_t wc, int wlen removed -- multibyte processing

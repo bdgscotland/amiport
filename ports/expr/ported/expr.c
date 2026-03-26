@@ -304,6 +304,9 @@ eval5(void)
 		if ((eval = regcomp(&rp, r->u.s, 0)) != 0) {
 			/* amiport-emu: regerror mapped to amiport_emu_regerror via macro */
 			regerror(eval, &rp, errbuf, sizeof(errbuf));
+			/* amiport: free intermediates before exit -- AmigaOS has no GC */
+			free_value(l);
+			free_value(r);
 			/* amiport: exit code 2 -> 10 (RETURN_ERROR) */
 			errx(10, "%s", errbuf);
 		}
@@ -353,30 +356,36 @@ eval4(void)
 		nexttoken(0);
 		r = eval5();
 
-		if (!to_integer(l, &errstr))
-			/* amiport: exit code 2 -> 10 (RETURN_ERROR) */
+		if (!to_integer(l, &errstr)) {
+			/* amiport: free intermediates before exit */
+			free_value(l); free_value(r);
 			errx(10, "number \"%s\" is %s", l->u.s, errstr);
-		if (!to_integer(r, &errstr))
-			/* amiport: exit code 2 -> 10 (RETURN_ERROR) */
+		}
+		if (!to_integer(r, &errstr)) {
+			/* amiport: free intermediates before exit */
+			free_value(l); free_value(r);
 			errx(10, "number \"%s\" is %s", r->u.s, errstr);
+		}
 
 		if (op == MUL) {
 			res = l->u.i * r->u.i;
-			if (r->u.i != 0 && l->u.i != res / r->u.i)
-				/* amiport: exit code 3 -> 10 (RETURN_ERROR) */
+			if (r->u.i != 0 && l->u.i != res / r->u.i) {
+				free_value(l); free_value(r);
 				errx(10, "overflow");
+			}
 			l->u.i = res;
 		} else {
 			if (r->u.i == 0) {
-				/* amiport: exit code 2 -> 10 (RETURN_ERROR) */
+				free_value(l); free_value(r);
 				errx(10, "division by zero");
 			}
 			if (op == DIV) {
 				if (l->u.i != INT64_MIN || r->u.i != -1)
 					l->u.i /= r->u.i;
-				else
-					/* amiport: exit code 3 -> 10 (RETURN_ERROR) */
+				else {
+					free_value(l); free_value(r);
 					errx(10, "overflow");
+				}
 			} else {
 				if (l->u.i != INT64_MIN || r->u.i != -1)
 					l->u.i %= r->u.i;
@@ -405,26 +414,30 @@ eval3(void)
 		nexttoken(0);
 		r = eval4();
 
-		if (!to_integer(l, &errstr))
-			/* amiport: exit code 2 -> 10 (RETURN_ERROR) */
+		if (!to_integer(l, &errstr)) {
+			free_value(l); free_value(r);
 			errx(10, "number \"%s\" is %s", l->u.s, errstr);
-		if (!to_integer(r, &errstr))
-			/* amiport: exit code 2 -> 10 (RETURN_ERROR) */
+		}
+		if (!to_integer(r, &errstr)) {
+			free_value(l); free_value(r);
 			errx(10, "number \"%s\" is %s", r->u.s, errstr);
+		}
 
 		if (op == ADD) {
 			res = l->u.i + r->u.i;
 			if ((l->u.i > 0 && r->u.i > 0 && res <= 0) ||
-			    (l->u.i < 0 && r->u.i < 0 && res >= 0))
-				/* amiport: exit code 3 -> 10 (RETURN_ERROR) */
+			    (l->u.i < 0 && r->u.i < 0 && res >= 0)) {
+				free_value(l); free_value(r);
 				errx(10, "overflow");
+			}
 			l->u.i = res;
 		} else {
 			res = l->u.i - r->u.i;
 			if ((l->u.i >= 0 && r->u.i < 0 && res <= 0) ||
-			    (l->u.i < 0 && r->u.i > 0 && res >= 0))
-				/* amiport: exit code 3 -> 10 (RETURN_ERROR) */
+			    (l->u.i < 0 && r->u.i > 0 && res >= 0)) {
+				free_value(l); free_value(r);
 				errx(10, "overflow");
+			}
 			l->u.i = res;
 		}
 

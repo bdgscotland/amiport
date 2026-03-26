@@ -125,10 +125,18 @@ void outtwoline(INPUT *, LINE *, INPUT *, LINE *);
 void slurp(INPUT *);
 void usage(void);
 
-/* amiport: atexit cleanup -- frees expanded argv and flushes stdout */
+/* amiport: track obsolete() malloc'd strings for cleanup */
+#define MAX_OBSOLETE_ALLOCS 8
+static char *obsolete_allocs[MAX_OBSOLETE_ALLOCS];
+static int obsolete_alloc_count;
+
+/* amiport: atexit cleanup -- frees expanded argv, obsolete allocs, flushes stdout */
 static void
 cleanup(void)
 {
+	int i;
+	for (i = 0; i < obsolete_alloc_count; i++)
+		free(obsolete_allocs[i]);
 	amiport_free_argv();
 	(void)fflush(stdout);
 }
@@ -669,6 +677,9 @@ jbad:				warnx("unknown option -- %s", ap + 1);
 					break;
 				if ((t = malloc(len + 3)) == NULL)
 					err(10, NULL); /* amiport: RETURN_ERROR */
+				/* amiport: track for atexit cleanup -- AmigaOS has no GC */
+				if (obsolete_alloc_count < MAX_OBSOLETE_ALLOCS)
+					obsolete_allocs[obsolete_alloc_count++] = t;
 				t[0] = '-';
 				t[1] = 'o';
 				memmove(t + 2, *p, len + 1);
