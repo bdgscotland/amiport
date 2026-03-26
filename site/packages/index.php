@@ -143,6 +143,7 @@ function formatSize($bytes) {
             <li><a href="/catalog.html">Catalog</a></li>
             <li><a href="/stats.html">Stats</a></li>
             <li><a href="/changelog.html">Changelog</a></li>
+            <li><a href="/shims.html">Shims</a></li>
             <li><a href="/amiga.html">Amiga</a></li>
             <li><a href="https://github.com/bdgscotland/amiport" target="_blank" rel="noopener">GitHub</a></li>
         </ul>
@@ -309,7 +310,7 @@ function formatSize($bytes) {
         <a href="/feed.php">RSS</a>
     </span>
     <span>
-        Built with <a href="https://claude.ai/claude-code" target="_blank" rel="noopener">Claude Code</a>.
+        By <strong>Duncan Bowring</strong> &middot; Built with <a href="https://claude.ai/claude-code" target="_blank" rel="noopener">Claude Code</a>.
     </span>
 </footer>
 
