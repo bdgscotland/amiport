@@ -208,6 +208,7 @@
     }
 
     function showError() {
+        if (!errorEl) return;
         errorEl.classList.remove('hidden');
         clearNode(tbody);
     }
@@ -498,7 +499,7 @@
     if (tierSel) tierSel.addEventListener('change', function() { expandedId = null; renderCandidates(); });
 
     // Sortable column headers
-    var sortHeaders = catTable.querySelectorAll('th.sortable');
+    var sortHeaders = catTable ? catTable.querySelectorAll('th.sortable') : [];
     for (var si = 0; si < sortHeaders.length; si++) {
         sortHeaders[si].addEventListener('click', function() {
             var key = this.getAttribute('data-sort');
@@ -515,6 +516,7 @@
     }
 
     function updateSortIndicators() {
+        if (!catTable) return;
         var headers = catTable.querySelectorAll('th.sortable');
         for (var i = 0; i < headers.length; i++) {
             var h = headers[i];
