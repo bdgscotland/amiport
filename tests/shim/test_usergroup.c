@@ -421,7 +421,7 @@ TEST(utimensat_sets_time)
 {
     /* Create a temp file, set its time, stat it, verify */
     FILE *fp;
-    struct amiport_timespec ts[2];
+    struct timespec ts[2];
     struct amiport_stat sb;
     int ret;
 
@@ -458,7 +458,7 @@ TEST(utimensat_null_path_fails)
 
 TEST(utimensat_utime_omit)
 {
-    struct amiport_timespec ts[2];
+    struct timespec ts[2];
     int ret;
 
     ts[0].tv_nsec = AMIPORT_UTIME_OMIT;

@@ -197,27 +197,21 @@ int amiport_fchmod(int fd, unsigned int mode);
 int amiport_fchown(int fd, int owner, int group);
 int amiport_lchown(const char *path, int owner, int group);
 
-/* Forward-declare amiport_timespec if signal.h not yet included */
-#ifndef AMIPORT_SIGNAL_H
-struct amiport_timespec {
-    long tv_sec;
-    long tv_nsec;
-};
-#endif
-
 /* utimensat -- set file timestamps via SetFileDate() (dos.library V36+)
  *
  * amiport: Only modification time is stored (AmigaOS has one timestamp).
  * dirfd is ignored (AT_FDCWD assumed). UTIME_NOW and UTIME_OMIT supported.
  * Precision limited to 1/50s ticks (20ms).
+ * Uses struct timespec from sys/_timespec.h (bebbo-gcc libnix).
  * See ADCD: dos-library-setfiledate-2 */
+#include <time.h>  /* struct timespec */
 #define AMIPORT_UTIME_NOW   ((long)((1L << 30) - 1L))
 #define AMIPORT_UTIME_OMIT  ((long)((1L << 30) - 2L))
 #define AMIPORT_AT_FDCWD     -100
 
 int amiport_utimensat(int dirfd, const char *path,
-                      const struct amiport_timespec times[2], int flags);
-int amiport_futimens(int fd, const struct amiport_timespec times[2]);
+                      const struct timespec times[2], int flags);
+int amiport_futimens(int fd, const struct timespec times[2]);
 
 /*
  * ioctl -- I/O control (TIOCGWINSZ only)

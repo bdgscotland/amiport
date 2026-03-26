@@ -71,14 +71,13 @@ int amiport_sigaddset(amiport_sigset_t *set, int signo);
 int amiport_sigprocmask(int how, const amiport_sigset_t *set,
                         amiport_sigset_t *oset);
 
-/* nanosleep -- high-resolution sleep via Delay() */
-struct amiport_timespec {
-    long tv_sec;
-    long tv_nsec;
-};
+/* nanosleep -- high-resolution sleep via Delay()
+ * Uses struct timespec from sys/_timespec.h if available,
+ * otherwise defines amiport_timespec as a compatible struct. */
+#include <time.h>  /* pulls in sys/_timespec.h on bebbo-gcc */
 
-int amiport_nanosleep(const struct amiport_timespec *req,
-                      struct amiport_timespec *rem);
+int amiport_nanosleep(const struct timespec *req,
+                      struct timespec *rem);
 
 /* Convenience macros for drop-in replacement */
 #ifndef AMIPORT_NO_SIGNAL_MACROS
@@ -104,7 +103,10 @@ int amiport_nanosleep(const struct amiport_timespec *req,
 #define SIG_UNBLOCK      AMIPORT_SIG_UNBLOCK
 #define SIG_SETMASK      AMIPORT_SIG_SETMASK
 
-#define timespec         amiport_timespec
+/* amiport: Do NOT define timespec macro -- bebbo-gcc libnix provides
+ * struct timespec in sys/_timespec.h. Our amiport_timespec is compatible
+ * but redefining would cause conflicts. Ports use struct timespec
+ * from system headers or struct amiport_timespec from this header. */
 #define nanosleep(r, m)  amiport_nanosleep(r, m)
 #endif
 

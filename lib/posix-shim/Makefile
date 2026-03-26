@@ -29,7 +29,8 @@ SRCS = $(SRCDIR)/file_io.c \
        $(SRCDIR)/argv_expand.c \
        $(SRCDIR)/termios.c \
        $(SRCDIR)/usergroup.c \
-       $(SRCDIR)/sysinfo.c
+       $(SRCDIR)/sysinfo.c \
+       $(SRCDIR)/fts.c
 
 OBJS = $(SRCS:.c=.o)
 

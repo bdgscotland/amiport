@@ -692,7 +692,7 @@ int amiport_lchown(const char *path, int owner, int group)
  * See ADCD: dos-library-setfiledate-2
  */
 int amiport_utimensat(int dirfd, const char *path,
-                      const struct amiport_timespec times[2], int flags)
+                      const struct timespec times[2], int flags)
 {
     struct DateStamp ds;
     ULONG unix_time;
@@ -737,7 +737,7 @@ int amiport_utimensat(int dirfd, const char *path,
  * then delegates to utimensat(). Does not work on pipe or
  * console handles (NameFromFH fails on those).
  */
-int amiport_futimens(int fd, const struct amiport_timespec times[2])
+int amiport_futimens(int fd, const struct timespec times[2])
 {
     BPTR fh;
     char namebuf[256];

@@ -159,8 +159,8 @@ int amiport_sigprocmask(int how, const amiport_sigset_t *set,
  * timer.device, but Delay() covers the common use case.
  * If rem is non-NULL, it is set to zero (no early wakeup).
  */
-int amiport_nanosleep(const struct amiport_timespec *req,
-                      struct amiport_timespec *rem)
+int amiport_nanosleep(const struct timespec *req,
+                      struct timespec *rem)
 {
     ULONG ticks;
 
