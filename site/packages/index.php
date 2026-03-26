@@ -310,7 +310,7 @@ function formatSize($bytes) {
         <a href="/feed.php">RSS</a>
     </span>
     <span>
-        By <strong>Duncan Bowring</strong> &middot; Built with <a href="https://claude.ai/claude-code" target="_blank" rel="noopener">Claude Code</a>.
+        By <strong>Duncan Bowring</strong> &middot; Built with <a href="https://claude.ai/code" target="_blank" rel="noopener">Claude Code</a>.
     </span>
 </footer>
 
