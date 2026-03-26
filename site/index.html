@@ -310,13 +310,14 @@
     });
 })();
 
-// Dynamic stats from API
+// Dynamic stats from API (same data source as stats.js)
 (function() {
     var xhr = new XMLHttpRequest();
     xhr.open('GET', 'api/v1/packages.php?_=' + Date.now());
     xhr.onload = function() {
         try {
-            var pkgs = JSON.parse(xhr.responseText);
+            var data = JSON.parse(xhr.responseText);
+            var pkgs = data.packages || data;
             if (!Array.isArray(pkgs)) return;
             // Ports shipped
             var portsEl = document.getElementById('stats-ports');
