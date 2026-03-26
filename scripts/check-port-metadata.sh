@@ -187,21 +187,39 @@ for dir in "$PORTS_DIR"/*/; do
         fi
     fi
 
+    # Build the display version: VERSION for rev 1, VERSION-REVISION for rev 2+
+    # This is what $VER strings and .readme should contain
+    rev_for_display=$(grep -E '^REVISION\s*=' "$dir/Makefile" 2>/dev/null | head -1 | sed 's/.*=\s*//' | tr -d ' ' || true)
+    rev_for_display="${rev_for_display:-1}"
+    if [ "$rev_for_display" != "1" ] && [ "$rev_for_display" -gt 1 ] 2>/dev/null; then
+        display_version="${ver_makefile}-${rev_for_display}"
+    else
+        display_version="$ver_makefile"
+    fi
+
     # Compare available versions (skip sources where version not found)
+    # $VER and .readme should match display_version (includes revision when > 1)
+    # PORT.md can match either ver_makefile or display_version
     if [ -n "$ver_makefile" ] && [ "$ver_count" -gt 0 ] && [ "$ver_conflict" = false ]; then
         mismatch=""
-        [ -n "$ver_readme" ] && [ "$ver_readme" != "$ver_makefile" ] && mismatch="$mismatch .readme=$ver_readme"
-        [ -n "$ver_portmd" ] && [ "$ver_portmd" != "$ver_makefile" ] && mismatch="$mismatch PORT.md=$ver_portmd"
-        [ -n "$ver_source" ] && [ "$ver_source" != "$ver_makefile" ] && mismatch="$mismatch \$VER=$ver_source"
+        if [ -n "$ver_readme" ]; then
+            [ "$ver_readme" != "$display_version" ] && [ "$ver_readme" != "$ver_makefile" ] && mismatch="$mismatch .readme=$ver_readme"
+        fi
+        if [ -n "$ver_portmd" ]; then
+            [ "$ver_portmd" != "$display_version" ] && [ "$ver_portmd" != "$ver_makefile" ] && mismatch="$mismatch PORT.md=$ver_portmd"
+        fi
+        if [ -n "$ver_source" ]; then
+            [ "$ver_source" != "$display_version" ] && [ "$ver_source" != "$ver_makefile" ] && mismatch="$mismatch \$VER=$ver_source"
+        fi
 
         if [ -n "$mismatch" ]; then
-            echo "FAIL  $name: version — Makefile=$ver_makefile but$mismatch"
+            echo "FAIL  $name: version — expected=$display_version but$mismatch"
             port_failed=1
         elif [ -z "$ver_portmd" ]; then
-            echo "WARN  $name: version — consistent ($ver_makefile) but PORT.md has no version row"
+            echo "WARN  $name: version — consistent ($display_version) but PORT.md has no version row"
             port_warned=1
         else
-            echo "PASS  $name: version ($ver_makefile)"
+            echo "PASS  $name: version ($display_version)"
         fi
     elif [ -z "$ver_makefile" ]; then
         echo "FAIL  $name: version — no VERSION in Makefile"

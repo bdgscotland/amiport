@@ -47,7 +47,7 @@ Uploader:     <user-email>
 
 ```
 Author:       <original-author> (ported by <uploader-name>)
-Version:      <version>
+Version:      <DISPLAY_VERSION>  ← upstream version, or upstream-revision if REVISION > 1 (e.g., "1.68" or "1.68-2")
 Replaces:     <aminet-path>     ← SEE REPLACES RULES BELOW
 URL:          <project-url>
 ```

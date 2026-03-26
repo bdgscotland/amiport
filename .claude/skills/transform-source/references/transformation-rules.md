@@ -323,8 +323,9 @@ For dedicated Amiga ports, direct replacement is preferred.
 Add to every ported program:
 
 ```c
-/* amiport: Amiga version string */
-static const char *verstag = "$VER: progname 1.0 (19.03.2026)";
+/* amiport: Amiga version string — use upstream version from Makefile VERSION.
+   If REVISION > 1, append -REVISION (e.g., "1.68-2"). See common.mk DISPLAY_VERSION. */
+static const char *verstag = "$VER: progname 1.68 (25.03.2026)";
 
 /* amiport: Stack size cookie — increase if program uses deep recursion */
 /* Default 8KB is often too small for ported software */

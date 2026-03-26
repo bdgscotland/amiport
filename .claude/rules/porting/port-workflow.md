@@ -22,7 +22,7 @@ Every port lives in `ports/<toolname>/` with:
 - **Prefer shim/emu wrappers** over inline AmigaDOS rewrites
 - **Document every transformation** with `/* amiport: ... */` comments
 - **Preserve original source** in `original/` — never modify it
-- **Use upstream version numbers** — VERSION in Makefile, $VER string, and .readme must use the upstream project's version (e.g., `1.68` for OpenBSD grep rev 1.68, `5.4.7` for Lua 5.4.7), not a generic `1.0`
+- **Use upstream version numbers + port revision** — VERSION in Makefile is the upstream version (e.g., `1.68`). REVISION increments when `ported/` changes but upstream stays the same. DISPLAY_VERSION (computed by common.mk) is `VERSION` for rev 1, `VERSION-REVISION` for rev 2+. The $VER string and .readme `Version:` field must match DISPLAY_VERSION.
 - Use `#ifdef __AMIGA__` blocks when code should remain cross-platform
 - Target **AmigaOS 3.x on 68020+** as the default
 

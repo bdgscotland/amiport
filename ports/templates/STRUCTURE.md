@@ -32,9 +32,18 @@ ports/<name>/
 | File | Created By | Purpose |
 |------|-----------|---------|
 | `<name>` | `make build` | Compiled AmigaOS binary |
-| `<name>-<version>.lha` | `make package` | Distribution archive |
+| `<name>-<DISPLAY_VERSION>.lha` | `make package` | Distribution archive |
 | `<name>_native` | `make compare` | Native build for output comparison (temp) |
 | `test_*.txt` | `make test` | Test input/output files (temp) |
+
+## Versioning
+
+Each port Makefile defines:
+- **VERSION** — upstream version (e.g., `1.68`). Only changes when pulling new upstream source.
+- **REVISION** — port revision (default `1`). Increment when `ported/`, Makefile, shim deps, or tests change but upstream version stays the same.
+- **DISPLAY_VERSION** — computed by `common.mk`: `VERSION` for rev 1, `VERSION-REVISION` for rev 2+ (e.g., `1.68-2`).
+
+DISPLAY_VERSION flows to: `$VER` string in source, `.readme Version:` field, LHA filename, website, PORTS.md.
 
 ## Naming Conventions
 

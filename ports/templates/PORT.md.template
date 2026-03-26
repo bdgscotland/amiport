@@ -5,7 +5,7 @@
 | Field | Value |
 |-------|-------|
 | Program | __TARGET__ |
-| Version | __VERSION__ |
+| Version | __VERSION__ (port revision: __REVISION__) |
 | Source | __SOURCE_URL__ (__SOURCE_VERSION__) |
 | Category | __CATEGORY__ — __CATEGORY_NAME__ |
 | License | __LICENSE__ |

@@ -254,7 +254,11 @@
             tr.appendChild(tdName);
 
             var tdVer = document.createElement('td');
-            tdVer.textContent = pkg.version || '';
+            var verStr = pkg.version || '';
+            if (pkg.revision && pkg.revision > 1) {
+                verStr += '-' + pkg.revision;
+            }
+            tdVer.textContent = verStr;
             tr.appendChild(tdVer);
 
             var tdDesc = document.createElement('td');

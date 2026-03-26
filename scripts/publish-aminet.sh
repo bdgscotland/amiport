@@ -108,12 +108,15 @@ AMINET_CAT=$(get_var AMINET_CAT)
 VERSION="${VERSION:-1.0}"
 REVISION="${REVISION:-1}"
 
-# Package suffix: version alone for rev 1, version-revision for rev 2+
+# Display version: includes revision when > 1 (used in $VER, .readme, display)
 if [ "$REVISION" = "1" ]; then
-    PKG_SUFFIX="$VERSION"
+    DISPLAY_VERSION="$VERSION"
 else
-    PKG_SUFFIX="${VERSION}-${REVISION}"
+    DISPLAY_VERSION="${VERSION}-${REVISION}"
 fi
+
+# Package suffix: same as display version (used for LHA/readme filenames)
+PKG_SUFFIX="$DISPLAY_VERSION"
 DESCRIPTION="${DESCRIPTION:-Ported CLI utility}"
 AUTHOR="${AUTHOR:-Unknown}"
 AMINET_CAT="${AMINET_CAT:-util/cli}"
@@ -202,7 +205,7 @@ Type:         $AMINET_CAT
 Architecture: m68k-amigaos >= 3.0
 Uploader:     $UPLOADER_EMAIL
 Author:       $AUTHOR (ported by $UPLOADER_NAME)
-Version:      $VERSION
+Version:      $DISPLAY_VERSION
 
 $PORT_NAME - $DESCRIPTION
 

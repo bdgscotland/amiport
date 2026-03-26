@@ -39,7 +39,7 @@ echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
     <lastBuildDate><?php echo gmdate('D, d M Y H:i:s') . ' +0000'; ?></lastBuildDate>
 <?php foreach ($packages as $pkg): ?>
     <item>
-      <title><?php echo htmlspecialchars($pkg['name'], ENT_XML1, 'UTF-8'); ?> <?php echo htmlspecialchars($pkg['version'] ?? '', ENT_XML1, 'UTF-8'); ?></title>
+      <title><?php echo htmlspecialchars($pkg['name'], ENT_XML1, 'UTF-8'); ?> <?php $feedRev = (int)($pkg['revision'] ?? 1); echo htmlspecialchars(($pkg['version'] ?? '') . ($feedRev > 1 ? '-' . $feedRev : ''), ENT_XML1, 'UTF-8'); ?></title>
       <link>https://amiport.platesteel.net/packages.html?name=<?php echo urlencode($pkg['name']); ?></link>
       <description><?php echo htmlspecialchars($pkg['description'] ?? '', ENT_XML1, 'UTF-8'); ?></description>
 <?php

@@ -21,7 +21,7 @@ EXPECT: root
 EXPECT_RC: 0
 
 TEST: -v flag sets variable before program runs
-CMD: WORK:awk -v x=42 "BEGIN { print x }" WORK:test-empty.txt
+CMD: WORK:awk -v x=42 -f WORK:test-awk-setvar-print.awk WORK:test-empty.txt
 EXPECT: 42
 EXPECT_RC: 0
 
@@ -183,7 +183,7 @@ EXPECT_RC: 2
 # === EDGE CASE TESTS ===
 
 TEST: Empty input file produces no output (BEGIN-only check)
-CMD: WORK:awk "BEGIN { x=1 } END { print NR }" WORK:test-empty.txt
+CMD: WORK:awk -f WORK:test-awk-empty-nr.awk WORK:test-empty.txt
 EXPECT: 0
 EXPECT_RC: 0
 
@@ -203,7 +203,7 @@ EXPECT: root
 EXPECT_RC: 0
 
 TEST: -v flag with Amiga WORK: path in variable value
-CMD: WORK:awk -v sep=: "BEGIN { print sep }" WORK:test-empty.txt
+CMD: WORK:awk -v sep=: -f WORK:test-awk-setvar-sep.awk WORK:test-empty.txt
 EXPECT: :
 EXPECT_RC: 0
 
@@ -281,19 +281,19 @@ EXPECT_RC: 0
 
 # Native: echo "abc" | awk '{ gsub(/./, "X"); print }'
 TEST: gsub with dot metacharacter replaces every character
-CMD: WORK:awk "{ gsub(/./, \"X\"); print }" WORK:test-oneline.txt
+CMD: WORK:awk -f WORK:test-awk-gsub-dot.awk WORK:test-oneline.txt
 EXPECT: XXXXXXXXXXX
 EXPECT_RC: 0
 
 # Native: echo "hello123world" | awk '{ gsub(/[0-9]+/, "#"); print }'
 TEST: gsub with bracket expression replaces digit run
-CMD: WORK:awk "{ gsub(/[0-9]+/, \"#\"); print; exit }" WORK:test-multiline.txt
+CMD: WORK:awk -f WORK:test-awk-gsub-digits.awk WORK:test-multiline.txt
 EXPECT: hello world
 EXPECT_RC: 0
 
 # Native: echo "hello world" | awk '{ sub(/^hello/, "goodbye"); print }'
 TEST: sub with caret anchor replaces only at start of string
-CMD: WORK:awk "{ sub(/^hello/, \"goodbye\"); print; exit }" WORK:test-oneline.txt
+CMD: WORK:awk -f WORK:test-awk-sub-anchor.awk WORK:test-oneline.txt
 EXPECT: goodbye world
 EXPECT_RC: 0
 
@@ -305,7 +305,7 @@ EXPECT_RC: 0
 
 # Native: echo "one1two2three" | awk '{ n=split($0, a, /[0-9]/); print n, a[2] }'
 TEST: split() with regex separator returns count and field
-CMD: WORK:awk "BEGIN { n=split(\"one1two2three\", a, /[0-9]/); print n, a[2] }"
+CMD: WORK:awk -f WORK:test-awk-split-regex.awk WORK:test-empty.txt
 EXPECT: 3 two
 EXPECT_RC: 0
 
@@ -313,7 +313,7 @@ EXPECT_RC: 0
 
 # Native: awk 'BEGIN { print toupper("hello world") }'
 TEST: toupper() converts string to uppercase
-CMD: WORK:awk "BEGIN { print toupper(\"hello world\") }"
+CMD: WORK:awk -f WORK:test-awk-toupper-begin.awk WORK:test-empty.txt
 EXPECT: HELLO WORLD
 EXPECT_RC: 0
 
@@ -325,67 +325,67 @@ EXPECT_RC: 0
 
 # Native: awk 'BEGIN { print substr("hello world", 7) }'
 TEST: substr() with two arguments extracts from position to end
-CMD: WORK:awk "BEGIN { print substr(\"hello world\", 7) }"
+CMD: WORK:awk -f WORK:test-awk-substr-begin.awk WORK:test-empty.txt
 EXPECT: world
 EXPECT_RC: 0
 
 # Native: awk '{ print length; exit }' test-multiline.txt
 TEST: length with no argument returns length of current record
-CMD: WORK:awk "{ print length; exit }" WORK:test-multiline.txt
+CMD: WORK:awk -f WORK:test-awk-length-noarg.awk WORK:test-multiline.txt
 EXPECT: 11
 EXPECT_RC: 0
 
 # Native: awk 'BEGIN { s = sprintf("%s=%d %.2f %e %x %o", "val", 255, 3.14159, 6.022e23, 255, 255); print s }'
 TEST: sprintf with mixed format specifiers percent-s percent-d percent-f percent-e percent-x percent-o
-CMD: WORK:awk "BEGIN { s = sprintf(\"%s=%d %.2f %e %x %o\", \"val\", 255, 3.14159, 6.022e23, 255, 255); print s }"
+CMD: WORK:awk -f WORK:test-awk-sprintf-mixed.awk WORK:test-empty.txt
 EXPECT: val=255 3.14 6.022000e+23 ff 377
 EXPECT_RC: 0
 
 # Native: awk 'BEGIN { printf "%-10s|\n", "hi" }'
 TEST: printf with left-align format pads with spaces on the right
-CMD: WORK:awk "BEGIN { printf \"%-10s|\n\", \"hi\" }"
+CMD: WORK:awk -f WORK:test-awk-printf-leftalign.awk WORK:test-empty.txt
 EXPECT: hi        |
 EXPECT_RC: 0
 
 # Native: awk 'BEGIN { printf "%e\n", 12345.678 }'
 TEST: printf with percent-e scientific notation format
-CMD: WORK:awk "BEGIN { printf \"%e\n\", 12345.678 }"
+CMD: WORK:awk -f WORK:test-awk-printf-sci.awk WORK:test-empty.txt
 EXPECT: 1.234568e+04
 EXPECT_RC: 0
 
 # Native: awk 'BEGIN { printf "%.3f\n", 3.14159 }'
 TEST: printf with percent-f decimal format truncates to 3 places
-CMD: WORK:awk "BEGIN { printf \"%.3f\n\", 3.14159 }"
+CMD: WORK:awk -f WORK:test-awk-printf-decimal.awk WORK:test-empty.txt
 EXPECT: 3.142
 EXPECT_RC: 0
 
 # Native: awk 'BEGIN { printf "%x\n", 255 }'
 TEST: printf with percent-x formats integer as hex
-CMD: WORK:awk "BEGIN { printf \"%x\n\", 255 }"
+CMD: WORK:awk -f WORK:test-awk-printf-hex.awk WORK:test-empty.txt
 EXPECT: ff
 EXPECT_RC: 0
 
 # Native: awk 'BEGIN { printf "%o\n", 255 }'
 TEST: printf with percent-o formats integer as octal
-CMD: WORK:awk "BEGIN { printf \"%o\n\", 255 }"
+CMD: WORK:awk -f WORK:test-awk-printf-octal.awk WORK:test-empty.txt
 EXPECT: 377
 EXPECT_RC: 0
 
 # Native: awk 'BEGIN { printf "%d%%\n", 99 }'
 TEST: printf with double percent produces literal percent sign
-CMD: WORK:awk "BEGIN { printf \"%d%%\n\", 99 }"
+CMD: WORK:awk -f WORK:test-awk-printf-percent.awk WORK:test-empty.txt
 EXPECT: 99%
 EXPECT_RC: 0
 
 # Native: awk 'BEGIN { s = sprintf("%10s", "right"); print s }'
 TEST: sprintf with right-align format pads with spaces on the left
-CMD: WORK:awk "BEGIN { s = sprintf(\"%10s\", \"right\"); print s }"
+CMD: WORK:awk -f WORK:test-awk-sprintf-rightalign.awk WORK:test-empty.txt
 EXPECT:      right
 EXPECT_RC: 0
 
 # Native: awk 'BEGIN { print "hello" " " "world" }'
 TEST: String concatenation by adjacency joins strings without operator
-CMD: WORK:awk "BEGIN { print \"hello\" \" \" \"world\" }"
+CMD: WORK:awk -f WORK:test-awk-concat.awk WORK:test-empty.txt
 EXPECT: hello world
 EXPECT_RC: 0
 
@@ -393,55 +393,55 @@ EXPECT_RC: 0
 
 # Native: awk 'BEGIN { pi = atan2(0,-1); printf "%.4f\n", sin(pi/6) }'
 TEST: sin() of pi/6 equals 0.5
-CMD: WORK:awk "BEGIN { pi = atan2(0,-1); printf \"%.4f\n\", sin(pi/6) }"
+CMD: WORK:awk -f WORK:test-awk-sin.awk WORK:test-empty.txt
 EXPECT: 0.5000
 EXPECT_RC: 0
 
 # Native: awk 'BEGIN { printf "%.4f\n", cos(0) }'
 TEST: cos() of zero equals 1.0
-CMD: WORK:awk "BEGIN { printf \"%.4f\n\", cos(0) }"
+CMD: WORK:awk -f WORK:test-awk-cos.awk WORK:test-empty.txt
 EXPECT: 1.0000
 EXPECT_RC: 0
 
 # Native: awk 'BEGIN { printf "%.4f\n", exp(1) }'
 TEST: exp(1) returns e to four decimal places
-CMD: WORK:awk "BEGIN { printf \"%.4f\n\", exp(1) }"
+CMD: WORK:awk -f WORK:test-awk-exp.awk WORK:test-empty.txt
 EXPECT: 2.7183
 EXPECT_RC: 0
 
 # Native: awk 'BEGIN { printf "%.4f\n", log(exp(1)) }'
 TEST: log(exp(1)) equals 1.0 demonstrating inverse relationship
-CMD: WORK:awk "BEGIN { printf \"%.4f\n\", log(exp(1)) }"
+CMD: WORK:awk -f WORK:test-awk-log.awk WORK:test-empty.txt
 EXPECT: 1.0000
 EXPECT_RC: 0
 
 # Native: awk 'BEGIN { print int(3.9) }'
 TEST: int() truncates positive float toward zero
-CMD: WORK:awk "BEGIN { print int(3.9) }"
+CMD: WORK:awk -f WORK:test-awk-int-pos.awk WORK:test-empty.txt
 EXPECT: 3
 EXPECT_RC: 0
 
 # Native: awk 'BEGIN { print int(-3.9) }'
 TEST: int() truncates negative float toward zero (not floor)
-CMD: WORK:awk "BEGIN { print int(-3.9) }"
+CMD: WORK:awk -f WORK:test-awk-int-neg.awk WORK:test-empty.txt
 EXPECT: -3
 EXPECT_RC: 0
 
 # Native: awk 'BEGIN { print 17 % 5 }'
 TEST: Modulo operator percent returns remainder
-CMD: WORK:awk "BEGIN { print 17 % 5 }"
+CMD: WORK:awk -f WORK:test-awk-modulo.awk WORK:test-empty.txt
 EXPECT: 2
 EXPECT_RC: 0
 
 # Native: awk 'BEGIN { print 2^10 }'
 TEST: Exponentiation operator caret computes power
-CMD: WORK:awk "BEGIN { print 2^10 }"
+CMD: WORK:awk -f WORK:test-awk-exponent.awk WORK:test-empty.txt
 EXPECT: 1024
 EXPECT_RC: 0
 
 # Native: awk 'BEGIN { x = 5; print -x }'
 TEST: Unary minus negates a variable
-CMD: WORK:awk "BEGIN { x = 5; print -x }"
+CMD: WORK:awk -f WORK:test-awk-unary-minus.awk WORK:test-empty.txt
 EXPECT: -5
 EXPECT_RC: 0
 
@@ -449,43 +449,43 @@ EXPECT_RC: 0
 
 # Native: awk 'BEGIN { print (3 < 5), (3 <= 3), (5 > 3), (5 >= 5), (3 == 3), (3 != 4) }'
 TEST: Numeric comparison operators less-than less-equal greater-than greater-equal equal not-equal
-CMD: WORK:awk "BEGIN { print (3 < 5), (3 <= 3), (5 > 3), (5 >= 5), (3 == 3), (3 != 4) }"
+CMD: WORK:awk -f WORK:test-awk-compare-nums.awk WORK:test-empty.txt
 EXPECT: 1 1 1 1 1 1
 EXPECT_RC: 0
 
 # Native: awk 'BEGIN { print ("abc" < "abd"), ("abc" <= "abc"), ("z" > "a") }'
 TEST: String comparison operators use lexicographic order
-CMD: WORK:awk "BEGIN { print (\"abc\" < \"abd\"), (\"abc\" <= \"abc\"), (\"z\" > \"a\") }"
+CMD: WORK:awk -f WORK:test-awk-compare-strings.awk WORK:test-empty.txt
 EXPECT: 1 1 1
 EXPECT_RC: 0
 
 # Native: awk 'BEGIN { print (1 && 1), (1 && 0), (0 && 1) }'
 TEST: Logical AND operator returns 1 only when both operands true
-CMD: WORK:awk "BEGIN { print (1 && 1), (1 && 0), (0 && 1) }"
+CMD: WORK:awk -f WORK:test-awk-logical-and.awk WORK:test-empty.txt
 EXPECT: 1 0 0
 EXPECT_RC: 0
 
 # Native: awk 'BEGIN { print (0 || 1), (1 || 0), (0 || 0) }'
 TEST: Logical OR operator returns 1 when either operand true
-CMD: WORK:awk "BEGIN { print (0 || 1), (1 || 0), (0 || 0) }"
+CMD: WORK:awk -f WORK:test-awk-logical-or.awk WORK:test-empty.txt
 EXPECT: 1 1 0
 EXPECT_RC: 0
 
 # Native: awk 'BEGIN { print (!0), (!1) }'
 TEST: Logical NOT operator inverts truth value
-CMD: WORK:awk "BEGIN { print (!0), (!1) }"
+CMD: WORK:awk -f WORK:test-awk-logical-not.awk WORK:test-empty.txt
 EXPECT: 1 0
 EXPECT_RC: 0
 
 # Native: awk 'BEGIN { x = 7; print (x > 5 ? "big" : "small") }'
 TEST: Ternary operator selects first branch when condition true
-CMD: WORK:awk "BEGIN { x = 7; print (x > 5 ? \"big\" : \"small\") }"
+CMD: WORK:awk -f WORK:test-awk-ternary.awk WORK:test-empty.txt
 EXPECT: big
 EXPECT_RC: 0
 
 # Native: awk 'BEGIN { print ("10" > "9") }'  -> 0 (lexicographic)
 TEST: String comparison of "10" and "9" is lexicographic not numeric
-CMD: WORK:awk "BEGIN { print (\"10\" > \"9\") }"
+CMD: WORK:awk -f WORK:test-awk-string-cmp-10-9.awk WORK:test-empty.txt
 EXPECT: 0
 EXPECT_RC: 0
 
@@ -493,25 +493,25 @@ EXPECT_RC: 0
 
 # Native: awk 'BEGIN { i=1; s=0; while(i<=5) { s+=i; i++ }; print s }'
 TEST: while loop accumulates sum 1 to 5
-CMD: WORK:awk "BEGIN { i=1; s=0; while(i<=5) { s+=i; i++ }; print s }"
+CMD: WORK:awk -f WORK:test-awk-while-loop.awk WORK:test-empty.txt
 EXPECT: 15
 EXPECT_RC: 0
 
 # Native: awk 'BEGIN { i=0; s=0; do { s+=i; i++ } while(i<=5); print s }'
 TEST: do-while loop executes body before checking condition
-CMD: WORK:awk "BEGIN { i=0; s=0; do { s+=i; i++ } while(i<=5); print s }"
+CMD: WORK:awk -f WORK:test-awk-dowhile-sum.awk WORK:test-empty.txt
 EXPECT: 15
 EXPECT_RC: 0
 
 # Native: awk 'BEGIN { for(i=1;i<=10;i++) { if(i==5) break; s+=i }; print s }'
 TEST: break terminates loop at iteration 5 leaving sum of 1 to 4
-CMD: WORK:awk "BEGIN { for(i=1;i<=10;i++) { if(i==5) break; s+=i }; print s }"
+CMD: WORK:awk -f WORK:test-awk-break.awk WORK:test-empty.txt
 EXPECT: 10
 EXPECT_RC: 0
 
 # Native: awk 'BEGIN { s=0; for(i=1;i<=5;i++) { if(i==3) continue; s+=i }; print s }'
 TEST: continue skips iteration 3 leaving sum of 1+2+4+5
-CMD: WORK:awk "BEGIN { s=0; for(i=1;i<=5;i++) { if(i==3) continue; s+=i }; print s }"
+CMD: WORK:awk -f WORK:test-awk-continue.awk WORK:test-empty.txt
 EXPECT: 12
 EXPECT_RC: 0
 
@@ -616,7 +616,7 @@ EXPECT_RC: 0
 
 # Native: awk 'BEGIN { OFMT="%.2f"; x=3.14159; print x }'
 TEST: OFMT controls formatting when printing floating-point numbers
-CMD: WORK:awk "BEGIN { OFMT=\"%.2f\"; x=3.14159; print x }"
+CMD: WORK:awk -f WORK:test-awk-ofmt.awk WORK:test-empty.txt
 EXPECT: 3.14
 EXPECT_RC: 0
 
@@ -624,7 +624,7 @@ EXPECT_RC: 0
 
 # Native: awk 'BEGIN { a["x"]=1; a["y"]=2; a["z"]=3; n=0; for(k in a) n++; print n }'
 TEST: for-in iteration over associative array visits all keys
-CMD: WORK:awk "BEGIN { a[\"x\"]=1; a[\"y\"]=2; a[\"z\"]=3; n=0; for(k in a) n++; print n }"
+CMD: WORK:awk -f WORK:test-awk-array-count.awk WORK:test-empty.txt
 EXPECT: 3
 EXPECT_RC: 0
 
@@ -636,25 +636,25 @@ EXPECT_RC: 0
 
 # Native: awk 'BEGIN { a["foo"]=1; print ("foo" in a), ("bar" in a) }'
 TEST: in operator tests array key presence without creating element
-CMD: WORK:awk "BEGIN { a[\"foo\"]=1; print (\"foo\" in a), (\"bar\" in a) }"
+CMD: WORK:awk -f WORK:test-awk-in-operator.awk WORK:test-empty.txt
 EXPECT: 1 0
 EXPECT_RC: 0
 
 # Native: awk 'BEGIN { a["x"]=1; a["y"]=2; delete a["x"]; n=0; for(k in a) n++; print n }'
 TEST: delete removes specific element leaving others intact
-CMD: WORK:awk "BEGIN { a[\"x\"]=1; a[\"y\"]=2; delete a[\"x\"]; n=0; for(k in a) n++; print n }"
+CMD: WORK:awk -f WORK:test-awk-delete-element.awk WORK:test-empty.txt
 EXPECT: 1
 EXPECT_RC: 0
 
 # Native: awk 'BEGIN { a[1]=1; a[2]=2; a[3]=3; print length(a) }'
 TEST: length() applied to array returns element count
-CMD: WORK:awk "BEGIN { a[1]=1; a[2]=2; a[3]=3; print length(a) }"
+CMD: WORK:awk -f WORK:test-awk-length-array.awk WORK:test-empty.txt
 EXPECT: 3
 EXPECT_RC: 0
 
 # Native: awk 'BEGIN { a[1]=1; a[2]=2; delete a; n=0; for(k in a) n++; print n }'
 TEST: delete on entire array removes all elements
-CMD: WORK:awk "BEGIN { a[1]=1; a[2]=2; delete a; n=0; for(k in a) n++; print n }"
+CMD: WORK:awk -f WORK:test-awk-delete-array.awk WORK:test-empty.txt
 EXPECT: 0
 EXPECT_RC: 0
 
@@ -694,37 +694,37 @@ EXPECT_RC: 0
 
 # Native: awk 'BEGIN { print "standalone" }'
 TEST: BEGIN block executes with no input files
-CMD: WORK:awk "BEGIN { print \"standalone\" }"
+CMD: WORK:awk -f WORK:test-awk-begin-standalone.awk WORK:test-empty.txt
 EXPECT: standalone
 EXPECT_RC: 0
 
 # Native: awk 'BEGIN { print "first" } BEGIN { print "second" }' test-awk-words.txt | head -1
 TEST: Multiple BEGIN blocks both execute before input processing
-CMD: WORK:awk "BEGIN { print \"first\" } BEGIN { print \"second\" }" WORK:test-awk-words.txt
+CMD: WORK:awk -f WORK:test-awk-multi-begin.awk WORK:test-awk-words.txt
 EXPECT: first
 EXPECT_RC: 0
 
 # Native: awk 'END { print "endA" } END { print "endB" }' test-awk-words.txt | head -1
 TEST: Multiple END blocks both execute after all input processed
-CMD: WORK:awk "END { print \"endA\" } END { print \"endB\" }" WORK:test-awk-words.txt
+CMD: WORK:awk -f WORK:test-awk-multi-end.awk WORK:test-awk-words.txt
 EXPECT: endA
 EXPECT_RC: 0
 
 # Native: awk 'BEGIN { print x + 5 }'
 TEST: Uninitialized variable used in arithmetic defaults to zero
-CMD: WORK:awk "BEGIN { print x + 5 }"
+CMD: WORK:awk -f WORK:test-awk-uninit-num.awk WORK:test-empty.txt
 EXPECT: 5
 EXPECT_RC: 0
 
 # Native: awk 'BEGIN { if (x == "") print "empty string" }'
 TEST: Uninitialized variable used in string context defaults to empty string
-CMD: WORK:awk "BEGIN { if (x == \"\") print \"empty string\" }"
+CMD: WORK:awk -f WORK:test-awk-uninit-str.awk WORK:test-empty.txt
 EXPECT: empty string
 EXPECT_RC: 0
 
 # Native: awk '// { n++ } END { print n }' test-awk-numbers.txt
 TEST: Empty regex // matches every record
-CMD: WORK:awk "// { n++ } END { print n }" WORK:test-awk-numbers.txt
+CMD: WORK:awk -f WORK:test-awk-empty-regex.awk WORK:test-awk-numbers.txt
 EXPECT: 5
 EXPECT_RC: 0
 
@@ -732,13 +732,13 @@ EXPECT_RC: 0
 
 # Native: awk 'BEGIN { x = "42abc"; print x + 0 }'
 TEST: String beginning with digits coerces to numeric value at leading digits
-CMD: WORK:awk "BEGIN { x = \"42abc\"; print x + 0 }"
+CMD: WORK:awk -f WORK:test-awk-string-coerce.awk WORK:test-empty.txt
 EXPECT: 42
 EXPECT_RC: 0
 
 # Native: awk '{ print NF }' test-awk-100fields.txt
 TEST: NF counts 100 fields in wide input record
-CMD: WORK:awk "{ print NF }" WORK:test-awk-100fields.txt
+CMD: WORK:awk -f WORK:test-awk-print-nf.awk WORK:test-awk-100fields.txt
 EXPECT: 100
 EXPECT_RC: 0
 
@@ -751,7 +751,7 @@ EXPECT_RC: 0
 
 # Native: awk 'BEGIN { print "hello" " " "world" }'
 TEST: String concatenation by adjacency joins literals with no operator
-CMD: WORK:awk "BEGIN { print \"hello\" \" \" \"world\" }"
+CMD: WORK:awk -f WORK:test-awk-concat.awk WORK:test-empty.txt
 EXPECT: hello world
 EXPECT_RC: 0
 
@@ -808,7 +808,7 @@ EXPECT_RC: 0
 
 # Native: awk '{ print NF }' test-awk-100fields.txt
 TEST: Parse 100-field record verifying NF equals 100
-CMD: WORK:awk "{ print NF }" WORK:test-awk-100fields.txt
+CMD: WORK:awk -f WORK:test-awk-print-nf.awk WORK:test-awk-100fields.txt
 EXPECT: 100
 EXPECT_RC: 0
 
@@ -816,12 +816,12 @@ EXPECT_RC: 0
 
 # Native: awk 'BEGIN { printf "%.6f\n", log(1000) / log(10) }'
 TEST: log(1000)/log(10) computes base-10 logarithm equals 3.000000
-CMD: WORK:awk "BEGIN { printf \"%.6f\n\", log(1000) / log(10) }"
+CMD: WORK:awk -f WORK:test-awk-log10.awk WORK:test-empty.txt
 EXPECT: 3.000000
 EXPECT_RC: 0
 
 # Native: awk 'BEGIN { x = 1.23456; printf "%.10f\n", sin(x)^2 + cos(x)^2 }'
 TEST: sin squared plus cos squared equals 1.0 (Pythagorean identity)
-CMD: WORK:awk "BEGIN { x = 1.23456; printf \"%.10f\n\", sin(x)^2 + cos(x)^2 }"
+CMD: WORK:awk -f WORK:test-awk-pythagorean.awk WORK:test-empty.txt
 EXPECT: 1.0000000000
 EXPECT_RC: 0

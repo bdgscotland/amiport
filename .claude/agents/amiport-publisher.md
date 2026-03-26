@@ -87,6 +87,7 @@ Never publish without the user saying yes.
 {
     "name": "<name>",
     "version": "<upstream version>",
+    "revision": <port revision — default 1>,
     "description": "<from .readme Short field>",
     "category": "<from .readme Type field>",
     "source": "<upstream project + version>",

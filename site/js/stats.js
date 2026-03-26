@@ -208,7 +208,8 @@
 
             var verSpan = document.createElement('span');
             verSpan.className = 'timeline-list__ver';
-            verSpan.textContent = 'v' + (pkg.version || '');
+            var statsVerStr = (pkg.version || '') + (pkg.revision && pkg.revision > 1 ? '-' + pkg.revision : '');
+            verSpan.textContent = 'v' + statsVerStr;
             li.appendChild(verSpan);
 
             container.appendChild(li);

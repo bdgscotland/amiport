@@ -3,7 +3,7 @@ Type:         __AMINET_CAT__
 Architecture: m68k-amigaos >= 3.0
 Uploader:     duncan@bowring.us
 Author:       __AUTHOR__ (ported by Duncan Bowring)
-Version:      __VERSION__
+Version:      __DISPLAY_VERSION__
 
 __TARGET__ - __DESCRIPTION__
 

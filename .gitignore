@@ -48,6 +48,7 @@ build/amiga/
 
 # Claude Code local settings
 .claude/settings.local.json
+.claude/projects/
 
 # Editor
 *.swp

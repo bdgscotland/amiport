@@ -23,10 +23,27 @@ Update ALL of these:
 
 10. **test-fsemu-visual-cases.txt** — Visual verification tests in a SEPARATE file from functional tests (ADR-024). Functional and visual MUST be separate FS-UAE passes.
 
+## When Making Cross-Cutting Convention Changes
+
+A convention change (versioning, naming, coding standards, etc.) touches many files beyond the standard checklist above. Before claiming completion, audit ALL of these:
+
+| Category | Files to check |
+|----------|---------------|
+| **Project docs** | CLAUDE.md, README.md, PORTS.md |
+| **Rules** | `.claude/rules/` — any rule that references the convention |
+| **Templates** | `ports/templates/` — Makefile.template, PORT.md.template, readme.template, STRUCTURE.md |
+| **Skills** | `.claude/skills/port-project/`, `transform-source/references/`, and any skill that touches the convention |
+| **Agents** | `.claude/agents/` — any agent that produces artifacts affected by the convention |
+| **Site files** | `site/js/packages.js`, `site/js/stats.js`, `site/amiga.html`, `site/feed.php`, `site/api/v1/` |
+| **Scripts** | `scripts/check-port-metadata.sh`, `scripts/publish-aminet.sh`, and any validation scripts |
+
+**Method:** Before starting edits, use an Explore agent to find ALL references to the convention being changed. Edit from that list — don't rely on memory to enumerate touchpoints.
+
 ## Enforcement
 
 - A new skill without README/architecture/porting-guide references is **incomplete**.
 - An ADR without an index entry is **lost**.
 - A port without a PORTS.md entry is **invisible**.
 - A Category 3+ port without `test-fsemu-visual-cases.txt` has **no visual verification**.
+- A cross-cutting change without a full audit of all touchpoints is **incomplete**.
 - Do not ask the user if they want docs updated — just do it.

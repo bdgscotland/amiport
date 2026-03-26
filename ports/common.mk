@@ -21,18 +21,25 @@ NATIVE_CC = cc
 NATIVE_CFLAGS = -O2 -Wall
 
 # Default version and revision
+# VERSION  = upstream version (e.g. 1.68 for OpenBSD grep)
+# REVISION = port revision — increments when ported/ changes but upstream version stays the same
+#            Implicit at 1, explicit at 2+. Flows to $VER string, .readme, LHA filename, website.
 VERSION ?= 1.0
 REVISION ?= 1
 
 # vamos memory limit in KiB (default 4MB — increase for large binaries like jq)
 VAMOS_MEM ?= 4096
 
-# Package suffix: version alone for rev 1, version-revision for rev 2+
+# Display version: includes revision suffix when REVISION > 1
+# Used in $VER strings, .readme Version: field, and PORTS.md
 ifeq ($(REVISION),1)
-PKG_SUFFIX = $(VERSION)
+DISPLAY_VERSION = $(VERSION)
 else
-PKG_SUFFIX = $(VERSION)-$(REVISION)
+DISPLAY_VERSION = $(VERSION)-$(REVISION)
 endif
+
+# Package suffix: same as DISPLAY_VERSION (used for LHA/readme filenames)
+PKG_SUFFIX = $(DISPLAY_VERSION)
 
 # Aminet category (override per port if needed)
 AMINET_CAT ?= util/cli

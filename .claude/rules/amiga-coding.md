@@ -59,11 +59,18 @@ POSIX `exit(1)` is **invisible** to Amiga shells. Amiga scripts test with `IF WA
 
 ## Version String
 
-Every program must include a version string using the **upstream version** (not a generic `1.0`):
+Every program must include a version string with the **upstream version** plus **port revision** (when revision > 1):
 ```c
-static const char *verstag = "$VER: progname X.Y (DD.MM.YYYY)";
+/* First release of upstream 1.68 (REVISION=1, implicit): */
+static const char *verstag = "$VER: progname 1.68 (DD.MM.YYYY)";
+
+/* Second port revision of same upstream (REVISION=2, explicit): */
+static const char *verstag = "$VER: progname 1.68-2 (DD.MM.YYYY)";
 ```
-Use the upstream project's version number (e.g., `1.68` for OpenBSD grep rev 1.68, `5.4.7` for Lua). The VERSION in the Makefile, the $VER string, and the .readme must all match.
+
+- **Upstream version** (e.g., `1.68`): from the original project. Only changes when pulling new upstream source.
+- **Port revision** (`-2`, `-3`): increments when `ported/`, Makefile, shim deps, or tests change but upstream version stays the same. Omitted for revision 1.
+- The Makefile `DISPLAY_VERSION` (from `VERSION` + `REVISION`) must match the `$VER` string and `.readme Version:` field. Run `make check-port-metadata` to validate.
 
 ## Stack Size
 

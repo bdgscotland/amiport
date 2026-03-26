@@ -83,7 +83,7 @@ Read `ports/templates/STRUCTURE.md` for the full directory layout specification.
 
 1. Create `ports/<name>/original/` and copy the source files there
 2. Create `ports/<name>/ported/` — this is where transformed source goes
-3. Copy `ports/templates/Makefile.template` to `ports/<name>/Makefile` and fill in all `__PLACEHOLDER__` variables (see template for the full list)
+3. Copy `ports/templates/Makefile.template` to `ports/<name>/Makefile` and fill in all `__PLACEHOLDER__` variables (see template for the full list). Set `VERSION` to the upstream version and `REVISION = 1`. `DISPLAY_VERSION` is auto-computed by common.mk.
 4. Copy `ports/templates/PORT.md.template` to `ports/<name>/PORT.md` and fill in the Overview table placeholders
 5. Update `SOURCES` in the Makefile to list all ported `.c` files
 

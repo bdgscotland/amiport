@@ -4,7 +4,7 @@ include ../common.mk
 TARGET      = __TARGET__
 SOURCES     = ported/__TARGET__.c
 VERSION     = __VERSION__
-REVISION    = 1
+REVISION    = 1                # Increment when ported/ changes but upstream version stays the same
 DESCRIPTION = __DESCRIPTION__  # Max 40 chars, ASCII only (Aminet requirement)
 AUTHOR      = __AUTHOR__
 
