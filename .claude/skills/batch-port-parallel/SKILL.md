@@ -22,7 +22,7 @@ Port N programs simultaneously by running specialized pipeline agents in paralle
 ## Arguments
 
 Parse `$ARGUMENTS` as: `[count] [category] [profile]`
-- **count**: Number of ports to dispatch (default: 3, max: 5)
+- **count**: Number of ports to dispatch (default: 3, max: 10)
 - **category**: `cli` (default), `scripting`, `console`, `network`
 - **profile**: `a1200_accel` (default), `stock_a1200`
 
@@ -260,7 +260,7 @@ The whole point is pipelining. A fast port shouldn't wait for a slow one.
 
 ## Limits
 
-- **Max 5 concurrent ports.** Each port may have 1-2 agents running at different stages. 5 ports × 1-2 agents = 5-10 concurrent agents, near the practical ceiling for context management.
+- **Max 10 concurrent ports.** Each port may have 1-2 agents running at different stages. With 1M context window, 10 ports is feasible. Pipeline aggressively — don't wait for all ports at each stage.
 - **Cat 1 only for unattended batch.** Cat 2+ may need Tier 2/3 tradeoff decisions. Use `/port-project` for Cat 2+.
 - **FS-UAE stays serial.** See `docs/porting-guide.md` "Parallel Porting" section.
 - **Build shim first.** If two ports both need `/extend-shim`, they'll conflict. Build the shim before starting the batch.
