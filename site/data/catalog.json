@@ -902,106 +902,6 @@
   },
   "candidates": [
     {
-      "id": "basename",
-      "name": "basename",
-      "description": "Strip directory and suffix from filenames",
-      "amiport_category": "cli",
-      "aminet_category": "util/cli",
-      "upstream": {
-        "source": "openbsd",
-        "version": "latest",
-        "license": "ISC",
-        "url": "https://cvsweb.openbsd.org/src/usr.bin/basename/",
-        "files": 1,
-        "lines_of_code": 88
-      },
-      "status": "candidate",
-      "analysis_status": "complete",
-      "publishable": true,
-      "notes": "Trivial single-file utility, no POSIX deps beyond stdio",
-      "analysis": {
-        "analyzed_date": "2026-03-25",
-        "analyzer_version": "1.0",
-        "shim_library_version": "1.0",
-        "posix_tier_mix": {
-          "tier1": 3,
-          "tier2": 0,
-          "tier3": 0
-        },
-        "missing_shims": [],
-        "blocking_shims": [],
-        "blocker_workaround": null,
-        "dependencies": [],
-        "source_complexity": 0.99,
-        "estimated_stack_kb": 8,
-        "estimated_binary_kb": 11,
-        "estimated_data_kb": 1
-      },
-      "readiness": {
-        "score": 0.999,
-        "tier": "ready"
-      },
-      "hardware_fit": {
-        "stock_a1200": "fits",
-        "a1200_accel": "fits",
-        "a4000_030": "fits"
-      },
-      "aminet_status": "exists",
-      "aminet_notes": "ARPClones-37.1 (1995) and BP102 (1992) provide Amiga variants. GNU coreutils-bin v5.2.1-9 (2006) includes POSIX-compliant basename.",
-      "community_value": 4,
-      "community_value_reason": "Extract filename from path \u2014 useful in scripts."
-    },
-    {
-      "id": "dirname",
-      "name": "dirname",
-      "description": "Strip last component from filename",
-      "amiport_category": "cli",
-      "aminet_category": "util/cli",
-      "upstream": {
-        "source": "openbsd",
-        "version": "latest",
-        "license": "ISC",
-        "url": "https://cvsweb.openbsd.org/src/usr.bin/dirname/",
-        "files": 1,
-        "lines_of_code": 57
-      },
-      "status": "candidate",
-      "analysis_status": "complete",
-      "publishable": true,
-      "notes": "Trivial single-file utility",
-      "analysis": {
-        "analyzed_date": "2026-03-25",
-        "analyzer_version": "1.0",
-        "shim_library_version": "1.0",
-        "posix_tier_mix": {
-          "tier1": 3,
-          "tier2": 0,
-          "tier3": 0
-        },
-        "missing_shims": [],
-        "blocking_shims": [],
-        "blocker_workaround": null,
-        "dependencies": [],
-        "source_complexity": 0.99,
-        "estimated_stack_kb": 8,
-        "estimated_binary_kb": 11,
-        "estimated_data_kb": 1
-      },
-      "readiness": {
-        "score": 0.999,
-        "tier": "ready"
-      },
-      "hardware_fit": {
-        "stock_a1200": "fits",
-        "a1200_accel": "fits",
-        "a4000_030": "fits"
-      },
-      "aminet_status": "missing",
-      "aminet_notes": "Not available as standalone utility. GNU coreutils-bin v5.2.1-9 (2006) includes it.",
-      "community_value": 4,
-      "community_value_reason": "Extract directory from path \u2014 useful in scripts."
-    },
-    {
       "id": "tr",
       "name": "tr",
       "description": "Translate or delete characters",
@@ -1150,56 +1050,6 @@
       "aminet_notes": "GNU coreutils 5.2.1-9 (m68k, 2010). Note: version is from 2005, 20+ years old but functional.",
       "community_value": 3,
       "community_value_reason": "Wrap lines to width \u2014 useful for text formatting."
-    },
-    {
-      "id": "rev",
-      "name": "rev",
-      "description": "Reverse lines character by character",
-      "amiport_category": "cli",
-      "aminet_category": "util/cli",
-      "upstream": {
-        "source": "openbsd",
-        "version": "latest",
-        "license": "BSD-3-Clause",
-        "url": "https://cvsweb.openbsd.org/src/usr.bin/rev/",
-        "files": 1,
-        "lines_of_code": 120
-      },
-      "status": "candidate",
-      "analysis_status": "complete",
-      "publishable": true,
-      "notes": "Trivial single-file, ~50 lines",
-      "analysis": {
-        "analyzed_date": "2026-03-25",
-        "analyzer_version": "1.0",
-        "shim_library_version": "1.0",
-        "posix_tier_mix": {
-          "tier1": 5,
-          "tier2": 0,
-          "tier3": 0
-        },
-        "missing_shims": [],
-        "blocking_shims": [],
-        "blocker_workaround": null,
-        "dependencies": [],
-        "source_complexity": 0.99,
-        "estimated_stack_kb": 8,
-        "estimated_binary_kb": 11,
-        "estimated_data_kb": 1
-      },
-      "readiness": {
-        "score": 0.999,
-        "tier": "ready"
-      },
-      "hardware_fit": {
-        "stock_a1200": "fits",
-        "a1200_accel": "fits",
-        "a4000_030": "fits"
-      },
-      "aminet_status": "exists",
-      "aminet_notes": "AlterASCII (1997) provides text reversal/transformation, but differs in purpose from POSIX rev. Not a direct port.",
-      "community_value": 3,
-      "community_value_reason": "Reverse line characters \u2014 niche but no AmigaDOS equivalent."
     },
     {
       "id": "column",
@@ -5751,6 +5601,18 @@
       ]
     },
     {
+      "name": "basename",
+      "version": "1.14",
+      "source": "openbsd",
+      "category": "cli",
+      "status": "published",
+      "test_count": 32,
+      "test_pass_rate": 1.0,
+      "measured_binary_kb": 33,
+      "measured_stack_kb": 16,
+      "description": "Strip directory and suffix from filenames"
+    },
+    {
       "id": "dirname",
       "name": "dirname",
       "version": "1.17",
@@ -5761,14 +5623,28 @@
       "upstream_license": "ISC",
       "port_date": "2026-03-25",
       "aminet_status": "pending",
-      "aminet_url": "",
       "measured_binary_kb": 33,
       "measured_stack_kb": 16,
       "test_count": 24,
       "test_pass_rate": 1.0,
-      "hardware_verified": [
-        "a1200_accel"
-      ]
+      "status": "ported"
+    },
+    {
+      "id": "rev",
+      "name": "rev",
+      "version": "1.16",
+      "description": "Reverse lines character by character",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream_source": "openbsd",
+      "upstream_license": "BSD-3-Clause",
+      "port_date": "2026-03-25",
+      "aminet_status": "pending",
+      "measured_binary_kb": 34,
+      "measured_stack_kb": 16,
+      "test_count": 24,
+      "test_pass_rate": 1.0,
+      "status": "ported"
     }
   ]
 }

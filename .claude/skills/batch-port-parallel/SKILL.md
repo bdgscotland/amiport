@@ -196,8 +196,21 @@ If reviews find CRITICAL issues: fix, rebuild, re-run FS-UAE **serially** (same 
 For each completed port:
 1. Move candidate from `candidates[]` to `ported[]` in `data/catalog.json`
 2. Set `measured_binary_kb`, `test_count`, `test_pass_rate`
-3. Add row to `PORTS.md`
-4. Run `python3 scripts/catalog-score.py --score`
+3. **Sync site catalog:** `cp data/catalog.json site/data/catalog.json` (MANDATORY — see `.claude/rules/catalog-sync.md`)
+4. Add row to `PORTS.md`
+5. Run `python3 scripts/catalog-score.py --score`
+
+### Phase 12b: Publish to amiport + Commit
+
+For each completed port, dispatch `amiport-publisher` to package and deploy. Then commit all changes and push:
+
+```bash
+git add -A ports/<name>/ site/ data/ .claude/ PORTS.md scripts/
+git commit -m "feat: add <names> ports"
+git push
+```
+
+**Do NOT wait for the user to ask.** Publishing and committing are part of the standard pipeline.
 
 ### Phase 13: Summary
 
