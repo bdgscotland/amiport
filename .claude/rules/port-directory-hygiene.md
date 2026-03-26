@@ -39,6 +39,20 @@ ports/<name>/
 | Directories mirroring absolute paths (`Users/`, `/tmp/`) | Agent bugs |
 | Any file in the project root | All port files stay inside `ports/<name>/` |
 
+## Bundled Third-Party Libraries
+
+When a port needs an external library (e.g., jq needs Oniguruma), port the library to `lib/<libname>/` as a static archive — NOT inside the port directory. This allows multiple ports to share the dependency.
+
+```
+lib/<libname>/
+├── Makefile              # Cross-compile to static .a
+├── include/              # Public headers
+├── src/                  # Source + internal headers
+└── lib<libname>.a        # Built artifact (not committed)
+```
+
+Build with `make -C lib/<libname>`. Link from port Makefile with `-L../../lib/<libname> -l<libname>` and `-I../../lib/<libname>/include`.
+
 ## After Every Port
 
 Before committing, verify:
