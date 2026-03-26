@@ -856,6 +856,21 @@ static int f_match_name_iter(const UChar* name, const UChar *name_end, int ngrou
   return 0;
 }
 
+/* amiport: perf-optimizer — single-entry regex compilation cache.
+ * Avoids recompiling the same pattern on every f_match() call.
+ * Safe: jq is single-threaded on AmigaOS. */
+static regex_t *cached_reg = NULL;
+static char cached_pattern[256];
+static int cached_pattern_len = 0;
+static OnigOptionType cached_options = 0;
+
+static void f_match_cache_cleanup(void) {
+  if (cached_reg != NULL) {
+    onig_free(cached_reg);
+    cached_reg = NULL;
+  }
+}
+
 static jv f_match(jq_state *jq, jv input, jv regex, jv modifiers, jv testmode) {
   int test = jv_equal(testmode, jv_true());
   jv result;
@@ -864,6 +879,7 @@ static jv f_match(jq_state *jq, jv input, jv regex, jv modifiers, jv testmode) {
   regex_t *reg;
   OnigErrorInfo einfo;
   OnigRegion* region;
+  int use_cache = 0;
 
   if (jv_get_kind(input) != JV_KIND_STRING) {
     jv_free(regex);
@@ -925,21 +941,59 @@ static jv f_match(jq_state *jq, jv input, jv regex, jv modifiers, jv testmode) {
 
   jv_free(modifiers);
 
-  onigret = onig_new(&reg, (const UChar*)jv_string_value(regex),
-      (const UChar*)(jv_string_value(regex) + jv_string_length_bytes(jv_copy(regex))),
-      /* amiport: ASCII encoding -- no Unicode property tables needed (saves 312KB) */
-      options, ONIG_ENCODING_ASCII, ONIG_SYNTAX_PERL_NG, &einfo);
-  if (onigret != ONIG_NORMAL) {
-    UChar ebuf[ONIG_MAX_ERROR_MESSAGE_LEN];
-    onig_error_code_to_str(ebuf, onigret, &einfo);
-    jv_free(input);
-    jv_free(regex);
-    return jv_invalid_with_msg(jv_string_concat(jv_string("Regex failure: "),
-          jv_string((char*)ebuf)));
+  /* amiport: register cache cleanup on first call */
+  {
+    static int cache_init = 0;
+    if (!cache_init) {
+      atexit(f_match_cache_cleanup);
+      cache_init = 1;
+    }
+  }
+  /* amiport: perf-optimizer — check single-entry regex cache */
+  {
+    const char *pat = jv_string_value(regex);
+    int pat_len = jv_string_length_bytes(jv_copy(regex));
+    use_cache = (cached_reg != NULL &&
+                 cached_options == options &&
+                 pat_len == cached_pattern_len &&
+                 pat_len < (int)sizeof(cached_pattern) &&
+                 memcmp(cached_pattern, pat, pat_len) == 0);
+    if (use_cache) {
+      reg = cached_reg;
+    } else {
+      if (cached_reg != NULL) {
+        onig_free(cached_reg);
+        cached_reg = NULL;
+      }
+      onigret = onig_new(&reg, (const UChar*)pat,
+          (const UChar*)(pat + pat_len),
+          /* amiport: ASCII encoding -- no Unicode property tables needed (saves 312KB) */
+          options, ONIG_ENCODING_ASCII, ONIG_SYNTAX_PERL_NG, &einfo);
+      if (onigret != ONIG_NORMAL) {
+        UChar ebuf[ONIG_MAX_ERROR_MESSAGE_LEN];
+        onig_error_code_to_str(ebuf, onigret, &einfo);
+        /* amiport: memory-checker fix — onig_new() allocates even on error */
+        onig_free(reg);
+        jv_free(input);
+        jv_free(regex);
+        return jv_invalid_with_msg(jv_string_concat(jv_string("Regex failure: "),
+              jv_string((char*)ebuf)));
+      }
+      /* Cache the compiled regex for reuse */
+      if (pat_len < (int)sizeof(cached_pattern)) {
+        memcpy(cached_pattern, pat, pat_len);
+        cached_pattern[pat_len] = '\0';
+        cached_pattern_len = pat_len;
+        cached_options = options;
+        cached_reg = reg;
+      }
+    }
   }
   result = test ? jv_false() : jv_array();
+  {
   const char *input_string = jv_string_value(input);
   const UChar* start = (const UChar*)jv_string_value(input);
+  /* amiport: perf-optimizer fix — cache length, avoid unnecessary jv_copy */
   const unsigned long length = jv_string_length_bytes(jv_copy(input));
   const UChar* end = start + length;
   region = onig_region_new();
@@ -1048,7 +1102,11 @@ static jv f_match(jq_state *jq, jv input, jv regex, jv modifiers, jv testmode) {
   } while (global && start <= end);
   onig_region_free(region,1);
   region = NULL;
-  onig_free(reg);
+  } /* end scope for input_string/start/end/length */
+  /* amiport: don't free cached regex — it's reused across calls */
+  if (!use_cache && reg != cached_reg) {
+    onig_free(reg);
+  }
   jv_free(input);
   jv_free(regex);
   return result;

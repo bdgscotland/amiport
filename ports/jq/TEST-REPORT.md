@@ -5,10 +5,10 @@
 | Field | Value |
 |-------|-------|
 | Port | jq |
-| Date | 2026-03-25 21:32:17 |
+| Date | 2026-03-25 21:46:39 |
 | Duration | 285s |
 | Platform | FS-UAE 3.2.35 (A1200, Kickstart 3.1) |
-| Binary | `WORK:jq` (578K) |
+| Binary | `WORK:jq` (579K) |
 | Test method | ARexx harness → TAP output |
 | Result | **PASS** — 60/60 passed |
 
