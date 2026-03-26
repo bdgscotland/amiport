@@ -213,6 +213,7 @@ The project enforces structural safety via hooks in `.claude/settings.json`:
 - **`block-original-edits.sh`** — Blocks Edit/Write to `/original/`. Upstream source is read-only.
 - **`block-root-files.sh`** — Blocks Edit/Write of non-config files in the project root.
 - **`block-direct-gcc.sh`** — Blocks direct `m68k-amigaos-gcc`/`ld`/`as` calls. Forces use of `make` or toolchain scripts.
+- **`warn-direct-port-build.sh`** — Warns on `make -C ports/` or `make TARGET=ports/` without using the build-manager agent. Allows `make test`, `make clean`, and `make -C lib/` (library builds).
 - **`enforce-agents.sh`** — Warns on Edit/Write to `ported/*.c` files. Reminds to use code-transformer or debug-agent (warn-only — subagents use the same tools, so blocking would break the pipeline).
 - **`verify-before-stop.sh`** — Reminds Claude to verify work before stopping.
 - **`save-port-context.sh`** — On auto-compaction, injects active port names into context.
