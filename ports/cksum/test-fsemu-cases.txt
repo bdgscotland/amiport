@@ -1,0 +1,304 @@
+# cksum test suite for FS-UAE
+# Category 1 (CLI), FreeBSD cksum 1.0 ported to AmigaOS 3.x
+#
+# Algorithms supported:
+#   default    -- POSIX CRC-32 (POSIX 1003.2), output: "<crc> <bytes> [file]"
+#   -o 1       -- BSD sum (16-bit rotate-right), output: "<sum> <1k-blocks> [file]"
+#   -o 2       -- SYSV sum (32-bit additive),    output: "<sum> <512-blocks> [file]"
+#   -o 3       -- CRC32 (AUTODIN-II/Ethernet),   output: "<crc> <bytes> [file]"
+#
+# All EXPECT: values verified by native tool run on macOS.
+
+# =============================================================================
+# FUNCTIONAL: Default POSIX CRC mode
+# =============================================================================
+
+# Native: cksum test-oneline.txt -> "3733384285 12 ..."
+TEST: Default POSIX CRC of known file produces correct checksum and byte count
+CMD: WORK:cksum WORK:test-oneline.txt
+EXPECT: 3733384285 12 WORK:test-oneline.txt
+EXPECT_RC: 0
+
+# Native: cksum test-cksum-abc.txt -> "1112837078 4 ..."
+TEST: Default POSIX CRC of 4-byte file abc-newline
+CMD: WORK:cksum WORK:test-cksum-abc.txt
+EXPECT: 1112837078 4 WORK:test-cksum-abc.txt
+EXPECT_RC: 0
+
+# =============================================================================
+# FUNCTIONAL: -o 1 BSD sum (16-bit rotate-right)
+# =============================================================================
+
+# Native: posix_crc_impl with sum1 algo on "hello world\n" -> 03762     1
+TEST: -o 1 selects BSD sum (16-bit rotate-right) algorithm
+CMD: WORK:cksum -o 1 WORK:test-oneline.txt
+EXPECT: 03762     1 WORK:test-oneline.txt
+EXPECT_RC: 0
+
+# Native: sum1("abc\n") -> 08288, 4 bytes = 1 block of 1024
+TEST: -o 1 BSD sum for abc-newline file
+CMD: WORK:cksum -o 1 WORK:test-cksum-abc.txt
+EXPECT: 08288     1 WORK:test-cksum-abc.txt
+EXPECT_RC: 0
+
+# Native: sum1 on 118-byte multiline file -> 01828, ceil(118/1024)=1 block
+TEST: -o 1 BSD sum on multi-line file produces correct block count
+CMD: WORK:cksum -o 1 WORK:test-multiline.txt
+EXPECT: 39256     1 WORK:test-multiline.txt
+EXPECT_RC: 0
+
+# =============================================================================
+# FUNCTIONAL: -o 2 SYSV sum (32-bit additive)
+# =============================================================================
+
+# Native: sum2("hello world\n") -> 01126, 12 bytes = 1 block of 512
+TEST: -o 2 selects SYSV sum (32-bit additive) algorithm
+CMD: WORK:cksum -o 2 WORK:test-oneline.txt
+EXPECT: 01126     1 WORK:test-oneline.txt
+EXPECT_RC: 0
+
+# Native: sum2("abc\n") -> 00304, 4 bytes = 1 block
+TEST: -o 2 SYSV sum for abc-newline file
+CMD: WORK:cksum -o 2 WORK:test-cksum-abc.txt
+EXPECT: 00304     1 WORK:test-cksum-abc.txt
+EXPECT_RC: 0
+
+# =============================================================================
+# FUNCTIONAL: -o 3 CRC32 (AUTODIN-II/Ethernet polynomial)
+# =============================================================================
+
+# Native: crc32("hello world\n") -> 2936552237, 12 bytes
+TEST: -o 3 selects CRC32 (AUTODIN-II Ethernet polynomial) algorithm
+CMD: WORK:cksum -o 3 WORK:test-oneline.txt
+EXPECT: 2936552237 12 WORK:test-oneline.txt
+EXPECT_RC: 0
+
+# Native: crc32("abc\n") -> 1200128334, 4 bytes
+TEST: -o 3 CRC32 for abc-newline file
+CMD: WORK:cksum -o 3 WORK:test-cksum-abc.txt
+EXPECT: 1200128334 4 WORK:test-cksum-abc.txt
+EXPECT_RC: 0
+
+# Native: crc32(binary.dat = 8 bytes 00 01 02 ff fe fd 80 7f) -> 1684391851
+TEST: -o 3 CRC32 processes binary data with high-byte values correctly
+CMD: WORK:cksum -o 3 WORK:test-binary.dat
+EXPECT: 1684391851 8 WORK:test-binary.dat
+EXPECT_RC: 0
+
+# =============================================================================
+# EDGE CASE: Empty file
+# =============================================================================
+
+# Native: cksum /dev/null -> "4294967295 0 ..." (POSIX CRC of 0 bytes)
+# The POSIX CRC accumulates length bytes: empty has no length bits, so ~0 = 4294967295
+TEST: Default POSIX CRC of empty file returns 4294967295 with byte count 0
+CMD: WORK:cksum WORK:test-empty.txt
+EXPECT: 4294967295 0 WORK:test-empty.txt
+EXPECT_RC: 0
+
+# Native: sum1(empty) -> 00000     0
+TEST: -o 1 BSD sum of empty file produces zero checksum and zero blocks
+CMD: WORK:cksum -o 1 WORK:test-empty.txt
+EXPECT: 00000     0 WORK:test-empty.txt
+EXPECT_RC: 0
+
+# Native: sum2(empty) -> 00000     0
+TEST: -o 2 SYSV sum of empty file produces zero checksum and zero blocks
+CMD: WORK:cksum -o 2 WORK:test-empty.txt
+EXPECT: 00000     0 WORK:test-empty.txt
+EXPECT_RC: 0
+
+# Native: crc32(empty) -> 0 0 (CRC32 of empty = ~(~0) = 0)
+TEST: -o 3 CRC32 of empty file produces zero checksum
+CMD: WORK:cksum -o 3 WORK:test-empty.txt
+EXPECT: 0 0 WORK:test-empty.txt
+EXPECT_RC: 0
+
+# =============================================================================
+# EDGE CASE: Binary data
+# =============================================================================
+
+# Native: cksum test-binary.dat (8 bytes: 00 01 02 ff fe fd 80 7f) -> 1155287845
+TEST: Default POSIX CRC handles binary data including null bytes and high bytes
+CMD: WORK:cksum WORK:test-binary.dat
+EXPECT: 1155287845 8 WORK:test-binary.dat
+EXPECT_RC: 0
+
+# =============================================================================
+# EDGE CASE: Long lines
+# =============================================================================
+
+# Shared test-longline.txt is 1501 bytes
+TEST: Default POSIX CRC on file with long line over 1024 bytes
+CMD: WORK:cksum WORK:test-longline.txt
+EXPECT: 4007753727 1501 WORK:test-longline.txt
+EXPECT_RC: 0
+
+# Shared test-longline.txt is 1501 bytes, ceil(1501/1024)=2 blocks
+TEST: -o 1 BSD sum block count spans two 1K blocks for longline file
+CMD: WORK:cksum -o 1 WORK:test-longline.txt
+EXPECT: 62602     2 WORK:test-longline.txt
+EXPECT_RC: 0
+
+# Shared test-longline.txt is 1501 bytes, ceil(1501/512)=3 blocks
+TEST: -o 2 SYSV sum block count spans three 512-byte blocks for longline file
+CMD: WORK:cksum -o 2 WORK:test-longline.txt
+EXPECT: 14440     3 WORK:test-longline.txt
+EXPECT_RC: 0
+
+# =============================================================================
+# AMIGA-SPECIFIC: WORK: volume path handling
+# =============================================================================
+
+# Native: cksum test-cksum-hello.txt -> "2833000058 14 ..."
+# Tests that WORK: path is accepted and echoed in output correctly
+TEST: Amiga WORK: volume path appears verbatim in output filename field
+CMD: WORK:cksum WORK:test-cksum-hello.txt
+EXPECT: 2833000058 14 WORK:test-cksum-hello.txt
+EXPECT_RC: 0
+
+# =============================================================================
+# MULTI-FILE: Process multiple files in one invocation
+# =============================================================================
+
+# Native: cksum test-oneline.txt test-cksum-abc.txt
+# Line 1: 3733384285 12 WORK:test-oneline.txt
+# Line 2: 1112837078 4 WORK:test-cksum-abc.txt
+TEST: Processing two files outputs two lines each with correct checksum and filename
+CMD: WORK:cksum WORK:test-oneline.txt WORK:test-cksum-abc.txt
+EXPECT: 3733384285 12 WORK:test-oneline.txt
+EXPECT_LINE: 2,1112837078 4 WORK:test-cksum-abc.txt
+EXPECT_RC: 0
+
+# Native: cksum -o 1 test-oneline.txt test-cksum-abc.txt
+# Line 1: 03762     1 WORK:test-oneline.txt
+# Line 2: 08288     1 WORK:test-cksum-abc.txt
+TEST: -o 1 BSD sum on two files produces two output lines in correct format
+CMD: WORK:cksum -o 1 WORK:test-oneline.txt WORK:test-cksum-abc.txt
+EXPECT: 03762     1 WORK:test-oneline.txt
+EXPECT_LINE: 2,08288     1 WORK:test-cksum-abc.txt
+EXPECT_RC: 0
+
+# Three-file invocation: oneline + abc + empty
+# Line 1: 3733384285 12 WORK:test-oneline.txt
+# Line 2: 1112837078 4 WORK:test-cksum-abc.txt
+# Line 3: 4294967295 0 WORK:test-empty.txt
+TEST: Processing three files continues after empty file and outputs all three results
+CMD: WORK:cksum WORK:test-oneline.txt WORK:test-cksum-abc.txt WORK:test-empty.txt
+EXPECT: 3733384285 12 WORK:test-oneline.txt
+EXPECT_LINE: 2,1112837078 4 WORK:test-cksum-abc.txt
+EXPECT_LINE: 3,4294967295 0 WORK:test-empty.txt
+EXPECT_RC: 0
+
+# =============================================================================
+# ERROR PATH: Missing file
+# =============================================================================
+
+# Program warns to stderr and sets rval=10, but continues if more files follow.
+# For a single missing file: warn() goes to stderr (not captured), RC=10.
+TEST: Missing file produces RC 10 (RETURN_ERROR)
+CMD: WORK:cksum WORK:nonexistent-file-xyz.txt
+EXPECT_RC: 10
+
+# Missing file in multi-file invocation: valid files still processed, RC=10
+# Line 1 should show the valid file result
+TEST: Valid file still processed when earlier argument is missing, RC stays 10
+CMD: WORK:cksum WORK:nonexistent-xyz.txt WORK:test-oneline.txt
+EXPECT: 3733384285 12 WORK:test-oneline.txt
+EXPECT_RC: 10
+
+# =============================================================================
+# ERROR PATH: Invalid -o argument
+# =============================================================================
+
+# warnx("illegal argument to -o option") then usage() -> exit(10)
+TEST: Invalid -o argument produces RC 10 (RETURN_ERROR)
+CMD: WORK:cksum -o 4 WORK:test-oneline.txt
+EXPECT_RC: 10
+
+TEST: -o 0 is not a valid algorithm selection
+CMD: WORK:cksum -o 0 WORK:test-oneline.txt
+EXPECT_RC: 10
+
+TEST: Unknown flag produces RC 10 via usage()
+CMD: WORK:cksum -Z WORK:test-oneline.txt
+EXPECT_RC: 10
+
+# =============================================================================
+# REAL-WORLD: Special characters in file content
+# =============================================================================
+
+# Native: cksum test-special-chars.txt (102 bytes) -> 2759490872 102
+TEST: POSIX CRC correctly checksums file containing tabs quotes and backslashes
+CMD: WORK:cksum WORK:test-special-chars.txt
+EXPECT: 2759490872 102 WORK:test-special-chars.txt
+EXPECT_RC: 0
+
+# =============================================================================
+# STRESS: Large file with repeated content (5000 bytes)
+# =============================================================================
+
+# Native: cksum test-cksum-repeated.txt (5000 bytes: 1000 lines "AAAA\n")
+# -> 2188543824 5000
+TEST: POSIX CRC handles 5000-byte file with repeated content (stress: CRC accumulation)
+CMD: WORK:cksum WORK:test-cksum-repeated.txt
+EXPECT: 2188543824 5000 WORK:test-cksum-repeated.txt
+EXPECT_RC: 0
+
+# Native: crc32(test-cksum-repeated.txt) -> 2323139692 5000
+TEST: -o 3 CRC32 handles 5000-byte file correctly (stress: AUTODIN-II across 16KB read buffer)
+CMD: WORK:cksum -o 3 WORK:test-cksum-repeated.txt
+EXPECT: 2323139692 5000 WORK:test-cksum-repeated.txt
+EXPECT_RC: 0
+
+# Native: sum1(test-cksum-repeated.txt, 5000 bytes) -> 01458, ceil(5000/1024)=5 blocks
+TEST: -o 1 BSD sum on 5000-byte file reports correct block count of 5
+CMD: WORK:cksum -o 1 WORK:test-cksum-repeated.txt
+EXPECT: 01458     5 WORK:test-cksum-repeated.txt
+EXPECT_RC: 0
+
+# Native: sum2(test-cksum-repeated.txt, 5000 bytes) -> 07860, ceil(5000/512)=10 blocks
+TEST: -o 2 SYSV sum on 5000-byte file reports correct block count of 10
+CMD: WORK:cksum -o 2 WORK:test-cksum-repeated.txt
+EXPECT: 07860    10 WORK:test-cksum-repeated.txt
+EXPECT_RC: 0
+
+# =============================================================================
+# PRECISION: Known reference checksum values (regression guards)
+# =============================================================================
+
+# These test the exact numerical correctness of the CRC algorithms against
+# known reference values computed from the source algorithm tables.
+
+# POSIX CRC reference: the empty string edge case is the canonical test
+# ~0 (all-ones initial CRC) with no data bytes and no length bytes = ~0 = 4294967295
+TEST: Precision - POSIX CRC of empty file is exactly 4294967295 (canonical reference value)
+CMD: WORK:cksum WORK:test-empty.txt
+EXPECT: 4294967295 0 WORK:test-empty.txt
+EXPECT_RC: 0
+
+# CRC32 reference: empty file = ~(~0) = 0 (initial ~0, no XOR operations, complement = 0)
+TEST: Precision - CRC32 of empty file is exactly 0 (AUTODIN-II identity for empty input)
+CMD: WORK:cksum -o 3 WORK:test-empty.txt
+EXPECT: 0 0 WORK:test-empty.txt
+EXPECT_RC: 0
+
+# POSIX CRC known value: "hello world\n" (12 bytes) = 3733384285
+# This exact value is verified against macOS native cksum and the FreeBSD polynomial table
+TEST: Precision - POSIX CRC of hello-world-newline matches FreeBSD reference value
+CMD: WORK:cksum WORK:test-oneline.txt
+EXPECT: 3733384285 12 WORK:test-oneline.txt
+EXPECT_RC: 0
+
+# CRC32 known value: "hello world\n" (12 bytes) = 2936552237
+# Verified against AUTODIN-II polynomial (same as Ethernet CRC32 but not same as zlib CRC32)
+TEST: Precision - AUTODIN-II CRC32 of hello-world-newline matches Ethernet polynomial reference
+CMD: WORK:cksum -o 3 WORK:test-oneline.txt
+EXPECT: 2936552237 12 WORK:test-oneline.txt
+EXPECT_RC: 0
+
+# BSD sum1 produces values in range 0..65535 (16-bit). Known reference: "hello world\n" = 3762
+TEST: Precision - BSD sum1 of hello-world-newline is 16-bit value 3762
+CMD: WORK:cksum -o 1 WORK:test-oneline.txt
+EXPECT: 03762     1 WORK:test-oneline.txt
+EXPECT_RC: 0

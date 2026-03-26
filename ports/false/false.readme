@@ -1,0 +1,31 @@
+Short:        Return false value (OpenBSD)
+Type:         util/cli
+Architecture: m68k-amigaos >= 3.0
+Uploader:     duncan@bowring.us
+Author:       The Regents of the University of California (ported by Duncan Bowring)
+Version:      1.1
+
+false - Return false value (OpenBSD)
+
+Original author: The Regents of the University of California
+Ported by Duncan Bowring using amiport (AI-assisted porting toolkit).
+Project: https://github.com/bdgscotland/amiport
+
+Cross-compiled with m68k-amigaos-gcc for AmigaOS 3.x (68000+).
+Tested in FS-UAE with AmigaOS 3.1.
+
+Usage:
+  false
+
+  Returns exit code 10 (RETURN_ERROR). Useful in AmigaDOS scripts to
+  force an error condition or test error-handling paths.
+
+Note: On AmigaOS, exit code 10 is used instead of Unix exit(1) because
+AmigaDOS scripts test with IF ERROR (>=10), not IF WARN (>=5).
+
+Examples:
+  false                    ; returns RETURN_ERROR (10) always
+  false ; IF ERROR FAIL    ; always triggers the FAIL branch
+
+Includes full source code (original POSIX and ported Amiga versions)
+and PORT.md documenting every transformation applied.

@@ -1,0 +1,22 @@
+{
+    "name": "getopt",
+    "version": "1.10",
+    "revision": 1,
+    "description": "Parse command options (OpenBSD)",
+    "category": "util/cli",
+    "source": "OpenBSD getopt v1.10",
+    "license": "Public Domain",
+    "size": 16808,
+    "sha256": "fe68416be4439ccd098e666cd4307cdda45c4ee154e7ba2ac5357288f674f82f",
+    "download": "/packages/getopt-1.10.lha",
+    "requires": [],
+    "aminet": "",
+    "stack": 8192,
+    "status": "stable",
+    "published_at": "2026-03-26T11:35:00Z",
+    "readme": "Short:        Parse command options (OpenBSD)\nType:         util/cli\nArchitecture: m68k-amigaos >= 3.0\nUploader:     duncan (at) bowring (dot) us\nAuthor:       Henry Spencer (ported by Duncan Bowring)\nVersion:      1.10\n\ngetopt - Parse command options (OpenBSD)\n\nOriginal author: Henry Spencer\nPorted by Duncan Bowring using amiport (AI-assisted porting toolkit).\nProject: https://github.com/bdgscotland/amiport\n\nCross-compiled with m68k-amigaos-gcc for AmigaOS 3.x (68000+).\nTested in FS-UAE with AmigaOS 3.1.\n\nUsage:\n  getopt optstring parameters\n\n  Parses command-line options for use in AmigaDOS shell scripts.\n  Outputs normalized option list ending with --.\n\nExamples:\n  args=`getopt abo: $*`\n  IF NOT WARN\n    ; valid options\n  ENDIF\n\n  getopt \"ab:c\" -a -b arg file   ; outputs: -a -b arg -- file\n\nIncludes full source code (original POSIX and ported Amiga versions)\nand PORT.md documenting every transformation applied.",
+    "test_count": 40,
+    "test_pass": 40,
+    "porting_notes": "Uses amiport getopt implementation (libnix getopt_long is broken, crash-patterns #17). Added __nowild=1 to suppress wildcard expansion of the option spec string. 40 tests cover short options, option arguments, -- terminator, invalid options, and error paths.",
+    "known_limitations": "None."
+}

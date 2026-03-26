@@ -30,6 +30,15 @@ Version format: `upstream[-portrev]` — port revision is shown when > 1 (e.g., 
 | [awk](ports/awk/) | 2024.12.25 | Pattern scanning and processing language | Scripting | BWK "One True Awk" (MIT-like) | Built & tested (44/44 FS-UAE) | Not submitted |
 | [basename](ports/basename/) | 1.14 | Strip directory and suffix from filenames | CLI | OpenBSD basename v1.14 (BSD 3-Clause) | Built & tested (32/32 FS-UAE) | Not submitted |
 | [dirname](ports/dirname/) | 1.17 | Strip last component from filename | CLI | OpenBSD dirname v1.17 (ISC) | Built & tested (24/24 FS-UAE) | Not submitted |
+| [true](ports/true/) | 1.1 | Return true value (exit 0) | CLI | OpenBSD true v1.1 (BSD 3-Clause) | Built & tested (13/13 FS-UAE) | Not submitted |
+| [false](ports/false/) | 1.1 | Return false value (exit error) | CLI | OpenBSD false v1.1 (BSD 3-Clause) | Built & tested (14/14 FS-UAE) | Not submitted |
+| [colrm](ports/colrm/) | 1.14 | Remove columns from lines | CLI | OpenBSD colrm v1.14 (BSD 3-Clause) | Built & tested (28/28 FS-UAE) | Not submitted |
+| [factor](ports/factor/) | 1.30 | Factor a number into primes | Misc | OpenBSD factor v1.30 (BSD 3-Clause) | Built & tested (39/39 FS-UAE) | Not submitted |
+| [getopt](ports/getopt/) | 1.10 | Parse command options in scripts | CLI | OpenBSD getopt v1.10 (Public Domain) | Built & tested (40/40 FS-UAE) | Not submitted |
+| [jot](ports/jot/) | 1.56 | Print sequential or random data | CLI | OpenBSD jot v1.56 (BSD 3-Clause) | Built & tested (41/41 FS-UAE) | Not submitted |
+| [unexpand](ports/unexpand/) | 1.13 | Convert spaces to tabs | CLI | OpenBSD unexpand v1.13 (BSD 3-Clause) | Built & tested (32/32 FS-UAE) | Not submitted |
+| [cksum](ports/cksum/) | 1.0 | Display file checksums and sizes | CLI | FreeBSD cksum v1.0 (BSD 3-Clause) | Built & tested (37/37 FS-UAE) | Not submitted |
+| [col](ports/col/) | 1.20 | Filter reverse line feeds | CLI | OpenBSD col v1.20 (BSD 3-Clause) | Built & tested (29/29 FS-UAE) | Not submitted |
 
 ## Aminet Publication Tracking
 
@@ -76,6 +85,15 @@ Each port exercises different parts of the posix-shim library:
 | comm | `err`, `check_break` |
 | rev | `err/warn`, `getline` |
 | expand | `err/errx`, `expand_argv/free_argv` |
+| true | (none -- minimal binary) |
+| false | (none -- minimal binary) |
+| colrm | `err/errx`, `expand_argv/free_argv` |
+| factor | `err/errx`, `expand_argv/free_argv` |
+| getopt | `getopt`, `err`, `expand_argv/free_argv` |
+| jot | `getopt`, `err/errx`, `expand_argv/free_argv` |
+| unexpand | `err/errx`, `expand_argv/free_argv` |
+| cksum | `err/errx/warn`, `expand_argv/free_argv` |
+| col | `err/errx/warn`, `expand_argv/free_argv` |
 
 ## How to Build
 

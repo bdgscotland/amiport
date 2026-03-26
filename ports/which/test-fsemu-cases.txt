@@ -1,0 +1,236 @@
+# which FS-UAE test suite
+# OpenBSD which 1.27 -- Category 1 (CLI), minimum 15 tests required
+#
+# SOURCE ANALYSIS:
+#   Flags: -a (allmatches)
+#   getopt string: "a"
+#   Exit codes: 0 (all found), 5 (some found), 20 (none found), 10 (bad args/strdup fail)
+#   Error paths: usage() via no-args or bad flag; warnx "Command not found" to stderr;
+#                warnc ENAMETOOLONG to stderr; err "strdup" to stderr
+#
+# PATH ENV NOTES:
+#   amiport_getenv("PATH") reads ENV:PATH (set by SetEnv command).
+#   The test environment does NOT have PATH set by default.
+#   The Startup-Sequence uses "Path" command (AmigaDOS search path), which is
+#   separate from the PATH environment variable.
+#   Fallback _PATH_DEFPATH = "C:" -- strsep on "C:" gives "C" then "".
+#   "C" is a relative directory name, NOT the C: volume -- commands NOT found.
+#
+# WRAPPER SCRIPTS:
+#   test-which-withpath.rexx: Sets ENV:PATH="/C:/WORK", runs which, cleans up.
+#     /C/ is the POSIX form of C: on AmigaOS (Lock("/C/Sort") = C:Sort).
+#   test-which-nopath.rexx: Ensures ENV:PATH is unset, runs which.
+#
+# VERIFIED COMMANDS IN C: (AmigaOS system commands available for testing):
+#   Sort, List, Dir, Copy, Date, Assign, Execute, Delete, Which,
+#   MakeDir, Wait, Info, Status, Type, Avail, Version, Search
+#
+# VERIFIED IN WORK: (ported binaries): which, sort, grep, wc, diff, sed, etc.
+#
+# EXPECTED OUTPUT FORMAT:
+#   PATH="/C:/WORK", searching "Sort":
+#     p="/C" from strsep -> filename="/C/Sort" -> Lock("/C/Sort")=C:Sort -> found
+#     Output: "/C/Sort"
+#   Direct path "/C/Sort":
+#     strchr('/')=true -> stat("/C/Sort")->Lock("/C/Sort")=C:Sort -> found
+#     Output: "/C/Sort"
+
+# -----------------------------------------------------------------------
+# CATEGORY 1: FUNCTIONAL TESTS (per-flag coverage)
+# -----------------------------------------------------------------------
+
+# Native: with PATH=/C:/WORK, which Sort -> /C/Sort
+TEST: Find a known command via PATH search
+CMD: SYS:Rexxc/rx WORK:test-which-withpath.rexx Sort
+EXPECT: /C/Sort
+EXPECT_RC: 0
+
+# Native: which /C/Sort -> /C/Sort (direct path with slash bypasses PATH)
+TEST: Direct path with slash bypasses PATH search
+CMD: WORK:which /C/Sort
+EXPECT: /C/Sort
+EXPECT_RC: 0
+
+# Native: with PATH=/C:/WORK, which Sort List (both in C:)
+TEST: Multiple commands all found returns RC 0
+CMD: SYS:Rexxc/rx WORK:test-which-withpath.rexx Sort List
+EXPECT: /C/Sort
+EXPECT_LINE: 2,/C/List
+EXPECT_RC: 0
+
+# Native: with PATH=/C:/WORK, which -a sort (sort in C: AND WORK:)
+# sort is in WORK: (lowercase); AmigaOS FFS is case-insensitive so "sort" = "Sort"
+# -a shows all matches: /C/sort first (from /C component), /WORK/sort second
+TEST: Flag -a shows all matches when command appears multiple times in PATH
+CMD: SYS:Rexxc/rx WORK:test-which-withpath.rexx -a sort
+EXPECT: /C/sort
+EXPECT_LINE: 2,/WORK/sort
+EXPECT_RC: 0
+
+# Native: with PATH=/C:/WORK, which sort (no -a, stops at first match)
+# First match is /C/sort (C: comes before WORK in PATH="/C:/WORK")
+TEST: Without -a flag stops at first match found in PATH
+CMD: SYS:Rexxc/rx WORK:test-which-withpath.rexx sort
+EXPECT: /C/sort
+EXPECT_RC: 0
+
+# -----------------------------------------------------------------------
+# CATEGORY 2: ERROR PATH TESTS
+# -----------------------------------------------------------------------
+
+# No arguments: usage() -> stderr, RC=10
+# stderr is NOT captured -- only check RC
+TEST: No arguments prints usage and returns RC 10
+CMD: WORK:which
+EXPECT_RC: 10
+
+# Invalid flag: usage() -> stderr, RC=10
+TEST: Invalid flag returns RC 10
+CMD: WORK:which -Z Sort
+EXPECT_RC: 10
+
+# Command not found: warnx "Sort: Command not found." -> stderr
+# RC=20 because notfound(1) == argc(1): none of the requested commands found
+TEST: Command not found prints nothing to stdout and returns RC 20
+CMD: SYS:Rexxc/rx WORK:test-which-withpath.rexx nonexistent_cmd_xyz_99999
+EXPECT:
+EXPECT_RC: 20
+
+# Direct path not found: warnx to stderr, RC=20
+TEST: Direct path that does not exist returns RC 20
+CMD: WORK:which /WORK/nonexistent_cmd_xyz_99999
+EXPECT:
+EXPECT_RC: 20
+
+# Direct path to a directory: S_ISREG fails -> command not found -> RC=20
+# /C is C: which is a directory, not a regular file
+TEST: Direct path to directory is not found (not a regular file)
+CMD: WORK:which /C
+EXPECT:
+EXPECT_RC: 20
+
+# -----------------------------------------------------------------------
+# CATEGORY 3: EXIT CODE TESTS
+# -----------------------------------------------------------------------
+
+# RC=0: all requested commands found
+# (already covered above by "Multiple commands all found" test)
+
+# RC=5 (RETURN_WARN): some found, some not
+# notfound=1 (nonexistent), argc=2 (Sort + nonexistent) -> 0 < notfound < argc -> RC=5
+TEST: One command found one not found returns RC 5 (RETURN_WARN)
+CMD: SYS:Rexxc/rx WORK:test-which-withpath.rexx Sort nonexistent_cmd_xyz_99999
+EXPECT: /C/Sort
+EXPECT_RC: 5
+
+# RC=20 (RETURN_FAIL): none found
+# (already covered by "Command not found" test)
+
+# RC=10 (RETURN_ERROR): bad args
+# (already covered by "No arguments" and "Invalid flag" tests)
+
+# -----------------------------------------------------------------------
+# CATEGORY 4: EDGE CASE TESTS
+# -----------------------------------------------------------------------
+
+# Empty PATH env var: program falls back to _PATH_DEFPATH="C:"
+# strsep("C:", ":") gives "C" then "" -> checks "C/Sort" (relative, not C:Sort)
+# On AmigaOS, "C/Sort" looks for a dir "C" in current directory -> not found
+# Result: Sort not found -> RC=20
+# This tests the fallback behavior and documents the PATH="" limitation
+TEST: Empty PATH environment falls back to C: default but cannot find commands
+CMD: SYS:Rexxc/rx WORK:test-which-nopath.rexx Sort
+EXPECT:
+EXPECT_RC: 20
+
+# Direct path to WORK:which itself
+TEST: Find WORK:which binary via direct slash path
+CMD: WORK:which /WORK/which
+EXPECT: /WORK/which
+EXPECT_RC: 0
+
+# Multiple args: two not found -> RC=20 (notfound == argc == 2)
+TEST: Multiple commands all not found returns RC 20
+CMD: SYS:Rexxc/rx WORK:test-which-withpath.rexx nonexistent_aaa_999 nonexistent_bbb_888
+EXPECT:
+EXPECT_RC: 20
+
+# -----------------------------------------------------------------------
+# CATEGORY 5: AMIGA-SPECIFIC TESTS
+# -----------------------------------------------------------------------
+
+# Test WORK: volume path handling via the POSIX /vol/ form
+TEST: POSIX slash-form of WORK: volume path is recognized
+CMD: WORK:which /WORK/grep
+EXPECT: /WORK/grep
+EXPECT_RC: 0
+
+# Test that AmigaOS assigns (C:) are accessible via /C/ POSIX form in PATH search
+TEST: C: commands found when PATH uses POSIX slash-form /C/
+CMD: SYS:Rexxc/rx WORK:test-which-withpath.rexx List
+EXPECT: /C/List
+EXPECT_RC: 0
+
+# Test multiple C: commands with PATH search
+TEST: Multiple C: commands found in PATH search
+CMD: SYS:Rexxc/rx WORK:test-which-withpath.rexx Version Status
+EXPECT: /C/Version
+EXPECT_LINE: 2,/C/Status
+EXPECT_RC: 0
+
+# -----------------------------------------------------------------------
+# CATEGORY 6: REAL-WORLD AND STRESS TESTS
+# -----------------------------------------------------------------------
+
+# Real-world: programmer wants to know if grep is installed and where
+TEST: Real-world find grep via direct WORK: path
+CMD: WORK:which /WORK/grep
+EXPECT: /WORK/grep
+EXPECT_RC: 0
+
+# Real-world: check if multiple essential tools exist (pipeline verification)
+# sort, grep, wc are all in WORK: -- tests a typical "do I have these tools?" query
+TEST: Real-world check for multiple porting tools all in WORK:
+CMD: WORK:which /WORK/sort /WORK/grep /WORK/wc
+EXPECT: /WORK/sort
+EXPECT_LINE: 2,/WORK/grep
+EXPECT_LINE: 3,/WORK/wc
+EXPECT_RC: 0
+
+# Real-world: -a finds tool in multiple locations (C: AND WORK:)
+# grep: only in WORK:, not in C:. Use "which" which IS in both C: and WORK:
+# C:Which and WORK:which are both present
+TEST: Real-world -a reveals which exists in both C: system and WORK: port
+CMD: SYS:Rexxc/rx WORK:test-which-withpath.rexx -a which
+EXPECT: /C/which
+EXPECT_LINE: 2,/WORK/which
+EXPECT_RC: 0
+
+# Stress: long command name that approaches PATH_MAX when combined with path component
+# PATH_MAX=256, path component="/C" (2 chars) + "/" (1 char) + name
+# Name of 200 chars: total = 2+1+200 = 203 < 256, no overflow
+# Name of 260 chars: total = 2+1+260 = 263 >= 256 -> ENAMETOOLONG warning to stderr
+# Expected: no stdout (command not found), RC=20 (notfound == argc)
+# The warnc error goes to stderr (not captured), but RC should still be 20
+TEST: Stress command name too long for PATH_MAX triggers ENAMETOOLONG (RC 20)
+CMD: SYS:Rexxc/rx WORK:test-which-withpath.rexx aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+EXPECT:
+EXPECT_RC: 20
+
+# Stress: many commands requested, all found
+# Tests iteration over argc without any notfound tracking error
+TEST: Stress find five commands all in C: returns RC 0
+CMD: SYS:Rexxc/rx WORK:test-which-withpath.rexx Sort List Dir Copy Delete
+EXPECT: /C/Sort
+EXPECT_LINE: 5,/C/Delete
+EXPECT_RC: 0
+
+# Precision: verify that -a with three-location command produces correct line count
+# Sort is in C: (as Sort) and WORK: does NOT have a "Sort" binary listed
+# Actually WORK: has "sort" (lowercase) -- on case-insensitive FFS this matches "Sort"
+# So -a Sort with PATH="/C:/WORK" gives: /C/Sort (line 1), /WORK/Sort (line 2) -> exactly 2 lines
+TEST: Precision -a reports exactly two matches when command in both C: and WORK:
+CMD: SYS:Rexxc/rx WORK:test-which-withpath.rexx -a Sort
+EXPECT: /C/Sort
+EXPECT_LINE: 2,/WORK/Sort
+EXPECT_RC: 0

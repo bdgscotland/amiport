@@ -1,0 +1,292 @@
+# test-fsemu-cases.txt -- FS-UAE functional test suite for unexpand 1.13
+# unexpand: convert leading spaces to tabs (inverse of expand)
+# Source: OpenBSD unexpand.c,v 1.13 2016/10/11 16:22:15 millert
+# Category: 1 (CLI tool)
+# Minimum tests required: 15
+#
+# Flags tested: -a (convert all spaces, not just leading)
+# NOTE: This port does NOT support -t (not in OpenBSD 1.13 source).
+#       Any flag other than -a returns RC=10.
+#
+# Error paths tested:
+#   fprintf(stderr, "usage: unexpand [-a] [file ...]\n") + exit(10) -- unknown flag
+#   perror(argv[0]) + exit(10) -- nonexistent file
+#
+# NOTE: stderr is NOT captured by the harness.
+#       Error path tests use EXPECT_RC: only.
+#
+# STDIN HANG WARNING: unexpand reads stdin when no file arg is given.
+#   All CMD lines pass an explicit file argument to prevent hang.
+#   Tests for stdin behavior are omitted (ARexx limitation -- no EOF injection).
+#
+# Tab characters in EXPECT: lines are literal ASCII 0x09.
+
+# ============================================================
+# FUNCTIONAL TESTS -- Flag coverage
+# ============================================================
+
+# Native: unexpand test-unexpand-8spaces.txt | head -1
+# Input: "        hello world\n" (8 leading spaces)
+TEST: Default mode converts 8 leading spaces to 1 tab
+CMD: WORK:unexpand WORK:test-unexpand-8spaces.txt
+EXPECT: 	hello world
+EXPECT_RC: 0
+
+# Native: unexpand test-unexpand-7spaces.txt | head -1
+# Input: "       hello world\n" (7 leading spaces -- less than tab stop)
+TEST: Default mode does NOT convert 7 spaces (less than tab stop)
+CMD: WORK:unexpand WORK:test-unexpand-7spaces.txt
+EXPECT:        hello world
+EXPECT_RC: 0
+
+# Native: unexpand test-unexpand-9spaces.txt | head -1
+# Input: "         hello world\n" (9 leading spaces)
+TEST: Default mode converts 8 of 9 leading spaces to tab plus 1 space
+CMD: WORK:unexpand WORK:test-unexpand-9spaces.txt
+EXPECT: 	 hello world
+EXPECT_RC: 0
+
+# Native: unexpand test-unexpand-16spaces.txt | head -1
+# Input: "                hello world\n" (16 leading spaces)
+TEST: Default mode converts 16 leading spaces to 2 tabs
+CMD: WORK:unexpand WORK:test-unexpand-16spaces.txt
+EXPECT: 		hello world
+EXPECT_RC: 0
+
+# Native: unexpand test-unexpand-1space.txt | head -1
+# Input: " hello world\n" (1 leading space -- far less than tab stop)
+TEST: Default mode does NOT convert single leading space
+CMD: WORK:unexpand WORK:test-unexpand-1space.txt
+EXPECT:  hello world
+EXPECT_RC: 0
+
+# Native: unexpand test-unexpand-midspaces.txt | head -1
+# Input: "hello        world\n" (8 spaces in middle, no leading spaces)
+TEST: Default mode leaves spaces in middle of line unchanged
+CMD: WORK:unexpand WORK:test-unexpand-midspaces.txt
+EXPECT: hello        world
+EXPECT_RC: 0
+
+# Native: unexpand -a test-unexpand-allflag.txt | head -1
+# Input: "hello        world\n" (8 spaces starting at col 5, reaches col 13)
+# "hello" = 5 chars, +8 spaces = col 13. Tab stop at 8 (from col 5->8 via tab),
+# then 5 remaining spaces. Output: "hello\t     world"
+TEST: Flag -a converts spaces in middle of line that span a tab stop
+CMD: WORK:unexpand -a WORK:test-unexpand-allflag.txt
+EXPECT: hello	     world
+EXPECT_RC: 0
+
+# Native: unexpand -a test-unexpand-8spaces.txt | head -1
+# -a flag should also work correctly on leading spaces
+TEST: Flag -a with leading spaces gives same result as default mode
+CMD: WORK:unexpand -a WORK:test-unexpand-8spaces.txt
+EXPECT: 	hello world
+EXPECT_RC: 0
+
+# ============================================================
+# EXIT CODE TESTS
+# ============================================================
+
+# Native: unexpand test-unexpand-8spaces.txt; echo $?
+TEST: Successful conversion returns RC=0
+CMD: WORK:unexpand WORK:test-unexpand-8spaces.txt
+EXPECT: 	hello world
+EXPECT_RC: 0
+
+# Nonexistent file -- perror() + exit(10)
+# (error message goes to stderr -- not captured)
+TEST: Nonexistent file returns RETURN_ERROR
+CMD: WORK:unexpand WORK:nonexistent-file-does-not-exist.txt
+EXPECT_RC: 10
+
+# Unknown flag -- usage + exit(10)
+TEST: Unknown flag returns RETURN_ERROR
+CMD: WORK:unexpand -z WORK:test-unexpand-8spaces.txt
+EXPECT_RC: 10
+
+# ============================================================
+# ERROR PATH TESTS
+# ============================================================
+
+# The source checks only one condition: argc>0 && argv[0][0]=='-' && strcmp!=-a
+# Any flag that is not exactly "-a" triggers: usage + exit(10)
+TEST: Flag other than -a triggers usage and returns RETURN_ERROR
+CMD: WORK:unexpand -t WORK:test-unexpand-8spaces.txt
+EXPECT_RC: 10
+
+# Double-flag (not recognised -- only -a alone is accepted)
+TEST: Unrecognised double-dash flag returns RETURN_ERROR
+CMD: WORK:unexpand -v WORK:test-unexpand-8spaces.txt
+EXPECT_RC: 10
+
+# ============================================================
+# EDGE CASE TESTS
+# ============================================================
+
+# Native: unexpand test-empty.txt; echo $?
+TEST: Empty file produces no output and exits cleanly
+CMD: WORK:unexpand WORK:test-empty.txt
+EXPECT:
+EXPECT_RC: 0
+
+# Native: unexpand test-unexpand-onlyspaces.txt | head -1
+# Input: "        \n" (8 spaces, no other content)
+# 8 spaces at column 0 -> exactly 1 tab stop -> 1 tab
+TEST: Line containing only 8 spaces converts to single tab
+CMD: WORK:unexpand WORK:test-unexpand-onlyspaces.txt
+EXPECT: 	
+EXPECT_RC: 0
+
+# Native: unexpand test-unexpand-onlytabs.txt | head -1
+# Input: "\t\thello\n" -- tabs are already tabs, pass through unchanged
+TEST: Line with only leading tabs passes through unchanged
+CMD: WORK:unexpand WORK:test-unexpand-onlytabs.txt
+EXPECT: 		hello
+EXPECT_RC: 0
+
+# Native: unexpand test-unexpand-mixed.txt | head -1
+# Input: "\t        hello\n" (tab then 8 spaces)
+# Tab sets dcol=8, then 8 spaces set dcol=16 -> 2 tabs total
+TEST: Mixed leading tab then 8 spaces converts to 2 tabs
+CMD: WORK:unexpand WORK:test-unexpand-mixed.txt
+EXPECT: 		hello
+EXPECT_RC: 0
+
+# Native: unexpand test-unexpand-6spacetab.txt | head -1
+# Input: "      \thello\n" (6 spaces then tab)
+# 6 spaces: dcol=6; tab: dcol=8 (rounded). 'h': emit 1 tab (0->8). Output: "\thello"
+TEST: Six spaces followed by tab collapses to single tab
+CMD: WORK:unexpand WORK:test-unexpand-6spacetab.txt
+EXPECT: 	hello
+EXPECT_RC: 0
+
+# Native: unexpand test-unexpand-nonewline.txt | xxd
+# Input: "        hello" (no trailing newline)
+# The tabify() code uses strlcpy to copy the tail -- no newline is fine
+TEST: File without trailing newline is handled correctly
+CMD: WORK:unexpand WORK:test-unexpand-nonewline.txt
+EXPECT: 	hello
+EXPECT_RC: 0
+
+# Native: unexpand test-unexpand-15spaces.txt | head -1
+# Input: "               text\n" (15 leading spaces)
+# 15 spaces: tab stop at 8, then 7 remaining spaces -> "\t       text"
+TEST: Fifteen leading spaces converts to tab plus 7 trailing spaces
+CMD: WORK:unexpand WORK:test-unexpand-15spaces.txt
+EXPECT: 	       text
+EXPECT_RC: 0
+
+# Native: unexpand test-unexpand-emptylines.txt
+# Input: "\n\n        hello\n" -- empty lines + indented line
+# Can't test empty lines in EXPECT (harness skips them), so just verify
+# the indented line is converted and RC=0
+TEST: File with empty lines and indented line processes without error
+CMD: WORK:unexpand WORK:test-unexpand-emptylines.txt
+EXPECT_CONTAINS: hello
+EXPECT_RC: 0
+EXPECT_RC: 0
+
+# ============================================================
+# AMIGA-SPECIFIC TESTS
+# ============================================================
+
+# Verify WORK: volume path resolution works
+TEST: WORK: volume path is resolved correctly for input file
+CMD: WORK:unexpand WORK:test-unexpand-8spaces.txt
+EXPECT: 	hello world
+EXPECT_RC: 0
+
+# Verify -a flag with WORK: path
+TEST: Flag -a works with WORK: volume path
+CMD: WORK:unexpand -a WORK:test-unexpand-allflag.txt
+EXPECT: hello	     world
+EXPECT_RC: 0
+
+# ============================================================
+# MULTI-LINE OUTPUT VERIFICATION
+# ============================================================
+
+# Native: unexpand test-unexpand-multiline.txt
+# Input: 3 lines each with 8 leading spaces
+# All 3 lines should convert to [TAB]lineN
+TEST: Multi-line file converts each indented line
+CMD: WORK:unexpand WORK:test-unexpand-multiline.txt
+EXPECT: 	line1
+EXPECT_LINE: 2,	line2
+EXPECT_LINE: 3,	line3
+EXPECT_RC: 0
+
+# Native: unexpand test-unexpand-file1.txt test-unexpand-file2.txt
+# Multi-file: two files processed in sequence
+TEST: Multiple file arguments processed sequentially
+CMD: WORK:unexpand WORK:test-unexpand-file1.txt WORK:test-unexpand-file2.txt
+EXPECT: 	file1
+EXPECT_LINE: 2,	file2
+EXPECT_RC: 0
+
+# ============================================================
+# REAL-WORLD TESTS
+# ============================================================
+
+# Native: unexpand test-unexpand-csource.txt | head -1
+# Real-world use: un-expanding C source with 8-space indentation
+# Line 1 is "int main(void)" -- no indentation, passes through
+TEST: Real-world C source with 8-space indentation -- unindented line passes through
+CMD: WORK:unexpand WORK:test-unexpand-csource.txt
+EXPECT: int main(void)
+EXPECT_RC: 0
+
+# Native: unexpand test-unexpand-csource.txt | sed -n '3p'
+# Line 3: "        int x = 1;" (8 spaces -> tab)
+TEST: Real-world C source -- singly-indented line converts to tab
+CMD: WORK:unexpand WORK:test-unexpand-csource.txt
+EXPECT_LINE: 3,	int x = 1;
+EXPECT_RC: 0
+
+# Native: unexpand test-unexpand-csource.txt | sed -n '5p'
+# Line 5: "                return 0;" (16 spaces -> 2 tabs)
+TEST: Real-world C source -- doubly-indented line converts to 2 tabs
+CMD: WORK:unexpand WORK:test-unexpand-csource.txt
+EXPECT_LINE: 5,		return 0;
+EXPECT_RC: 0
+
+# ============================================================
+# STRESS TESTS
+# ============================================================
+
+# Native: unexpand test-unexpand-stress-500.txt | head -1
+# 500 lines, each with 8 leading spaces -- tests sustained processing
+TEST: Stress test with 500 lines processes first line correctly
+CMD: WORK:unexpand WORK:test-unexpand-stress-500.txt
+EXPECT: 	line0
+EXPECT_RC: 0
+
+# Verify last line processed correctly
+TEST: Stress test with 500 lines processes last line correctly
+CMD: WORK:unexpand WORK:test-unexpand-stress-500.txt
+EXPECT_LINE: 500,	line499
+EXPECT_RC: 0
+
+# Native: unexpand test-unexpand-500spaces.txt | wc -c -> 67
+# 500 spaces: 62 full tab stops (496 spaces) + 4 remaining spaces + newline = 67 bytes
+# Tests linebuf boundary (BUFSIZ on Amiga is 512, input is 500+newline=501 bytes)
+# Verifies no off-by-one at buffer boundary
+TEST: Long line of 500 spaces stays within BUFSIZ and converts correctly
+CMD: WORK:unexpand WORK:test-unexpand-500spaces.txt
+EXPECT_CONTAINS: 	
+EXPECT_RC: 0
+
+# ============================================================
+# PRECISION TEST: verify tab stop arithmetic is correct
+# ============================================================
+
+# Native: unexpand -a test-unexpand-allflag.txt | head -1
+# "hello        world" -- 8 spaces at col 5 reaches col 13
+# After "hello" (ocol=5), 8 spaces -> dcol=13
+# Tab emission: ((5+8)&~07)=8 <= 13? YES. Not (5+1==13). Emit tab. ocol=8.
+# ((8+8)&~07)=16 <= 13? NO. Stop.
+# Fill: 8 < 13 -> 5 spaces. Result: "hello\t     world"
+TEST: Precision -- tab stop arithmetic at non-aligned column position
+CMD: WORK:unexpand -a WORK:test-unexpand-allflag.txt
+EXPECT: hello	     world
+EXPECT_RC: 0

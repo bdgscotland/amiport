@@ -1,0 +1,28 @@
+Short:        Return true value (OpenBSD)
+Type:         util/cli
+Architecture: m68k-amigaos >= 3.0
+Uploader:     duncan@bowring.us
+Author:       The Regents of the University of California (ported by Duncan Bowring)
+Version:      1.1
+
+true - Return true value (OpenBSD)
+
+Original author: The Regents of the University of California
+Ported by Duncan Bowring using amiport (AI-assisted porting toolkit).
+Project: https://github.com/bdgscotland/amiport
+
+Cross-compiled with m68k-amigaos-gcc for AmigaOS 3.x (68000+).
+Tested in FS-UAE with AmigaOS 3.1.
+
+Usage:
+  true
+
+  Returns exit code 0 (success). Useful in AmigaDOS scripts with IF
+  and in pipeline testing.
+
+Examples:
+  true                     ; returns RETURN_OK (0) always
+  IF true EQ true          ; condition always true in scripts
+
+Includes full source code (original POSIX and ported Amiga versions)
+and PORT.md documenting every transformation applied.

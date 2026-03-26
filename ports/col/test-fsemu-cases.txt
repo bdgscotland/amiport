@@ -1,0 +1,244 @@
+# test-fsemu-cases.txt -- FS-UAE functional test suite for col 1.20
+# col: filter reverse line feeds from input (OpenBSD col.c rev 1.20)
+# Category: 1 (CLI tool)
+# Minimum tests required: 8
+#
+# Flags tested: -b, -f, -h, -l num, -x
+# Exit codes:
+#   exit(0)  -- normal completion (RETURN_OK)
+#   exit(10) -- bad -l argument (errx, RETURN_ERROR)
+#   exit(10) -- unknown flag (usage(), RETURN_ERROR)
+#   exit(10) -- extra file argument given (usage(), RETURN_ERROR)
+#   exit(10) -- stdout write error (err, RETURN_ERROR)
+#
+# NOTE: col reads from STDIN_FILENO only -- no file arguments accepted.
+# All tests that need stdin input use WORK:test-col-run.rexx, an ARexx
+# wrapper that creates an Execute script with < redirection internally.
+# This avoids prohibited < and | in CMD lines (ARexx ADDRESS COMMAND
+# limitation) while still feeding data to col.
+#
+# NOTE: Error messages go to stderr -- not captured by test harness.
+# Error path tests use EXPECT_RC: only.
+#
+# NOTE: Some tests produce output containing backspace bytes (0x08).
+# These tests use EXPECT_CONTAINS: with a clean substring rather than
+# EXPECT: with raw control chars that are hard to embed in test files.
+# Tests using -b produce clean ASCII output and use EXPECT: (exact match).
+#
+# Native command used to compute all EXPECT values:
+#   col < inputfile | head -1
+# (macOS col is BSD-derived; OpenBSD behavior verified against source)
+
+# --- FUNCTIONAL TESTS: FLAG -b (suppress backspaces) ---
+
+# Native: printf 'b\bbo\bol\bld\bd\n' | col -b | head -1
+TEST: Flag -b removes backspaces from bold overprint (char-BS-char)
+CMD: SYS:Rexxc/rx WORK:test-col-run.rexx WORK:test-col-bold.txt -b
+EXPECT: bold
+EXPECT_RC: 0
+
+# Native: printf '_\bh_\be_\bl_\bl_\bo\n' | col -b | head -1
+TEST: Flag -b removes backspaces from underline overprint (underscore-BS-char)
+CMD: SYS:Rexxc/rx WORK:test-col-run.rexx WORK:test-col-underline.txt -b
+EXPECT: hello
+EXPECT_RC: 0
+
+# Native: printf 'hello\rworld\n' | col -b | head -1
+TEST: Flag -b with CR overwrite prints only last chars at each column position
+CMD: SYS:Rexxc/rx WORK:test-col-run.rexx WORK:test-col-cr.txt -b
+EXPECT: world
+EXPECT_RC: 0
+
+# --- FUNCTIONAL TESTS: FLAG -f (fine/half line feed mode) ---
+
+# Native: printf 'top\x1b9bot\n' | col -f | head -1
+# With -f: ESC '9' (forward half line) is preserved in output as ESC '9' CR
+# The line contains ESC bytes so use EXPECT_CONTAINS to match the 'top' prefix.
+TEST: Flag -f preserves half-line-feed sequences in output instead of rounding up
+CMD: SYS:Rexxc/rx WORK:test-col-run.rexx WORK:test-col-halflf.txt -f
+EXPECT_CONTAINS: top
+EXPECT_RC: 0
+
+# --- FUNCTIONAL TESTS: FLAG -h (explicit tab compression -- default behavior) ---
+
+# Native: python3 -c "print('word' + ' '*9 + 'end')" | col -h | head -1
+# -h is explicit default: compress spaces to tabs. Same as without any flag.
+# Output contains a tab character so use EXPECT_CONTAINS.
+TEST: Flag -h explicitly enables space-to-tab compression (same as default)
+CMD: SYS:Rexxc/rx WORK:test-col-run.rexx WORK:test-col-spaces.txt -h
+EXPECT_CONTAINS: word
+EXPECT_RC: 0
+
+# --- FUNCTIONAL TESTS: FLAG -l num (set line buffer count) ---
+
+# Native: printf 'hello world\n' | col -l 10 | head -1
+TEST: Flag -l 10 sets buffer to 10 lines without error
+CMD: SYS:Rexxc/rx WORK:test-col-run.rexx WORK:test-col-plain.txt -l 10
+EXPECT: hello world
+EXPECT_RC: 0
+
+# Native: printf 'hello world\n' | col -l 1 | head -1
+TEST: Flag -l 1 sets minimum buffer to 1 line and passes text through
+CMD: SYS:Rexxc/rx WORK:test-col-run.rexx WORK:test-col-plain.txt -l 1
+EXPECT: hello world
+EXPECT_RC: 0
+
+# --- FUNCTIONAL TESTS: FLAG -x (no space-to-tab compression) ---
+
+# Native: python3 -c "print('word' + ' '*9 + 'end')" | col -x | head -1
+# -x suppresses space-to-tab compression: 9 spaces stay as 9 spaces
+TEST: Flag -x prevents space-to-tab compression (spaces stay as spaces in output)
+CMD: SYS:Rexxc/rx WORK:test-col-run.rexx WORK:test-col-spaces.txt -x
+EXPECT: word         end
+EXPECT_RC: 0
+
+# --- FUNCTIONAL TESTS: PLAIN TEXT PASSTHROUGH (no reverse LF) ---
+
+# Native: printf 'hello world\nline two\nline three\n' | col | head -1
+TEST: Plain text with no reverse line feeds passes through unchanged
+CMD: SYS:Rexxc/rx WORK:test-col-run.rexx WORK:test-col-plain.txt
+EXPECT: hello world
+EXPECT_RC: 0
+
+# Native: printf 'hello world\nline two\nline three\n' | col | sed -n '3p'
+TEST: Plain text passes through all lines without truncation
+CMD: SYS:Rexxc/rx WORK:test-col-run.rexx WORK:test-col-plain.txt
+EXPECT_LINE: 3,line three
+EXPECT_RC: 0
+
+# Native: python3 -c "print('word' + ' '*9 + 'end')" | col | head -1
+# Default behavior: spaces compressed to tab. Tab char in output - use EXPECT_CONTAINS.
+TEST: Default behavior compresses 9 spaces between words to a tab character
+CMD: SYS:Rexxc/rx WORK:test-col-run.rexx WORK:test-col-spaces.txt
+EXPECT_CONTAINS: word
+EXPECT_RC: 0
+
+# --- ERROR PATH TESTS ---
+
+# col -Z: unknown flag -> usage() -> exit(10). No stdin read happens before flag check.
+TEST: Unknown flag -Z returns RETURN_ERROR without reading stdin
+CMD: WORK:col -Z
+EXPECT_RC: 10
+
+# col -l 0: strtonum with min=1 fails -> errx(10, "bad -l argument, too small: 0")
+TEST: Flag -l 0 is rejected as too small and returns RETURN_ERROR
+CMD: WORK:col -l 0
+EXPECT_RC: 10
+
+# col -l abc: strtonum fails on non-numeric -> errx(10, "bad -l argument, invalid: abc")
+TEST: Flag -l with non-numeric argument returns RETURN_ERROR
+CMD: WORK:col -l abc
+EXPECT_RC: 10
+
+# col extraarg: optind != argc -> usage() -> exit(10)
+# col exits immediately on extra args -- no stdin read needed
+TEST: Extra file argument triggers usage error and returns RETURN_ERROR
+CMD: WORK:col WORK:test-col-plain.txt
+EXPECT_RC: 10
+
+# --- EDGE CASE TESTS ---
+
+# Native: printf '' | col (macOS outputs 1 trailing newline; OpenBSD source may differ)
+# Source analysis: empty input flushes 1 empty line struct, l_line is NULL -> no text output.
+# Result: RC=0, empty or minimal output. Use EXPECT_RC: 0 only.
+TEST: Empty input produces no meaningful output and exits cleanly
+CMD: SYS:Rexxc/rx WORK:test-col-run.rexx WORK:test-empty.txt
+EXPECT_RC: 0
+
+# Native: printf 'SECOND\n\x1b7FIRST.\n' | col -b | head -1
+# ESC '7' = reverse line feed (back 1 full line). FIRST. overwrites SECOND at same positions.
+# With -b: only last char at each column -> FIRST.
+TEST: ESC-7 reverse line feed backs up one full line and -b keeps last overprint
+CMD: SYS:Rexxc/rx WORK:test-col-run.rexx WORK:test-col-revlf.txt -b
+EXPECT: FIRST.
+EXPECT_RC: 0
+
+# Native: printf 'top\x1b9bot\n' | col | head -1
+# Without -f: ESC-9 (forward half line) rounds up to next full line. Two output lines.
+TEST: ESC-9 without -f rounds half line feed up to next full line
+CMD: SYS:Rexxc/rx WORK:test-col-run.rexx WORK:test-col-halflf.txt
+EXPECT: top
+EXPECT_LINE: 2,   bot
+EXPECT_RC: 0
+
+# Native: printf 'normal\016alt\017normal\n' | col | head -1
+# SO (0x0E) shifts to alternate char set; SI (0x0F) shifts back.
+# Output preserves SO/SI bytes; use EXPECT_CONTAINS with clean prefix.
+TEST: SO shift-out and SI shift-in character set bytes pass through correctly
+CMD: SYS:Rexxc/rx WORK:test-col-run.rexx WORK:test-col-sosi.txt
+EXPECT_CONTAINS: normal
+EXPECT_RC: 0
+
+# Amiga-specific: WORK: volume paths resolve correctly
+TEST: WORK: volume path for binary resolves correctly on Amiga
+CMD: WORK:col -Z
+EXPECT_RC: 10
+
+# --- REAL-WORLD TESTS ---
+
+# Native: col -b < test-col-mixed.txt | head -1
+# Simulated nroff man page fragment with bold headings and underlined words.
+# col -b strips all overprint sequences to produce plain readable text.
+TEST: Real-world nroff bold heading stripped to plain text by -b
+CMD: SYS:Rexxc/rx WORK:test-col-run.rexx WORK:test-col-mixed.txt -b
+EXPECT: NAME
+EXPECT_RC: 0
+
+# Native: col -b < test-col-mixed.txt | sed -n '2p'
+TEST: Real-world nroff description line passes through cleanly with -b
+CMD: SYS:Rexxc/rx WORK:test-col-run.rexx WORK:test-col-mixed.txt -b
+EXPECT_LINE: 2,     col -- filter reverse line feeds
+EXPECT_RC: 0
+
+# Native: col -b < test-col-mixed.txt | sed -n '4p'
+TEST: Real-world nroff underlined word stripped to plain text by -b
+CMD: SYS:Rexxc/rx WORK:test-col-run.rexx WORK:test-col-mixed.txt -b
+EXPECT_LINE: 4,     The col utility filters reverse line feeds.
+EXPECT_RC: 0
+
+# Native: col < test-col-mixed.txt -- processes nroff without error
+# Bold overprint chars contain backspace bytes that confuse READLN substring matching
+# Verify processing succeeds; -b flag tests (above) verify clean content extraction
+TEST: Real-world nroff mixed file processes without error
+CMD: SYS:Rexxc/rx WORK:test-col-run.rexx WORK:test-col-mixed.txt
+EXPECT_RC: 0
+
+# --- STRESS TESTS ---
+
+# Native: col < test-col-stress.txt | head -1
+# 500-line file exercises the line free-list pool (alloc 64 at a time), reallocarray paths,
+# and the buffer flush logic (max_bufd_lines=256, BUFFER_MARGIN=32).
+TEST: Stress 500-line file exercises free-list pool allocation and flush logic
+CMD: SYS:Rexxc/rx WORK:test-col-run.rexx WORK:test-col-stress.txt
+EXPECT: Line 0000: content here for stress testing the memory pool
+EXPECT_RC: 0
+
+# Native: col < test-col-stress.txt | tail -1
+TEST: Stress 500-line file last line preserved correctly after buffer flush
+CMD: SYS:Rexxc/rx WORK:test-col-run.rexx WORK:test-col-stress.txt
+EXPECT_LINE: 500,Line 0499: content here for stress testing the memory pool
+EXPECT_RC: 0
+
+# Native: col -l 500 < test-col-stress.txt | head -1
+# -l 500 keeps 500 lines in memory without flushing -- exercises xreallocarray growth path
+# and the large buffer allocation (500 * 2 half-lines = 1000 LINE structs)
+TEST: Stress -l 500 buffers all 500 lines in memory without intermediate flush
+CMD: SYS:Rexxc/rx WORK:test-col-run.rexx WORK:test-col-stress.txt -l 500
+EXPECT: Line 0000: content here for stress testing the memory pool
+EXPECT_RC: 0
+
+# Native: col -l 500 < test-col-stress.txt | tail -1
+TEST: Stress -l 500 large buffer produces correct last line output
+CMD: SYS:Rexxc/rx WORK:test-col-run.rexx WORK:test-col-stress.txt -l 500
+EXPECT_LINE: 500,Line 0499: content here for stress testing the memory pool
+EXPECT_RC: 0
+
+# --- PRECISION TESTS ---
+
+# Native: python3 -c "print('word' + ' '*9 + 'end')" | col -x | head -1
+# -x: column positions must be preserved exactly with spaces, not tabs.
+# 'word' ends at col 3, then 9 spaces to 'end' at col 12. Exact spacing verified.
+TEST: Precision -x preserves exact 9-space gap between words without tab compression
+CMD: SYS:Rexxc/rx WORK:test-col-run.rexx WORK:test-col-spaces.txt -x
+EXPECT: word         end
+EXPECT_RC: 0

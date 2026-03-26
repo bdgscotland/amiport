@@ -1,0 +1,40 @@
+Short:        Print sequential or random data (OpenBSD)
+Type:         util/cli
+Architecture: m68k-amigaos >= 3.0
+Uploader:     duncan@bowring.us
+Author:       The Regents of the University of California (ported by Duncan Bowring)
+Version:      1.56
+
+jot - Print sequential or random data (OpenBSD)
+
+Original author: The Regents of the University of California
+Ported by Duncan Bowring using amiport (AI-assisted porting toolkit).
+Project: https://github.com/bdgscotland/amiport
+
+Cross-compiled with m68k-amigaos-gcc for AmigaOS 3.x (68000+).
+Tested in FS-UAE with AmigaOS 3.1.
+
+Usage:
+  jot [-cnr] [-b word] [-p precision] [-s sep] [-w fmt] [reps [begin
+      [end [s]]]]
+
+  Generates sequential or random data: numbers, strings, or characters.
+
+Options:
+  -r          generate random values
+  -c          character mode
+  -n          suppress final newline
+  -b word     repeat word instead of numbers
+  -p prec     number of decimal places
+  -s sep      separator string (default newline)
+  -w fmt      printf format string
+
+Examples:
+  jot 5            ; print 1 through 5
+  jot 5 0          ; print 0 through 4
+  jot -r 5 1 10    ; 5 random numbers between 1 and 10
+  jot -c 26 a      ; print lowercase alphabet
+  jot - 1 10 2     ; print 1 3 5 7 9
+
+Includes full source code (original POSIX and ported Amiga versions)
+and PORT.md documenting every transformation applied.

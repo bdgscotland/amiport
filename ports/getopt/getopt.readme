@@ -1,0 +1,32 @@
+Short:        Parse command options (OpenBSD)
+Type:         util/cli
+Architecture: m68k-amigaos >= 3.0
+Uploader:     duncan@bowring.us
+Author:       Henry Spencer (ported by Duncan Bowring)
+Version:      1.10
+
+getopt - Parse command options (OpenBSD)
+
+Original author: Henry Spencer
+Ported by Duncan Bowring using amiport (AI-assisted porting toolkit).
+Project: https://github.com/bdgscotland/amiport
+
+Cross-compiled with m68k-amigaos-gcc for AmigaOS 3.x (68000+).
+Tested in FS-UAE with AmigaOS 3.1.
+
+Usage:
+  getopt optstring parameters
+
+  Parses command-line options for use in AmigaDOS shell scripts.
+  Outputs normalized option list ending with --.
+
+Examples:
+  args=`getopt abo: $*`
+  IF NOT WARN
+    ; valid options
+  ENDIF
+
+  getopt "ab:c" -a -b arg file   ; outputs: -a -b arg -- file
+
+Includes full source code (original POSIX and ported Amiga versions)
+and PORT.md documenting every transformation applied.

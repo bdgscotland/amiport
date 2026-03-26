@@ -1,0 +1,22 @@
+{
+    "name": "false",
+    "version": "1.1",
+    "revision": 1,
+    "description": "Return false value (OpenBSD)",
+    "category": "util/cli",
+    "source": "OpenBSD false v1.1",
+    "license": "BSD-3-Clause",
+    "size": 2399,
+    "sha256": "7aa47c65a839f249528102720a9da1cbcee7c6a3e1b4451a242b1de0d0307e09",
+    "download": "/packages/false-1.1.lha",
+    "requires": [],
+    "aminet": "",
+    "stack": 8192,
+    "status": "stable",
+    "published_at": "2026-03-26T11:35:00Z",
+    "readme": "Short:        Return false value (OpenBSD)\nType:         util/cli\nArchitecture: m68k-amigaos >= 3.0\nUploader:     duncan (at) bowring (dot) us\nAuthor:       The Regents of the University of California (ported by Duncan Bowring)\nVersion:      1.1\n\nfalse - Return false value (OpenBSD)\n\nOriginal author: The Regents of the University of California\nPorted by Duncan Bowring using amiport (AI-assisted porting toolkit).\nProject: https://github.com/bdgscotland/amiport\n\nCross-compiled with m68k-amigaos-gcc for AmigaOS 3.x (68000+).\nTested in FS-UAE with AmigaOS 3.1.\n\nUsage:\n  false\n\n  Returns exit code 10 (RETURN_ERROR). Useful in AmigaDOS scripts to\n  force an error condition or test error-handling paths.\n\nNote: On AmigaOS, exit code 10 is used instead of Unix exit(1) because\nAmigaDOS scripts test with IF ERROR (>=10), not IF WARN (>=5).\n\nExamples:\n  false                    ; returns RETURN_ERROR (10) always\n  false ; IF ERROR FAIL    ; always triggers the FAIL branch\n\nIncludes full source code (original POSIX and ported Amiga versions)\nand PORT.md documenting every transformation applied.",
+    "test_count": 14,
+    "test_pass": 14,
+    "porting_notes": "Key Amiga-specific change: exit code changed from 1 to 10 (RETURN_ERROR). On AmigaOS, exit(1) falls below the IF ERROR threshold (10) and scripts cannot detect it. All 14 tests verify the binary always returns exactly 10 regardless of arguments.",
+    "known_limitations": "None."
+}

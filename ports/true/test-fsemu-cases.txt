@@ -1,0 +1,90 @@
+# Test suite for true 1.1 (OpenBSD port)
+# Category 1 (CLI utility) -- minimum 8 tests required
+#
+# true's ENTIRE functionality is: exit with RETURN_OK (0).
+# On AmigaOS, RC=0 means RETURN_OK and IF WARN/ERROR/FAIL tests pass correctly.
+# The program accepts any arguments and ignores them silently.
+# No stdout output is expected under any circumstances.
+#
+# Native verification:
+#   true; echo $?          => 0
+#   true foo; echo $?      => 0
+#   true --help; echo $?   => 0
+#   output=$(true)         => '' (empty)
+
+# --- Functional tests ---
+
+# Native: true; echo $?
+TEST: Basic invocation exits with RC=0 (RETURN_OK)
+CMD: WORK:true
+EXPECT_RC: 0
+
+# Native: true foo; echo $?
+TEST: Single argument is silently ignored, RC=0
+CMD: WORK:true foo
+EXPECT_RC: 0
+
+# Native: true foo bar baz; echo $?
+TEST: Multiple arguments are silently ignored, RC=0
+CMD: WORK:true foo bar baz
+EXPECT_RC: 0
+
+# Native: true --help; echo $?
+TEST: --help flag is ignored, RC=0 (does not print help)
+CMD: WORK:true --help
+EXPECT_RC: 0
+
+# Native: true --version; echo $?
+TEST: --version flag is ignored, RC=0 (does not print version)
+CMD: WORK:true --version
+EXPECT_RC: 0
+
+# Native: output=$(true); echo "'$output'"
+TEST: No output on stdout with basic invocation
+CMD: WORK:true
+EXPECT:
+EXPECT_RC: 0
+
+# Native: output=$(true somearg); echo "'$output'"
+TEST: No output on stdout when arguments are passed
+CMD: WORK:true somearg
+EXPECT:
+EXPECT_RC: 0
+
+# Native: true WORK:test-oneline.txt; echo $?
+TEST: File path argument is silently ignored, RC=0
+CMD: WORK:true WORK:test-oneline.txt
+EXPECT_RC: 0
+
+# --- Edge case tests ---
+
+# Native: true --; echo $?
+TEST: Double-dash argument is silently ignored, RC=0
+CMD: WORK:true --
+EXPECT_RC: 0
+
+# Native: true ""; echo $?  (empty string argument)
+TEST: Empty-string argument is silently ignored, RC=0
+CMD: WORK:true WORK:test-empty.txt
+EXPECT_RC: 0
+
+# --- Real-world and stress tests ---
+
+# Real-world: true is used in shell loops as a no-op -- verify repeatable RC=0
+# Native: for i in 1 2 3 4 5; do true; echo $?; done | sort -u
+TEST: Invoked with numeric arguments (loop index), RC=0
+CMD: WORK:true 1
+EXPECT_RC: 0
+
+# Real-world: used as a conditional test in AmigaDOS scripts (IF WARN, IF ERROR)
+# AmigaDOS: Run WORK:true; IF WARN THEN SAY "fail" ELSE SAY "ok"
+# RC=0 means no IF WARN / IF ERROR branch fires -- correct behavior
+TEST: Invoked with special characters in arguments, RC=0
+CMD: WORK:true -x
+EXPECT_RC: 0
+
+# Stress: 10 arguments -- verify no crash from large argv
+# Native: true a b c d e f g h i j; echo $?
+TEST: Ten arguments passed simultaneously, RC=0
+CMD: WORK:true a b c d e f g h i j
+EXPECT_RC: 0

@@ -1,0 +1,22 @@
+{
+    "name": "cksum",
+    "version": "1.0",
+    "revision": 1,
+    "description": "Display file checksums and sizes (FreeBSD)",
+    "category": "util/cli",
+    "source": "FreeBSD cksum v1.0",
+    "license": "BSD-3-Clause",
+    "size": 22577,
+    "sha256": "2d8b9d32fea7c0351d8fe0875a7a21d5692cdc7cee6e4ecea20b2dba55ba2340",
+    "download": "/packages/cksum-1.0.lha",
+    "requires": [],
+    "aminet": "",
+    "stack": 65536,
+    "status": "stable",
+    "published_at": "2026-03-26T11:35:00Z",
+    "readme": "Short:        Display file checksums and sizes (FreeBSD)\nType:         util/cli\nArchitecture: m68k-amigaos >= 3.0\nUploader:     duncan (at) bowring (dot) us\nAuthor:       The Regents of the University of California (ported by Duncan Bowring)\nVersion:      1.0\n\ncksum - Display file checksums and sizes (FreeBSD)\n\nOriginal author: The Regents of the University of California\nPorted by Duncan Bowring using amiport (AI-assisted porting toolkit).\nProject: https://github.com/bdgscotland/amiport\n\nCross-compiled with m68k-amigaos-gcc for AmigaOS 3.x (68000+).\nTested in FS-UAE with AmigaOS 3.1.\n\nUsage:\n  cksum [-o 1|2|3] [file ...]\n  sum [-r] [-o 1|2|3] [file ...]\n\n  Computes and displays CRC checksum and byte count for each file.\n  Supports multiple algorithm variants via -o flag.\n\nOptions:\n  -o 1    BSD sum (16-bit, 512-byte blocks)\n  -o 2    SysV sum (16-bit, 512-byte blocks)\n  -o 3    32-bit CRC (default for cksum)\n\nExamples:\n  cksum file.txt          ; CRC32 checksum and byte count\n  cksum -o 1 file.txt     ; BSD sum algorithm\n  sum file.txt            ; synonym for cksum -o 1\n  cksum *                 ; checksum all files in directory\n\nIncludes full source code (original POSIX and ported Amiga versions)\nand PORT.md documenting every transformation applied.",
+    "test_count": 37,
+    "test_pass": 37,
+    "porting_notes": "Multi-file port (cksum.c, crc.c, crc32.c, sum.c) from FreeBSD. Higher stack (64KB) needed for CRC table initialization. 37 tests cover all three algorithm modes (-o 1/2/3), binary files, empty files, multi-file checksumming, and stdin mode.",
+    "known_limitations": "None."
+}

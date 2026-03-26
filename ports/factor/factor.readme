@@ -1,0 +1,30 @@
+Short:        Factor a number (OpenBSD)
+Type:         util/misc
+Architecture: m68k-amigaos >= 3.0
+Uploader:     duncan@bowring.us
+Author:       The Regents of the University of California (ported by Duncan Bowring)
+Version:      1.30
+
+factor - Factor a number (OpenBSD)
+
+Original author: The Regents of the University of California
+Ported by Duncan Bowring using amiport (AI-assisted porting toolkit).
+Project: https://github.com/bdgscotland/amiport
+
+Cross-compiled with m68k-amigaos-gcc for AmigaOS 3.x (68000+).
+Tested in FS-UAE with AmigaOS 3.1.
+
+Usage:
+  factor [number ...]
+
+  Factors each number into its prime components. With no arguments,
+  reads numbers from standard input (one per line).
+
+Examples:
+  factor 12            ; outputs: 12: 2 2 3
+  factor 100           ; outputs: 100: 2 2 5 5
+  factor 17            ; outputs: 17: 17  (prime)
+  factor 1 2 3 4 5     ; factor multiple numbers at once
+
+Includes full source code (original POSIX and ported Amiga versions)
+and PORT.md documenting every transformation applied.

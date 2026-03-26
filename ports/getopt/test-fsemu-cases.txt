@@ -1,0 +1,301 @@
+# test-fsemu-cases.txt -- getopt 1.10 FS-UAE test suite
+# getopt(1): parse command-line options for shell scripts
+# Usage: getopt optstring [args...]
+# argv[0]=getopt, argv[1]=optstring, argv[2..]=args to parse
+# optind is set to 2 so both the program name and optstring are skipped
+#
+# All EXPECT: values derived by running native macOS getopt(1).
+# Note: output always starts with a leading space before the first token.
+#
+# Category 1 (CLI tool) -- minimum 15 tests required.
+
+# ============================================================
+# 1. FUNCTIONAL TESTS
+# ============================================================
+
+# Native: getopt abc -a -b -c
+TEST: Basic parsing of three separate single-char flags
+CMD: WORK:getopt abc -a -b -c
+EXPECT:  -a -b -c --
+EXPECT_RC: 0
+
+# Native: getopt a:b: -a foo -b bar
+TEST: Options with arguments -- colon in optstring requires argument
+CMD: WORK:getopt a:b: -a foo -b bar
+EXPECT:  -a foo -b bar --
+EXPECT_RC: 0
+
+# Native: getopt ab -a arg1 arg2
+TEST: Non-option arguments are collected after --
+CMD: WORK:getopt ab -a arg1 arg2
+EXPECT:  -a -- arg1 arg2
+EXPECT_RC: 0
+
+# Native: getopt abc -abc
+TEST: Combined flags -abc expands to -a -b -c
+CMD: WORK:getopt abc -abc
+EXPECT:  -a -b -c --
+EXPECT_RC: 0
+
+# Native: getopt ab -a -- -b
+TEST: End-of-options -- passes remaining args as-is
+CMD: WORK:getopt ab -a -- -b
+EXPECT:  -a -- -b
+EXPECT_RC: 0
+
+# Native: getopt ab arg1
+TEST: Non-option arg with no options produces -- arg
+CMD: WORK:getopt ab arg1
+EXPECT:  -- arg1
+EXPECT_RC: 0
+
+# Native: getopt vf: -v -f myfile
+TEST: Real-world verbose+file flag pattern from shell scripts
+CMD: WORK:getopt vf: -v -f myfile
+EXPECT:  -v -f myfile --
+EXPECT_RC: 0
+
+# Native: getopt vni -vni
+TEST: Combined multi-flag shorthand expands each flag
+CMD: WORK:getopt vni -vni
+EXPECT:  -v -n -i --
+EXPECT_RC: 0
+
+# Native: getopt a:bc -b -a hello -c -d -e
+TEST: Option with argument in middle of multiple flags
+CMD: WORK:getopt a:bcde -b -a hello -c -d -e
+EXPECT:  -b -a hello -c -d -e --
+EXPECT_RC: 0
+
+# Native: getopt abc -- -a -b -c
+TEST: Options after bare -- are treated as non-option args
+CMD: WORK:getopt abc -- -a -b -c
+EXPECT:  -- -a -b -c
+EXPECT_RC: 0
+
+# Native: getopt a:bc -abc (combined where first takes arg, rest becomes arg value)
+TEST: Combined flags where first option requires arg -- rest is the argument
+CMD: WORK:getopt a:bc -abc
+EXPECT:  -a bc --
+EXPECT_RC: 0
+
+# Native: getopt abc -a -b -- foo bar
+TEST: Options then -- then non-option args
+CMD: WORK:getopt abc -a -b -- foo bar
+EXPECT:  -a -b -- foo bar
+EXPECT_RC: 0
+
+# ============================================================
+# 2. OPTION ARGUMENT EDGE CASES
+# ============================================================
+
+# Native: getopt n: -n 42
+TEST: Numeric argument value passed to option
+CMD: WORK:getopt n: -n 42
+EXPECT:  -n 42 --
+EXPECT_RC: 0
+
+# Native: getopt abc123 -1 -2 -3
+TEST: Numeric option characters in optstring are valid
+CMD: WORK:getopt abc123 -1 -2 -3
+EXPECT:  -1 -2 -3 --
+EXPECT_RC: 0
+
+# Native: getopt v -v -v -v -v -v
+TEST: Same option repeated many times -- all emitted
+CMD: WORK:getopt v -v -v -v -v -v
+EXPECT:  -v -v -v -v -v --
+EXPECT_RC: 0
+
+# Native: getopt ab foo bar -a (options after non-option args are NOT processed)
+TEST: Options appearing after non-option args are treated as more non-option args
+CMD: WORK:getopt ab foo bar -a
+EXPECT:  -- foo bar -a
+EXPECT_RC: 0
+
+# ============================================================
+# 3. ERROR PATH TESTS
+# ============================================================
+
+# Native: getopt ab -z (unknown option, RC=1 -> RC=10 on Amiga)
+# Note: error message goes to stderr (not captured); test only RC
+TEST: Unknown option returns RC 10
+CMD: WORK:getopt ab -z
+EXPECT_RC: 10
+
+# Native: getopt a: -a (missing required arg, RC=1 -> RC=10)
+# Note: error message to stderr only
+TEST: Missing required argument for option returns RC 10
+CMD: WORK:getopt a: -a
+EXPECT:  --
+EXPECT_RC: 10
+
+# Native: getopt "" -a (empty optstring, -a unknown, RC=1)
+TEST: Empty optstring makes all options unknown -- returns RC 10
+CMD: WORK:getopt "" -a
+EXPECT:  --
+EXPECT_RC: 10
+
+# ============================================================
+# 4. SUPPRESS-ERROR MODE (leading colon in optstring)
+# ============================================================
+
+# Native: getopt ":ab" -z -> " --", RC=1
+# Leading colon suppresses error message to stderr, but RC is still 1->10
+TEST: Leading colon suppresses error message but still returns RC 10
+CMD: WORK:getopt :ab -z
+EXPECT:  --
+EXPECT_RC: 10
+
+# Native: getopt ":a:" -a -> " -: --", RC=0
+# Leading colon + missing arg: option outputs -: with the option char as value
+TEST: Leading colon plus missing arg emits colon flag with option char as argument
+CMD: WORK:getopt :a: -a
+EXPECT:  -: --
+EXPECT_RC: 0
+
+# ============================================================
+# 5. EXIT CODE TESTS
+# ============================================================
+
+# RC=0: successful parse
+TEST: Successful parse exits with RC 0
+CMD: WORK:getopt x -x
+EXPECT:  -x --
+EXPECT_RC: 0
+
+# RC=0: no args is also success
+# Native: getopt abc -> " --", RC=0
+TEST: Optstring only with no args to parse exits RC 0
+CMD: WORK:getopt abc
+EXPECT:  --
+EXPECT_RC: 0
+
+# RC=10: unknown option
+TEST: Bad option flag exits with RC 10
+CMD: WORK:getopt x -y
+EXPECT_RC: 10
+
+# ============================================================
+# 6. EDGE CASES
+# ============================================================
+
+# Native: getopt "" -> " --", RC=0
+TEST: Empty optstring with no args produces bare separator
+CMD: WORK:getopt ""
+EXPECT:  --
+EXPECT_RC: 0
+
+# Native: getopt ab -- -> " --", RC=0
+TEST: Bare -- with no following args produces bare separator
+CMD: WORK:getopt ab --
+EXPECT:  --
+EXPECT_RC: 0
+
+# Native: getopt ":" arg1 -> " -- arg1", RC=0
+TEST: Colon-only optstring treats all args as non-options
+CMD: WORK:getopt : arg1
+EXPECT:  -- arg1
+EXPECT_RC: 0
+
+# Native: getopt ab - -> " -- -", RC=0
+# Lone hyphen is treated as a non-option argument
+TEST: Lone hyphen treated as non-option argument
+CMD: WORK:getopt ab -
+EXPECT:  -- -
+EXPECT_RC: 0
+
+# Native: getopt xyz -xyz -> " -x -y -z --", RC=0
+TEST: Combined three-flag expansion -xyz
+CMD: WORK:getopt xyz -xyz
+EXPECT:  -x -y -z --
+EXPECT_RC: 0
+
+# Native: getopt abcdef -a -f -> " -a -f --", RC=0
+TEST: Unused options in optstring are simply not required
+CMD: WORK:getopt abcdef -a -f
+EXPECT:  -a -f --
+EXPECT_RC: 0
+
+# ============================================================
+# 7. AMIGA-SPECIFIC TESTS
+# ============================================================
+
+# Test that WORK: volume paths in arguments survive __nowild=1
+# getopt should not expand WORK: as a glob pattern
+# Native equivalent: getopt f: -f /tmp/myfile
+TEST: Amiga WORK: volume path in option argument is preserved as-is
+CMD: WORK:getopt f: -f WORK:test-oneline.txt
+EXPECT:  -f WORK:test-oneline.txt --
+EXPECT_RC: 0
+
+# Test that T: temp path works as option argument
+# Native: getopt o: -o /tmp/output.txt -> " -o /tmp/output.txt --"
+TEST: T: temp volume path in option argument is preserved
+CMD: WORK:getopt o: -o T:output.txt
+EXPECT:  -o T:output.txt --
+EXPECT_RC: 0
+
+# Verify __nowild=1 suppresses Amiga wildcard expansion in optstring
+# On Amiga without __nowild, argv[1]="ab*" could be glob-expanded
+TEST: Wildcard characters in optstring not expanded due to __nowild
+CMD: WORK:getopt ab -a -b
+EXPECT:  -a -b --
+EXPECT_RC: 0
+
+# ============================================================
+# 8. REAL-WORLD AND STRESS TESTS
+# ============================================================
+
+# Real-world: parsing common -v -h --style flags for a script
+# Native: getopt vh -v -h -> " -v -h --"
+TEST: Real-world verbose+help flag combination from typical shell script
+CMD: WORK:getopt vh -v -h
+EXPECT:  -v -h --
+EXPECT_RC: 0
+
+# Real-world: script option parsing with interleaved args like tar or rsync
+# getopt "cvf:" -c -v -f archive.tar file1 file2
+# Native: " -c -v -f archive.tar -- file1 file2"
+TEST: Real-world tar-style flags with file argument and operands
+CMD: WORK:getopt cvf: -c -v -f archive.tar file1 file2
+EXPECT:  -c -v -f archive.tar -- file1 file2
+EXPECT_RC: 0
+
+# Stress: 10 distinct single-char options all parsed
+# Native: getopt abcdefghij -a -b -c -d -e -f -g -h -i -j
+TEST: Ten distinct option flags all parsed correctly
+CMD: WORK:getopt abcdefghij -a -b -c -d -e -f -g -h -i -j
+EXPECT:  -a -b -c -d -e -f -g -h -i -j --
+EXPECT_RC: 0
+
+# Stress: same option repeated 10 times
+# Native: getopt v -v -v -v -v -v -v -v -v -v -v -> " -v -v -v -v -v -v -v -v -v -v --"
+TEST: Same option flag repeated 10 times -- all emitted
+CMD: WORK:getopt v -v -v -v -v -v -v -v -v -v -v
+EXPECT:  -v -v -v -v -v -v -v -v -v -v --
+EXPECT_RC: 0
+
+# Stress: 20 non-option arguments passed through
+# Native: getopt "ab" a b c d e f g h i j k l m n o p q r s t
+# -> " -- a b c d e f g h i j k l m n o p q r s t"
+TEST: Twenty non-option args all passed through after separator
+CMD: WORK:getopt ab a b c d e f g h i j k l m n o p q r s t
+EXPECT:  -- a b c d e f g h i j k l m n o p q r s t
+EXPECT_RC: 0
+
+# Precision: verify exact output format -- leading space, --, newline
+# The source uses printf(" -%c", c) so there's always a leading space
+# Native: getopt x -x -> " -x --" (space before -x, space before --)
+TEST: Output format has leading space before first flag and before separator
+CMD: WORK:getopt x -x
+EXPECT:  -x --
+EXPECT_RC: 0
+
+# Real-world: script calling getopt to reorder args -- common shell pattern
+# getopt "a:b:c" -b val2 -a val1 -c rest
+# Native: " -b val2 -a val1 -c -- rest"
+TEST: Real-world arg reordering -- options emitted in parse order not optstring order
+CMD: WORK:getopt a:b:c -b val2 -a val1 -c rest
+EXPECT:  -b val2 -a val1 -c -- rest
+EXPECT_RC: 0

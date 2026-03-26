@@ -1,0 +1,243 @@
+# colrm test suite
+# colrm removes columns from stdin lines: colrm [start [stop]]
+# Category 1 (CLI tool) -- minimum 15 tests required
+#
+# colrm reads stdin only. CMD lines use AmigaDOS < redirect (supported by Execute()).
+# See ADCD dos.library/Execute(): "redirection using < and >".
+#
+# Test input files:
+#   test-colrm-input.txt     -- 3 lines: "hello world", "foo bar baz", "third line"
+#   test-colrm-single.txt    -- 1 line:  "hello world"
+#   test-colrm-onechar.txt   -- 1 line:  "a"
+#   test-colrm-tabs.txt      -- 2 lines: "ab<TAB>cd", "abc<TAB>def"
+#   test-colrm-varying.txt   -- 5 lines: "a","ab","abc","abcd","abcde"
+#   test-colrm-nonewline.txt -- "hello world" with no trailing newline
+#   test-colrm-longline.txt  -- 321 bytes: 100 A's + 120 X's + 100 B's + newline
+#   test-colrm-stress.txt    -- 300 lines of "field1 field2 field3 field4"
+#   test-colrm-bigstress.txt -- 10000 lines of "field1 field2 field3 field4"
+#   test-colrm-realworld.txt -- 2 lines: "alice:secret:info", "bob:pass123:info"
+#   WORK:test-empty.txt      -- 0 bytes (shared)
+
+# ============================================================
+# FUNCTIONAL TESTS
+# ============================================================
+
+# Native: printf "hello world\n" | colrm
+TEST: No args passes input through unchanged (functional passthrough)
+CMD: WORK:colrm <WORK:test-colrm-single.txt
+EXPECT: hello world
+EXPECT_RC: 0
+
+# Native: printf "hello world\n" | colrm 5
+TEST: Single arg removes from column 5 to end of line
+CMD: WORK:colrm 5 <WORK:test-colrm-single.txt
+EXPECT: hell
+EXPECT_RC: 0
+
+# Native: printf "hello world\nfoo bar baz\nthird line\n" | colrm 5 10
+TEST: Two args remove columns 5 through 10 (range removal)
+CMD: WORK:colrm 5 10 <WORK:test-colrm-input.txt
+EXPECT: helld
+EXPECT_LINE: 2,foo z
+EXPECT_LINE: 3,thir
+EXPECT_RC: 0
+
+# Native: printf "hello world\n" | colrm 1
+TEST: Start column 1 removes entire line content (start=1 edge case)
+CMD: WORK:colrm 1 <WORK:test-colrm-single.txt
+EXPECT:
+EXPECT_RC: 0
+
+# Native: printf "hello world\n" | colrm 5 5
+TEST: Start equals stop removes exactly one column
+CMD: WORK:colrm 5 5 <WORK:test-colrm-single.txt
+EXPECT: hell world
+EXPECT_RC: 0
+
+# Native: printf "hello world\n" | colrm 1000
+TEST: Start column beyond line length leaves line unchanged
+CMD: WORK:colrm 1000 <WORK:test-colrm-single.txt
+EXPECT: hello world
+EXPECT_RC: 0
+
+# Native: printf "hello world\n" | colrm 7 1000
+TEST: Stop column beyond line length removes to end of line
+CMD: WORK:colrm 7 1000 <WORK:test-colrm-single.txt
+EXPECT: hello
+EXPECT_RC: 0
+
+# ============================================================
+# MULTI-LINE AND VARYING-LENGTH LINES
+# ============================================================
+
+# Native: printf "a\nab\nabc\nabcd\nabcde\n" | colrm 3
+# Lines shorter than start pass through; longer lines are truncated at col 3
+TEST: Lines shorter than start column are passed through unchanged
+CMD: WORK:colrm 3 <WORK:test-colrm-varying.txt
+EXPECT: a
+EXPECT_LINE: 2,ab
+EXPECT_LINE: 3,ab
+EXPECT_LINE: 4,ab
+EXPECT_LINE: 5,ab
+EXPECT_RC: 0
+
+# ============================================================
+# TAB HANDLING -- tabs count as multiple columns (tab stop = 8)
+# ============================================================
+
+# Native: printf "ab\tcd\nabc\tdef\n" | colrm 1 8
+# ab=cols1-2, tab fills cols3-8, cd=cols9-10; colrm 1 8 removes everything through tab stop
+TEST: Tab treated as multiple columns -- colrm 1 8 removes through tab stop
+CMD: WORK:colrm 1 8 <WORK:test-colrm-tabs.txt
+EXPECT: cd
+EXPECT_LINE: 2,def
+EXPECT_RC: 0
+
+# Native: printf "ab\tcd\n" | colrm 9
+# Tab occupies cols 3-8 (entirely before start=9), is kept as tab; cd at cols 9-10 removed
+# Output is "ab<TAB>" -- tab preserved, cd removed. Use EXPECT_CONTAINS since literal tab hard in test file.
+TEST: Tab before range preserved as tab character
+CMD: WORK:colrm 9 <WORK:test-colrm-tabs.txt
+EXPECT_CONTAINS: ab
+EXPECT_RC: 0
+
+# Native: printf "ab\tcd\n" | colrm 9 10
+# Output is "ab<TAB>f" (second line "abc<TAB>def" -> "abc<TAB>" + "f" after col 10)
+TEST: Tab before range preserved; range removes exactly cols 9-10 (cd)
+CMD: WORK:colrm 9 10 <WORK:test-colrm-tabs.txt
+EXPECT_CONTAINS: ab
+EXPECT_RC: 0
+
+# ============================================================
+# EDGE CASES
+# ============================================================
+
+# Native: colrm 5 < /dev/null
+TEST: Empty file produces no output
+CMD: WORK:colrm 5 <WORK:test-empty.txt
+EXPECT:
+EXPECT_RC: 0
+
+# Native: printf "a\n" | colrm 1
+TEST: Single character line with start=1 produces empty output
+CMD: WORK:colrm 1 <WORK:test-colrm-onechar.txt
+EXPECT:
+EXPECT_RC: 0
+
+# Native: printf "a\n" | colrm 2
+TEST: Single character line with start=2 passes character through unchanged
+CMD: WORK:colrm 2 <WORK:test-colrm-onechar.txt
+EXPECT: a
+EXPECT_RC: 0
+
+# Native: printf "a\n" | colrm 1 1
+TEST: Single character line with start=stop=1 removes single column
+CMD: WORK:colrm 1 1 <WORK:test-colrm-onechar.txt
+EXPECT:
+EXPECT_RC: 0
+
+# Native: printf "hello world" | colrm 7
+# No trailing newline -- output is "hello " (6 chars, no final newline)
+TEST: File with no trailing newline is handled without crash
+CMD: WORK:colrm 7 <WORK:test-colrm-nonewline.txt
+EXPECT: hello
+EXPECT_RC: 0
+
+# ============================================================
+# ERROR PATH TESTS (stderr not captured -- use EXPECT_RC only)
+# ============================================================
+
+# Native: colrm 0 < /dev/null -> RC=1 (macOS), Amiga: RC=10
+TEST: Column 0 is invalid -- columns are 1-indexed
+CMD: WORK:colrm 0 <WORK:test-colrm-single.txt
+EXPECT_RC: 10
+
+# Native: colrm abc < /dev/null -> RC=1 (macOS), Amiga: RC=10
+TEST: Non-numeric column argument is rejected
+CMD: WORK:colrm abc <WORK:test-colrm-single.txt
+EXPECT_RC: 10
+
+# Native: colrm 10 5 < /dev/null -> RC=1 (macOS), Amiga: RC=10
+TEST: Stop less than start is rejected
+CMD: WORK:colrm 10 5 <WORK:test-colrm-single.txt
+EXPECT_RC: 10
+
+# Native: colrm 1 2 3 < /dev/null -> RC=1 (macOS), Amiga: RC=10
+TEST: More than two arguments triggers usage error
+CMD: WORK:colrm 1 2 3 <WORK:test-colrm-single.txt
+EXPECT_RC: 10
+
+# ============================================================
+# AMIGA-SPECIFIC TESTS
+# ============================================================
+
+# Amiga test: verify the program reads stdin via < redirect from a WORK: volume path
+# Native: printf "hello world\nfoo bar baz\nthird line\n" | colrm 1 4
+TEST: Amiga stdin redirect from WORK: volume path reads all lines correctly
+CMD: WORK:colrm 1 4 <WORK:test-colrm-input.txt
+EXPECT: o world
+EXPECT_LINE: 2,bar baz
+EXPECT_LINE: 3,d line
+EXPECT_RC: 0
+
+# Amiga test: shared test-empty.txt from common-test-data is accessible via WORK:
+TEST: Shared test-empty.txt from common-test-data is accessible as WORK: path
+CMD: WORK:colrm 1 <WORK:test-empty.txt
+EXPECT:
+EXPECT_RC: 0
+
+# ============================================================
+# REAL-WORLD AND STRESS TESTS
+# ============================================================
+
+# Real-world (1): Remove secret field from colon-delimited record
+# "alice:secret:info" -- ':' at col6, secret starts col7, ends col12 (6 chars), ':' at col13
+# Native: printf "alice:secret:info\nbob:pass123:info\n" | colrm 7 12
+TEST: Real-world -- remove password field from colon-delimited records
+CMD: WORK:colrm 7 12 <WORK:test-colrm-realworld.txt
+EXPECT: alice::info
+EXPECT_LINE: 2,bob:painfo
+EXPECT_RC: 0
+
+# Real-world (2): Trim lines to a fixed display width of 40 columns
+# "hello world" is 11 chars, well under 40 -- passes through unchanged
+# Native: printf "hello world\n" | colrm 41
+TEST: Real-world -- trim lines to 40 columns for fixed-width display (line fits)
+CMD: WORK:colrm 41 <WORK:test-colrm-single.txt
+EXPECT: hello world
+EXPECT_RC: 0
+
+# Stress (1): 300 lines, remove columns 6-10 from each
+# "field1 field2 field3 field4": f=1,i=2,e=3,l=4,d=5,1=6, =7,f=8,i=9,e=10
+# colrm 6 10 removes "1 fie" -> "fieldld2 field3 field4"
+# Native: colrm 6 10 < test-colrm-stress.txt | head -1
+TEST: Stress -- 300 lines, remove columns 6-10 (exercises getline loop and buffer reuse)
+CMD: WORK:colrm 6 10 <WORK:test-colrm-stress.txt
+EXPECT: fieldld2 field3 field4
+EXPECT_LINE: 300,fieldld2 field3 field4
+EXPECT_RC: 0
+
+# Stress (2): 500 lines, remove columns 8-14 from each
+# "field1 field2 field3 field4": colrm 8 14 removes "field2 " -> "field1 field3 field4"
+# Native: colrm 8 14 < test-colrm-stress.txt | head -1
+TEST: Stress -- 500 lines, remove columns 8-14 (memory pool and getline buffer reuse)
+CMD: WORK:colrm 8 14 <WORK:test-colrm-stress.txt
+EXPECT: field1 field3 field4
+EXPECT_RC: 0
+
+# Stress (3): Very long line (320 chars), remove columns 101-220 (120 Xs)
+# 100 A's + 120 X's + 100 B's -> after removal: 100 A's + 100 B's = 200 chars
+# Native: colrm 101 220 < test-colrm-longline.txt
+TEST: Stress -- 320-character line, remove middle 120 columns (long line getline buffer)
+CMD: WORK:colrm 101 220 <WORK:test-colrm-longline.txt
+EXPECT: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB
+EXPECT_RC: 0
+
+# Precision: no-args passthrough must not alter any character on any line
+# Native: printf "hello world\nfoo bar baz\nthird line\n" | colrm
+TEST: Precision -- no-arg passthrough preserves every character on every line
+CMD: WORK:colrm <WORK:test-colrm-input.txt
+EXPECT: hello world
+EXPECT_LINE: 2,foo bar baz
+EXPECT_LINE: 3,third line
+EXPECT_RC: 0

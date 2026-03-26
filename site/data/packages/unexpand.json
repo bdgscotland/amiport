@@ -1,0 +1,22 @@
+{
+    "name": "unexpand",
+    "version": "1.13",
+    "revision": 1,
+    "description": "Convert spaces to tabs (OpenBSD)",
+    "category": "util/cli",
+    "source": "OpenBSD unexpand v1.13",
+    "license": "BSD-3-Clause",
+    "size": 19701,
+    "sha256": "1911e63ad2c6283dcf96f3cd0acb2870eb244a919670712a2e947877e975bbdf",
+    "download": "/packages/unexpand-1.13.lha",
+    "requires": [],
+    "aminet": "",
+    "stack": 16384,
+    "status": "stable",
+    "published_at": "2026-03-26T11:35:00Z",
+    "readme": "Short:        Convert spaces to tabs (OpenBSD)\nType:         util/cli\nArchitecture: m68k-amigaos >= 3.0\nUploader:     duncan (at) bowring (dot) us\nAuthor:       The Regents of the University of California (ported by Duncan Bowring)\nVersion:      1.13\n\nunexpand - Convert spaces to tabs (OpenBSD)\n\nOriginal author: The Regents of the University of California\nPorted by Duncan Bowring using amiport (AI-assisted porting toolkit).\nProject: https://github.com/bdgscotland/amiport\n\nCross-compiled with m68k-amigaos-gcc for AmigaOS 3.x (68000+).\nTested in FS-UAE with AmigaOS 3.1.\n\nUsage:\n  unexpand [-a] [-t tablist] [file ...]\n\n  Converts leading sequences of spaces to tabs. The inverse of expand.\n  Default tab stop is every 8 columns.\n\nOptions:\n  -a           convert all whitespace, not just leading\n  -t tablist   specify tab stop positions\n\nExamples:\n  unexpand file.txt         ; convert leading spaces to tabs\n  unexpand -a file.txt      ; convert all space sequences to tabs\n  unexpand -t 4 file.txt    ; use 4-space tab stops\n\nIncludes full source code (original POSIX and ported Amiga versions)\nand PORT.md documenting every transformation applied.",
+    "test_count": 32,
+    "test_pass": 32,
+    "porting_notes": "Standard Tier 1 port, companion to expand. 32 tests cover default 8-space tabs, -a flag (all spaces), -t custom tab stops, multi-file processing, edge cases (empty lines, only tabs, only spaces, mixed content), and stress test with 500-space input.",
+    "known_limitations": "None."
+}

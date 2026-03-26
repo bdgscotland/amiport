@@ -1152,56 +1152,6 @@
       "community_value_reason": "Tabs to spaces \u2014 useful for code formatting."
     },
     {
-      "id": "unexpand",
-      "name": "unexpand",
-      "description": "Convert spaces to tabs",
-      "amiport_category": "cli",
-      "aminet_category": "util/cli",
-      "upstream": {
-        "source": "openbsd",
-        "version": "latest",
-        "license": "BSD-3-Clause",
-        "url": "https://cvsweb.openbsd.org/src/usr.bin/unexpand/",
-        "files": 1,
-        "lines_of_code": 130
-      },
-      "status": "candidate",
-      "analysis_status": "complete",
-      "publishable": true,
-      "notes": "Single file, pure stdio",
-      "analysis": {
-        "analyzed_date": "2026-03-25",
-        "analyzer_version": "1.0",
-        "shim_library_version": "1.0",
-        "posix_tier_mix": {
-          "tier1": 2,
-          "tier2": 0,
-          "tier3": 0
-        },
-        "missing_shims": [],
-        "blocking_shims": [],
-        "blocker_workaround": null,
-        "dependencies": [],
-        "source_complexity": 0.99,
-        "estimated_stack_kb": 8,
-        "estimated_binary_kb": 11,
-        "estimated_data_kb": 1
-      },
-      "readiness": {
-        "score": 0.999,
-        "tier": "ready"
-      },
-      "hardware_fit": {
-        "stock_a1200": "fits",
-        "a1200_accel": "fits",
-        "a4000_030": "fits"
-      },
-      "aminet_status": "missing",
-      "aminet_notes": "Not found on Aminet. GNU coreutils-bin v5.2.1-9 (2006) includes it.",
-      "community_value": 3,
-      "community_value_reason": "Spaces to tabs \u2014 useful for code formatting."
-    },
-    {
       "id": "paste",
       "name": "paste",
       "description": "Merge lines of files side by side",
@@ -2586,56 +2536,6 @@
       "community_value_reason": "Number lines \u2014 useful for code review and log analysis."
     },
     {
-      "id": "colrm",
-      "name": "colrm",
-      "description": "Remove columns from a file",
-      "amiport_category": "cli",
-      "aminet_category": "util/cli",
-      "upstream": {
-        "source": "openbsd",
-        "version": "latest",
-        "license": "BSD-3-Clause",
-        "url": "https://cvsweb.openbsd.org/src/usr.bin/colrm/",
-        "files": 1,
-        "lines_of_code": 181
-      },
-      "status": "candidate",
-      "analysis_status": "complete",
-      "publishable": true,
-      "notes": "Single file, pure stdio + wchar; setlocale/mbtowc/wcwidth need stubs or removal",
-      "readiness": {
-        "score": 0.997,
-        "tier": "ready"
-      },
-      "hardware_fit": {
-        "stock_a1200": "fits",
-        "a1200_accel": "fits",
-        "a4000_030": "fits"
-      },
-      "analysis": {
-        "analyzed_date": "2026-03-25",
-        "analyzer_version": "1.0",
-        "shim_library_version": "1.0",
-        "posix_tier_mix": {
-          "tier1": 4,
-          "tier2": 0,
-          "tier3": 0
-        },
-        "missing_shims": [],
-        "blocking_shims": [],
-        "blocker_workaround": "setlocale/mbtowc/wcwidth can be stubbed as no-ops (single-byte locale only); remove wchar path",
-        "dependencies": [],
-        "source_complexity": 0.98,
-        "estimated_stack_kb": 8,
-        "estimated_binary_kb": 12,
-        "estimated_data_kb": 1
-      },
-      "aminet_status": "missing",
-      "aminet_notes": "No Aminet package found. BSD/GNU utility. Not part of standard Amiga distribution.",
-      "community_value": 3,
-      "community_value_reason": "Remove columns \u2014 niche text processing."
-    },
-    {
       "id": "cat",
       "name": "cat",
       "description": "Concatenate and print files",
@@ -2684,106 +2584,6 @@
       "aminet_notes": "AmigaDOS TYPE command is the native equivalent. Unix-style cat may exist in Geek Gadgets; not confirmed on standalone Aminet.",
       "community_value": 5,
       "community_value_reason": "File concatenation + pipe input. AmigaDOS TYPE is limited (no stdin)."
-    },
-    {
-      "id": "true",
-      "name": "true",
-      "description": "Return true (exit 0) value",
-      "amiport_category": "cli",
-      "aminet_category": "util/cli",
-      "upstream": {
-        "source": "openbsd",
-        "version": "latest",
-        "license": "ISC",
-        "url": "https://cvsweb.openbsd.org/src/usr.bin/true/",
-        "files": 1,
-        "lines_of_code": 7
-      },
-      "status": "candidate",
-      "analysis_status": "complete",
-      "publishable": true,
-      "notes": "Trivial; one line of C",
-      "analysis": {
-        "analyzed_date": "2026-03-25",
-        "analyzer_version": "1.0",
-        "shim_library_version": "1.0",
-        "posix_tier_mix": {
-          "tier1": 0,
-          "tier2": 0,
-          "tier3": 0
-        },
-        "missing_shims": [],
-        "blocking_shims": [],
-        "blocker_workaround": null,
-        "dependencies": [],
-        "source_complexity": 0.99,
-        "estimated_stack_kb": 8,
-        "estimated_binary_kb": 10,
-        "estimated_data_kb": 1
-      },
-      "readiness": {
-        "score": 0.999,
-        "tier": "ready"
-      },
-      "hardware_fit": {
-        "stock_a1200": "fits",
-        "a1200_accel": "fits",
-        "a4000_030": "fits"
-      },
-      "aminet_status": "missing",
-      "aminet_notes": "Not available as standalone utility. GNU coreutils-bin v5.2.1-9 (2006) includes it.",
-      "community_value": 3,
-      "community_value_reason": "Needed for scripts. AmigaDOS has no direct equivalent."
-    },
-    {
-      "id": "false",
-      "name": "false",
-      "description": "Return false (exit non-zero) value",
-      "amiport_category": "cli",
-      "aminet_category": "util/cli",
-      "upstream": {
-        "source": "openbsd",
-        "version": "latest",
-        "license": "ISC",
-        "url": "https://cvsweb.openbsd.org/src/usr.bin/false/",
-        "files": 1,
-        "lines_of_code": 7
-      },
-      "status": "candidate",
-      "analysis_status": "complete",
-      "publishable": true,
-      "notes": "Trivial; exit(RETURN_ERROR) for Amiga shell compatibility",
-      "analysis": {
-        "analyzed_date": "2026-03-25",
-        "analyzer_version": "1.0",
-        "shim_library_version": "1.0",
-        "posix_tier_mix": {
-          "tier1": 0,
-          "tier2": 0,
-          "tier3": 0
-        },
-        "missing_shims": [],
-        "blocking_shims": [],
-        "blocker_workaround": null,
-        "dependencies": [],
-        "source_complexity": 0.99,
-        "estimated_stack_kb": 8,
-        "estimated_binary_kb": 10,
-        "estimated_data_kb": 1
-      },
-      "readiness": {
-        "score": 0.999,
-        "tier": "ready"
-      },
-      "hardware_fit": {
-        "stock_a1200": "fits",
-        "a1200_accel": "fits",
-        "a4000_030": "fits"
-      },
-      "aminet_status": "missing",
-      "aminet_notes": "Not available as standalone utility. GNU coreutils-bin v5.2.1-9 (2006) includes it.",
-      "community_value": 3,
-      "community_value_reason": "Needed for scripts. AmigaDOS has no direct equivalent."
     },
     {
       "id": "sleep",
@@ -3004,7 +2804,7 @@
         "files": 1,
         "lines_of_code": 400
       },
-      "status": "candidate",
+      "status": "in_progress",
       "analysis_status": "complete",
       "publishable": true,
       "notes": "OpenBSD has standalone seq (separate from jot); uses getopt_long/asprintf/localeconv; pure math + formatting",
@@ -3041,109 +2841,6 @@
       "community_value_reason": "Generate number sequences \u2014 useful for loop scripting."
     },
     {
-      "id": "jot",
-      "name": "jot",
-      "description": "Print sequential or random data",
-      "amiport_category": "cli",
-      "aminet_category": "util/cli",
-      "upstream": {
-        "source": "openbsd",
-        "version": "latest",
-        "license": "BSD-3-Clause",
-        "url": "https://cvsweb.openbsd.org/src/usr.bin/jot/",
-        "files": 1,
-        "lines_of_code": 500
-      },
-      "status": "candidate",
-      "analysis_status": "complete",
-      "publishable": true,
-      "notes": "Uses arc4random/arc4random_uniform (replace with rand/srand); strtonum/asprintf; pure math",
-      "readiness": {
-        "score": 0.693,
-        "tier": "feasible"
-      },
-      "hardware_fit": {
-        "stock_a1200": "fits",
-        "a1200_accel": "fits",
-        "a4000_030": "fits"
-      },
-      "analysis": {
-        "analyzed_date": "2026-03-25",
-        "analyzer_version": "1.0",
-        "shim_library_version": "1.0",
-        "posix_tier_mix": {
-          "tier1": 4,
-          "tier2": 0,
-          "tier3": 0
-        },
-        "missing_shims": [
-          "arc4random",
-          "arc4random_uniform"
-        ],
-        "blocking_shims": [],
-        "blocker_workaround": "arc4random/arc4random_uniform replaced with rand()/srand(); strtonum replaceable with strtol",
-        "dependencies": [],
-        "source_complexity": 0.95,
-        "estimated_stack_kb": 8,
-        "estimated_binary_kb": 16,
-        "estimated_data_kb": 1
-      },
-      "aminet_status": "missing",
-      "aminet_notes": "BSD utility. No Aminet package found. Not in standard Amiga distribution.",
-      "community_value": 4,
-      "community_value_reason": "Generate data sequences \u2014 OpenBSD's seq equivalent."
-    },
-    {
-      "id": "factor",
-      "name": "factor",
-      "description": "Factor a number and print prime factors",
-      "amiport_category": "cli",
-      "aminet_category": "util/cli",
-      "upstream": {
-        "source": "openbsd",
-        "version": "latest",
-        "license": "BSD-3-Clause",
-        "url": "https://cvsweb.openbsd.org/src/games/factor/",
-        "files": 1,
-        "lines_of_code": 320
-      },
-      "status": "candidate",
-      "analysis_status": "complete",
-      "publishable": true,
-      "notes": "Pure math (prime factorization); in OpenBSD games/ not usr.bin/; uses strtoull, fgets, pledge; no POSIX deps",
-      "readiness": {
-        "score": 0.995,
-        "tier": "ready"
-      },
-      "hardware_fit": {
-        "stock_a1200": "fits",
-        "a1200_accel": "fits",
-        "a4000_030": "fits"
-      },
-      "analysis": {
-        "analyzed_date": "2026-03-25",
-        "analyzer_version": "1.0",
-        "shim_library_version": "1.0",
-        "posix_tier_mix": {
-          "tier1": 3,
-          "tier2": 0,
-          "tier3": 0
-        },
-        "missing_shims": [],
-        "blocking_shims": [],
-        "blocker_workaround": null,
-        "dependencies": [],
-        "source_complexity": 0.97,
-        "estimated_stack_kb": 8,
-        "estimated_binary_kb": 14,
-        "estimated_data_kb": 1
-      },
-      "aminet_status": "missing",
-      "aminet_notes": "No Aminet package found. Niche mathematical utility. Not in standard Amiga tools.",
-      "community_value": 3,
-      "community_value_reason": "Prime factorization \u2014 fun/educational."
-    },
-    {
       "id": "which",
       "name": "which",
       "description": "Locate a program file in the user's path",
@@ -3157,7 +2854,7 @@
         "files": 1,
         "lines_of_code": 165
       },
-      "status": "candidate",
+      "status": "in_progress",
       "analysis_status": "complete",
       "publishable": true,
       "notes": "Scans PATH for executables; uses getenv/stat/access (Tier 1); setgid/setuid/getegid/geteuid stub; strsep available in libnix",
@@ -3398,56 +3095,6 @@
       "community_value_reason": "Byte-level file comparison \u2014 AmigaDOS has no equivalent."
     },
     {
-      "id": "cksum",
-      "name": "cksum",
-      "description": "Display file checksums and block counts",
-      "amiport_category": "cli",
-      "aminet_category": "util/cli",
-      "upstream": {
-        "source": "freebsd",
-        "version": "latest",
-        "license": "BSD-3-Clause",
-        "url": "https://github.com/freebsd/freebsd-src/tree/main/usr.bin/cksum",
-        "files": 4,
-        "lines_of_code": 350
-      },
-      "status": "candidate",
-      "analysis_status": "complete",
-      "publishable": true,
-      "notes": "NOT a standalone OpenBSD utility \u2014 cksum is handled by bin/md5 on OpenBSD. FreeBSD has standalone cksum (~95 LOC, simple CRC32/sum). Could port FreeBSD version.",
-      "readiness": {
-        "score": 0.999,
-        "tier": "ready"
-      },
-      "hardware_fit": {
-        "stock_a1200": "fits",
-        "a1200_accel": "fits",
-        "a4000_030": "fits"
-      },
-      "analysis": {
-        "analyzed_date": "2026-03-25",
-        "analyzer_version": "1.0",
-        "shim_library_version": "1.0",
-        "posix_tier_mix": {
-          "tier1": 3,
-          "tier2": 0,
-          "tier3": 0
-        },
-        "missing_shims": [],
-        "blocking_shims": [],
-        "blocker_workaround": null,
-        "dependencies": [],
-        "source_complexity": 0.99,
-        "estimated_stack_kb": 8,
-        "estimated_binary_kb": 14,
-        "estimated_data_kb": 1
-      },
-      "aminet_status": "missing",
-      "aminet_notes": "No standalone Aminet package found. Checksum utility. Not in standard Amiga tools.",
-      "community_value": 3,
-      "community_value_reason": "File checksums \u2014 useful for verifying downloads."
-    },
-    {
       "id": "md5",
       "name": "md5",
       "description": "Calculate MD5 message digest",
@@ -3552,56 +3199,6 @@
       "aminet_notes": "No Aminet package found. Print file formatter. Not in standard Amiga tools.",
       "community_value": 3,
       "community_value_reason": "Paginate for printing \u2014 less relevant without printers."
-    },
-    {
-      "id": "col",
-      "name": "col",
-      "description": "Filter reverse line feeds from input",
-      "amiport_category": "cli",
-      "aminet_category": "util/cli",
-      "upstream": {
-        "source": "openbsd",
-        "version": "latest",
-        "license": "BSD-3-Clause",
-        "url": "https://cvsweb.openbsd.org/src/usr.bin/col/",
-        "files": 1,
-        "lines_of_code": 550
-      },
-      "status": "candidate",
-      "analysis_status": "complete",
-      "publishable": true,
-      "notes": "Single file, pure character processing; uses reallocarray (Tier 1), strtonum, getopt, err/errx/warnx; no file I/O beyond stdio",
-      "readiness": {
-        "score": 0.993,
-        "tier": "ready"
-      },
-      "hardware_fit": {
-        "stock_a1200": "fits",
-        "a1200_accel": "fits",
-        "a4000_030": "fits"
-      },
-      "analysis": {
-        "analyzed_date": "2026-03-25",
-        "analyzer_version": "1.0",
-        "shim_library_version": "1.0",
-        "posix_tier_mix": {
-          "tier1": 5,
-          "tier2": 0,
-          "tier3": 0
-        },
-        "missing_shims": [],
-        "blocking_shims": [],
-        "blocker_workaround": "strtonum replaceable with strtol wrapper",
-        "dependencies": [],
-        "source_complexity": 0.95,
-        "estimated_stack_kb": 16,
-        "estimated_binary_kb": 18,
-        "estimated_data_kb": 2
-      },
-      "aminet_status": "missing",
-      "aminet_notes": "No Aminet package found. Filter for reverse line feeds. Not in standard Amiga tools.",
-      "community_value": 3,
-      "community_value_reason": "Filter reverse line feeds \u2014 very niche."
     },
     {
       "id": "vis",
@@ -3869,56 +3466,6 @@
       "community_value_reason": "AWK \u2014 essential text processing. No standalone AWK on Aminet."
     },
     {
-      "id": "getopt",
-      "name": "getopt",
-      "description": "Parse command options",
-      "amiport_category": "cli",
-      "aminet_category": "util/cli",
-      "upstream": {
-        "source": "openbsd",
-        "version": "latest",
-        "license": "ISC",
-        "url": "https://cvsweb.openbsd.org/src/usr.bin/getopt/",
-        "files": 1,
-        "lines_of_code": 43
-      },
-      "status": "candidate",
-      "analysis_status": "complete",
-      "publishable": true,
-      "notes": "Trivial wrapper around getopt(3). pledge is no-op. Only uses stdio, getopt, err, exit.",
-      "readiness": {
-        "score": 0.999,
-        "tier": "ready"
-      },
-      "hardware_fit": {
-        "stock_a1200": "fits",
-        "a1200_accel": "fits",
-        "a4000_030": "fits"
-      },
-      "analysis": {
-        "analyzed_date": "2026-03-25",
-        "analyzer_version": "1.0",
-        "shim_library_version": "1.0",
-        "posix_tier_mix": {
-          "tier1": 4,
-          "tier2": 0,
-          "tier3": 0
-        },
-        "missing_shims": [],
-        "blocking_shims": [],
-        "blocker_workaround": null,
-        "dependencies": [],
-        "source_complexity": 0.996,
-        "estimated_stack_kb": 8,
-        "estimated_binary_kb": 10,
-        "estimated_data_kb": 1
-      },
-      "aminet_status": "missing",
-      "aminet_notes": "getopt_long.lha exists but is a C library package (dev/c), not a CLI tool. No standalone getopt CLI found.",
-      "community_value": 3,
-      "community_value_reason": "Parse command options \u2014 mostly useful for shell scripts."
-    },
-    {
       "id": "sbase-seq",
       "name": "seq",
       "description": "Print a sequence of numbers",
@@ -3932,7 +3479,7 @@
         "files": 1,
         "lines_of_code": 140
       },
-      "status": "candidate",
+      "status": "in_progress",
       "analysis_status": "complete",
       "publishable": true,
       "notes": "Single-file sbase seq. Uses util.h (sbase utility library -- eprintf, ARGBEGIN macros, fshut). Pure stdio + math. Needs sbase util.c bundled or reimplemented.",
@@ -5610,7 +5157,8 @@
       "test_pass_rate": 1.0,
       "measured_binary_kb": 33,
       "measured_stack_kb": 16,
-      "description": "Strip directory and suffix from filenames"
+      "description": "Strip directory and suffix from filenames",
+      "id": "basename"
     },
     {
       "id": "dirname",
@@ -5645,6 +5193,168 @@
       "test_count": 24,
       "test_pass_rate": 1.0,
       "status": "ported"
+    },
+    {
+      "id": "true",
+      "name": "true",
+      "version": "1.1",
+      "description": "Return true value (exit 0)",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream_source": "openbsd",
+      "upstream_license": "BSD-3-Clause",
+      "port_date": "2026-03-26",
+      "aminet_status": "not_submitted",
+      "aminet_url": "",
+      "measured_binary_kb": 3,
+      "measured_stack_kb": 8,
+      "test_count": 13,
+      "test_pass_rate": 1.0,
+      "hardware_verified": []
+    },
+    {
+      "id": "false",
+      "name": "false",
+      "version": "1.1",
+      "description": "Return false value (exit error)",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream_source": "openbsd",
+      "upstream_license": "BSD-3-Clause",
+      "port_date": "2026-03-26",
+      "aminet_status": "not_submitted",
+      "aminet_url": "",
+      "measured_binary_kb": 3,
+      "measured_stack_kb": 8,
+      "test_count": 14,
+      "test_pass_rate": 1.0,
+      "hardware_verified": []
+    },
+    {
+      "id": "colrm",
+      "name": "colrm",
+      "version": "1.14",
+      "description": "Remove columns from lines",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream_source": "openbsd",
+      "upstream_license": "BSD-3-Clause",
+      "port_date": "2026-03-26",
+      "aminet_status": "not_submitted",
+      "aminet_url": "",
+      "measured_binary_kb": 38,
+      "measured_stack_kb": 16,
+      "test_count": 28,
+      "test_pass_rate": 1.0,
+      "hardware_verified": []
+    },
+    {
+      "id": "factor",
+      "name": "factor",
+      "version": "1.30",
+      "description": "Factor a number into primes",
+      "amiport_category": "cli",
+      "aminet_category": "util/misc",
+      "upstream_source": "openbsd",
+      "upstream_license": "BSD-3-Clause",
+      "port_date": "2026-03-26",
+      "aminet_status": "not_submitted",
+      "aminet_url": "",
+      "measured_binary_kb": 82,
+      "measured_stack_kb": 16,
+      "test_count": 39,
+      "test_pass_rate": 1.0,
+      "hardware_verified": []
+    },
+    {
+      "id": "getopt",
+      "name": "getopt",
+      "version": "1.10",
+      "description": "Parse command options in scripts",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream_source": "openbsd",
+      "upstream_license": "Public Domain",
+      "port_date": "2026-03-26",
+      "aminet_status": "not_submitted",
+      "aminet_url": "",
+      "measured_binary_kb": 29,
+      "measured_stack_kb": 8,
+      "test_count": 40,
+      "test_pass_rate": 1.0,
+      "hardware_verified": []
+    },
+    {
+      "id": "jot",
+      "name": "jot",
+      "version": "1.56",
+      "description": "Print sequential or random data",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream_source": "openbsd",
+      "upstream_license": "BSD-3-Clause",
+      "port_date": "2026-03-26",
+      "aminet_status": "not_submitted",
+      "aminet_url": "",
+      "measured_binary_kb": 57,
+      "measured_stack_kb": 32,
+      "test_count": 41,
+      "test_pass_rate": 1.0,
+      "hardware_verified": []
+    },
+    {
+      "id": "unexpand",
+      "name": "unexpand",
+      "version": "1.13",
+      "description": "Convert spaces to tabs",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream_source": "openbsd",
+      "upstream_license": "BSD-3-Clause",
+      "port_date": "2026-03-26",
+      "aminet_status": "not_submitted",
+      "aminet_url": "",
+      "measured_binary_kb": 35,
+      "measured_stack_kb": 16,
+      "test_count": 32,
+      "test_pass_rate": 1.0,
+      "hardware_verified": []
+    },
+    {
+      "id": "cksum",
+      "name": "cksum",
+      "version": "1.0",
+      "description": "Display file checksums and sizes",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream_source": "freebsd",
+      "upstream_license": "BSD-3-Clause",
+      "port_date": "2026-03-26",
+      "aminet_status": "not_submitted",
+      "aminet_url": "",
+      "measured_binary_kb": 37,
+      "measured_stack_kb": 64,
+      "test_count": 37,
+      "test_pass_rate": 1.0,
+      "hardware_verified": []
+    },
+    {
+      "id": "col",
+      "name": "col",
+      "version": "1.20",
+      "description": "Filter reverse line feeds",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream_source": "openbsd",
+      "upstream_license": "BSD-3-Clause",
+      "port_date": "2026-03-26",
+      "aminet_status": "not_submitted",
+      "aminet_url": "",
+      "measured_binary_kb": 43,
+      "measured_stack_kb": 32,
+      "test_count": 29,
+      "test_pass_rate": 1.0,
+      "hardware_verified": []
     }
   ]
 }

@@ -232,6 +232,7 @@ struct amiport_winsize {
 int amiport_ioctl(int fd, unsigned long request, void *arg);
 
 #ifndef AMIPORT_NO_FILEOPS_MACROS
+#define access(p, m)      amiport_access(p, m)
 #define symlink(t, l)     amiport_symlink(t, l)
 #define fchmod(f, m)      amiport_fchmod(f, m)
 #define fchown(f, o, g)   amiport_fchown(f, o, g)

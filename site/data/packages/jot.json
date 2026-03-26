@@ -1,0 +1,22 @@
+{
+    "name": "jot",
+    "version": "1.56",
+    "revision": 1,
+    "description": "Print sequential or random data (OpenBSD)",
+    "category": "util/cli",
+    "source": "OpenBSD jot v1.56",
+    "license": "BSD-3-Clause",
+    "size": 32325,
+    "sha256": "21ba9ec06504a0747508f365e1c0ee37da6fcd0735c636208b129c35f3563401",
+    "download": "/packages/jot-1.56.lha",
+    "requires": [],
+    "aminet": "",
+    "stack": 32768,
+    "status": "stable",
+    "published_at": "2026-03-26T11:35:00Z",
+    "readme": "Short:        Print sequential or random data (OpenBSD)\nType:         util/cli\nArchitecture: m68k-amigaos >= 3.0\nUploader:     duncan (at) bowring (dot) us\nAuthor:       The Regents of the University of California (ported by Duncan Bowring)\nVersion:      1.56\n\njot - Print sequential or random data (OpenBSD)\n\nOriginal author: The Regents of the University of California\nPorted by Duncan Bowring using amiport (AI-assisted porting toolkit).\nProject: https://github.com/bdgscotland/amiport\n\nCross-compiled with m68k-amigaos-gcc for AmigaOS 3.x (68000+).\nTested in FS-UAE with AmigaOS 3.1.\n\nUsage:\n  jot [-cnr] [-b word] [-p precision] [-s sep] [-w fmt] [reps [begin\n      [end [s]]]]\n\n  Generates sequential or random data: numbers, strings, or characters.\n\nOptions:\n  -r          generate random values\n  -c          character mode\n  -n          suppress final newline\n  -b word     repeat word instead of numbers\n  -p prec     number of decimal places\n  -s sep      separator string (default newline)\n  -w fmt      printf format string\n\nExamples:\n  jot 5            ; print 1 through 5\n  jot 5 0          ; print 0 through 4\n  jot -r 5 1 10    ; 5 random numbers between 1 and 10\n  jot -c 26 a      ; print lowercase alphabet\n  jot - 1 10 2     ; print 1 3 5 7 9\n\nIncludes full source code (original POSIX and ported Amiga versions)\nand PORT.md documenting every transformation applied.",
+    "test_count": 41,
+    "test_pass": 41,
+    "porting_notes": "Requires libm (-lm) for math functions. Uses asprintf() from amiport/stdio_ext.h. 41 tests cover sequential output, random mode, character mode, step values, format strings, separator strings, precision, and edge cases with 0 reps and negative ranges.",
+    "known_limitations": "None."
+}

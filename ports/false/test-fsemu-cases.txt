@@ -1,0 +1,108 @@
+# Test suite for false 1.1 (OpenBSD port)
+# Category 1 (CLI utility) -- minimum 8 tests required
+#
+# false's ENTIRE functionality is: exit with RETURN_ERROR (10).
+#
+# CRITICAL AmigaDOS correctness note:
+#   On Unix: false exits with RC=1 (POSIX EXIT_FAILURE)
+#   On AmigaOS: false MUST exit with RC=10 (RETURN_ERROR)
+#   RC=1 is INVISIBLE to AmigaDOS scripts -- "IF ERROR" tests for RC >= 10.
+#   RC=5 triggers "IF WARN". RC=10 triggers "IF ERROR". RC=1 triggers NOTHING.
+#   If this port exits with RC=1, it is BROKEN for AmigaDOS scripting.
+#
+# The ported false.c returns 10 explicitly -- these tests verify that.
+# No stdout output is expected under any circumstances.
+#
+# Native AmigaOS verification (ported code):
+#   false; echo $?         => 10 (not 1 -- AmigaDOS RETURN_ERROR)
+#   output=$(false)        => '' (empty)
+
+# --- Functional tests (exit code is the entire functionality) ---
+
+# Source: return (10) in main()
+TEST: Basic invocation exits with RC=10 (RETURN_ERROR)
+CMD: WORK:false
+EXPECT_RC: 10
+
+# Source: argc/argv not examined -- any arguments are ignored
+TEST: Single argument is silently ignored, RC=10
+CMD: WORK:false foo
+EXPECT_RC: 10
+
+# Source: argc/argv not examined -- multiple arguments are ignored
+TEST: Multiple arguments are silently ignored, RC=10
+CMD: WORK:false foo bar baz
+EXPECT_RC: 10
+
+# Source: no getopt, no option parsing -- --help is not handled
+TEST: --help flag is ignored, RC=10 (does not print help)
+CMD: WORK:false --help
+EXPECT_RC: 10
+
+# Source: no getopt, no option parsing -- --version is not handled
+TEST: --version flag is ignored, RC=10 (does not print version)
+CMD: WORK:false --version
+EXPECT_RC: 10
+
+# --- Output verification tests ---
+
+# Native: output=$(false 2>/dev/null); echo "'$output'"
+TEST: No output on stdout with basic invocation
+CMD: WORK:false
+EXPECT:
+EXPECT_RC: 10
+
+# Native: output=$(false somearg 2>/dev/null); echo "'$output'"
+TEST: No output on stdout when arguments are passed
+CMD: WORK:false somearg
+EXPECT:
+EXPECT_RC: 10
+
+# Verify file path argument is also silently ignored
+TEST: File path argument is silently ignored, RC=10
+CMD: WORK:false WORK:test-oneline.txt
+EXPECT_RC: 10
+
+# --- Amiga-specific correctness tests ---
+#
+# These tests exist specifically to catch the Unix->AmigaOS exit code bug.
+# A naive port that returns exit(1) would pass vamos tests (which don't
+# check AmigaDOS scripting semantics) but be BROKEN for real Amiga use.
+
+# Critical AmigaDOS test: RC must be exactly 10, not 1 or 5 or 20.
+# IF ERROR in AmigaDOS tests RC >= 10. RC=1 would make false useless.
+TEST: AmigaDOS RETURN_ERROR is exactly 10 not Unix exit(1)
+CMD: WORK:false
+EXPECT_RC: 10
+
+# Verify false does NOT return RETURN_WARN (5) -- that would also be wrong
+# (A false that returns 5 would trigger IF WARN but not IF ERROR)
+TEST: Does not exit with RETURN_WARN (5)
+CMD: WORK:false
+EXPECT_RC: 10
+
+# --- Edge case tests ---
+
+# Double-dash argument is ignored
+TEST: Double-dash argument is silently ignored, RC=10
+CMD: WORK:false --
+EXPECT_RC: 10
+
+# --- Real-world and stress tests ---
+
+# Real-world: false is used in scripts to force failure -- verify repeatable RC=10
+# AmigaDOS: WORK:false ; IF ERROR SAY "correctly failed"
+TEST: Invoked with numeric argument (common in scripts), RC=10
+CMD: WORK:false 1
+EXPECT_RC: 10
+
+# Real-world: used with flag-style arguments that other programs would process
+TEST: Flag-style argument does not change exit code, RC=10
+CMD: WORK:false -x
+EXPECT_RC: 10
+
+# Stress: 10 arguments -- verify no crash from large argv, RC still 10
+# Native: false a b c d e f g h i j; echo $?
+TEST: Ten arguments passed simultaneously, RC=10
+CMD: WORK:false a b c d e f g h i j
+EXPECT_RC: 10

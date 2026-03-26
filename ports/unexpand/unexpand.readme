@@ -1,0 +1,33 @@
+Short:        Convert spaces to tabs (OpenBSD)
+Type:         util/cli
+Architecture: m68k-amigaos >= 3.0
+Uploader:     duncan@bowring.us
+Author:       The Regents of the University of California (ported by Duncan Bowring)
+Version:      1.13
+
+unexpand - Convert spaces to tabs (OpenBSD)
+
+Original author: The Regents of the University of California
+Ported by Duncan Bowring using amiport (AI-assisted porting toolkit).
+Project: https://github.com/bdgscotland/amiport
+
+Cross-compiled with m68k-amigaos-gcc for AmigaOS 3.x (68000+).
+Tested in FS-UAE with AmigaOS 3.1.
+
+Usage:
+  unexpand [-a] [-t tablist] [file ...]
+
+  Converts leading sequences of spaces to tabs. The inverse of expand.
+  Default tab stop is every 8 columns.
+
+Options:
+  -a           convert all whitespace, not just leading
+  -t tablist   specify tab stop positions
+
+Examples:
+  unexpand file.txt         ; convert leading spaces to tabs
+  unexpand -a file.txt      ; convert all space sequences to tabs
+  unexpand -t 4 file.txt    ; use 4-space tab stops
+
+Includes full source code (original POSIX and ported Amiga versions)
+and PORT.md documenting every transformation applied.

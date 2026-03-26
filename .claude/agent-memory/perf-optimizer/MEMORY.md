@@ -15,3 +15,10 @@
 - [port_awk_perf.md](port_awk_perf.md) - Performance findings for ports/awk (BWK One True Awk) — hash MULU eliminated, subseploc strlen cached, gototab bsearch vs linear scan reviewed 2026-03-25
 - [port_basename_perf.md](port_basename_perf.md) - Performance findings for ports/basename 1.14 — trivial Cat 1 CLI, no hot paths, clean bill of health reviewed 2026-03-25
 - [port_dirname_perf.md](port_dirname_perf.md) - Performance findings for ports/dirname 1.17 -- single-shot Cat 1 utility, no meaningful optimization opportunities reviewed 2026-03-25
+- [port_cksum_perf.md](port_cksum_perf.md) - Performance findings for ports/cksum 1.0 — crc32.c BUFSIZ vs 16KB mismatch, print overhead reviewed 2026-03-26
+- [port_col_perf.md](port_col_perf.md) - Performance findings for ports/col 1.20 — getchar/PUTC per-byte I/O, modulo-to-AND fix reviewed 2026-03-26
+- [port_colrm_perf.md](port_colrm_perf.md) - Performance findings for ports/colrm 1.14 — getline+char-walk hotpath, no CRITICAL issues reviewed 2026-03-26
+- [port_factor_perf.md](port_factor_perf.md) - Performance findings for ports/factor 1.30 — CRITICAL 256KB stack array in pr_bigfact must be static reviewed 2026-03-26
+- [port_getopt_perf.md](port_getopt_perf.md) - Performance findings for ports/getopt 1.10 — trivial single-shot CLI, clean bill of health reviewed 2026-03-26
+- [port_jot_perf.md](port_jot_perf.md) - Performance findings for ports/jot 1.56 — printf-per-value hotloop, fputs single-char fast path reviewed 2026-03-26
+- [port_unexpand_perf.md](port_unexpand_perf.md) - Performance findings for ports/unexpand 1.13 — dead linebuf scan loop (HIGH), printf->fputs (MEDIUM) reviewed 2026-03-26

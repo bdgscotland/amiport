@@ -1,0 +1,36 @@
+Short:        Display file checksums and sizes (FreeBSD)
+Type:         util/cli
+Architecture: m68k-amigaos >= 3.0
+Uploader:     duncan@bowring.us
+Author:       The Regents of the University of California (ported by Duncan Bowring)
+Version:      1.0
+
+cksum - Display file checksums and sizes (FreeBSD)
+
+Original author: The Regents of the University of California
+Ported by Duncan Bowring using amiport (AI-assisted porting toolkit).
+Project: https://github.com/bdgscotland/amiport
+
+Cross-compiled with m68k-amigaos-gcc for AmigaOS 3.x (68000+).
+Tested in FS-UAE with AmigaOS 3.1.
+
+Usage:
+  cksum [-o 1|2|3] [file ...]
+  sum [-r] [-o 1|2|3] [file ...]
+
+  Computes and displays CRC checksum and byte count for each file.
+  Supports multiple algorithm variants via -o flag.
+
+Options:
+  -o 1    BSD sum (16-bit, 512-byte blocks)
+  -o 2    SysV sum (16-bit, 512-byte blocks)
+  -o 3    32-bit CRC (default for cksum)
+
+Examples:
+  cksum file.txt          ; CRC32 checksum and byte count
+  cksum -o 1 file.txt     ; BSD sum algorithm
+  sum file.txt            ; synonym for cksum -o 1
+  cksum *                 ; checksum all files in directory
+
+Includes full source code (original POSIX and ported Amiga versions)
+and PORT.md documenting every transformation applied.

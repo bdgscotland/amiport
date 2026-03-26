@@ -105,3 +105,36 @@
   - Summary: Single argv expansion allocation with atexit cleanup, no manual malloc/free
   - Key findings: argv expansion properly paired with amiport_free_argv() via atexit, all exit paths verified, pledge() stub harmless, basename() string manipulation safe
   - Exit codes correctly transformed to AmigaOS (RETURN_ERROR = 10), exceptionally simple program follows best practices
+
+- [memory-audit-jot.md](memory-audit-jot.md) - ports/jot 1.56 memory safety review (2026-03-26)
+  - Status: CLEAN
+  - Verdict: Approved for shipping — zero leaks detected
+  - Summary: Zero dynamic allocations besides argv expansion and getformat() asprintf calls
+  - Key findings: argv expansion + atexit cleanup covers all paths; asprintf leaks final format string (~16 bytes, unfixable without refactoring), acceptable for single-invocation tool
+  - Exit codes properly set to RETURN_ERROR (10), all option parsing error paths covered
+
+- [memory-audit-unexpand.md](memory-audit-unexpand.md) - ports/unexpand 1.13 memory safety review (2026-03-26)
+  - Status: CLEAN
+  - Verdict: Approved for shipping — zero dynamic allocations
+  - Summary: Exemplary memory safety — static BUFSIZ buffers only, no malloc/calloc/strdup
+  - Key findings: freopen() usage safe (reassigns stdin, auto-closed on exit), atexit cleanup correct, all error paths covered
+  - Exit codes correctly set to RETURN_ERROR (10)
+
+- [memory-audit-cksum.md](memory-audit-cksum.md) - ports/cksum 1.0 memory safety review (2026-03-26)
+  - Status: CLEAN
+  - Verdict: Approved for shipping — properly balanced allocations, no leaks
+  - Summary: argv expansion + atexit cleanup; file handle management correct (close() called on all success paths, open() failures safely skipped)
+  - Key findings: stdin handling proper (initialized as fallback, closed after processing), loop pattern safe, static buffers in crc/sum functions
+  - All exit paths covered via atexit cleanup
+
+- [memory-audit-col.md](memory-audit-col.md) - ports/col 1.20 memory safety review (2026-03-26)
+  - Status: CRITICAL LEAKS FOUND
+  - Issues: 4 critical (line_freelist, sorted buffer, count buffer, l->l_line on error paths)
+  - Verdict: Cannot ship without fixes
+  - Leak 1: alloc_line() creates 64-line freelist (~2560 bytes), never freed
+  - Leak 2: flush_line() static sorted buffer (~4KB) allocated, never freed
+  - Leak 3: flush_line() static count buffer (~512 bytes) allocated, never freed
+  - Leak 4: Error paths skip flush_lines() cleanup, leaving l->l_line buffers orphaned (~10-50KB worst case)
+  - Required fix: Add cleanup_lines() function, call from atexit; accept small leaks 1-3 or refactor static scope
+  - Total leak: 16-60 KB per invocation (dominated by l->l_line leak on error paths)
+  - Root cause: Static variables in nested scope trapped by memory management pattern; error path bypasses cleanup

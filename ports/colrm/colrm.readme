@@ -1,0 +1,30 @@
+Short:        Remove columns from lines (OpenBSD)
+Type:         util/cli
+Architecture: m68k-amigaos >= 3.0
+Uploader:     duncan@bowring.us
+Author:       The Regents of the University of California (ported by Duncan Bowring)
+Version:      1.14
+
+colrm - Remove columns from lines (OpenBSD)
+
+Original author: The Regents of the University of California
+Ported by Duncan Bowring using amiport (AI-assisted porting toolkit).
+Project: https://github.com/bdgscotland/amiport
+
+Cross-compiled with m68k-amigaos-gcc for AmigaOS 3.x (68000+).
+Tested in FS-UAE with AmigaOS 3.1.
+
+Usage:
+  colrm [startcol [endcol]]
+
+  Removes columns from lines of input. Column numbering starts at 1.
+  With one argument, removes from startcol to end of line.
+  With two arguments, removes from startcol through endcol.
+
+Examples:
+  colrm 10            ; remove from column 10 to end of each line
+  colrm 5 10          ; remove columns 5 through 10
+  colrm 1 3 <file     ; remove first 3 columns from file
+
+Includes full source code (original POSIX and ported Amiga versions)
+and PORT.md documenting every transformation applied.

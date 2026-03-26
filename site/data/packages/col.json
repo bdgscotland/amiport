@@ -1,0 +1,22 @@
+{
+    "name": "col",
+    "version": "1.20",
+    "revision": 1,
+    "description": "Filter reverse line feeds (OpenBSD)",
+    "category": "util/cli",
+    "source": "OpenBSD col v1.20",
+    "license": "BSD-3-Clause",
+    "size": 24632,
+    "sha256": "286873c1d90f87bbf5ac5d433fea0a0a3a3402fa24e90b4eec8ca3f286c566bc",
+    "download": "/packages/col-1.20.lha",
+    "requires": [],
+    "aminet": "",
+    "stack": 32768,
+    "status": "stable",
+    "published_at": "2026-03-26T11:35:00Z",
+    "readme": "Short:        Filter reverse line feeds (OpenBSD)\nType:         util/cli\nArchitecture: m68k-amigaos >= 3.0\nUploader:     duncan (at) bowring (dot) us\nAuthor:       The Regents of the University of California (ported by Duncan Bowring)\nVersion:      1.20\n\ncol - Filter reverse line feeds (OpenBSD)\n\nOriginal author: The Regents of the University of California\nPorted by Duncan Bowring using amiport (AI-assisted porting toolkit).\nProject: https://github.com/bdgscotland/amiport\n\nCross-compiled with m68k-amigaos-gcc for AmigaOS 3.x (68000+).\nTested in FS-UAE with AmigaOS 3.1.\n\nUsage:\n  col [-bfhpx] [-l num]\n\n  Filters output from nroff/tbl that contains reverse line feeds and\n  backspace-overstrike sequences. Useful for converting man page output\n  to plain text.\n\nOptions:\n  -b          do not output backspace characters\n  -f          forward half line feeds permitted\n  -h          compress spaces to tabs on output\n  -p          output unknown escape sequences\n  -x          do not compress spaces to tabs\n  -l num      buffer num lines (default 128)\n\nExamples:\n  nroff -man page.1 | col -b     ; strip overstrike from man page\n  col -bx <formatted.txt         ; plain text, no tab compression\n\nIncludes full source code (original POSIX and ported Amiga versions)\nand PORT.md documenting every transformation applied.",
+    "test_count": 29,
+    "test_pass": 29,
+    "porting_notes": "Standard Tier 1 port. 29 tests cover plain pass-through, reverse line feed filtering, backspace-overstrike (-b), half-line feeds (-f), SI/SO charset markers, tab compression (-h/-x), -l buffer size, and stress tests with complex nroff-style formatting sequences.",
+    "known_limitations": "None."
+}

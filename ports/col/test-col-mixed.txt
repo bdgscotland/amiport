@@ -1,0 +1,4 @@
+NNAAMMEE
+     col -- filter reverse line feeds
+DDEESSCCRRIIPPTTIIOONN
+     The _c_o_l utility filters reverse line feeds.

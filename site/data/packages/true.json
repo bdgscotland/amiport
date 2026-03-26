@@ -1,0 +1,22 @@
+{
+    "name": "true",
+    "version": "1.1",
+    "revision": 1,
+    "description": "Return true value (OpenBSD)",
+    "category": "util/cli",
+    "source": "OpenBSD true v1.1",
+    "license": "BSD-3-Clause",
+    "size": 2300,
+    "sha256": "cb88356198af9dcd1afdcec27c7109b18a753ea212f1e6aee2e90523c9a83814",
+    "download": "/packages/true-1.1.lha",
+    "requires": [],
+    "aminet": "",
+    "stack": 8192,
+    "status": "stable",
+    "published_at": "2026-03-26T11:35:00Z",
+    "readme": "Short:        Return true value (OpenBSD)\nType:         util/cli\nArchitecture: m68k-amigaos >= 3.0\nUploader:     duncan (at) bowring (dot) us\nAuthor:       The Regents of the University of California (ported by Duncan Bowring)\nVersion:      1.1\n\ntrue - Return true value (OpenBSD)\n\nOriginal author: The Regents of the University of California\nPorted by Duncan Bowring using amiport (AI-assisted porting toolkit).\nProject: https://github.com/bdgscotland/amiport\n\nCross-compiled with m68k-amigaos-gcc for AmigaOS 3.x (68000+).\nTested in FS-UAE with AmigaOS 3.1.\n\nUsage:\n  true\n\n  Returns exit code 0 (success). Useful in AmigaDOS scripts with IF\n  and in pipeline testing.\n\nExamples:\n  true                     ; returns RETURN_OK (0) always\n  IF true EQ true          ; condition always true in scripts\n\nIncludes full source code (original POSIX and ported Amiga versions)\nand PORT.md documenting every transformation applied.",
+    "test_count": 13,
+    "test_pass": 13,
+    "porting_notes": "Minimal port: 13 tests confirm correct exit code (0) under all invocations including with extra arguments (POSIX requires these be ignored). The only Amiga-specific change is the stack cookie and version string.",
+    "known_limitations": "None."
+}

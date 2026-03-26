@@ -1,0 +1,22 @@
+{
+    "name": "factor",
+    "version": "1.30",
+    "revision": 1,
+    "description": "Factor a number (OpenBSD)",
+    "category": "util/misc",
+    "source": "OpenBSD factor v1.30",
+    "license": "BSD-3-Clause",
+    "size": 43002,
+    "sha256": "c480c13a44956a39747bc62f5b792aa8d0e7be68ad2177d05ce3aa4e60e28cf6",
+    "download": "/packages/factor-1.30.lha",
+    "requires": [],
+    "aminet": "",
+    "stack": 16384,
+    "status": "stable",
+    "published_at": "2026-03-26T11:35:00Z",
+    "readme": "Short:        Factor a number (OpenBSD)\nType:         util/misc\nArchitecture: m68k-amigaos >= 3.0\nUploader:     duncan (at) bowring (dot) us\nAuthor:       The Regents of the University of California (ported by Duncan Bowring)\nVersion:      1.30\n\nfactor - Factor a number (OpenBSD)\n\nOriginal author: The Regents of the University of California\nPorted by Duncan Bowring using amiport (AI-assisted porting toolkit).\nProject: https://github.com/bdgscotland/amiport\n\nCross-compiled with m68k-amigaos-gcc for AmigaOS 3.x (68000+).\nTested in FS-UAE with AmigaOS 3.1.\n\nUsage:\n  factor [number ...]\n\n  Factors each number into its prime components. With no arguments,\n  reads numbers from standard input (one per line).\n\nExamples:\n  factor 12            ; outputs: 12: 2 2 3\n  factor 100           ; outputs: 100: 2 2 5 5\n  factor 17            ; outputs: 17: 17  (prime)\n  factor 1 2 3 4 5     ; factor multiple numbers at once\n\nIncludes full source code (original POSIX and ported Amiga versions)\nand PORT.md documenting every transformation applied.",
+    "test_count": 39,
+    "test_pass": 39,
+    "porting_notes": "Multi-file port (factor.c, pattern.c, pr_tbl.c) with pre-computed prime table. 39 tests cover small primes, composites, large numbers, stdin mode, negative numbers, zero, non-numeric input, and multi-argument invocations.",
+    "known_limitations": "None."
+}

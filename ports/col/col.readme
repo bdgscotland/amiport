@@ -1,0 +1,37 @@
+Short:        Filter reverse line feeds (OpenBSD)
+Type:         util/cli
+Architecture: m68k-amigaos >= 3.0
+Uploader:     duncan@bowring.us
+Author:       The Regents of the University of California (ported by Duncan Bowring)
+Version:      1.20
+
+col - Filter reverse line feeds (OpenBSD)
+
+Original author: The Regents of the University of California
+Ported by Duncan Bowring using amiport (AI-assisted porting toolkit).
+Project: https://github.com/bdgscotland/amiport
+
+Cross-compiled with m68k-amigaos-gcc for AmigaOS 3.x (68000+).
+Tested in FS-UAE with AmigaOS 3.1.
+
+Usage:
+  col [-bfhpx] [-l num]
+
+  Filters output from nroff/tbl that contains reverse line feeds and
+  backspace-overstrike sequences. Useful for converting man page output
+  to plain text.
+
+Options:
+  -b          do not output backspace characters
+  -f          forward half line feeds permitted
+  -h          compress spaces to tabs on output
+  -p          output unknown escape sequences
+  -x          do not compress spaces to tabs
+  -l num      buffer num lines (default 128)
+
+Examples:
+  nroff -man page.1 | col -b     ; strip overstrike from man page
+  col -bx <formatted.txt         ; plain text, no tab compression
+
+Includes full source code (original POSIX and ported Amiga versions)
+and PORT.md documenting every transformation applied.
