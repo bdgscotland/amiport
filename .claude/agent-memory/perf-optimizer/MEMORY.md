@@ -13,3 +13,5 @@
 - [port_rev_perf.md](port_rev_perf.md) - Performance findings for ports/rev 1.16 — putchar-per-byte hotloop replaced with in-place swap + fwrite, multibyte dead branch removed 2026-03-25
 - [port_expand_perf.md](port_expand_perf.md) - Performance findings for ports/expand 1.15 — getchar/putchar per-byte hotloop, fgets+fwrite rewrite recommended reviewed 2026-03-25
 - [port_awk_perf.md](port_awk_perf.md) - Performance findings for ports/awk (BWK One True Awk) — hash MULU eliminated, subseploc strlen cached, gototab bsearch vs linear scan reviewed 2026-03-25
+- [port_basename_perf.md](port_basename_perf.md) - Performance findings for ports/basename 1.14 — trivial Cat 1 CLI, no hot paths, clean bill of health reviewed 2026-03-25
+- [port_dirname_perf.md](port_dirname_perf.md) - Performance findings for ports/dirname 1.17 -- single-shot Cat 1 utility, no meaningful optimization opportunities reviewed 2026-03-25

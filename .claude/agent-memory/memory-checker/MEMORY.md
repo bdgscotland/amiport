@@ -91,3 +91,17 @@
   - Issue 2: onig_new() at line 928, error path at 938 never calls onig_free() (100-500 bytes/error)
   - onig_initialize/atexit(onig_end) cleanup correct ✓
   - Root cause: Incomplete error-path cleanup in new Oniguruma integration code
+
+- [memory-audit-dirname.md](memory-audit-dirname.md) - ports/dirname 1.17 memory safety review (2026-03-25)
+  - Status: CLEAN
+  - Verdict: Approved for shipping — zero leaks detected
+  - Summary: Single argv expansion allocation with atexit cleanup covering all paths
+  - Key findings: argv expansion properly paired with amiport_free_argv() via atexit, static dirname() buffer safe, all error paths covered
+  - Exit codes correctly transformed to AmigaOS (RETURN_ERROR = 10), __progname weak symbol correctly handled
+
+- [memory-audit-basename.md](memory-audit-basename.md) - ports/basename 1.14 memory safety review (2026-03-25)
+  - Status: CLEAN
+  - Verdict: Approved for shipping — zero leaks detected
+  - Summary: Single argv expansion allocation with atexit cleanup, no manual malloc/free
+  - Key findings: argv expansion properly paired with amiport_free_argv() via atexit, all exit paths verified, pledge() stub harmless, basename() string manipulation safe
+  - Exit codes correctly transformed to AmigaOS (RETURN_ERROR = 10), exceptionally simple program follows best practices

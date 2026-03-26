@@ -1,0 +1,29 @@
+Short:        Strip last component from filename
+Type:         util/cli
+Architecture: m68k-amigaos >= 3.0
+Uploader:     duncan@bowring.us
+Author:       Todd C. Miller (ported by Duncan Bowring)
+Version:      1.17
+
+dirname - Strip last component from filename
+
+Original author: Todd C. Miller
+Ported by Duncan Bowring using amiport (AI-assisted porting toolkit).
+Project: https://github.com/bdgscotland/amiport
+
+Cross-compiled with m68k-amigaos-gcc for AmigaOS 3.x (68000+).
+Tested in FS-UAE emulator with AmigaOS 3.1.
+
+Usage:
+  dirname pathname
+
+Examples:
+  dirname /usr/bin/grep    -> /usr/bin
+  dirname foo/bar          -> foo
+  dirname foo              -> .
+
+Only handles / as path separator (POSIX behavior).
+AmigaOS : separator in volume paths is not recognized.
+
+Includes full source code (original POSIX and ported Amiga versions)
+and PORT.md documenting every transformation applied.

@@ -1,0 +1,29 @@
+Short:        Strip directory and suffix from filenames
+Type:         util/cli
+Architecture: m68k-amigaos >= 3.0
+Uploader:     duncan@bowring.us
+Author:       The Regents of the University of California (ported by Duncan Bowring)
+Version:      1.14
+
+basename - Strip directory and suffix from filenames
+
+Original author: The Regents of the University of California
+Ported by Duncan Bowring using amiport (AI-assisted porting toolkit).
+Project: https://github.com/bdgscotland/amiport
+
+Cross-compiled with m68k-amigaos-gcc for AmigaOS 3.x (68000+).
+Tested in FS-UAE emulator with AmigaOS 3.1.
+
+Usage:
+  basename string [suffix]
+
+Examples:
+  basename /usr/bin/grep       -> grep
+  basename foo.c .c            -> foo
+  basename /path/to/file.txt   -> file.txt
+
+Only handles / as path separator (POSIX behavior).
+AmigaOS : separator in volume paths is not recognized.
+
+Includes full source code (original POSIX and ported Amiga versions)
+and PORT.md documenting every transformation applied.

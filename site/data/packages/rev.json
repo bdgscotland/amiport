@@ -13,7 +13,7 @@
     "stack": 16384,
     "status": "stable",
     "revision": 1,
-    "published_at": "2026-03-25T14:30:00Z",
+    "published_at": "2026-03-25T23:30:00Z",
     "readme": "Short:        Reverse lines character by character\nType:         util/cli\nArchitecture: m68k-amigaos >= 3.0\nUploader:     duncan (at) bowring (dot) us\nAuthor:       University of California, Berkeley (ported by Duncan Bowring)\nVersion:      1.16\n\nrev - Reverse lines character by character\n\nOriginal author: University of California, Berkeley\nPorted by Duncan Bowring using amiport (AI-assisted porting toolkit).\nProject: https://github.com/bdgscotland/amiport\n\nCross-compiled with m68k-amigaos-gcc for AmigaOS 3.x (68000+).\nTested in vamos emulator and FS-UAE.\n\nUsage:\n  rev [file ...]\n\n  rev file.txt            Reverse each line of file.txt\n  rev file1 file2         Reverse lines from multiple files\n  echo \"Hello\" | rev      Reverse from stdin: \"olleH\"\n\nIncludes full source code (original POSIX and ported Amiga versions)\nand PORT.md documenting every transformation applied.",
     "test_count": 24,
     "test_pass": 24,

@@ -1,0 +1,22 @@
+{
+    "name": "basename",
+    "version": "1.14",
+    "revision": 1,
+    "description": "Strip directory and suffix from filenames",
+    "category": "util/cli",
+    "source": "OpenBSD basename v1.14",
+    "license": "BSD-3-Clause",
+    "size": 19191,
+    "sha256": "d9444e1a28982900b003a93647799eaa18ffb7c1857789a3d8436d5ead5e1d1a",
+    "download": "/packages/basename-1.14.lha",
+    "requires": [],
+    "aminet": "",
+    "stack": 16384,
+    "status": "stable",
+    "test_count": 32,
+    "test_pass": 32,
+    "published_at": "2026-03-25T23:17:00Z",
+    "porting_notes": "Minimal port -- 76-line pure C89 program with no Tier 2/3 issues. Transformations: err.h shim, pledge() stubbed, __dead attribute removed, __progname defined directly (weak symbol fix), exit codes changed to AmigaOS values (1->10), amiport_expand_argv() for wildcard expansion, atexit() cleanup for argv. No struct returns, no alignment concerns, no 64-bit types. Note: only handles / as path separator; AmigaOS : volume separator is treated as part of the filename (POSIX behavior). 32/32 FS-UAE tests pass.",
+    "known_limitations": "Only handles / as path separator. AmigaOS paths with : (e.g. Work:file.txt) are treated as a single filename component. This matches POSIX behavior but differs from what an Amiga-native implementation might do.",
+    "readme": "Short:        Strip directory and suffix from filenames\nType:         util/cli\nArchitecture: m68k-amigaos >= 3.0\nUploader:     duncan (at) bowring (dot) us\nAuthor:       The Regents of the University of California (ported by Duncan Bowring)\nVersion:      1.14\n\nbasename - Strip directory and suffix from filenames\n\nOriginal author: The Regents of the University of California\nPorted by Duncan Bowring using amiport (AI-assisted porting toolkit).\nProject: https://github.com/bdgscotland/amiport\n\nCross-compiled with m68k-amigaos-gcc for AmigaOS 3.x (68000+).\nTested in FS-UAE emulator with AmigaOS 3.1.\n\nUsage:\n  basename string [suffix]\n\nExamples:\n  basename /usr/bin/grep       -> grep\n  basename foo.c .c            -> foo\n  basename /path/to/file.txt   -> file.txt\n\nOnly handles / as path separator (POSIX behavior).\nAmigaOS : separator in volume paths is not recognized.\n\nIncludes full source code (original POSIX and ported Amiga versions)\nand PORT.md documenting every transformation applied.\n"
+}

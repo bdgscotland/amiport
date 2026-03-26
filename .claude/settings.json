@@ -71,6 +71,19 @@
         ]
       }
     ],
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash scripts/hooks/capture-fsemu-learnings.sh",
+            "timeout": 5,
+            "statusMessage": "Checking for test learnings..."
+          }
+        ]
+      }
+    ],
     "Stop": [
       {
         "hooks": [

@@ -28,6 +28,8 @@ Version format: `upstream[-portrev]` — port revision is shown when > 1 (e.g., 
 | [rev](ports/rev/) | 1.16 | Reverse lines character by character | CLI | OpenBSD rev v1.16 (BSD 3-Clause) | Built & tested (24/24 FS-UAE) | Not submitted |
 | [expand](ports/expand/) | 1.15 | Convert tabs to spaces | CLI | OpenBSD expand v1.15 (BSD 3-Clause) | Built & tested (29/29 FS-UAE) | Not submitted |
 | [awk](ports/awk/) | 2024.12.25 | Pattern scanning and processing language | Scripting | BWK "One True Awk" (MIT-like) | Built & tested (44/44 FS-UAE) | Not submitted |
+| [basename](ports/basename/) | 1.14 | Strip directory and suffix from filenames | CLI | OpenBSD basename v1.14 (BSD 3-Clause) | Built & tested (32/32 FS-UAE) | Not submitted |
+| [dirname](ports/dirname/) | 1.17 | Strip last component from filename | CLI | OpenBSD dirname v1.17 (ISC) | Built & tested (24/24 FS-UAE) | Not submitted |
 
 ## Aminet Publication Tracking
 

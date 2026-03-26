@@ -1,9 +1,9 @@
-TARGET      = rev
-SOURCES     = ported/rev.c
-VERSION     = 1.16
+TARGET      = basename
+SOURCES     = ported/basename.c
+VERSION     = 1.14
 REVISION    = 1
-DESCRIPTION = Reverse lines character by character
-AUTHOR      = University of California, Berkeley
+DESCRIPTION = Strip directory and suffix from filenames
+AUTHOR      = The Regents of the University of California
 
 # Aminet category
 AMINET_CAT = util/cli
@@ -22,5 +22,5 @@ test: $(TARGET)
 
 compare: $(TARGET)
 	@echo "=== Comparing native vs Amiga: $(TARGET) ==="
-	$(NATIVE_CC) $(NATIVE_CFLAGS) -o $(TARGET)_native original/rev.c
+	$(NATIVE_CC) $(NATIVE_CFLAGS) -o $(TARGET)_native original/basename.c
 	@rm -f $(TARGET)_native

@@ -119,9 +119,15 @@ AmigaOS filesystems (OFS, FFS, SFS) are case-insensitive. Ported `diff -r`, `fin
 
 The `d_type` field in `struct dirent` is never populated by AmigaOS filesystems (OFS, FFS, SFS). It is always `DT_UNKNOWN` (0). Code that checks `dp->d_type == DT_DIR` to detect directories will silently treat all directories as regular files, breaking recursive operations like `grep -R`, `find`, and `diff -r`. **Fix:** Replace `d_type` checks with an `opendir()` probe — try `opendir(path)` on each entry; if it succeeds, the entry is a directory. This was discovered in the grep 1.68 port where `-R` silently skipped subdirectories.
 
-## __progname Weak Symbol Lost During Linking
+## __progname — Do NOT Define in Ported Source
 
-The `__progname` variable is declared as a weak symbol in `argv_expand.o` (inside `libamiport.a`). Even though the object is linked (because `amiport_expand_argv()` is called), the weak data symbol `__progname` may not survive in the final binary — bebbo-gcc's linker can strip unreferenced weak data symbols from archive members. The result: `__progname` resolves to address 0 (or garbage), and any `fprintf(stderr, "%s", __progname)` in `usage()` crashes with an invalid memory access. On FS-UAE this manifests as garbled output flooding the console before a Guru Meditation. **Fix:** Define `__progname` directly in the ported source: `char *__progname = "progname";`. The `amiport_expand_argv()` function writes to it via the extern declaration, so it will be updated from argv[0] at runtime. Discovered in the uniq 1.33 port.
+~~The `__progname` variable was originally a weak symbol that got stripped.~~ **UPDATE (2026-03-25):** `argv_expand.o` in `libamiport.a` now defines `__progname` as a **strong** symbol. Defining `char *__progname = "progname";` in ported source causes a linker error: `multiple definition of '__progname'`.
+
+**Fix:** Do NOT define `__progname` in ported source. Remove any `char *__progname = "...";` line. When `amiport_expand_argv()` is called, `argv_expand.o` is pulled from the archive and provides `__progname` as a strong symbol, initialized from `argv[0]` at runtime. The `extern char *__progname;` declaration in headers is sufficient.
+
+**If `amiport_expand_argv()` is NOT used:** Then `argv_expand.o` won't be linked, and `__progname` won't exist. In that rare case, define it locally. But all standard ports use `amiport_expand_argv()`.
+
+Previously discovered in uniq 1.33 (weak symbol era). Updated after basename/dirname 2026-03-25 (strong symbol era).
 
 ## Braceless Multi-Statement if/else Blocks
 
@@ -417,3 +423,18 @@ CMD: WORK:awk -f WORK:test-awk-toupper.awk WORK:test-empty.txt
 This applies to: awk programs, sed expressions with quotes, grep patterns with quotes, and any argument containing literal quote characters.
 
 Discovered in the awk port -- 55 inline awk programs with escaped quotes all returned RC=2 (syntax error) on FS-UAE while working fine natively.
+
+## libnix dirname() Is Buggy -- Use Local Implementation
+
+libnix's `dirname()` from `<libgen.h>` has two bugs:
+
+1. **2-character paths**: `dirname("/a")` returns `"/a"` instead of `"/"`. Fails to strip single-character filename components from root. Affects all paths of the form `/<single-char>`.
+2. **Consecutive slashes**: `dirname("/usr//bin")` returns `"/usr/"` instead of `"/usr"`. Does not collapse double slashes before processing.
+
+These are POSIX compliance failures. The bugs are in libnix's C library implementation, not in any shim code.
+
+**Fix:** Do NOT use libnix `dirname()`. Implement a local POSIX-correct version using a static buffer (safe -- AmigaOS is single-threaded). See `ports/dirname/ported/dirname.c` for the `amiport_dirname()` reference implementation (~50 lines). The algorithm follows POSIX.1-2008 step-by-step: strip trailing slashes, strip trailing non-slash component, strip trailing slashes again, handle edge cases.
+
+**Note:** libnix `basename()` works correctly AND is Amiga-aware (treats `:` as a path separator alongside `/`). Only `dirname()` is buggy.
+
+Discovered in the dirname 1.17 port (2026-03-25) -- FS-UAE tests caught the discrepancy on `/x` and `/usr//bin` paths.

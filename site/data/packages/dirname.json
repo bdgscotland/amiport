@@ -1,0 +1,22 @@
+{
+    "name": "dirname",
+    "version": "1.17",
+    "description": "Strip last component from filename",
+    "category": "util/cli",
+    "source": "OpenBSD dirname v1.17",
+    "license": "ISC",
+    "size": 19143,
+    "sha256": "4669bb6fc821ab56f4843ecbe6122c1ae943dad1aa99aeeef7b1eccdb8ffe5a3",
+    "download": "/packages/dirname-1.17.lha",
+    "requires": [],
+    "aminet": "",
+    "stack": 16384,
+    "status": "stable",
+    "revision": 1,
+    "published_at": "2026-03-26T03:18:47Z",
+    "readme": "Short:        Strip last component from filename\nType:         util/cli\nArchitecture: m68k-amigaos >= 3.0\nUploader:     duncan (at) bowring (dot) us\nAuthor:       Todd C. Miller (ported by Duncan Bowring)\nVersion:      1.17\n\ndirname - Strip last component from filename\n\nOriginal author: Todd C. Miller\nPorted by Duncan Bowring using amiport (AI-assisted porting toolkit).\nProject: https://github.com/bdgscotland/amiport\n\nCross-compiled with m68k-amigaos-gcc for AmigaOS 3.x (68000+).\nTested in FS-UAE emulator with AmigaOS 3.1.\n\nUsage:\n  dirname pathname\n\nExamples:\n  dirname /usr/bin/grep    -> /usr/bin\n  dirname foo/bar          -> foo\n  dirname foo              -> .\n\nOnly handles / as path separator (POSIX behavior).\nAmigaOS : separator in volume paths is not recognized.\n\nIncludes full source code (original POSIX and ported Amiga versions)\nand PORT.md documenting every transformation applied.",
+    "test_count": 24,
+    "test_pass": 24,
+    "porting_notes": "Single-file OpenBSD port (57 lines, pure C89, EASY difficulty). Key transformations: amiport/err.h for err(), amiport/stdlib.h for exit() macro, amiport/getopt.h (libnix getopt_long is broken), __progname defined directly (weak symbol stripping fix, crash-patterns), pledge()/unveil() stubbed as macros, exit(1) changed to exit(10) for AmigaOS RC conventions. Uses local POSIX-correct dirname() -- libnix dirname() modifies input in-place (crash-patterns #18), safe here because result is consumed before argv[0] is reused. Memory: CLEAN per memory audit. Performance: no findings -- program is trivially fast. 24/24 FS-UAE tests pass including Amiga-specific WORK: volume path tests.",
+    "known_limitations": "Only handles / as path separator. AmigaOS paths with : (e.g., Work:data/file.txt) return . instead of Work:data. This matches POSIX behavior but differs from what an Amiga-native implementation might do."
+}

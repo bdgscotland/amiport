@@ -1,0 +1,230 @@
+# test-fsemu-cases.txt -- basename 1.14 FS-UAE test suite
+# Category 1 (CLI tool) -- minimum 8 tests required
+# All expected values verified by running native basename on macOS
+
+# ============================================================
+# FUNCTIONAL TESTS -- basic path stripping
+# ============================================================
+
+# Native: basename /usr/bin/sort
+TEST: Strip directory prefix from absolute path
+CMD: WORK:basename /usr/bin/sort
+EXPECT: sort
+EXPECT_RC: 0
+
+# Native: basename sort
+TEST: No directory component -- return filename unchanged
+CMD: WORK:basename sort
+EXPECT: sort
+EXPECT_RC: 0
+
+# Native: basename /usr/bin/
+TEST: Trailing slash stripped before basename extraction
+CMD: WORK:basename /usr/bin/
+EXPECT: bin
+EXPECT_RC: 0
+
+# Native: basename /
+TEST: Root slash returns slash
+CMD: WORK:basename /
+EXPECT: /
+EXPECT_RC: 0
+
+# Native: basename .
+TEST: Dot argument returns dot
+CMD: WORK:basename .
+EXPECT: .
+EXPECT_RC: 0
+
+# Native: basename ..
+TEST: Double-dot argument returns double-dot
+CMD: WORK:basename ..
+EXPECT: ..
+EXPECT_RC: 0
+
+# ============================================================
+# SUFFIX REMOVAL TESTS
+# ============================================================
+
+# Native: basename sort.c .c
+TEST: Remove matching suffix from plain filename
+CMD: WORK:basename sort.c .c
+EXPECT: sort
+EXPECT_RC: 0
+
+# Native: basename /usr/bin/sort.exe .exe
+TEST: Remove matching suffix from path filename
+CMD: WORK:basename /usr/bin/sort.exe .exe
+EXPECT: sort
+EXPECT_RC: 0
+
+# Native: basename sort .c
+TEST: Non-matching suffix leaves filename unchanged
+CMD: WORK:basename sort .c
+EXPECT: sort
+EXPECT_RC: 0
+
+# Native: basename hello hello
+TEST: Suffix equal to entire string is NOT removed (strict less-than rule)
+CMD: WORK:basename hello hello
+EXPECT: hello
+EXPECT_RC: 0
+
+# Native: basename hi hello
+TEST: Suffix longer than string is not removed
+CMD: WORK:basename hi hello
+EXPECT: hi
+EXPECT_RC: 0
+
+# Native: basename hello ello
+TEST: Remove suffix that is shorter than full string
+CMD: WORK:basename hello ello
+EXPECT: h
+EXPECT_RC: 0
+
+# Native: basename /path/file.tar.gz .gz
+TEST: Remove only final extension leaving intermediate extension
+CMD: WORK:basename /path/file.tar.gz .gz
+EXPECT: file.tar
+EXPECT_RC: 0
+
+# Native: basename /path/.hidden
+TEST: Hidden dot-file returned unchanged when no suffix given
+CMD: WORK:basename /path/.hidden
+EXPECT: .hidden
+EXPECT_RC: 0
+
+# ============================================================
+# EDGE CASES
+# ============================================================
+
+# Native: basename '' (empty string argument)
+# Source: if (**argv == '\0') { puts(""); return 0; }
+TEST: Empty string argument prints empty line
+CMD: WORK:basename ""
+EXPECT:
+EXPECT_RC: 0
+
+# Native: basename //
+TEST: Double slash treated as root
+CMD: WORK:basename //
+EXPECT: /
+EXPECT_RC: 0
+
+# Native: basename //usr/bin
+TEST: Leading double slash strips to last component
+CMD: WORK:basename //usr/bin
+EXPECT: bin
+EXPECT_RC: 0
+
+# Native: basename /path/file. .
+TEST: Strip single dot as suffix
+CMD: WORK:basename /path/file. .
+EXPECT: file
+EXPECT_RC: 0
+
+# ============================================================
+# AMIGA-SPECIFIC TESTS -- WORK: volume path handling
+# ============================================================
+
+# AmigaOS uses colon as volume separator: WORK:dir/file
+# basename only treats slash as directory separator, so WORK: prefix is kept
+# as part of the "directory" -- slash after it behaves normally
+
+# Native: basename WORK:dir/filename
+TEST: Amiga WORK: path with slash -- return final component
+CMD: WORK:basename WORK:dir/filename
+EXPECT: filename
+EXPECT_RC: 0
+
+# Native: basename WORK:dir/filename.c .c
+TEST: Amiga WORK: path with suffix removal
+CMD: WORK:basename WORK:dir/filename.c .c
+EXPECT: filename
+EXPECT_RC: 0
+
+# On AmigaOS, libnix basename() treats colon as path separator (correct for AmigaDOS).
+# WORK:filename strips the "WORK:" volume prefix, returning just "filename".
+# This differs from native POSIX basename (which only recognizes /).
+TEST: Amiga WORK: path with no slash -- libnix strips colon prefix
+CMD: WORK:basename WORK:filename
+EXPECT: filename
+EXPECT_RC: 0
+
+# ============================================================
+# ERROR PATH TESTS
+# ============================================================
+
+# Source: if (argc != 1 && argc != 2) usage(); -- usage() calls exit(10)
+# Error output goes to stderr -- not captured by test harness
+# Test exit code only
+
+TEST: No arguments prints usage and exits RC=10
+CMD: WORK:basename
+EXPECT_RC: 10
+
+TEST: Three arguments prints usage and exits RC=10
+CMD: WORK:basename a b c
+EXPECT_RC: 10
+
+# Source: getopt(argc, argv, "") -- empty string, any flag hits default: usage()
+TEST: Invalid flag -z exits RC=10
+CMD: WORK:basename -z hello
+EXPECT_RC: 10
+
+TEST: Invalid flag -a exits RC=10 (port does not support -a unlike macOS)
+CMD: WORK:basename -a hello
+EXPECT_RC: 10
+
+# ============================================================
+# REAL-WORLD AND STRESS TESTS
+# ============================================================
+
+# Real-world: typical script usage -- stripping .c to get object name
+# Native: basename /usr/src/sys/kern/vfs_lookup.c .c
+TEST: Real-world: strip .c suffix from kernel source path
+CMD: WORK:basename /usr/src/sys/kern/vfs_lookup.c .c
+EXPECT: vfs_lookup
+EXPECT_RC: 0
+
+# Real-world: extracting manpage name without section suffix
+# Native: basename /usr/local/share/man/man1/basename.1 .1
+TEST: Real-world: extract manpage name from deep path
+CMD: WORK:basename /usr/local/share/man/man1/basename.1 .1
+EXPECT: basename
+EXPECT_RC: 0
+
+# Real-world: shell script stripping .sh extension
+# Native: basename /some/very/long/path/to/a/file/with/many/dirs/script.sh .sh
+TEST: Real-world: strip .sh from deeply nested script path
+CMD: WORK:basename /some/very/long/path/to/a/file/with/many/dirs/script.sh .sh
+EXPECT: script
+EXPECT_RC: 0
+
+# Stress: path with many directory components (deep nesting)
+# Native: basename /a/b/c/d/e/f/g/h/i/j/k/l/m/n/o/p/q/r/s/t/u/v/w/x/y/z/leaf
+TEST: Stress: deeply nested 26-level path -- return leaf component
+CMD: WORK:basename /a/b/c/d/e/f/g/h/i/j/k/l/m/n/o/p/q/r/s/t/u/v/w/x/y/z/leaf
+EXPECT: leaf
+EXPECT_RC: 0
+
+# Stress: filename with many dots -- only strip exact suffix match
+# Native: basename /path/a.b.c.d.e.f .f
+TEST: Stress: filename with many extensions -- strip only rightmost
+CMD: WORK:basename /path/a.b.c.d.e.f .f
+EXPECT: a.b.c.d.e
+EXPECT_RC: 0
+
+# Precision: verify suffix stripping is exact byte match, not prefix/partial
+# Native: basename result.exe .EXE  (case mismatch -- no strip)
+TEST: Precision: suffix match is case-sensitive -- wrong case not stripped
+CMD: WORK:basename result.exe .EXE
+EXPECT: result.exe
+EXPECT_RC: 0
+
+# Precision: verify trailing slash removal before basename extraction
+# Native: basename /usr/local///
+TEST: Precision: multiple trailing slashes stripped before extraction
+CMD: WORK:basename /usr/local///
+EXPECT: local
+EXPECT_RC: 0

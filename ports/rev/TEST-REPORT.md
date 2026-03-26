@@ -5,10 +5,10 @@
 | Field | Value |
 |-------|-------|
 | Port | rev |
-| Date | 2026-03-25 14:01:49 |
+| Date | 2026-03-25 23:05:07 |
 | Duration | 129s |
 | Platform | FS-UAE 3.2.35 (A1200, Kickstart 3.1) |
-| Binary | `WORK:rev` (34K) |
+| Binary | `WORK:rev` (35K) |
 | Test method | ARexx harness → TAP output |
 | Result | **PASS** — 24/24 passed |
 

@@ -1,0 +1,163 @@
+# test-fsemu-cases.txt -- FS-UAE test suite for dirname 1.17
+# Category 1 (CLI tool) -- minimum 15 tests required
+# dirname strips the last component from a filename.
+# Usage: dirname pathname
+# RC=0 on success, RC=10 on usage error (no flags, any flag -> usage)
+#
+# All EXPECT: values derived by running native macOS dirname.
+# No test input files needed -- dirname takes arguments only.
+
+# --- Functional: basic path stripping ---
+
+# Native: dirname /usr/bin/ls
+TEST: Strip filename from absolute path
+CMD: WORK:dirname /usr/bin/ls
+EXPECT: /usr/bin
+EXPECT_RC: 0
+
+# Native: dirname /usr/bin/
+TEST: Strip trailing component with trailing slash
+CMD: WORK:dirname /usr/bin/
+EXPECT: /usr
+EXPECT_RC: 0
+
+# Native: dirname /usr
+TEST: Single-level absolute path returns root
+CMD: WORK:dirname /usr
+EXPECT: /
+EXPECT_RC: 0
+
+# Native: dirname foo/bar
+TEST: Strip filename from relative path
+CMD: WORK:dirname foo/bar
+EXPECT: foo
+EXPECT_RC: 0
+
+# Native: dirname foo/bar/baz
+TEST: Strip filename from multi-level relative path
+CMD: WORK:dirname foo/bar/baz
+EXPECT: foo/bar
+EXPECT_RC: 0
+
+# Native: dirname /foo/bar/baz
+TEST: Strip filename from multi-level absolute path
+CMD: WORK:dirname /foo/bar/baz
+EXPECT: /foo/bar
+EXPECT_RC: 0
+
+# Native: dirname /a/b/c/d/e
+TEST: Deep five-level absolute path
+CMD: WORK:dirname /a/b/c/d/e
+EXPECT: /a/b/c/d
+EXPECT_RC: 0
+
+# --- Functional: edge cases per POSIX spec ---
+
+# Native: dirname /
+TEST: Root path returns root
+CMD: WORK:dirname /
+EXPECT: /
+EXPECT_RC: 0
+
+# Native: dirname foo
+TEST: Bare filename with no directory returns dot
+CMD: WORK:dirname foo
+EXPECT: .
+EXPECT_RC: 0
+
+# Native: dirname .
+TEST: Single dot returns dot
+CMD: WORK:dirname .
+EXPECT: .
+EXPECT_RC: 0
+
+# Native: dirname ..
+TEST: Double dot returns dot
+CMD: WORK:dirname ..
+EXPECT: .
+EXPECT_RC: 0
+
+# Native: dirname /usr/bin/ls/
+TEST: Absolute path with trailing slash strips trailing component
+CMD: WORK:dirname /usr/bin/ls/
+EXPECT: /usr/bin
+EXPECT_RC: 0
+
+# Native: dirname foo/
+TEST: Relative path with trailing slash returns dot
+CMD: WORK:dirname foo/
+EXPECT: .
+EXPECT_RC: 0
+
+# Native: dirname /usr//bin
+TEST: Double slash in path component
+CMD: WORK:dirname /usr//bin
+EXPECT: /usr
+EXPECT_RC: 0
+
+# --- Amiga-specific: WORK: volume path handling ---
+
+# Native: dirname WORK:foo/bar
+TEST: AmigaDOS WORK: volume path strips filename
+CMD: WORK:dirname WORK:foo/bar
+EXPECT: WORK:foo
+EXPECT_RC: 0
+
+# Native: dirname WORK:foo/bar/baz
+TEST: AmigaDOS WORK: multi-level path strips last component
+CMD: WORK:dirname WORK:foo/bar/baz
+EXPECT: WORK:foo/bar
+EXPECT_RC: 0
+
+# --- Error path tests ---
+# Note: error messages go to stderr and are NOT captured by the harness.
+# Use EXPECT_RC: 10 only.
+
+TEST: No arguments prints usage and exits with RC 10
+CMD: WORK:dirname
+EXPECT_RC: 10
+
+TEST: Too many arguments prints usage and exits with RC 10
+CMD: WORK:dirname /usr/bin /etc
+EXPECT_RC: 10
+
+TEST: Invalid flag prints usage and exits with RC 10
+CMD: WORK:dirname -h
+EXPECT_RC: 10
+
+# --- Real-world and stress tests ---
+
+# Real-world: extracting the directory of a deeply nested config file
+# Native: dirname /home/user/.config/app/settings.conf
+TEST: Real-world config file path
+CMD: WORK:dirname /home/user/.config/app/settings.conf
+EXPECT: /home/user/.config/app
+EXPECT_RC: 0
+
+# Real-world: Makefile-style variable extraction (common in shell scripts)
+# Native: dirname /usr/local/lib/libfoo.so
+TEST: Real-world library path
+CMD: WORK:dirname /usr/local/lib/libfoo.so
+EXPECT: /usr/local/lib
+EXPECT_RC: 0
+
+# Stress: maximum path depth -- many components
+# Native: dirname /a/b/c/d/e/f/g/h/i/j/k/l/m/n/o/p/q/r/s/t
+TEST: Twenty-component deep path
+CMD: WORK:dirname /a/b/c/d/e/f/g/h/i/j/k/l/m/n/o/p/q/r/s/t
+EXPECT: /a/b/c/d/e/f/g/h/i/j/k/l/m/n/o/p/q/r/s
+EXPECT_RC: 0
+
+# Stress: long filename component
+# Native: dirname /usr/bin/averylongprogramnamethatexceedsthirtycharacters
+TEST: Long filename component stripped correctly
+CMD: WORK:dirname /usr/bin/averylongprogramnamethatexceedsthirtycharacters
+EXPECT: /usr/bin
+EXPECT_RC: 0
+
+# Precision: verify exact output character-by-character -- no trailing spaces
+# Native: dirname /x produces exactly "/"
+TEST: Single-character root directory exact output
+CMD: WORK:dirname /x
+EXPECT: /
+EXPECT_RC: 0
