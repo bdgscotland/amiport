@@ -852,20 +852,11 @@
       "unlocks_count": 2
     },
     "setlocale": {
-      "tier": 2,
-      "status": "not_implemented",
-      "complexity": "low",
-      "unlocks": [
-        "fmt",
-        "fold",
-        "column",
-        "join",
-        "ls",
-        "nl",
-        "colrm",
-        "rs"
-      ],
-      "unlocks_count": 8
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
     },
     "mbrtowc": {
       "tier": 2,
@@ -1120,7 +1111,6 @@
           "tier3": 0
         },
         "missing_shims": [
-          "setlocale",
           "mbtowc",
           "wcwidth",
           "iswblank"
@@ -1175,7 +1165,6 @@
           "tier3": 0
         },
         "missing_shims": [
-          "setlocale",
           "mbtowc",
           "wcwidth"
         ],
@@ -1280,7 +1269,6 @@
         },
         "missing_shims": [
           "ioctl",
-          "setlocale",
           "mbtowc",
           "wcwidth"
         ],
@@ -1484,7 +1472,6 @@
           "tier3": 0
         },
         "missing_shims": [
-          "setlocale",
           "mbtowc",
           "wctomb"
         ],
@@ -1597,8 +1584,7 @@
           "readlink",
           "user_from_uid",
           "group_from_gid",
-          "ioctl",
-          "setlocale"
+          "ioctl"
         ],
         "blocking_shims": [
           "fts_open",
@@ -2919,8 +2905,8 @@
       "publishable": true,
       "notes": "Number lines. Uses regex (implemented in posix-emu). setlocale is trivial stub. Clean port.",
       "readiness": {
-        "score": 0.666,
-        "tier": "feasible"
+        "score": 0.966,
+        "tier": "ready"
       },
       "hardware_fit": {
         "stock_a1200": "fits",
@@ -2936,9 +2922,7 @@
           "tier2": 1,
           "tier3": 0
         },
-        "missing_shims": [
-          "setlocale"
-        ],
+        "missing_shims": [],
         "blocking_shims": [],
         "blocker_workaround": "setlocale() is a no-op on AmigaOS \u2014 stub to return \"C\"",
         "dependencies": [],
@@ -2989,7 +2973,6 @@
           "tier3": 0
         },
         "missing_shims": [
-          "setlocale",
           "mbtowc",
           "wcwidth"
         ],
@@ -4103,8 +4086,7 @@
           "tier3": 0
         },
         "missing_shims": [
-          "strtonum",
-          "setlocale"
+          "strtonum"
         ],
         "blocking_shims": [],
         "blocker_workaround": "strtonum replaceable with strtol; setlocale stub as no-op",

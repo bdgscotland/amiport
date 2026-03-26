@@ -101,6 +101,7 @@ or amiport shim wrappers. Used by the `analyze-source` and `transform-source` sk
 | `getopt()` | — | `amiport_getopt()` | needs-shim | Not in AmigaOS; bundled in posix-shim |
 | `regex` (POSIX) | — | `amiport_emu_regcomp()` etc. | needs-emu | Tier 2 regex emulation in `lib/posix-emu/` |
 | `strdup()` | Provided by clib2 | — | trivial | |
+| `setlocale()` | `locale.library` OpenLocale() | `amiport_setlocale()` | needs-shim | Returns "C"; locale.library exists but libnix runtime ignores it |
 | `strtok_r()` | — | `amiport_strtok_r()` | needs-shim | Not always available; simple to implement |
 | `strlcpy()` | — | `amiport_strlcpy()` | needs-shim | BSD safe string copy |
 | `strlcat()` | — | `amiport_strlcat()` | needs-shim | BSD safe string concatenation |

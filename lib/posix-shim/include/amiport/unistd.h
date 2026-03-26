@@ -138,15 +138,22 @@ int amiport_ftruncate(int fd, LONG length);
 #define ftruncate(fd, len)  amiport_ftruncate(fd, len)
 #endif
 
-/* setlocale stub — always returns "C" (no real locale support on classic AmigaOS) */
+/* setlocale -- Tier 1 shim, returns "C" locale.
+ * AmigaOS has locale.library (OpenLocale/GetLocaleStr/StrnCmp) but
+ * libnix's C runtime is hardcoded to C locale behavior. Returning "C"
+ * is correct: it prevents multibyte code paths from activating while
+ * the C library can't support them. See ADCD: locale-library-openlocale.
+ * Returns NULL for unsupported locale names (POSIX-correct behavior). */
 char *amiport_setlocale(int category, const char *locale);
 #ifndef AMIPORT_NO_LOCALE_MACROS
 #ifndef LC_ALL
 #define LC_ALL      0
 #define LC_COLLATE  1
 #define LC_CTYPE    2
+#define LC_MONETARY 3
 #define LC_NUMERIC  4
 #define LC_TIME     5
+#define LC_MESSAGES 6
 #endif
 #define setlocale   amiport_setlocale
 #endif

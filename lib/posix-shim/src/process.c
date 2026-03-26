@@ -269,17 +269,40 @@ FILE *amiport_tmpfile(void)
 }
 
 /*
- * setlocale — stub returning "C" locale
+ * setlocale -- Tier 1 shim returning "C" locale
  *
- * amiport: AmigaOS has locale.library but classic -noixemul libnix
- * does not provide setlocale(). Most ported programs call
- * setlocale(LC_ALL, "") at startup for locale-aware sorting/collation.
- * This stub returns "C" for all categories, which is the POSIX default.
+ * amiport: AmigaOS has a full locale.library (V38+) with OpenLocale(),
+ * GetLocaleStr(), ConvToUpper(), StrnCmp(), FormatDate(), and a rich
+ * Locale struct (decimal point, grouping, currency, date/time formats).
+ * See ADCD: locale-library-openlocale, locale-library-structures.
+ *
+ * However, POSIX setlocale() controls the C runtime's internal behavior
+ * (printf formatting, strcmp collation, ctype classification). libnix's
+ * C runtime is hardcoded to C locale behavior -- it does not consult
+ * locale.library. Returning a real locale name would be a lie: the C
+ * library would still behave as "C" regardless.
+ *
+ * The programs blocked on this shim call setlocale(LC_ALL, "") to
+ * enable multibyte character paths (mbtowc/wcwidth). On AmigaOS with
+ * single-byte character sets, returning "C" correctly disables those
+ * paths, which is the desired behavior.
+ *
+ * Future: amiport_localeconv() could populate struct lconv from the
+ * AmigaOS Locale struct fields (loc_DecimalPoint, loc_GroupSeparator,
+ * loc_MonCS, etc.) for programs that need numeric/monetary formatting.
  */
 char *
 amiport_setlocale(int category, const char *locale)
 {
     (void)category;
-    (void)locale;
-    return "C";
+    if (locale == NULL) {
+        /* amiport: Query current locale -- always "C" */
+        return "C";
+    }
+    if (locale[0] == '\0' || strcmp(locale, "C") == 0
+        || strcmp(locale, "POSIX") == 0) {
+        return "C";
+    }
+    /* amiport: Unsupported locale */
+    return NULL;
 }

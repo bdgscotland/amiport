@@ -176,6 +176,53 @@ TEST(unsetenv_nonexistent)
     ASSERT_EQ(amiport_unsetenv("AMIPORT_TEST_GHOST_VAR_999"), 0);
 }
 
+/* --- setlocale tests --- */
+
+TEST(setlocale_query_returns_c)
+{
+    /* NULL locale = query current; must return "C" */
+    char *result = amiport_setlocale(LC_ALL, NULL);
+    ASSERT_NOT_NULL(result);
+    ASSERT_STR_EQ(result, "C");
+}
+
+TEST(setlocale_empty_string_returns_c)
+{
+    /* "" = use environment default; on AmigaOS always "C" */
+    char *result = amiport_setlocale(LC_ALL, "");
+    ASSERT_NOT_NULL(result);
+    ASSERT_STR_EQ(result, "C");
+}
+
+TEST(setlocale_c_returns_c)
+{
+    char *result = amiport_setlocale(LC_ALL, "C");
+    ASSERT_NOT_NULL(result);
+    ASSERT_STR_EQ(result, "C");
+}
+
+TEST(setlocale_posix_returns_c)
+{
+    char *result = amiport_setlocale(LC_ALL, "POSIX");
+    ASSERT_NOT_NULL(result);
+    ASSERT_STR_EQ(result, "C");
+}
+
+TEST(setlocale_unsupported_returns_null)
+{
+    /* Requesting an unsupported locale must return NULL (POSIX) */
+    char *result = amiport_setlocale(LC_ALL, "en_US.UTF-8");
+    ASSERT_NULL(result);
+}
+
+TEST(setlocale_per_category)
+{
+    /* Each category should independently return "C" */
+    ASSERT_STR_EQ(amiport_setlocale(LC_CTYPE, NULL), "C");
+    ASSERT_STR_EQ(amiport_setlocale(LC_NUMERIC, NULL), "C");
+    ASSERT_STR_EQ(amiport_setlocale(LC_TIME, NULL), "C");
+}
+
 int main(void)
 {
     (void)verstag;
@@ -194,6 +241,12 @@ int main(void)
     RUN_TEST(setenv_overwrite_one);
     RUN_TEST(unsetenv_removes_var);
     RUN_TEST(unsetenv_nonexistent);
+    RUN_TEST(setlocale_query_returns_c);
+    RUN_TEST(setlocale_empty_string_returns_c);
+    RUN_TEST(setlocale_c_returns_c);
+    RUN_TEST(setlocale_posix_returns_c);
+    RUN_TEST(setlocale_unsupported_returns_null);
+    RUN_TEST(setlocale_per_category);
 
     return test_summary();
 }

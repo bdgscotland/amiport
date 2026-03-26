@@ -78,6 +78,7 @@ One wrapper per function. Semantics match POSIX for all common use cases. The tr
 |`setenv()`     |`amiport_setenv()`      |`SetVar()` + `GVF_GLOBAL_ONLY`  |Writes to ENV:; respects overwrite=0                          |
 |`unsetenv()`   |`amiport_unsetenv()`    |`DeleteVar()` + `GVF_GLOBAL_ONLY`|Succeeds even if variable not set (POSIX)                    |
 |`realpath()`   |`amiport_realpath()`    |`Lock()`+`NameFromLock()`       |NULL resolved arg: malloc'd buffer, caller must free()        |
+|`setlocale()`  |`amiport_setlocale()`   |Returns "C" (locale.library not wired to libnix)|AmigaOS has locale.library but libnix C runtime ignores it; "C" is correct for single-byte charset|
 
 ### Planned Tier 1 additions
 
