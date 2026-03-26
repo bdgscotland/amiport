@@ -1,6 +1,6 @@
 ---
 name: batch-port-parallel
-description: Dispatch multiple ports from the catalog in parallel using isolated worktrees. Each port gets its own worker agent. FS-UAE testing and reviews run serially after all workers complete.
+description: Dispatch multiple ports from the catalog in parallel using specialized agents. Runs the same pipeline stages as /port-project but overlaps them across ports for ~3x throughput.
 argument-hint: [count] [category] [profile]
 user_invocable: true
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Agent
@@ -8,21 +8,21 @@ allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Agent
 
 # /batch-port-parallel — Parallel Batch Porting
 
-Dispatch N ports simultaneously, each in its own isolated worktree.
+Port N programs simultaneously by running specialized pipeline agents in parallel across ports. Uses the SAME agents as `/port-project` (source-analyzer, code-transformer, build-manager, test-designer, test-runner) — not a generalist substitute.
 
 ## Usage
 
 ```
-/batch-port-parallel              # 5 Cat 1 ports on a1200_accel (default)
-/batch-port-parallel 3            # 3 ports
-/batch-port-parallel 5 cli        # 5 Cat 1 CLI ports
+/batch-port-parallel              # 3 Cat 1 ports on a1200_accel (default)
+/batch-port-parallel 5            # 5 ports
+/batch-port-parallel 3 cli        # 3 Cat 1 CLI ports
 /batch-port-parallel 3 scripting stock_a1200
 ```
 
 ## Arguments
 
 Parse `$ARGUMENTS` as: `[count] [category] [profile]`
-- **count**: Number of ports to dispatch (default: 5, max: 8)
+- **count**: Number of ports to dispatch (default: 3, max: 5)
 - **category**: `cli` (default), `scripting`, `console`, `network`
 - **profile**: `a1200_accel` (default), `stock_a1200`
 
@@ -32,9 +32,38 @@ Parse `$ARGUMENTS` as: `[count] [category] [profile]`
 docker info --format '{{.ServerVersion}}' 2>/dev/null || echo 'DOCKER_NOT_RUNNING'
 vamos --version 2>&1 | head -1 || echo 'VAMOS_NOT_INSTALLED'
 python3 scripts/catalog-score.py --validate 2>&1 | tail -1
+make build-shim 2>&1 | tail -3
 ```
 
-If Docker is not running, STOP — builds will fail. If vamos is missing, workers can still build but not smoke-test.
+If Docker is not running, STOP. Build the shim library FIRST — all ports share it.
+
+## Architecture
+
+```
+PARALLEL ACROSS PORTS, SPECIALIZED AGENTS PER STAGE:
+
+Stage 0:  [aminet-researcher A] [aminet-researcher B] [aminet-researcher C]  ← all background
+          ↓                     ↓                     ↓
+Stage 1:  [source-analyzer A]   [source-analyzer B]   [source-analyzer C]    ← as each returns
+          ↓                     ↓                     ↓
+Stage 2:  [setup dirs A]        [setup dirs B]        [setup dirs C]         ← inline (fast)
+          ↓                     ↓                     ↓
+Stage 3:  [code-transformer A]  [code-transformer B]  [code-transformer C]   ← background
+          ↓                     ↓                     ↓
+Stage 4:  [build-manager A]     [build-manager B]     [build-manager C]      ← background
+          ↓                     ↓                     ↓
+Stage 5b: [test-designer A]     [test-designer B]     [test-designer C]      ← background
+          ↓                     ↓                     ↓
+Stage 5:  [vamos test A]        [vamos test B]        [vamos test C]         ← background
+          ↓                     ↓                     ↓
+Stage 5c: FS-UAE A → FS-UAE B → FS-UAE C                                     ← SERIAL (one at a time)
+          ↓                     ↓                     ↓
+Stage 6:  [memory-checker A]    [memory-checker B]    [memory-checker C]     ← background
+          [perf-optimizer A]    [perf-optimizer B]    [perf-optimizer C]     ← background
+```
+
+Each column is one port. Each row dispatches ALL ports at that stage in parallel.
+As each agent returns, its port advances to the next stage independently.
 
 ## Algorithm
 
@@ -44,78 +73,95 @@ If Docker is not running, STOP — builds will fail. If vamos is missing, worker
 python3 scripts/catalog-score.py --score --next <count> --category <category> --profile <profile>
 ```
 
-Parse the output to get candidate names, source URLs, and readiness scores. If fewer than `count` candidates are ready, dispatch what's available and report the shortfall.
-
-Filter out candidates with `status: "in_progress"` or `status: "failed"` unless they are stale retries (>24h old).
+Parse output. Filter out `status: "in_progress"` or `status: "failed"` (unless stale >24h). If fewer candidates than requested, dispatch what's available.
 
 ### Phase 2: Mark In-Progress
 
-For each candidate, set `status: "in_progress"` in `data/catalog.json`. Write all updates in a single atomic edit to avoid partial state.
+Set `status: "in_progress"` for all candidates in `data/catalog.json`.
 
-### Phase 3: Dispatch Workers (PARALLEL)
+### Phase 3: Stage 0 — Research (PARALLEL)
 
-Dispatch all workers simultaneously using the Agent tool. **All dispatches MUST be in a single message** to maximize parallelism.
-
-For each candidate:
+Dispatch `aminet-researcher` for ALL ports simultaneously in a single message:
 
 ```
-Agent(
-    subagent_type="port-worker",
-    description="Port <name> to AmigaOS",
-    isolation="worktree",
-    run_in_background=true,
-    mode="bypassPermissions",
-    model="sonnet",
-    prompt="Port the C program '<name>' to AmigaOS 3.x.
-
-Source: <source_url_or_description>
-Category: <category>
-Hardware profile: <profile>
-
-This is an automated batch port. Follow your pipeline (stages 0-4b + test suite generation) completely. Report your structured summary when done."
-)
+Agent(subagent_type="aminet-researcher", run_in_background=true,
+      prompt="Check if <name> already exists for AmigaOS 3.x on Aminet...")
+Agent(subagent_type="aminet-researcher", run_in_background=true,
+      prompt="Check if <name> already exists for AmigaOS 3.x on Aminet...")
+...
 ```
 
-Key dispatch parameters:
-- `isolation: "worktree"` — each worker gets its own repo copy
-- `run_in_background: true` — all workers run concurrently
-- `mode: "bypassPermissions"` — workers need to run make, bash, etc. without prompts
-- `model: "sonnet"` — cost-effective for routine Cat 1 ports
+As each returns: if SKIP (existing port found), remove from the active batch. If PROCEED, advance to Stage 1.
 
-After dispatching all workers, tell the user:
+### Phase 4: Stage 1 — Analyze (PARALLEL)
 
-> Dispatched N workers in parallel worktrees. You'll be notified as each completes.
-> Estimated time: 5-10 minutes for Cat 1 CLI ports.
+For all ports that passed Stage 0, dispatch `source-analyzer` in parallel:
 
-### Phase 4: Collect Results
+```
+Agent(subagent_type="source-analyzer", run_in_background=true,
+      prompt="Analyze <source-path> for Amiga portability. Report tier classification, POSIX deps, and verdict.")
+```
 
-As each worker completes, parse its structured summary. Track:
-- Which ports succeeded (STATUS: SUCCESS)
-- Which failed (STATUS: FAILED) — note the reason
-- Which were skipped (STATUS: SKIP or INFEASIBLE) — note why
-- Which worktree branches have changes
+As each returns: if INFEASIBLE, mark failed. If feasible, advance to Stage 2.
 
-For failed ports, update catalog status to `"failed"` with the error reason.
-For skipped ports, update catalog status to `"skipped"`.
+### Phase 5: Stage 2 — Setup Dirs (INLINE)
 
-### Phase 5: Merge Worktrees
+For each port that passed analysis, set up the port directory structure inline (fast, no agent needed):
 
-For each successful port, the worktree created a branch with the port's files. Present the user with the list of completed ports and ask to merge:
+1. Create `ports/<name>/original/` and `ports/<name>/ported/`
+2. Copy/download source files to `original/`, then to `ported/`
+3. Create Makefile from template
+4. Create PORT.md from template
 
-> N ports completed successfully:
-> - foo (15 tests, 12KB binary)
-> - bar (18 tests, 8KB binary)
-> - baz (20 tests, 24KB binary)
->
-> Merge all to main?
+This runs in the main session sequentially — it's fast (<10s per port).
 
-On approval, merge each worktree branch to the current branch. If there are merge conflicts (unlikely since each port is in its own directory), resolve them.
+### Phase 6: Stage 3 — Transform (PARALLEL)
 
-### Phase 6: FS-UAE Testing and Bug Fix Loop (SERIAL — CRITICAL)
+Dispatch `code-transformer` for all ready ports simultaneously:
 
-**Only ONE FS-UAE instance can run at a time.** `build/system.hdf` and `build/amiga/` are shared singletons. This constraint applies to both the initial test pass AND any fix-rebuild-retest cycles.
+```
+Agent(subagent_type="code-transformer", run_in_background=true,
+      prompt="Transform ports/<name>/ported/ source files for AmigaOS. Apply all transformation rules. Check shim availability in lib/posix-shim/include/amiport/.")
+```
 
-Process each successful, merged port **one at a time through the full loop**:
+As each returns: verify transformed files exist in `ported/`. If transform failed, mark as failed.
+
+### Phase 7: Stage 4 — Build (PARALLEL)
+
+Dispatch `build-manager` for all transformed ports simultaneously:
+
+```
+Agent(subagent_type="build-manager", run_in_background=true,
+      prompt="Build ports/<name> for AmigaOS. Iterate up to 5 times on compile errors.")
+```
+
+As each returns: check for binary at `ports/<name>/<name>`. If build failed, mark as failed.
+
+### Phase 8: Stage 5b — Test Design (PARALLEL)
+
+Dispatch `test-designer` for all built ports simultaneously:
+
+```
+Agent(subagent_type="test-designer", run_in_background=true,
+      prompt="Design comprehensive FS-UAE test suite for ports/<name>. Generate test-fsemu-cases.txt per docs/test-coverage-standard.md.")
+```
+
+### Phase 9: Stage 5 — vamos Test (PARALLEL)
+
+Dispatch `test-runner` for all ports with test suites:
+
+```
+Agent(subagent_type="test-runner", run_in_background=true,
+      prompt="Test ports/<name> via vamos. Run make test TARGET=ports/<name> with VAMOS_STACK from Makefile.")
+```
+
+vamos tests are independent per port — safe to overlap.
+
+### Phase 10: Stage 5c — FS-UAE Testing (SERIAL — CRITICAL)
+
+**Only ONE FS-UAE instance can run at a time.** `build/system.hdf` and `build/amiga/` are shared singletons.
+
+Process each port **one at a time through the full fix loop**:
 
 ```
 for each port:
@@ -130,34 +176,30 @@ for each port:
   4. if 3 attempts exhausted → mark as FAILED, move to next port
 ```
 
-**Do NOT dispatch FS-UAE tests in the background.** Each `make test-fsemu` must complete (including any fix loops) before starting the next port. The fix loop needs FS-UAE to verify the fix worked — if two ports are both in fix loops, they'll corrupt each other's test state.
+**Do NOT dispatch FS-UAE tests in the background.** The fix loop needs FS-UAE to verify — two ports in fix loops corrupt shared state.
 
-Report results as each port completes so the user sees progress.
+### Phase 11: Stage 6 — Reviews (PARALLEL)
 
-### Phase 7: Reviews (PARALLEL)
-
-For all ports that passed FS-UAE testing, dispatch review agents in parallel:
+For all ports that passed FS-UAE, dispatch review agents in parallel:
 
 ```
-Agent(subagent_type="memory-checker", run_in_background=true, prompt="Check ports/<name>/ ...")
-Agent(subagent_type="perf-optimizer", run_in_background=true, prompt="Optimize ports/<name>/ ...")
+Agent(subagent_type="memory-checker", run_in_background=true, prompt="Check ports/<name>/ for memory safety...")
+Agent(subagent_type="perf-optimizer", run_in_background=true, prompt="Optimize ports/<name>/ for 68k performance...")
 ```
 
-These can run in parallel because they are read-only analysis of different port directories.
+Dispatch ALL memory-checkers and perf-optimizers for all passing ports in a single message.
 
-If reviews find CRITICAL issues, fix them, rebuild, and **re-run FS-UAE serially** (same constraint as Phase 6 — one at a time through the fix loop).
+If reviews find CRITICAL issues: fix, rebuild, re-run FS-UAE **serially** (same constraint as Phase 10).
 
-### Phase 8: Catalog Update
+### Phase 12: Catalog Update
 
 For each completed port:
 1. Move candidate from `candidates[]` to `ported[]` in `data/catalog.json`
 2. Set `measured_binary_kb`, `test_count`, `test_pass_rate`
 3. Add row to `PORTS.md`
-4. Run `python3 scripts/catalog-score.py --score` to update the dashboard
+4. Run `python3 scripts/catalog-score.py --score`
 
-### Phase 9: Summary
-
-Print a final batch report:
+### Phase 13: Summary
 
 ```
 BATCH COMPLETE: N/M ports succeeded
@@ -178,15 +220,34 @@ BATCH COMPLETE: N/M ports succeeded
     - Run /publish-package for Aminet/amiport publishing
 ```
 
+## Pipelining — Don't Wait for All Ports at Each Stage
+
+**CRITICAL:** Do NOT wait for all ports to finish a stage before starting the next. As EACH port's agent returns, immediately dispatch that port's next stage. The pipeline should look like:
+
+```
+Port A: [research]→[analyze]→[transform]→[build]→[test-design]→[vamos]→[FS-UAE]
+Port B:    [research]→[analyze]→[transform]→[build]→[test-design]→[vamos]─[FS-UAE]
+Port C:      [research]→[analyze]→[transform]→[build]→[test-design]→[vamos]──[FS-UAE]
+```
+
+NOT:
+
+```
+All: [research A,B,C] → wait → [analyze A,B,C] → wait → [transform A,B,C] → wait
+```
+
+The whole point is pipelining. A fast port shouldn't wait for a slow one.
+
 ## Error Handling
 
-- **Worker timeout**: If a worker hasn't returned after 20 minutes, it's likely stuck. Note it as failed.
-- **Docker down mid-batch**: Workers will fail at build stage. Their STATUS: FAILED reports will say why.
-- **Shim gaps**: If multiple workers report the same missing shim function, note it as a batch-level blocker. Suggest `/extend-shim <function>` before retrying.
-- **Catalog conflicts**: If catalog.json was modified externally during the batch, re-read before Phase 8 updates.
+- **Agent timeout**: If an agent hasn't returned after 15 minutes, it's likely stuck. Note it and move the port to FAILED.
+- **Docker down mid-batch**: Build agents will fail. Mark those ports as FAILED.
+- **Shim gaps**: If multiple ports report the same missing shim function, pause the batch and suggest `/extend-shim <function>` before continuing.
+- **Catalog conflicts**: Re-read catalog.json before Phase 12 updates.
 
 ## Limits
 
-- **Max 8 concurrent workers.** Beyond this, context saturation from result summaries degrades the main session. The docs recommend 3-5; 8 is the practical ceiling.
-- **Cat 1 only for unattended batch.** Cat 2+ ports may need interactive decisions (Tier 2/3 tradeoffs). Use `/batch-port` (sequential) for Cat 2+.
-- **FS-UAE stays serial.** Parallel FS-UAE requires Level B infrastructure changes (per-slot staging dirs). See `docs/porting-guide.md` "Parallel Porting" section.
+- **Max 5 concurrent ports.** Each port may have 1-2 agents running at different stages. 5 ports × 1-2 agents = 5-10 concurrent agents, near the practical ceiling for context management.
+- **Cat 1 only for unattended batch.** Cat 2+ may need Tier 2/3 tradeoff decisions. Use `/port-project` for Cat 2+.
+- **FS-UAE stays serial.** See `docs/porting-guide.md` "Parallel Porting" section.
+- **Build shim first.** If two ports both need `/extend-shim`, they'll conflict. Build the shim before starting the batch.

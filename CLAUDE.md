@@ -81,7 +81,7 @@ The `/port-project` skill has GATE checks — it will not proceed to the next st
 | `visual-test-expert` | Visual test authoring and debugging — SCRAPE/SCREEN_READ/EXPECT_TRAP_CURSOR (ADR-024/025) |
 | `amiport-publisher` | Publish ports to amiport.platesteel.net — test-gated, never automatic |
 | `catalog-engineer` | Catalog management — candidate enumeration, dry-run analysis, scoring, batch dispatch |
-| `port-worker` | Self-contained porting worker for parallel batch dispatch — runs stages 0-4 in an isolated worktree |
+| `port-worker` | **Draft mode only** — self-contained porting worker for quick-pass batch dispatch in worktrees. Use specialized agents via `/batch-port-parallel` for production quality. |
 
 ## Documentation Rules — IMPORTANT
 
