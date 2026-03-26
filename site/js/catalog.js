@@ -218,6 +218,7 @@
         var s = catalog.summary || {};
         var t = s.tiers || {};
         function set(node, label, val) {
+            if (!node) return;
             clearNode(node);
             node.appendChild(text(label + ': '));
             node.appendChild(el('strong', null, String(val)));
@@ -232,9 +233,9 @@
     // --- Filter + Sort ---
 
     function getFiltered() {
-        var q = (searchInput.value || '').toLowerCase();
-        var cat = categorySel.value;
-        var tier = tierSel.value;
+        var q = (searchInput ? searchInput.value : '').toLowerCase();
+        var cat = categorySel ? categorySel.value : '';
+        var tier = tierSel ? tierSel.value : '';
         var result = [];
         for (var i = 0; i < candidates.length; i++) {
             var c = candidates[i];
@@ -270,14 +271,15 @@
     // --- Render candidates with inline expand ---
 
     function renderCandidates() {
+        if (!tbody) return; // shims.html has no candidate table
         var filtered = getFiltered();
-        countEl.textContent = filtered.length + ' of ' + candidates.length + ' candidates';
+        if (countEl) countEl.textContent = filtered.length + ' of ' + candidates.length + ' candidates';
         if (filtered.length === 0 && candidates.length > 0) {
-            emptyEl.classList.remove('hidden');
+            if (emptyEl) emptyEl.classList.remove('hidden');
             clearNode(tbody);
             return;
         }
-        emptyEl.classList.add('hidden');
+        if (emptyEl) emptyEl.classList.add('hidden');
         clearNode(tbody);
 
         for (var i = 0; i < filtered.length; i++) {
@@ -491,9 +493,9 @@
 
     // --- Events ---
 
-    searchInput.addEventListener('input', function() { expandedId = null; renderCandidates(); });
-    categorySel.addEventListener('change', function() { expandedId = null; renderCandidates(); });
-    tierSel.addEventListener('change', function() { expandedId = null; renderCandidates(); });
+    if (searchInput) searchInput.addEventListener('input', function() { expandedId = null; renderCandidates(); });
+    if (categorySel) categorySel.addEventListener('change', function() { expandedId = null; renderCandidates(); });
+    if (tierSel) tierSel.addEventListener('change', function() { expandedId = null; renderCandidates(); });
 
     // Sortable column headers
     var sortHeaders = catTable.querySelectorAll('th.sortable');
@@ -525,27 +527,33 @@
         }
     }
 
-    document.getElementById('cat-clear-filter').addEventListener('click', function(e) {
-        e.preventDefault();
-        searchInput.value = '';
-        categorySel.value = '';
-        tierSel.value = '';
-        expandedId = null;
-        renderCandidates();
-    });
+    var clearFilterBtn = document.getElementById('cat-clear-filter');
+    if (clearFilterBtn) {
+        clearFilterBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            if (searchInput) searchInput.value = '';
+            if (categorySel) categorySel.value = '';
+            if (tierSel) tierSel.value = '';
+            expandedId = null;
+            renderCandidates();
+        });
+    }
 
-    document.getElementById('cat-retry').addEventListener('click', function(e) {
-        e.preventDefault();
-        errorEl.classList.add('hidden');
-        fetchCatalog();
-    });
+    var retryBtn = document.getElementById('cat-retry');
+    if (retryBtn) {
+        retryBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            if (errorEl) errorEl.classList.add('hidden');
+            fetchCatalog();
+        });
+    }
 
     document.addEventListener('keydown', function(e) {
         if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') {
-            if (e.key === 'Escape') { searchInput.value = ''; searchInput.blur(); expandedId = null; renderCandidates(); }
+            if (e.key === 'Escape' && searchInput) { searchInput.value = ''; searchInput.blur(); expandedId = null; renderCandidates(); }
             return;
         }
-        if (e.key === '/') { e.preventDefault(); searchInput.focus(); }
+        if (e.key === '/' && searchInput) { e.preventDefault(); searchInput.focus(); }
         if (e.key === 'Escape' && expandedId) { expandedId = null; renderCandidates(); }
     });
 
