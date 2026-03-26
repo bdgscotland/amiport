@@ -438,3 +438,13 @@ These are POSIX compliance failures. The bugs are in libnix's C library implemen
 **Note:** libnix `basename()` works correctly AND is Amiga-aware (treats `:` as a path separator alongside `/`). Only `dirname()` is buggy.
 
 Discovered in the dirname 1.17 port (2026-03-25) -- FS-UAE tests caught the discrepancy on `/x` and `/usr//bin` paths.
+
+## Macro-Controlled Large Buffers Hide Stack Overflows
+
+When a local buffer's size is controlled by a macro defined in a header file (e.g., `char table[TABSIZE]` where `TABSIZE` is `256*1024` in a separate `.h`), the stack overflow risk is invisible at the declaration site. The developer sees `table[TABSIZE]` and doesn't realize it's 256KB. With `__stack=16384`, the first call to that function is a guaranteed Guru Meditation.
+
+**Fix:** During code review of ANY local array, expand the size macro mentally or with `grep`. If size > 512 bytes, make the buffer `static` (safe on single-threaded AmigaOS for non-recursive functions) or heap-allocate. The `__stack` cookie value is the hard ceiling — subtract 8KB for AmigaOS hidden depth.
+
+**Rule of thumb:** `sizeof(local_buffer) + 8192 < __stack` must hold for every function in the call chain.
+
+Discovered in factor 1.30 (2026-03-26) -- `TABSIZE=256*1024` in `primes.h` caused a 256KB stack allocation in `pr_bigfact()` with only 16KB `__stack`.

@@ -167,6 +167,16 @@ Minimum visual tests for Category 3+:
 
 **Current limitation:** `CMD_WRITE` captures static display (file load, help text) but NOT interactive echo (typed characters, cursor movement). Interactive rendering verification is deferred to ADR-025.
 
+## Stress Test Limits
+
+**Stress test input files MUST NOT exceed 500 lines.** On 68k hardware at 7MHz, files larger than ~500 lines cause FS-UAE test timeouts (600s limit). A 10,000-line file that processes in <1s natively can take 10+ minutes on emulated 68000, and any Guru Meditation on a large file blocks the entire test harness.
+
+- Maximum stress file: **500 lines**
+- Maximum line length for stress tests: **320 characters**
+- If the original source's stress tests use larger inputs, reduce them and document why
+
+This was discovered during batch porting (2026-03-26) when 10,000-line stress files caused colrm and unexpand to timeout on FS-UAE.
+
 ## Test Input Files
 
 Each port must include pre-created test input files for FS-UAE testing:

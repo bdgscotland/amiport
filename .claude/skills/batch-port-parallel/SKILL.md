@@ -152,10 +152,10 @@ Dispatch `test-runner` for all ports with test suites:
 
 ```
 Agent(subagent_type="test-runner", run_in_background=true,
-      prompt="Test ports/<name> via vamos. Run make test TARGET=ports/<name> with VAMOS_STACK from Makefile.")
+      prompt="Test ports/<name> via vamos ONLY. Run: make test TARGET=ports/<name>. Do NOT run make test-fsemu or launch FS-UAE — vamos only. Report TAP pass/fail counts.")
 ```
 
-vamos tests are independent per port — safe to overlap.
+vamos tests are independent per port — safe to overlap. **CRITICAL: The prompt MUST say "vamos ONLY, do NOT run FS-UAE"** — test-runner agents will otherwise run FS-UAE, causing parallel collisions with shared system.hdf.
 
 ### Phase 10: Stage 5c — FS-UAE Testing (SERIAL — CRITICAL)
 
