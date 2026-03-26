@@ -197,3 +197,44 @@ Built into the build skill — creates an LHA archive with the binary and docume
 5. **Stack size**: Set `__stack` to at least 32768 — many ported programs need more stack than the Amiga default
 6. **Alignment differs on 68k**: `offsetof()` returns 2-byte alignment, not 4/8 as on x86/ARM. Custom allocators using `offsetof()` for block alignment will corrupt metadata. Use `AMIPORT_ALIGN()` from `<amiport/compat.h>` (crash-patterns #15).
 7. **Use -O0 for struct-heavy code**: bebbo-gcc (GCC 6.5.0b) corrupts struct-by-value returns > 8 bytes at `-O1`/`-O2`. If a port crashes with data corruption after struct-returning functions, rebuild with `-O0` (crash-patterns #16).
+
+## Parallel Porting
+
+Multiple ports can be worked on concurrently. The pipeline stages are independent per port — the only serialization point is FS-UAE testing, which requires a single emulator window.
+
+### Pipeline Overlap
+
+Stages 0–4 (research, analyze, transform, build, vamos test) operate entirely within each port's directory (`ports/<name>/`). They share no mutable state and can run in parallel via background agent dispatch:
+
+```
+SEQUENTIAL (one port at a time):
+Port A: [Analyze]→[Transform]→[Build]→[vamos]→[FS-UAE]→[Review]
+Port B:                                                          [Analyze]→...
+                                                                 ^ ~25 min idle
+
+PIPELINE OVERLAP (concurrent agents):
+Port A: [Analyze]→[Transform]→[Build]→[vamos]→[FS-UAE]→[Review]
+Port B:      [Analyze]→[Transform]→[Build]→[vamos]─────[FS-UAE]→[Review]
+Port C:           [Analyze]→[Transform]→[Build]→[vamos]────────[FS-UAE]→[Review]
+                                                       │
+                                          vamos: parallel (no shared state)
+                                          FS-UAE: serial (one window, ~30-60s each)
+```
+
+The long poles are agent dispatch times (Analyze ~2min, Transform ~3min), not FS-UAE (~30-60s). Pipeline overlap gives ~2-3x throughput with zero code changes.
+
+### How to Dispatch Concurrently
+
+Use the Agent tool with `run_in_background: true` to overlap stages across ports:
+
+1. Start Port A through the full pipeline (`/port-project` or manual stages)
+2. While Port A is in transform/build, dispatch `source-analyzer` for Port B
+3. While Port A runs FS-UAE, dispatch `code-transformer` for Port B
+4. Run FS-UAE tests one port at a time (serial — shared `build/amiga/` and `build/system.hdf`)
+
+### Safety Rules
+
+- **Build the shim library first.** Run `make build-shim` before any parallel porting. If two agents both discover a missing POSIX function and try to `/extend-shim` simultaneously, they will conflict on the same source files.
+- **Do not run FS-UAE concurrently.** `test-fsemu.sh` mutates `build/system.hdf` (via xdftool) and writes to the shared `build/amiga/` directory. Two simultaneous FS-UAE runs will corrupt these shared resources.
+- **vamos tests are safe to overlap.** Each vamos invocation operates on files within the port's own directory. No shared state.
+- **Agent reviews (memory-checker, perf-optimizer) are safe to overlap.** These are read-only analysis of the port's source code.
