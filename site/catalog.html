@@ -129,32 +129,11 @@
         </div>
     </section>
 
-    <!-- Shim Unlock ROI -->
-    <section class="group-frame mt-lg" aria-labelledby="shim-heading">
-        <div class="group-frame__title" id="shim-heading" role="heading" aria-level="2">Missing POSIX Functions</div>
-        <div class="group-frame__body">
-            <p class="text-muted mb-md">POSIX functions we haven't implemented yet. The "Unlocks" column shows how many
-            candidates would become portable once each function is added. (Unlock data populates as candidates are analyzed.)</p>
-            <div class="wb-table-wrap">
-                <table class="wb-table" id="shim-table">
-                    <caption class="hidden">Unimplemented POSIX shim functions</caption>
-                    <thead>
-                        <tr>
-                            <th scope="col">Function</th>
-                            <th scope="col">Tier</th>
-                            <th scope="col">Difficulty</th>
-                            <th scope="col">Unlocks</th>
-                            <th scope="col">Would enable</th>
-                        </tr>
-                    </thead>
-                    <tbody id="shim-tbody"></tbody>
-                </table>
-            </div>
-            <div id="shim-empty" class="state-msg hidden">
-                All POSIX functions are implemented!
-            </div>
-        </div>
-    </section>
+    <!-- Shim Status (compact summary + link) -->
+    <p class="home-about" id="shim-summary">
+        <span id="shim-summary-text"></span>
+        <a href="shims.html">View POSIX shim coverage &rarr;</a>
+    </p>
 
 </main>
 

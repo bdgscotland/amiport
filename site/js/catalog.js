@@ -451,8 +451,22 @@
 
     function renderShimTable() {
         var unlocks = (catalog.summary || {}).top_unlocks || [];
+
+        // Populate compact summary on catalog page (if present)
+        var summaryText = document.getElementById('shim-summary-text');
+        if (summaryText) {
+            var shimCount = Object.keys(catalog.shim_functions || {}).length;
+            var topName = unlocks.length > 0 ? unlocks[0].name : '';
+            var topUnlocks = unlocks.length > 0 ? unlocks[0].unlocks : 0;
+            summaryText.textContent = shimCount + ' POSIX functions tracked. ' +
+                (topName ? 'Top unlock: ' + topName + ' (' + topUnlocks + ' candidates). ' : '');
+        }
+
+        // Full table only renders on shims.html (where #shim-tbody exists)
+        if (!shimTbody) return;
+
         if (unlocks.length === 0) {
-            shimEmpty.classList.remove('hidden');
+            if (shimEmpty) shimEmpty.classList.remove('hidden');
             clearNode(shimTbody);
             return;
         }

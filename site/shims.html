@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="POSIX shim function coverage for amiport — which Unix functions are available on AmigaOS and which unlock new ports.">
+    <title>POSIX Shim Coverage — amiport</title>
+    <link rel="stylesheet" href="css/style.css?v=20260325d">
+    <link rel="icon" type="image/svg+xml" href="img/favicon.svg">
+    <link rel="alternate" type="application/rss+xml" title="amiport — New Ports" href="/feed.php">
+</head>
+<body>
+
+<!-- Skip to Content -->
+<a href="#main" class="skip-link">Skip to content</a>
+
+<!-- Screen Bar -->
+<header class="screen-bar" role="banner">
+    <a href="/" class="screen-bar__brand" aria-label="amiport home"><svg width="170" height="30" viewBox="0 0 240 44" aria-hidden="true"><rect x="4" y="6" width="32" height="32" fill="#8B6914"/><circle cx="12" cy="14" r="2.5" fill="#DAA520"/><rect x="10" y="12" width="20" height="20" fill="none" stroke="#DAA520" stroke-width=".75"/><rect x="0" y="11" width="6" height="2.5" fill="#DAA520"/><rect x="0" y="18" width="6" height="2.5" fill="#DAA520"/><rect x="0" y="25" width="6" height="2.5" fill="#DAA520"/><rect x="0" y="32" width="6" height="2.5" fill="#DAA520"/><rect x="34" y="11" width="6" height="2.5" fill="#DAA520"/><rect x="34" y="18" width="6" height="2.5" fill="#DAA520"/><rect x="34" y="25" width="6" height="2.5" fill="#DAA520"/><rect x="34" y="32" width="6" height="2.5" fill="#DAA520"/><rect x="11" y="2" width="2.5" height="6" fill="#DAA520"/><rect x="18" y="2" width="2.5" height="6" fill="#DAA520"/><rect x="25" y="2" width="2.5" height="6" fill="#DAA520"/><rect x="11" y="36" width="2.5" height="6" fill="#DAA520"/><rect x="18" y="36" width="2.5" height="6" fill="#DAA520"/><rect x="25" y="36" width="2.5" height="6" fill="#DAA520"/><text x="48" y="31" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="26" font-weight="700" fill="#E0D0B8">ami<tspan fill="#DAA520">port</tspan></text></svg></a>
+    <nav aria-label="Main navigation">
+        <ul class="screen-bar__nav">
+            <li><a href="packages.html">Packages</a></li>
+            <li><a href="catalog.html">Catalog</a></li>
+            <li><a href="stats.html">Stats</a></li>
+            <li><a href="changelog.html">Changelog</a></li>
+            <li><a href="amiga.html">Amiga</a></li>
+            <li><a href="https://github.com/bdgscotland/amiport" target="_blank" rel="noopener">GitHub</a></li>
+        </ul>
+    </nav>
+</header>
+
+<!-- Main Content -->
+<main id="main" class="content">
+
+    <h1 class="sr-only">POSIX Shim Coverage</h1>
+
+    <!-- Breadcrumb -->
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+        <a href="catalog.html">Catalog</a> <span class="breadcrumb__sep" aria-hidden="true">&gt;</span> <span class="breadcrumb__current">POSIX Shims</span>
+    </nav>
+
+    <!-- Intro -->
+    <section class="group-frame" aria-labelledby="shim-intro-heading">
+        <div class="group-frame__title" id="shim-intro-heading" role="heading" aria-level="2">What is this?</div>
+        <div class="group-frame__body">
+            <p>amiport provides a POSIX compatibility shim library that maps Unix system calls to AmigaOS equivalents.
+            This page shows which functions are missing and how many porting candidates each one would unlock.
+            Implementing a high-unlock function makes more tools portable at once.</p>
+        </div>
+    </section>
+
+    <!-- Shim Table -->
+    <section class="group-frame" aria-labelledby="shim-heading">
+        <div class="group-frame__title" id="shim-heading" role="heading" aria-level="2">Missing POSIX Functions</div>
+        <div class="group-frame__body">
+            <div class="wb-table-wrap">
+                <table class="wb-table" id="shim-table">
+                    <caption class="hidden">Unimplemented POSIX shim functions</caption>
+                    <thead>
+                        <tr>
+                            <th scope="col">Function</th>
+                            <th scope="col">Tier</th>
+                            <th scope="col">Difficulty</th>
+                            <th scope="col">Unlocks</th>
+                            <th scope="col">Would enable</th>
+                        </tr>
+                    </thead>
+                    <tbody id="shim-tbody"></tbody>
+                </table>
+            </div>
+            <div id="shim-empty" class="state-msg hidden">
+                All POSIX functions are implemented!
+            </div>
+        </div>
+    </section>
+
+</main>
+
+<!-- Footer -->
+<footer class="footer content" role="contentinfo">
+    <span>
+        <a href="https://github.com/bdgscotland/amiport" target="_blank" rel="noopener">GitHub</a>
+        &middot;
+        <a href="https://aminet.net/" target="_blank" rel="noopener">Aminet</a>
+        &middot;
+        <a href="feed.php">RSS</a>
+    </span>
+    <span>
+        Built with <a href="https://claude.ai/claude-code" target="_blank" rel="noopener">Claude Code</a>.
+    </span>
+</footer>
+
+<script src="js/catalog.js"></script>
+
+</body>
+</html>
