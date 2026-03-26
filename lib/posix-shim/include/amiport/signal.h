@@ -32,6 +32,54 @@ int amiport_raise(int signum);
 /* Check for pending Ctrl-C (Amiga-specific convenience) */
 int amiport_check_break(void);
 
+/*
+ * sigaction -- POSIX signal action stubs for AmigaOS
+ *
+ * amiport: AmigaOS has no POSIX signals beyond SIGINT (Ctrl-C).
+ * sigaction() stores the handler for SIGINT; all other signals
+ * are accepted but have no effect. sigprocmask() is a no-op
+ * (cannot block signals on AmigaOS). sigemptyset/sigaddset
+ * manipulate a bitmask but it has no real effect.
+ *
+ * This satisfies code like find(1) and pr(1) that call sigaction()
+ * for graceful signal handling.
+ */
+
+/* Signal set type -- just a bitmask */
+typedef unsigned long amiport_sigset_t;
+
+/* sigaction structure */
+struct amiport_sigaction {
+    void (*sa_handler)(int);    /* signal handler */
+    amiport_sigset_t sa_mask;   /* signals to block during handler */
+    int sa_flags;               /* flags (ignored on AmigaOS) */
+};
+
+/* sigaction flags (accepted but ignored) */
+#define AMIPORT_SA_RESTART  0x0002
+#define AMIPORT_SA_NOCLDSTOP 0x0008
+
+/* sigprocmask how values */
+#define AMIPORT_SIG_BLOCK   0
+#define AMIPORT_SIG_UNBLOCK 1
+#define AMIPORT_SIG_SETMASK 2
+
+int amiport_sigaction(int sig, const struct amiport_sigaction *act,
+                      struct amiport_sigaction *oact);
+int amiport_sigemptyset(amiport_sigset_t *set);
+int amiport_sigaddset(amiport_sigset_t *set, int signo);
+int amiport_sigprocmask(int how, const amiport_sigset_t *set,
+                        amiport_sigset_t *oset);
+
+/* nanosleep -- high-resolution sleep via Delay() */
+struct amiport_timespec {
+    long tv_sec;
+    long tv_nsec;
+};
+
+int amiport_nanosleep(const struct amiport_timespec *req,
+                      struct amiport_timespec *rem);
+
 /* Convenience macros for drop-in replacement */
 #ifndef AMIPORT_NO_SIGNAL_MACROS
 #define SIGHUP    AMIPORT_SIGHUP
@@ -44,6 +92,20 @@ int amiport_check_break(void);
 #define SIG_ERR   AMIPORT_SIG_ERR
 #define signal    amiport_signal
 #define raise     amiport_raise
+
+#define sigset_t         amiport_sigset_t
+#define sigaction        amiport_sigaction
+#define sigemptyset(s)   amiport_sigemptyset(s)
+#define sigaddset(s, n)  amiport_sigaddset(s, n)
+#define sigprocmask(h, s, o) amiport_sigprocmask(h, s, o)
+#define SA_RESTART       AMIPORT_SA_RESTART
+#define SA_NOCLDSTOP     AMIPORT_SA_NOCLDSTOP
+#define SIG_BLOCK        AMIPORT_SIG_BLOCK
+#define SIG_UNBLOCK      AMIPORT_SIG_UNBLOCK
+#define SIG_SETMASK      AMIPORT_SIG_SETMASK
+
+#define timespec         amiport_timespec
+#define nanosleep(r, m)  amiport_nanosleep(r, m)
 #endif
 
 #endif /* AMIPORT_SIGNAL_H */

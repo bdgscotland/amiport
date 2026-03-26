@@ -79,14 +79,53 @@ One wrapper per function. Semantics match POSIX for all common use cases. The tr
 |`unsetenv()`   |`amiport_unsetenv()`    |`DeleteVar()` + `GVF_GLOBAL_ONLY`|Succeeds even if variable not set (POSIX)                    |
 |`realpath()`   |`amiport_realpath()`    |`Lock()`+`NameFromLock()`       |NULL resolved arg: malloc'd buffer, caller must free()        |
 |`setlocale()`  |`amiport_setlocale()`   |Returns "C" (locale.library not wired to libnix)|AmigaOS has locale.library but libnix C runtime ignores it; "C" is correct for single-byte charset|
+|`localeconv()`  |`amiport_localeconv()`  |Static "C" locale struct         |Returns decimal_point=".", negative_sign="-", etc.               |
+|`getuid()`      |`amiport_getuid()`      |Returns 0 (single-user)          |AmigaOS has no user concept                                      |
+|`geteuid()`     |`amiport_geteuid()`     |Returns 0                        |                                                                 |
+|`getgid()`      |`amiport_getgid()`      |Returns 0                        |                                                                 |
+|`getegid()`     |`amiport_getegid()`     |Returns 0                        |                                                                 |
+|`setuid()`      |`amiport_setuid()`      |No-op, returns 0                 |                                                                 |
+|`setgid()`      |`amiport_setgid()`      |No-op, returns 0                 |                                                                 |
+|`getpwuid()`    |`amiport_getpwuid()`    |Static "amiga" user struct       |pw_name="amiga", pw_uid=0, pw_dir="SYS:", pw_shell="C:Shell"    |
+|`getpwnam()`    |`amiport_getpwnam()`    |Static "amiga" user struct       |Always returns same user regardless of name                      |
+|`getgrgid()`    |`amiport_getgrgid()`    |Static "amiga" group struct      |gr_name="amiga", gr_gid=0                                       |
+|`getgrnam()`    |`amiport_getgrnam()`    |Static "amiga" group struct      |                                                                 |
+|`getlogin()`    |`amiport_getlogin()`    |Returns "amiga"                  |                                                                 |
+|`getgroups()`   |`amiport_getgroups()`   |Returns 1 group (gid 0)          |                                                                 |
+|`getgrouplist()`|`amiport_getgrouplist()`|Returns 1 group                  |                                                                 |
+|`user_from_uid()`|`amiport_user_from_uid()`|Returns "amiga"                 |OpenBSD convenience function                                     |
+|`group_from_gid()`|`amiport_group_from_gid()`|Returns "amiga"               |OpenBSD convenience function                                     |
+|`ttyname()`     |`amiport_ttyname()`     |Returns "CONSOLE:"              |                                                                 |
+|`getprogname()` |Macro → `__progname`    |Returns argv[0] basename         |Set by `amiport_expand_argv()`                                   |
+|`setprogname()` |Macro → `__progname=`   |Updates `__progname` pointer     |                                                                 |
+|`gethostname()` |`amiport_gethostname()` |`GetVar("HOSTNAME")` or "amiga"  |TCP/IP stacks set ENV:HOSTNAME                                   |
+|`sysconf()`     |`amiport_sysconf()`     |Hardcoded values                 |_SC_PAGESIZE=4096, _SC_CLK_TCK=50, _SC_OPEN_MAX=64              |
+|`uname()`       |`amiport_uname()`       |Static AmigaOS/m68k info         |sysname="AmigaOS", machine="m68k", release="3.1"                |
+|`getrusage()`   |`amiport_getrusage()`   |Returns zeroes                   |No per-process accounting on AmigaOS                             |
+|`setproctitle()`|`amiport_setproctitle()`|No-op                            |                                                                 |
+|`fchmod()`      |`amiport_fchmod()`      |No-op, returns 0                 |Amiga protection bits have inverted semantics                    |
+|`fchown()`      |`amiport_fchown()`      |No-op, returns 0                 |Single-user, no ownership concept                                |
+|`lchown()`      |`amiport_lchown()`      |No-op, returns 0                 |                                                                 |
+|`symlink()`     |`amiport_symlink()`     |`MakeLink()` soft link           |AmigaOS 2.0+; soft links rare on classic Amiga                   |
+|`sigaction()`   |`amiport_sigaction()`   |Handler table (SIGINT only real) |Stores handler; only SIGINT maps to Ctrl-C                       |
+|`sigemptyset()` |`amiport_sigemptyset()` |Zero bitmask                     |                                                                 |
+|`sigaddset()`   |`amiport_sigaddset()`   |Set bit in mask                  |                                                                 |
+|`sigprocmask()` |`amiport_sigprocmask()` |No-op (tracks mask, no effect)   |Cannot block signals on AmigaOS                                  |
+|`nanosleep()`   |`amiport_nanosleep()`   |`Delay()` (20ms granularity)     |Rounded up to nearest tick                                       |
+|`timegm()`      |`amiport_timegm()`      |Pure C implementation            |Like mktime() but assumes UTC                                    |
+|`errc()`        |`amiport_errc()`        |Like err() with explicit errno   |Header-only in `amiport/err.h`                                   |
+|`strtonum()`    |`amiport_strtonum()`    |Safe strtoll + range check       |Header-only in `amiport/err.h`                                   |
 
 ### Planned Tier 1 additions
 
 |POSIX function    |Implementation approach      |Priority                                           |
 |------------------|-----------------------------|---------------------------------------------------|
-|`readlink()`      |`ReadLink()` (OS 2.0+)       |Low — soft links rare on classic Amiga             |
-|`symlink()`       |`MakeLink()` (OS 2.0+)       |Low                                                |
-|`fileno()`        |Lookup in amiport_files table|Medium — already partially implemented             |
+|`fileno()`        |Lookup in amiport_files table|Medium -- already partially implemented            |
+|`fts_open()`      |`Lock()`+`Examine()`+`ExNext()`|High -- unlocks ls, du, find, cp, rm, chmod     |
+|`fts_read()`      |Recursive dir walk            |High                                               |
+|`fts_close()`     |Free state                   |High                                               |
+|`fts_set()`       |Mark skip/follow             |High                                               |
+|`fts_children()`  |List dir children            |High                                               |
 
 -----
 

@@ -306,3 +306,81 @@ amiport_setlocale(int category, const char *locale)
     /* amiport: Unsupported locale */
     return NULL;
 }
+
+/*
+ * localeconv -- return locale-specific numeric/monetary formatting
+ *
+ * amiport: Returns "C" locale defaults. AmigaOS locale.library has
+ * equivalent data (Locale->loc_DecimalPoint, loc_GroupSeparator, etc.)
+ * but libnix's C runtime doesn't consult it. Returning "C" defaults
+ * is correct for the libnix runtime.
+ */
+static struct amiport_lconv s_lconv = {
+    ".",        /* decimal_point */
+    "",         /* thousands_sep */
+    "",         /* grouping */
+    "",         /* int_curr_symbol */
+    "",         /* currency_symbol */
+    "",         /* mon_decimal_point */
+    "",         /* mon_thousands_sep */
+    "",         /* mon_grouping */
+    "",         /* positive_sign */
+    "-"         /* negative_sign */
+};
+
+struct amiport_lconv *
+amiport_localeconv(void)
+{
+    return &s_lconv;
+}
+
+/*
+ * timegm -- convert struct tm (UTC) to time_t
+ *
+ * amiport: Pure C implementation. Like mktime() but assumes UTC
+ * instead of local time. AmigaOS has no timezone concept in the
+ * C runtime, so this is equivalent to mktime() here.
+ * Implements the formula directly to avoid mktime() timezone issues.
+ */
+#include <time.h>
+
+static int days_in_month[] = {31,28,31,30,31,30,31,31,30,31,30,31};
+
+static int
+is_leap(int year)
+{
+    return (year % 4 == 0 && (year % 100 != 0 || year % 400 == 0));
+}
+
+long
+amiport_timegm(struct tm *tm)
+{
+    long result = 0;
+    int i;
+    int year;
+
+    if (!tm) return (long)-1;
+
+    year = tm->tm_year + 1900;
+
+    /* Days from years since epoch (1970) */
+    for (i = 1970; i < year; i++) {
+        result += is_leap(i) ? 366 : 365;
+    }
+
+    /* Days from months */
+    for (i = 0; i < tm->tm_mon; i++) {
+        result += days_in_month[i];
+        if (i == 1 && is_leap(year)) {
+            result += 1;
+        }
+    }
+
+    /* Days + hours + minutes + seconds */
+    result += tm->tm_mday - 1;
+    result = result * 24 + tm->tm_hour;
+    result = result * 60 + tm->tm_min;
+    result = result * 60 + tm->tm_sec;
+
+    return result;
+}

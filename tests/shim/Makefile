@@ -28,7 +28,8 @@ TESTS = test_file_io \
         test_dup \
         test_new_funcs \
         test_glob \
-        test_argv_expand
+        test_argv_expand \
+        test_usergroup
 
 .PHONY: all build run clean
 

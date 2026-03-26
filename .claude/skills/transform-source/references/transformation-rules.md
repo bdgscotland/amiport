@@ -61,6 +61,21 @@ Each rule specifies: pattern to match, replacement, and when to apply.
 #include <sys/time.h>
 // After:
 #include <amiport/sys/time.h>
+
+// Before:
+#include <pwd.h>
+// After:
+#include <amiport/pwd.h>
+
+// Before:
+#include <grp.h>
+// After:
+#include <amiport/grp.h>
+
+// Before:
+#include <sys/utsname.h>
+// After:
+#include <amiport/utsname.h>
 ```
 
 // Console UI headers (Category 3 — link with -lamiport-console):

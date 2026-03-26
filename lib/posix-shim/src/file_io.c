@@ -616,6 +616,70 @@ amiport_fdopen(int fd, const char *mode)
     return fp;
 }
 
+/*
+ * symlink -- create a soft link via AmigaDOS MakeLink()
+ *
+ * amiport: MakeLink(name, dest, LINK_SOFT) creates a soft link.
+ * LINK_SOFT is 0 (soft link), LINK_HARD is 1 (hard link).
+ * Soft links are supported on FFS since AmigaOS 2.0+ but are
+ * rarely used. Returns 0 on success, -1 on error.
+ */
+int amiport_symlink(const char *target, const char *linkpath)
+{
+    if (!target || !linkpath) {
+        errno = EINVAL;
+        return -1;
+    }
+
+    /* MakeLink() with soft=FALSE (0) creates a soft link,
+     * soft=TRUE (non-zero) would need a Lock (hard link).
+     * For soft links, the second arg is a pointer to the path string,
+     * NOT a Lock. The BCPL ABI treats it as LONG but we cast. */
+    if (!MakeLink((CONST_STRPTR)linkpath, (LONG)target, 0)) {
+        amiport_map_errno();
+        return -1;
+    }
+
+    return 0;
+}
+
+/*
+ * fchmod -- no-op stub
+ *
+ * amiport: Amiga protection bits have inverted semantics.
+ * Most ported code just needs this to succeed silently.
+ */
+int amiport_fchmod(int fd, unsigned int mode)
+{
+    (void)fd;
+    (void)mode;
+    return 0;
+}
+
+/*
+ * fchown -- no-op stub
+ *
+ * amiport: AmigaOS is single-user; no ownership concept.
+ */
+int amiport_fchown(int fd, int owner, int group)
+{
+    (void)fd;
+    (void)owner;
+    (void)group;
+    return 0;
+}
+
+/*
+ * lchown -- no-op stub (like fchown but for paths/symlinks)
+ */
+int amiport_lchown(const char *path, int owner, int group)
+{
+    (void)path;
+    (void)owner;
+    (void)group;
+    return 0;
+}
+
 /* --- Internal API (used by posix-emu and bsdsocket-shim) --- */
 
 BPTR amiport_fd_to_fh(int fd)

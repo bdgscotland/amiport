@@ -158,6 +158,52 @@ char *amiport_setlocale(int category, const char *locale);
 #define setlocale   amiport_setlocale
 #endif
 
+/* localeconv -- return "C" locale numeric formatting info */
+struct amiport_lconv {
+    char *decimal_point;
+    char *thousands_sep;
+    char *grouping;
+    char *int_curr_symbol;
+    char *currency_symbol;
+    char *mon_decimal_point;
+    char *mon_thousands_sep;
+    char *mon_grouping;
+    char *positive_sign;
+    char *negative_sign;
+};
+
+struct amiport_lconv *amiport_localeconv(void);
+
+#ifndef AMIPORT_NO_LOCALE_MACROS
+#define lconv          amiport_lconv
+#define localeconv()   amiport_localeconv()
+#endif
+
+/* timegm -- convert struct tm (UTC) to time_t (pure C) */
+#include <time.h>
+long amiport_timegm(struct tm *tm);
+#ifndef AMIPORT_NO_LOCALE_MACROS
+#define timegm(t)   amiport_timegm(t)
+#endif
+
+/*
+ * symlink -- create a soft link via AmigaDOS MakeLink()
+ * Returns 0 on success, -1 on error.
+ */
+int amiport_symlink(const char *target, const char *linkpath);
+
+/* fchmod/fchown/lchown -- no-op stubs (single-user, no real perms) */
+int amiport_fchmod(int fd, unsigned int mode);
+int amiport_fchown(int fd, int owner, int group);
+int amiport_lchown(const char *path, int owner, int group);
+
+#ifndef AMIPORT_NO_FILEOPS_MACROS
+#define symlink(t, l)     amiport_symlink(t, l)
+#define fchmod(f, m)      amiport_fchmod(f, m)
+#define fchown(f, o, g)   amiport_fchown(f, o, g)
+#define lchown(p, o, g)   amiport_lchown(p, o, g)
+#endif
+
 /* Thread-safe strtok (not provided by all Amiga C runtimes) */
 char *amiport_strtok_r(char *str, const char *delim, char **saveptr);
 
@@ -221,12 +267,10 @@ extern int AMIPORT_TIER3_pthread_join_requires_redesign(void);
 #define pthread_create(...)  AMIPORT_TIER3_pthread_create_requires_redesign()
 #define pthread_join(...)    AMIPORT_TIER3_pthread_join_requires_redesign()
 
-/* Signals — no inter-process signaling */
+/* Signals — kill() still requires redesign; sigaction is now shimmed */
 extern int AMIPORT_TIER3_kill_requires_redesign(void);
-extern int AMIPORT_TIER3_sigaction_requires_redesign(void);
 
 #define kill(...)       AMIPORT_TIER3_kill_requires_redesign()
-#define sigaction(...)  AMIPORT_TIER3_sigaction_requires_redesign()
 
 #endif /* AMIPORT_STRICT */
 

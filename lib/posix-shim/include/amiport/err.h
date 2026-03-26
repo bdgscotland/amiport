@@ -103,6 +103,26 @@ amiport_warnc(int code, const char *fmt, ...)
 }
 
 /*
+ * errc -- print error message with explicit error code, then exit
+ *
+ * Like err(), but uses the explicit error code instead of errno.
+ * Used by OpenBSD tools (look, etc.).
+ */
+static void
+amiport_errc(int eval, int code, const char *fmt, ...)
+{
+	va_list ap;
+	if (fmt != NULL) {
+		va_start(ap, fmt);
+		(void)vfprintf(stderr, fmt, ap);
+		va_end(ap);
+		(void)fprintf(stderr, ": ");
+	}
+	(void)fprintf(stderr, "%s\n", strerror(code));
+	exit(eval);
+}
+
+/*
  * strtonum -- OpenBSD safe string-to-number conversion
  *
  * Converts string to long long within [minval, maxval].
@@ -148,6 +168,7 @@ amiport_strtonum(const char *numstr, long long minval, long long maxval,
 #ifndef AMIPORT_NO_ERR_MACROS
 #define err    amiport_err
 #define errx   amiport_errx
+#define errc   amiport_errc
 #define warn   amiport_warn
 #define warnc  amiport_warnc
 #define warnx  amiport_warnx
