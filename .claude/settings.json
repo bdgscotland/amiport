@@ -147,5 +147,9 @@
     "superpowers@claude-plugins-official": true,
     "code-review@claude-plugins-official": true,
     "claude-md-management@claude-plugins-official": true
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "bash /Users/duncan/Developer/amiport/.claude/statusline-amiport.sh"
   }
 }
