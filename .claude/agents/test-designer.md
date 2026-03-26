@@ -163,6 +163,18 @@ AmigaDOS treats certain characters specially in command arguments. These cause s
 
 **Multiple `-e` flags with separate quoted strings** often fail because AmigaDOS parses all quotes at the top level. Instead of `lua -e "x=10" -e "print(x)"`, use `lua -e "x=10; print(x)"`.
 
+## AWK Programs — ALWAYS Use -f Files
+
+For awk tests, put ALL awk programs in `.awk` files and use `-f`. NEVER put awk programs inline in CMD lines — AmigaDOS quoting breaks escaped quotes, dollar signs, and special characters. This applies even to simple programs like `'{ print }'`.
+
+```
+# BAD — quoting breaks on AmigaDOS
+CMD: WORK:awk "BEGIN { print toupper(\"hello\") }"
+
+# GOOD — always use -f
+CMD: WORK:awk -f WORK:test-awk-toupper.awk WORK:input.txt
+```
+
 ## Dollar Signs in CMD Lines
 
 CMD lines go through AmigaDOS `Execute` which expands `$` as variable substitution. **Never use `$` in CMD lines.** This applies to ANY program whose arguments use `$` — jq filters (`$var`), awk (`$1`, `$NF`), perl (`$_`), sed (`$` address), shell expressions, etc. Put the filter/expression in a file and use the program's `-f` flag instead.
