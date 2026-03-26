@@ -110,11 +110,29 @@ Create or extend a test file in `tests/shim/` (Tier 1) or `tests/emu/` (Tier 2):
    - Verify that the AmigaOS backend is actually called (not just returning hardcoded values)
 4. Add the test to the appropriate Makefile's TESTS list
 
-## Step 7: Update Documentation
+## Step 7: Update Documentation and Catalog
+
+### Shim-internal docs (always):
 
 1. **`docs/posix-tiers.md`** — add the function to the appropriate tier table. If reclassifying from a prior tier, note why (e.g., "Reclassified T2->T1: locale.library provides OpenLocale()")
 2. **`.claude/skills/analyze-source/references/posix-to-amiga-map.md`** — add the mapping entry, including the AmigaOS API used
 3. **`.claude/skills/transform-source/references/transformation-rules.md`** — add the transformation rule if applicable
+
+### Catalog (always — this is how ports get unblocked):
+
+4. **`data/catalog.json`** — update the `shim_coverage` section:
+   - Add the new function to the available shims list
+   - Remove it from `missing_posix` for any candidates that were blocked on it
+   - Run `python3 scripts/catalog-score.py --score --status` to verify readiness scores changed
+5. **Run `python3 scripts/catalog-score.py --status`** — confirm the "shim unlock opportunities" table reflects the change and report how many programs were unblocked
+
+### Project-wide docs (when applicable):
+
+6. **`CLAUDE.md`** — update if you added a new header file, new library category, or new shim pattern that agents need to know about
+7. **`docs/architecture.md`** — update if you added a new source file or header category to `lib/posix-shim/` or `lib/posix-emu/`
+8. **`README.md`** — update shim coverage stats if mentioned
+
+**Do not consider the shim extension complete until the catalog is updated.** The whole point of extending the shim is to unblock ports — if the catalog doesn't know about it, ports stay blocked.
 
 ## Step 8: Build and Verify
 
