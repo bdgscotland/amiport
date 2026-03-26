@@ -197,11 +197,58 @@ int amiport_fchmod(int fd, unsigned int mode);
 int amiport_fchown(int fd, int owner, int group);
 int amiport_lchown(const char *path, int owner, int group);
 
+/* Forward-declare amiport_timespec if signal.h not yet included */
+#ifndef AMIPORT_SIGNAL_H
+struct amiport_timespec {
+    long tv_sec;
+    long tv_nsec;
+};
+#endif
+
+/* utimensat -- set file timestamps via SetFileDate() (dos.library V36+)
+ *
+ * amiport: Only modification time is stored (AmigaOS has one timestamp).
+ * dirfd is ignored (AT_FDCWD assumed). UTIME_NOW and UTIME_OMIT supported.
+ * Precision limited to 1/50s ticks (20ms).
+ * See ADCD: dos-library-setfiledate-2 */
+#define AMIPORT_UTIME_NOW   ((long)((1L << 30) - 1L))
+#define AMIPORT_UTIME_OMIT  ((long)((1L << 30) - 2L))
+#define AMIPORT_AT_FDCWD     -100
+
+int amiport_utimensat(int dirfd, const char *path,
+                      const struct amiport_timespec times[2], int flags);
+int amiport_futimens(int fd, const struct amiport_timespec times[2]);
+
+/*
+ * ioctl -- I/O control (TIOCGWINSZ only)
+ *
+ * amiport: Queries console window dimensions using CSI Window Status
+ * Request escape sequence. Falls back to 80x24 for non-interactive fds.
+ * Only TIOCGWINSZ is supported; all other requests return -1/ENOTTY.
+ */
+#define AMIPORT_TIOCGWINSZ  0x5413
+
+struct amiport_winsize {
+    unsigned short ws_row;      /* rows in characters */
+    unsigned short ws_col;      /* columns in characters */
+    unsigned short ws_xpixel;   /* horizontal size in pixels (0) */
+    unsigned short ws_ypixel;   /* vertical size in pixels (0) */
+};
+
+int amiport_ioctl(int fd, unsigned long request, void *arg);
+
 #ifndef AMIPORT_NO_FILEOPS_MACROS
 #define symlink(t, l)     amiport_symlink(t, l)
 #define fchmod(f, m)      amiport_fchmod(f, m)
 #define fchown(f, o, g)   amiport_fchown(f, o, g)
 #define lchown(p, o, g)   amiport_lchown(p, o, g)
+#define UTIME_NOW         AMIPORT_UTIME_NOW
+#define UTIME_OMIT        AMIPORT_UTIME_OMIT
+#define AT_FDCWD          AMIPORT_AT_FDCWD
+#define utimensat(d, p, t, f) amiport_utimensat(d, p, t, f)
+#define futimens(f, t)    amiport_futimens(f, t)
+#define TIOCGWINSZ        AMIPORT_TIOCGWINSZ
+#define winsize           amiport_winsize
 #endif
 
 /* Thread-safe strtok (not provided by all Amiga C runtimes) */

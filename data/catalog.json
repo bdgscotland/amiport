@@ -477,13 +477,10 @@
     },
     "ioctl": {
       "tier": 2,
-      "status": "not_implemented",
-      "complexity": "high",
-      "unlocks": [
-        "column",
-        "ls"
-      ],
-      "unlocks_count": 2
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
     },
     "dlopen": {
       "tier": 3,
@@ -742,21 +739,17 @@
     },
     "utimensat": {
       "tier": 2,
-      "status": "not_implemented",
-      "complexity": "medium",
-      "unlocks": [
-        "touch"
-      ],
-      "unlocks_count": 1
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
     },
     "futimens": {
       "tier": 2,
-      "status": "not_implemented",
-      "complexity": "medium",
-      "unlocks": [
-        "touch"
-      ],
-      "unlocks_count": 1
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
     },
     "uname_syscall": {
       "tier": 2,
@@ -790,46 +783,31 @@
     },
     "wcwidth": {
       "tier": 2,
-      "status": "not_implemented",
-      "complexity": "medium",
-      "unlocks": [
-        "fmt",
-        "fold",
-        "column",
-        "colrm"
-      ],
-      "unlocks_count": 4
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
     },
     "mbtowc": {
       "tier": 2,
-      "status": "not_implemented",
-      "complexity": "medium",
-      "unlocks": [
-        "fmt",
-        "fold",
-        "column",
-        "join",
-        "colrm"
-      ],
-      "unlocks_count": 5
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
     },
     "wctomb": {
       "tier": 2,
-      "status": "not_implemented",
-      "complexity": "medium",
-      "unlocks": [
-        "join"
-      ],
-      "unlocks_count": 1
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
     },
     "iswblank": {
       "tier": 2,
-      "status": "not_implemented",
-      "complexity": "low",
-      "unlocks": [
-        "fmt"
-      ],
-      "unlocks_count": 1
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
     },
     "nl_langinfo": {
       "tier": 2,
@@ -930,6 +908,20 @@
       "unlocks_count": 0
     },
     "errc": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "strcoll": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "strptime": {
       "tier": 1,
       "status": "implemented",
       "complexity": "done",
@@ -1107,8 +1099,8 @@
       "publishable": true,
       "notes": "Text formatter. Locale/wchar paths can be #ifdef-d out for ASCII-only operation.",
       "readiness": {
-        "score": 0.578,
-        "tier": "blocked"
+        "score": 0.878,
+        "tier": "ready"
       },
       "hardware_fit": {
         "stock_a1200": "fits",
@@ -1124,11 +1116,7 @@
           "tier2": 4,
           "tier3": 0
         },
-        "missing_shims": [
-          "mbtowc",
-          "wcwidth",
-          "iswblank"
-        ],
+        "missing_shims": [],
         "blocking_shims": [],
         "blocker_workaround": "#ifdef __AMIGA__ to skip locale/wchar paths; ASCII-only is fine for Amiga",
         "dependencies": [],
@@ -1161,8 +1149,8 @@
       "publishable": true,
       "notes": "Simple line folder. Locale/wchar for multibyte chars can be #ifdef-d out.",
       "readiness": {
-        "score": 0.588,
-        "tier": "blocked"
+        "score": 0.888,
+        "tier": "ready"
       },
       "hardware_fit": {
         "stock_a1200": "fits",
@@ -1178,10 +1166,7 @@
           "tier2": 3,
           "tier3": 0
         },
-        "missing_shims": [
-          "mbtowc",
-          "wcwidth"
-        ],
+        "missing_shims": [],
         "blocking_shims": [],
         "blocker_workaround": "#ifdef __AMIGA__ to skip multibyte paths; ASCII fold works fine",
         "dependencies": [],
@@ -1264,8 +1249,8 @@
       "publishable": true,
       "notes": "Columnate lists. ioctl only for terminal width detection (easy workaround). Locale paths can be skipped.",
       "readiness": {
-        "score": 0.603,
-        "tier": "feasible"
+        "score": 0.903,
+        "tier": "ready"
       },
       "hardware_fit": {
         "stock_a1200": "fits",
@@ -1281,11 +1266,7 @@
           "tier2": 4,
           "tier3": 0
         },
-        "missing_shims": [
-          "ioctl",
-          "mbtowc",
-          "wcwidth"
-        ],
+        "missing_shims": [],
         "blocking_shims": [],
         "blocker_workaround": "ioctl(TIOCGWINSZ) replaced with getenv(COLUMNS) or default 80; locale #ifdef-d out",
         "dependencies": [],
@@ -1468,8 +1449,8 @@
       "publishable": true,
       "notes": "Relational join. Locale/wchar paths for multibyte field separators can be #ifdef-d out.",
       "readiness": {
-        "score": 0.608,
-        "tier": "feasible"
+        "score": 0.908,
+        "tier": "ready"
       },
       "hardware_fit": {
         "stock_a1200": "fits",
@@ -1485,10 +1466,7 @@
           "tier2": 3,
           "tier3": 0
         },
-        "missing_shims": [
-          "mbtowc",
-          "wctomb"
-        ],
+        "missing_shims": [],
         "blocking_shims": [],
         "blocker_workaround": "#ifdef __AMIGA__ to skip locale/wchar; ASCII join works correctly",
         "dependencies": [],
@@ -1593,8 +1571,7 @@
           "fts_read",
           "fts_close",
           "fts_set",
-          "fts_children",
-          "ioctl"
+          "fts_children"
         ],
         "blocking_shims": [
           "fts_open",
@@ -1874,8 +1851,8 @@
       "publishable": true,
       "notes": "Change file timestamps. Needs utimensat/futimens shim (maps to SetFileDate). Otherwise clean.",
       "readiness": {
-        "score": 0.646,
-        "tier": "feasible"
+        "score": 0.945,
+        "tier": "ready"
       },
       "hardware_fit": {
         "stock_a1200": "fits",
@@ -1891,10 +1868,7 @@
           "tier2": 2,
           "tier3": 0
         },
-        "missing_shims": [
-          "utimensat",
-          "futimens"
-        ],
+        "missing_shims": [],
         "blocking_shims": [],
         "blocker_workaround": "utimensat/futimens can be shimmed via AmigaOS SetFileDate() \u2014 straightforward Tier 2 shim",
         "dependencies": [],
@@ -2867,8 +2841,8 @@
       "publishable": true,
       "notes": "Single file, pure stdio + wchar; setlocale/mbtowc/wcwidth need stubs or removal",
       "readiness": {
-        "score": 0.697,
-        "tier": "feasible"
+        "score": 0.997,
+        "tier": "ready"
       },
       "hardware_fit": {
         "stock_a1200": "fits",
@@ -2884,10 +2858,7 @@
           "tier2": 0,
           "tier3": 0
         },
-        "missing_shims": [
-          "mbtowc",
-          "wcwidth"
-        ],
+        "missing_shims": [],
         "blocking_shims": [],
         "blocker_workaround": "setlocale/mbtowc/wcwidth can be stubbed as no-ops (single-byte locale only); remove wchar path",
         "dependencies": [],
@@ -3138,7 +3109,6 @@
           "tier3": 0
         },
         "missing_shims": [
-          "strptime",
           "adjtime",
           "settimeofday",
           "logwtmp",
@@ -3176,8 +3146,8 @@
       "publishable": true,
       "notes": "Uses regex (Tier 2 implemented) for : operator; strtonum/asprintf/strcoll replaceable; pure computation",
       "readiness": {
-        "score": 0.644,
-        "tier": "feasible"
+        "score": 0.944,
+        "tier": "ready"
       },
       "hardware_fit": {
         "stock_a1200": "fits",
@@ -3193,9 +3163,7 @@
           "tier2": 1,
           "tier3": 0
         },
-        "missing_shims": [
-          "strcoll"
-        ],
+        "missing_shims": [],
         "blocking_shims": [],
         "blocker_workaround": "strtonum replaceable with strtol wrapper; strcoll replaceable with strcmp (no locale on Amiga)",
         "dependencies": [],

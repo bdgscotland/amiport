@@ -115,6 +115,9 @@ One wrapper per function. Semantics match POSIX for all common use cases. The tr
 |`timegm()`      |`amiport_timegm()`      |Pure C implementation            |Like mktime() but assumes UTC                                    |
 |`errc()`        |`amiport_errc()`        |Like err() with explicit errno   |Header-only in `amiport/err.h`                                   |
 |`strtonum()`    |`amiport_strtonum()`    |Safe strtoll + range check       |Header-only in `amiport/err.h`                                   |
+|`utimensat()`   |`amiport_utimensat()`   |`SetFileDate()` (V36+)           |Only mtime stored; 20ms precision; dirfd ignored                 |
+|`futimens()`    |`amiport_futimens()`    |`NameFromFH()` + `SetFileDate()` |Recovers path from fd, then calls utimensat                      |
+|`ioctl(TIOCGWINSZ)`|`amiport_ioctl()`    |CSI Window Status Request        |Queries console.device; only TIOCGWINSZ supported; 80x24 fallback|
 
 ### Planned Tier 1 additions
 

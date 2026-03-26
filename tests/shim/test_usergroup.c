@@ -16,6 +16,7 @@
 #include <amiport/signal.h>
 #include <amiport/unistd.h>
 #include <amiport/err.h>
+#include <amiport/sys/stat.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -414,6 +415,89 @@ TEST(timegm_known_date)
     ASSERT_EQ(result, 946684800L);
 }
 
+/* ========== utimensat ========== */
+
+TEST(utimensat_sets_time)
+{
+    /* Create a temp file, set its time, stat it, verify */
+    FILE *fp;
+    struct amiport_timespec ts[2];
+    struct amiport_stat sb;
+    int ret;
+
+    fp = fopen("T:test_utimensat.tmp", "w");
+    ASSERT_NOT_NULL(fp);
+    fprintf(fp, "test\n");
+    fclose(fp);
+
+    /* Set mtime to Jan 1, 2020 00:00:00 UTC = 1577836800 */
+    ts[0].tv_sec = 1577836800L;
+    ts[0].tv_nsec = 0;
+    ts[1].tv_sec = 1577836800L;
+    ts[1].tv_nsec = 0;
+
+    ret = amiport_utimensat(0, "T:test_utimensat.tmp", ts, 0);
+    ASSERT_EQ(ret, 0);
+
+    /* Verify via stat */
+    ret = amiport_stat("T:test_utimensat.tmp", &sb);
+    ASSERT_EQ(ret, 0);
+    /* Allow 60s tolerance for DateStamp rounding */
+    ASSERT(sb.st_mtime >= 1577836800L - 60 && sb.st_mtime <= 1577836800L + 60);
+
+    /* Clean up */
+    remove("T:test_utimensat.tmp");
+}
+
+TEST(utimensat_null_path_fails)
+{
+    int ret;
+    ret = amiport_utimensat(0, NULL, NULL, 0);
+    ASSERT_EQ(ret, -1);
+}
+
+TEST(utimensat_utime_omit)
+{
+    struct amiport_timespec ts[2];
+    int ret;
+
+    ts[0].tv_nsec = AMIPORT_UTIME_OMIT;
+    ts[1].tv_nsec = AMIPORT_UTIME_OMIT;
+    /* Should succeed as no-op */
+    ret = amiport_utimensat(0, "T:nonexistent", ts, 0);
+    ASSERT_EQ(ret, 0);
+}
+
+/* ========== ioctl ========== */
+
+TEST(ioctl_unsupported_request)
+{
+    int ret;
+    ret = amiport_ioctl(1, 0x1234, NULL);
+    ASSERT_EQ(ret, -1);
+}
+
+TEST(ioctl_tiocgwinsz_null_arg)
+{
+    int ret;
+    ret = amiport_ioctl(1, AMIPORT_TIOCGWINSZ, NULL);
+    ASSERT_EQ(ret, -1);
+}
+
+TEST(ioctl_tiocgwinsz_defaults)
+{
+    /* On vamos, IsInteractive() returns false, so we get defaults */
+    struct amiport_winsize ws;
+    int ret;
+
+    memset(&ws, 0, sizeof(ws));
+    ret = amiport_ioctl(1, AMIPORT_TIOCGWINSZ, &ws);
+    ASSERT_EQ(ret, 0);
+    /* Should have sensible defaults even if not interactive */
+    ASSERT(ws.ws_row >= 24);
+    ASSERT(ws.ws_col >= 80);
+}
+
 /* ========== RUN ALL ========== */
 
 int main(void)
@@ -485,6 +569,16 @@ int main(void)
     /* timegm */
     RUN_TEST(timegm_epoch);
     RUN_TEST(timegm_known_date);
+
+    /* utimensat */
+    RUN_TEST(utimensat_sets_time);
+    RUN_TEST(utimensat_null_path_fails);
+    RUN_TEST(utimensat_utime_omit);
+
+    /* ioctl */
+    RUN_TEST(ioctl_unsupported_request);
+    RUN_TEST(ioctl_tiocgwinsz_null_arg);
+    RUN_TEST(ioctl_tiocgwinsz_defaults);
 
     return test_summary();
 }

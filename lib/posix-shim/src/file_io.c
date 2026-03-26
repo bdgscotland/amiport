@@ -680,6 +680,196 @@ int amiport_lchown(const char *path, int owner, int group)
     return 0;
 }
 
+/*
+ * utimensat -- set file timestamps via SetFileDate()
+ *
+ * amiport: Uses dos.library SetFileDate() (V36+). Converts Unix
+ * timestamp to AmigaOS DateStamp. Only the modification time is
+ * stored (AmigaOS has one timestamp per file, not atime/mtime/ctime).
+ * dirfd parameter is ignored (AT_FDCWD assumed).
+ * UTIME_NOW sets to current time via DateStamp().
+ * UTIME_OMIT leaves timestamp unchanged.
+ * See ADCD: dos-library-setfiledate-2
+ */
+int amiport_utimensat(int dirfd, const char *path,
+                      const struct amiport_timespec times[2], int flags)
+{
+    struct DateStamp ds;
+    ULONG unix_time;
+
+    (void)dirfd;
+    (void)flags;
+
+    if (!path) {
+        errno = EINVAL;
+        return -1;
+    }
+
+    if (!times) {
+        /* NULL times = set to current time */
+        DateStamp(&ds);
+    } else if (times[1].tv_nsec == AMIPORT_UTIME_NOW) {
+        /* UTIME_NOW for mtime */
+        DateStamp(&ds);
+    } else if (times[1].tv_nsec == AMIPORT_UTIME_OMIT) {
+        /* UTIME_OMIT = leave unchanged */
+        return 0;
+    } else {
+        /* Convert Unix timestamp to AmigaOS DateStamp */
+        unix_time = (ULONG)times[1].tv_sec - AMIGA_EPOCH_OFFSET;
+        ds.ds_Days = unix_time / 86400;
+        ds.ds_Minute = (unix_time % 86400) / 60;
+        ds.ds_Tick = (unix_time % 60) * TICKS_PER_SECOND;
+    }
+
+    if (!SetFileDate((CONST_STRPTR)path, &ds)) {
+        amiport_map_errno();
+        return -1;
+    }
+
+    return 0;
+}
+
+/*
+ * futimens -- set timestamps on an open file descriptor
+ *
+ * amiport: Recovers the path from the BPTR via NameFromFH(),
+ * then delegates to utimensat(). Does not work on pipe or
+ * console handles (NameFromFH fails on those).
+ */
+int amiport_futimens(int fd, const struct amiport_timespec times[2])
+{
+    BPTR fh;
+    char namebuf[256];
+
+    init_fd_table();
+
+    if (fd < 0 || fd >= AMIPORT_MAX_FDS || !fd_used[fd]) {
+        errno = EBADF;
+        return -1;
+    }
+
+    fh = fd_table[fd];
+    if (fh == 0 || fh == (BPTR)1) {
+        errno = EBADF;
+        return -1;
+    }
+
+    if (!NameFromFH(fh, (STRPTR)namebuf, sizeof(namebuf))) {
+        /* NameFromFH failed -- likely a console or PIPE: handle */
+        errno = ENOTSUP;
+        return -1;
+    }
+
+    return amiport_utimensat(0, namebuf, times, 0);
+}
+
+/*
+ * ioctl -- I/O control (TIOCGWINSZ only)
+ *
+ * amiport: Only TIOCGWINSZ is supported. Queries the console
+ * window dimensions using the CSI Window Status Request escape
+ * sequence: CSI '0' ' ' 'q' -> response CSI '1' ';' '1' ';'
+ * rows ';' cols ' ' 'r'. Falls back to 80x24 if the query fails
+ * or the fd is not a console.
+ *
+ * The CSI byte on AmigaOS is 0x9B (not ESC '[').
+ */
+int amiport_ioctl(int fd, unsigned long request, void *arg)
+{
+    struct amiport_winsize *ws;
+    BPTR fh;
+    char buf[32];
+    LONG len;
+    int i, field;
+    int values[4];
+
+    if (request != AMIPORT_TIOCGWINSZ) {
+        errno = ENOTTY;
+        return -1;
+    }
+
+    ws = (struct amiport_winsize *)arg;
+    if (!ws) {
+        errno = EINVAL;
+        return -1;
+    }
+
+    /* Default fallback */
+    ws->ws_row = 24;
+    ws->ws_col = 80;
+    ws->ws_xpixel = 0;
+    ws->ws_ypixel = 0;
+
+    /* Get the file handle for this fd */
+    if (fd == 0) {
+        fh = Input();
+    } else if (fd == 1 || fd == 2) {
+        fh = Output();
+    } else {
+        init_fd_table();
+        if (fd < 0 || fd >= AMIPORT_MAX_FDS || !fd_used[fd]) {
+            errno = EBADF;
+            return -1;
+        }
+        fh = fd_table[fd];
+    }
+
+    if (!fh || !IsInteractive(fh)) {
+        /* Not a console -- return defaults */
+        return 0;
+    }
+
+    /* Send CSI Window Status Request: 0x9B '0' ' ' 'q'
+     * Response: 0x9B '1' ';' '1' ';' rows ';' cols ' ' 'r' */
+    buf[0] = (char)0x9B;
+    buf[1] = '0';
+    buf[2] = ' ';
+    buf[3] = 'q';
+    Write(fh, buf, 4);
+
+    /* amiport: Read response with timeout via WaitForChar.
+     * If no response in 200ms, the console doesn't support
+     * this query (e.g., vamos) -- use defaults. */
+    if (!WaitForChar(Input(), 200000)) {
+        return 0;
+    }
+
+    len = Read(Input(), buf, sizeof(buf) - 1);
+    if (len <= 0) {
+        return 0;
+    }
+    buf[len] = '\0';
+
+    /* Parse response: skip CSI (0x9B), then parse semicolon-separated
+     * fields: status;top;rows;cols */
+    i = 0;
+    if ((unsigned char)buf[0] == 0x9B) {
+        i = 1;
+    }
+
+    field = 0;
+    values[0] = values[1] = values[2] = values[3] = 0;
+    while (i < len && field < 4) {
+        if (buf[i] >= '0' && buf[i] <= '9') {
+            values[field] = values[field] * 10 + (buf[i] - '0');
+        } else if (buf[i] == ';') {
+            field++;
+        } else {
+            break; /* end of numeric data */
+        }
+        i++;
+    }
+
+    /* fields: [0]=status, [1]=top, [2]=rows, [3]=cols */
+    if (field >= 3 && values[2] > 0 && values[3] > 0) {
+        ws->ws_row = (unsigned short)values[2];
+        ws->ws_col = (unsigned short)values[3];
+    }
+
+    return 0;
+}
+
 /* --- Internal API (used by posix-emu and bsdsocket-shim) --- */
 
 BPTR amiport_fd_to_fh(int fd)
