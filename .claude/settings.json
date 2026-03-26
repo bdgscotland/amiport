@@ -67,6 +67,11 @@
             "type": "command",
             "command": "bash scripts/hooks/warn-direct-port-build.sh",
             "statusMessage": "Checking build pipeline..."
+          },
+          {
+            "type": "command",
+            "command": "bash scripts/hooks/check-batch-completion.sh",
+            "statusMessage": "Checking batch completion..."
           }
         ]
       }
