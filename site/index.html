@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="amiport — the first package manager for classic AmigaOS 3.x. AI-powered POSIX tool porting pipeline.">
     <title>amiport — Package Manager for Classic AmigaOS</title>
-    <link rel="stylesheet" href="css/style.css?v=20260325c">
+    <link rel="stylesheet" href="css/style.css?v=20260325d">
     <link rel="icon" type="image/svg+xml" href="img/favicon.svg">
     <link rel="alternate" type="application/rss+xml" title="amiport — New Ports" href="/feed.php">
 </head>
@@ -46,7 +46,7 @@
 
     <h1 class="sr-only">amiport — Package Manager for Classic AmigaOS</h1>
 
-    <!-- Hero: Terminal Window -->
+    <!-- Hero: Terminal Window (compact) -->
     <div class="mui-window">
         <div class="mui-window__title">AmigaShell</div>
         <div class="mui-window__body terminal-anim" role="img" aria-label="Terminal showing amiget installing grep on AmigaOS">
@@ -69,98 +69,84 @@
         </div>
     </div>
 
-    <!-- Stats Bar -->
-    <div class="stats-bar" role="status">
-        <span class="stats-bar__item"><span class="stats-bar__value" id="stats-ports">16</span> ports</span>
-        <span class="stats-bar__sep" aria-hidden="true">|</span>
-        <span class="stats-bar__item"><span class="stats-bar__value">7</span> on Aminet</span>
-        <span class="stats-bar__sep" aria-hidden="true">|</span>
-        <span class="stats-bar__item">Classic <span class="stats-bar__value">68k</span></span>
+    <!-- Big Stats -->
+    <section class="home-stats" role="status" aria-label="Project statistics">
+        <div class="home-stats__card">
+            <span class="home-stats__value" id="stats-ports">16</span>
+            <span class="home-stats__label">ports shipped</span>
+        </div>
+        <div class="home-stats__card">
+            <span class="home-stats__value" id="stats-tests">500+</span>
+            <span class="home-stats__label">tests passing</span>
+        </div>
+        <div class="home-stats__card">
+            <span class="home-stats__value" id="stats-downloads">--</span>
+            <span class="home-stats__label">downloads</span>
+        </div>
+        <div class="home-stats__card">
+            <span class="home-stats__value">7</span>
+            <span class="home-stats__label">on Aminet</span>
+        </div>
+    </section>
+
+    <!-- Two-panel: Activity + Popular Ports -->
+    <div class="home-panels">
+
+        <!-- Recent Activity -->
+        <section class="group-frame home-panels__main" aria-labelledby="activity-heading">
+            <div class="group-frame__title" id="activity-heading" role="heading" aria-level="2">Recent Activity</div>
+            <div class="group-frame__body">
+                <div id="activity-feed" role="feed" aria-label="Recent amiport activity">
+                    <p class="text-muted">Loading activity...</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Popular Ports -->
+        <section class="group-frame home-panels__side" aria-labelledby="popular-heading">
+            <div class="group-frame__title" id="popular-heading" role="heading" aria-level="2">Popular Ports</div>
+            <div class="group-frame__body">
+                <div id="popular-ports">
+                    <ul class="popular-list">
+                        <li class="popular-list__item">
+                            <a href="packages/?name=grep" class="popular-list__name">grep</a>
+                            <span class="popular-list__meta">1.68 &middot; regex search</span>
+                        </li>
+                        <li class="popular-list__item">
+                            <a href="packages/?name=sed" class="popular-list__name">sed</a>
+                            <span class="popular-list__meta">1.47 &middot; stream editor</span>
+                        </li>
+                        <li class="popular-list__item">
+                            <a href="packages/?name=lua" class="popular-list__name">lua</a>
+                            <span class="popular-list__meta">5.4.7 &middot; scripting language</span>
+                        </li>
+                        <li class="popular-list__item">
+                            <a href="packages/?name=jq" class="popular-list__name">jq</a>
+                            <span class="popular-list__meta">1.7.1 &middot; JSON processor</span>
+                        </li>
+                        <li class="popular-list__item">
+                            <a href="packages/?name=mg" class="popular-list__name">mg</a>
+                            <span class="popular-list__meta">3.7 &middot; screen editor</span>
+                        </li>
+                    </ul>
+                    <p class="mt-sm"><a href="packages.html">Browse all 16 packages &rarr;</a></p>
+                </div>
+            </div>
+        </section>
+
     </div>
 
-    <!-- Recent Activity -->
-    <section class="group-frame" aria-labelledby="activity-heading">
-        <div class="group-frame__title" id="activity-heading" role="heading" aria-level="2">Recent Activity</div>
+    <!-- Quick Install -->
+    <section class="group-frame" aria-labelledby="install-heading">
+        <div class="group-frame__title" id="install-heading" role="heading" aria-level="2">Quick Install</div>
         <div class="group-frame__body">
-            <div id="activity-feed" role="feed" aria-label="Recent amiport activity">
-                <p class="text-muted">Loading activity...</p>
+            <p class="mb-sm">Download a .lha from <a href="packages.html">Packages</a>, transfer to your Amiga, and extract:</p>
+            <div class="install-block">
+                <span class="install-block__prompt">1.SYS:&gt;</span>
+                <span class="install-block__cmd">lha x grep-1.68.lha SYS:</span>
             </div>
-            <p class="mt-md"><a href="changelog.html">View full changelog</a></p>
-        </div>
-    </section>
-
-    <!-- Getting Started -->
-    <section class="group-frame" aria-labelledby="start-heading">
-        <div class="group-frame__title" id="start-heading" role="heading" aria-level="2">Getting Started</div>
-        <div class="group-frame__body">
-            <p class="mb-md">Download and install tools on your Amiga.</p>
-
-            <ol class="steps">
-                <li class="steps__item">
-                    <span class="steps__label">Browse packages</span>
-                    Find what you need on the <a href="packages.html">Packages</a> page.
-                </li>
-                <li class="steps__item">
-                    <span class="steps__label">Download</span>
-                    Grab the .lha archive. Transfer to your Amiga via network, CF card, or serial.
-                </li>
-                <li class="steps__item">
-                    <span class="steps__label">Install</span>
-                    Extract the archive to your system:
-                    <code class="steps__code">lha x grep-1.68.lha SYS:</code>
-                </li>
-            </ol>
-
-            <div class="alert alert--info mt-md">
-                <strong>Coming soon: amiget</strong> &mdash; a CLI package manager for AmigaOS.
-                <code>amiget install grep</code> will handle downloads and installation
-                automatically. Requires a TCP/IP stack (Miami, AmiTCP, or Roadshow).
-            </div>
-        </div>
-    </section>
-
-    <!-- About / Pipeline -->
-    <section class="group-frame" id="about" aria-labelledby="about-heading">
-        <div class="group-frame__title" id="about-heading" role="heading" aria-level="2">About amiport</div>
-        <div class="group-frame__body">
-            <p class="mb-md">
-                amiport is an AI-powered pipeline that ports POSIX/Unix tools to the
-                Commodore Amiga. It analyzes C source code, transforms POSIX system
-                calls to AmigaOS equivalents, cross-compiles for 68020+, and tests
-                on a virtual Amiga.
-            </p>
-
-            <ol class="pipeline-steps">
-                <li class="pipeline-step">
-                    <span class="pipeline-step__name">Analyze</span>
-                    <span class="pipeline-step__desc">Scan source for portability issues</span>
-                </li>
-                <li class="pipeline-step">
-                    <span class="pipeline-step__name">Transform</span>
-                    <span class="pipeline-step__desc">Replace POSIX calls with Amiga equivalents</span>
-                </li>
-                <li class="pipeline-step">
-                    <span class="pipeline-step__name">Build</span>
-                    <span class="pipeline-step__desc">Cross-compile with m68k-amigaos-gcc</span>
-                </li>
-                <li class="pipeline-step">
-                    <span class="pipeline-step__name">Test</span>
-                    <span class="pipeline-step__desc">Verify on virtual AmigaOS (vamos + FS-UAE)</span>
-                </li>
-                <li class="pipeline-step">
-                    <span class="pipeline-step__name">Package</span>
-                    <span class="pipeline-step__desc">.lha archive, Aminet readme, amiport index</span>
-                </li>
-            </ol>
-
-            <p class="mt-md">
-                The pipeline uses specialized AI agents for each stage. Source analysis,
-                code transformation, build management, and testing are all automated.
-                Each port produces a working Amiga binary from unmodified upstream source.
-            </p>
-
-            <p class="mt-md">
-                <a href="https://github.com/bdgscotland/amiport" target="_blank" rel="noopener">View on GitHub</a>
+            <p class="text-muted mt-sm">
+                <strong>Coming soon:</strong> <code>amiget install grep</code> &mdash; a CLI package manager for AmigaOS.
             </p>
         </div>
     </section>
@@ -202,6 +188,13 @@
         </div>
     </section>
 
+    <!-- About (compact) -->
+    <p class="home-about">
+        amiport is an AI-powered pipeline that ports POSIX/Unix tools to classic AmigaOS.
+        Each port goes through 5 automated stages: analyze, transform, build, test, package.
+        <a href="https://github.com/bdgscotland/amiport" target="_blank" rel="noopener">View on GitHub</a>
+    </p>
+
 </main>
 
 <!-- Footer -->
@@ -220,7 +213,7 @@
 </footer>
 
 <script src="js/terminal-anim.js"></script>
-<script src="js/activity.js?v=20260325c"></script>
+<script src="js/activity.js?v=20260325d"></script>
 <script>
 // Boot sequence: skip on repeat visits
 (function() {
@@ -241,6 +234,22 @@
         void overlay.offsetWidth;
         overlay.style.animation = '';
     });
+})();
+
+// Fetch live download count for stats
+(function() {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', 'api/v1/stats.php', true);
+    xhr.onload = function() {
+        try {
+            var d = JSON.parse(xhr.responseText);
+            var el = document.getElementById('stats-downloads');
+            if (el && d.total_downloads !== undefined) {
+                el.textContent = d.total_downloads.toLocaleString();
+            }
+        } catch(e) {}
+    };
+    xhr.send();
 })();
 
 // Port request form submission

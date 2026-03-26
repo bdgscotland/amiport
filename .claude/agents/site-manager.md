@@ -24,26 +24,39 @@ You are the site operations specialist for amiport.platesteel.net — the Amiga 
 
 ```
 site/
-├── index.html          # Landing page (static + port request form JS)
-├── packages.html       # Package browser (JS-driven)
+├── index.html          # Landing page (activity feed + port request form)
+├── packages.html       # Package browser (JS-driven table)
+├── packages/index.php  # Per-port detail pages (packages/?name=grep)
+├── changelog.html      # Changelog timeline (JS-driven)
 ├── stats.html          # Public stats page
+├── catalog.html        # Porting tech tree (sortable, voteable)
 ├── admin.php           # Password-protected admin dashboard (CSRF-protected)
 ├── db.php              # PDO singleton, .env loader, CSRF helpers
-├── schema.sql          # MySQL table definitions (4 tables)
+├── schema.sql          # MySQL table definitions (7 tables)
+├── feed.php            # RSS 2.0 feed (supports ?category= filter)
 ├── css/style.css       # Amiga MUI design system (see DESIGN.md)
-├── js/packages.js      # Package table + vote buttons
-├── js/stats.js         # Stats page rendering
+├── js/
+│   ├── packages.js     # Package table + vote buttons
+│   ├── stats.js        # Stats page rendering
+│   ├── catalog.js      # Catalog table + vote buttons + Most Wanted sort
+│   ├── activity.js     # Activity feed renderer (homepage)
+│   ├── changelog.js    # Changelog timeline renderer
+│   └── terminal-anim.js # Hero typing animation
 ├── api/v1/
 │   ├── index.php       # Health/info endpoint (status: ok)
 │   ├── packages.php    # Package list with download/vote counts
 │   ├── download.php    # Serve LHA + track in MySQL (blocks non-stable)
-│   ├── vote.php        # POST: thumbs up/down (UPSERT per IP hash)
-│   ├── request.php     # POST: port request with honeypot
+│   ├── vote.php        # POST: thumbs up/down for packages (UPSERT per IP hash)
+│   ├── catalog-vote.php # POST: thumbs up/down for catalog candidates
+│   ├── activity.php    # GET: activity feed (JSON + HTML fallback, 5min cache)
+│   ├── request.php     # POST: port request + admin status update
+│   ├── report-bug.php  # POST: bug report with rate limiting
 │   ├── stats.php       # Aggregated statistics (trends, popular, recent)
+│   ├── catalog.php     # Catalog data with community vote counts
 │   └── packages.json   # Pre-built static manifest (fallback for JS)
 ├── data/packages/      # Per-package JSON metadata (blocked by .htaccess)
 ├── data/counters/      # Legacy flat-file counters (deprecated, blocked)
-└── packages/           # LHA download files (git-ignored, served by download.php)
+└── packages/           # LHA download files + per-port PHP pages
 ```
 
 ## Deployment
@@ -65,6 +78,18 @@ curl -s "http://amiport.platesteel.net/api/v1/index.php" | python3 -c "import sy
 # Package check
 curl -s "http://amiport.platesteel.net/api/v1/packages.php" | python3 -c "import sys,json; d=json.load(sys.stdin); print(f'{len(d[\"packages\"])} packages')"
 
+# Per-port page
+curl -s -o /dev/null -w "%{http_code}" "http://amiport.platesteel.net/packages/?name=grep"  # Must return 200
+
+# Activity feed
+curl -s "http://amiport.platesteel.net/api/v1/activity.php" | python3 -c "import sys,json; d=json.load(sys.stdin); print(f'{len(d)} activity items')"
+
+# Catalog votes
+curl -s -o /dev/null -w "%{http_code}" -X POST "http://amiport.platesteel.net/api/v1/catalog-vote.php" -H "Content-Type: application/json" -d '{"slug":"test","vote":1}'  # Must not be 500
+
+# Changelog
+curl -s -o /dev/null -w "%{http_code}" "http://amiport.platesteel.net/changelog.html"  # Must return 200
+
 # Data directory blocked
 curl -sI "http://amiport.platesteel.net/data/packages/grep.json"  # Must return 403
 ```
@@ -72,7 +97,7 @@ curl -sI "http://amiport.platesteel.net/data/packages/grep.json"  # Must return 
 ## Database
 
 - Host: mysql-amiport.platesteel.net
-- Tables: downloads, votes, login_attempts, port_requests
+- Tables: downloads, votes, login_attempts, port_requests, catalog_votes, milestones, bug_reports
 - Credentials in site/.env (git-ignored)
 - Schema defined in site/schema.sql
 
@@ -168,7 +193,11 @@ Flat-file download counters from before MySQL was added. Still excluded from rsy
 
 Run `bash site/test-site.sh` before deploy. The test script:
 - Starts a local PHP server (or tests against a live URL)
-- Exercises all API endpoints (packages, download, vote, request, stats)
+- Exercises all API endpoints (packages, download, vote, catalog-vote, activity, request, stats)
+- Tests per-port detail pages (200 for valid, 404 for invalid/traversal)
+- Tests activity feed API (JSON response, HTML fallback)
+- Tests catalog vote API (POST, validation, method guard)
+- Tests changelog page, RSS feed
 - Validates security headers (X-Content-Type-Options, X-Frame-Options, Referrer-Policy)
 - Tests path traversal attacks on packages and download endpoints
 - Verifies data/ directory is not publicly accessible

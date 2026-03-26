@@ -1455,6 +1455,134 @@ a:focus-visible {
 }
 
 /* ==========================================================================
+   Homepage — Big Stats + Two-Panel Layout
+   ========================================================================== */
+
+/* --- Big Stats Row --- */
+.home-stats {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--sp-sm);
+    margin-bottom: var(--sp-lg);
+}
+
+.home-stats__card {
+    flex: 1;
+    text-align: center;
+    padding: var(--sp-md) var(--sp-sm);
+    background: var(--surface);
+    border-top: 1px solid var(--bevel-shine);
+    border-left: 1px solid var(--bevel-shine);
+    border-bottom: 1px solid var(--bevel-shadow);
+    border-right: 1px solid var(--bevel-shadow);
+}
+
+.home-stats__value {
+    display: block;
+    font-size: var(--fs-3xl);
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.1;
+}
+
+.home-stats__label {
+    display: block;
+    font-size: var(--fs-xs);
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: var(--sp-xs);
+}
+
+/* --- Two-Panel Layout --- */
+.home-panels {
+    display: flex;
+    gap: var(--sp-md);
+    margin-bottom: var(--sp-md);
+}
+
+.home-panels__main {
+    flex: 3;
+    min-width: 0;
+}
+
+.home-panels__side {
+    flex: 2;
+    min-width: 0;
+}
+
+/* --- Popular Ports List --- */
+.popular-list {
+    list-style: none;
+}
+
+.popular-list__item {
+    padding: var(--sp-sm) var(--sp-xs);
+    border-bottom: 1px solid var(--bevel-shadow);
+    display: flex;
+    align-items: baseline;
+    gap: var(--sp-sm);
+}
+
+.popular-list__item:last-child {
+    border-bottom: none;
+}
+
+.popular-list__item:hover {
+    background: var(--light-surface);
+}
+
+.popular-list__name {
+    font-weight: 700;
+    font-size: var(--fs-lg);
+    color: var(--brown);
+    text-decoration: none;
+}
+
+.popular-list__name:hover {
+    color: var(--salmon);
+}
+
+.popular-list__meta {
+    font-size: var(--fs-xs);
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+}
+
+/* --- About (compact, inline) --- */
+.home-about {
+    text-align: center;
+    font-size: var(--fs-sm);
+    color: var(--text-muted);
+    padding: var(--sp-lg) var(--sp-md);
+    line-height: 1.6;
+}
+
+.home-about a {
+    color: var(--brown);
+}
+
+/* --- Responsive: Homepage --- */
+@media (max-width: 600px) {
+    .home-stats {
+        flex-wrap: wrap;
+    }
+
+    .home-stats__card {
+        flex: 1 1 45%;
+    }
+
+    .home-panels {
+        flex-direction: column;
+    }
+
+    .home-panels__main,
+    .home-panels__side {
+        flex: none;
+    }
+}
+
+/* ==========================================================================
    Per-Port Detail Page
    ========================================================================== */
 
@@ -1648,7 +1776,7 @@ a:focus-visible {
 }
 
 .activity-feed__bullet {
-    color: var(--amber);
+    color: var(--brown);
     font-weight: 700;
     margin-right: var(--sp-sm);
     display: inline-block;
@@ -1698,7 +1826,7 @@ a:focus-visible {
 
 .catalog-vote-score {
     font-weight: 700;
-    color: var(--amber);
+    color: var(--text);
     font-size: var(--fs-sm);
     min-width: 20px;
     display: inline-block;
