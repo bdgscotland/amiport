@@ -169,3 +169,13 @@
   - Verdict: Approved for shipping — exemplary AmigaOS patterns
   - Summary: argv expansion + ExAll()/Lock/AllocDosObject resource cleanup, no leaks
   - Key findings: Correct ADCD patterns for ExAll/Lock/FreeDosObject; proper early-exit cleanup; avoids amiport_getenv() leak pattern
+
+- [memory-audit-batch5.md](memory-audit-batch5.md) - Batch 5: column 1.27, ln 1.25, expr 1.28, look 1.27, tty 1.14 (2026-03-26)
+  - Status: 2 CLEAN (ln, look, tty), 2 FAIL (column, expr)
+  - Verdict: 60% pass rate — 3 approved, 2 cannot ship
+  - column: 5 CRITICAL LEAKS (separator strdup, cols array, maxwidths array, getline buf, table entries) — requires major refactoring of input() function
+  - ln: CLEAN — perfect atexit pattern, no leaks ✓
+  - expr: 6+ CRITICAL LEAKS on errx() error paths in eval*() functions — regex/numeric checks don't free intermediate values before exiting
+  - look: CLEAN — mmap/munmap properly paired, atexit cleanup correct ✓
+  - tty: CLEAN — no dynamic allocations beyond argv expansion ✓
+  - Key finding: Input processing pattern with static growth state (column) is hard to cleanup; recursive descent expression parsing (expr) requires cleanup before every errx() call

@@ -52,6 +52,19 @@ char *tgetstr(const char *cap, char **area);
 /* Format cursor motion string — substitutes col and row into cm capability */
 char *tgoto(const char *cm, int col, int row);
 
+/*
+ * Classic termcap interface globals (BSD termcap compatibility).
+ * Programs that use the termcap API directly (e.g., tetris, vi) declare
+ * these as extern and set them from tgetstr() results.
+ *
+ * PC  -- pad character (NUL by default)
+ * BC  -- backspace string pointer (set by app from tgetstr("le",...))
+ * UP  -- cursor-up string pointer (set by app from tgetstr("up",...))
+ */
+extern char  PC;
+extern char *BC;
+extern char *UP;
+
 #ifdef __cplusplus
 }
 #endif

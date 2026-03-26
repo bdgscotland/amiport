@@ -1,0 +1,421 @@
+# FS-UAE Test Report: tr
+
+## Summary
+
+| Field | Value |
+|-------|-------|
+| Port | tr |
+| Date | 2026-03-26 16:56:45 |
+| Duration | 44s |
+| Platform | FS-UAE 3.2.35 (A1200, Kickstart 3.1) |
+| Binary | `WORK:tr` (43K) |
+| Test method | ARexx harness → TAP output |
+| Result | **PASS** — 27/27 passed |
+
+## Test Results
+
+```
+1..27
+ok 1 - Translate lowercase to uppercase using a-z range
+ok 2 - Translate uppercase to lowercase using A-Z range
+ok 3 - ROT13 encoding using compound ranges
+ok 4 - ROT13 decode is self-inverse
+ok 5 - Translate digit range 0-9 to letter range A-J
+ok 6 - Delete vowels using character set
+ok 7 - Delete character range a-e with -d flag
+ok 8 - Squeeze repeated spaces to single space
+ok 9 - Squeeze repeated lowercase letters
+ok 10 - -ds delete vowels then squeeze remaining consonants
+ok 11 - -cd complement delete (keep only digits)
+ok 12 - Translate tab character using octal escape \011
+ok 13 - Invalid flag causes usage error
+ok 14 - -ds requires exactly two string arguments -- one arg is error
+ok 15 - Translation mode requires two string arguments -- one is error
+ok 16 - Delete mode with two string arguments is usage error
+ok 17 - Successful translation returns RC 0
+ok 18 - Invalid flag returns RC 10
+ok 19 - Empty file input produces empty output
+ok 20 - Translate lowercase across multiple input lines
+ok 21 - Delete characters across multiple input lines
+ok 22 - WORK: volume path works for stdin redirection
+ok 23 - Real-world: extract digits from phone number string
+ok 24 - Real-world: normalize multiple spaces to single space
+ok 25 - Real-world: delete carriage returns from CRLF line endings
+ok 26 - Stress: translate 200 lines of uppercase text
+ok 27 - Stress: -ds on 200-line file deletes and squeezes correctly
+# passed: 27 failed: 0 total: 27
+```
+
+### Breakdown
+
+| # | Test | Status | Details |
+|---|------|--------|---------|
+| 1 | Translate lowercase to uppercase using a-z range | PASS | |
+| 2 | Translate uppercase to lowercase using A-Z range | PASS | |
+| 3 | ROT13 encoding using compound ranges | PASS | |
+| 4 | ROT13 decode is self-inverse | PASS | |
+| 5 | Translate digit range 0-9 to letter range A-J | PASS | |
+| 6 | Delete vowels using character set | PASS | |
+| 7 | Delete character range a-e with -d flag | PASS | |
+| 8 | Squeeze repeated spaces to single space | PASS | |
+| 9 | Squeeze repeated lowercase letters | PASS | |
+| 10 | -ds delete vowels then squeeze remaining consonants | PASS | |
+| 11 | -cd complement delete (keep only digits) | PASS | |
+| 12 | Translate tab character using octal escape \011 | PASS | |
+| 13 | Invalid flag causes usage error | PASS | |
+| 14 | -ds requires exactly two string arguments -- one arg is error | PASS | |
+| 15 | Translation mode requires two string arguments -- one is error | PASS | |
+| 16 | Delete mode with two string arguments is usage error | PASS | |
+| 17 | Successful translation returns RC 0 | PASS | |
+| 18 | Invalid flag returns RC 10 | PASS | |
+| 19 | Empty file input produces empty output | PASS | |
+| 20 | Translate lowercase across multiple input lines | PASS | |
+| 21 | Delete characters across multiple input lines | PASS | |
+| 22 | WORK: volume path works for stdin redirection | PASS | |
+| 23 | Real-world: extract digits from phone number string | PASS | |
+| 24 | Real-world: normalize multiple spaces to single space | PASS | |
+| 25 | Real-world: delete carriage returns from CRLF line endings | PASS | |
+| 26 | Stress: translate 200 lines of uppercase text | PASS | |
+| 27 | Stress: -ds on 200-line file deletes and squeezes correctly | PASS | |
+
+## Environment
+
+| Component | Version/Path |
+|-----------|-------------|
+| FS-UAE | 3.2.35 |
+| Kickstart | 3.1 (40.68) |
+| Amiga model | A1200 (68020) |
+| Compiler | m68k-amigaos-gcc (bebbo) |
+| POSIX shim | libamiport.a |
+| Regex emu | libamiport-emu.a |
+| Test harness | ARexx (test-runner.rexx) |
+
+## Test Cases
+
+Each test runs the command inside AmigaOS, captures stdout to a file,
+and compares against the expected output string.
+
+```
+# tr 1.22 -- FS-UAE test suite
+# Category: 1 (CLI tool, stdin-only -- uses <WORK: stdin redirection)
+# All CMD lines use AmigaDOS < stdin redirection because tr reads from stdin only.
+# Minimum: 15 tests. This suite has 30.
+
+# ============================================================
+# FUNCTIONAL TESTS -- basic translation
+# ============================================================
+
+# Native: echo "hello world" | tr 'a-z' 'A-Z'
+TEST: Translate lowercase to uppercase using a-z range
+CMD: WORK:tr a-z A-Z <WORK:test-tr-basic.txt
+EXPECT: HELLO WORLD
+EXPECT_RC: 0
+
+# Native: echo "HELLO WORLD" | tr 'A-Z' 'a-z'
+TEST: Translate uppercase to lowercase using A-Z range
+CMD: WORK:tr A-Z a-z <WORK:test-tr-upper.txt
+EXPECT: hello world
+EXPECT_RC: 0
+
+# Native: echo "Hello World" | tr 'a-zA-Z' 'n-za-mN-ZA-M'
+TEST: ROT13 encoding using compound ranges
+CMD: WORK:tr a-zA-Z n-za-mN-ZA-M <WORK:test-tr-rot13in.txt
+EXPECT: Uryyb Jbeyq
+EXPECT_RC: 0
+
+# Native: echo "Uryyb Jbeyq" | tr 'a-zA-Z' 'n-za-mN-ZA-M'
+TEST: ROT13 decode is self-inverse
+CMD: WORK:tr a-zA-Z n-za-mN-ZA-M <WORK:test-tr-rot13out.txt
+EXPECT: Hello World
+EXPECT_RC: 0
+
+# Native: echo "0123456789" | tr '0-9' 'A-J'
+TEST: Translate digit range 0-9 to letter range A-J
+CMD: WORK:tr 0-9 A-J <WORK:test-tr-digits.txt
+EXPECT: ABCDEFGHIJ
+EXPECT_RC: 0
+
+# ============================================================
+# ============================================================
+# FUNCTIONAL TESTS -- character classes [:class:]
+# SKIPPED: AmigaDOS interprets [ as a volume name.
+# Character classes are tested via vamos; range equivalents (a-z, A-Z)
+# are used in FS-UAE tests above.
+# ============================================================
+# ============================================================
+
+# Native: echo "HELLO WORLD" | tr '[:upper:]' '[:lower:]'
+# TEST: Translate uppercase class to lowercase class
+# SKIP (AmigaDOS [: volume issue): CMD: WORK:tr [:upper:] [:lower:] <WORK:test-tr-upper.txt
+# EXPECT: hello world
+# EXPECT_RC: 0
+
+# Native: echo "hello world" | tr '[:lower:]' '[:upper:]'
+# TEST: Translate lowercase class to uppercase class
+# SKIP (AmigaDOS [: volume issue): CMD: WORK:tr [:lower:] [:upper:] <WORK:test-tr-basic.txt
+# EXPECT: HELLO WORLD
+# EXPECT_RC: 0
+
+# Native: echo "abc123def456" | tr -d '[:digit:]'
+# TEST: Delete digit class characters with -d flag
+# SKIP (AmigaDOS [: volume issue): CMD: WORK:tr -d [:digit:] <WORK:test-tr-alphanum.txt
+# EXPECT: abcdef
+# EXPECT_RC: 0
+
+# Native: echo "abc123def456" | tr -d '[:alpha:]'
+# TEST: Delete alpha class characters with -d flag
+# SKIP (AmigaDOS [: volume issue): CMD: WORK:tr -d [:alpha:] <WORK:test-tr-alphanum.txt
+# EXPECT: 123456
+# EXPECT_RC: 0
+
+# Native: echo "hello, world!" | tr -d '[:punct:]'
+# TEST: Delete punctuation class using special chars test file
+# SKIP (AmigaDOS [: volume issue): CMD: WORK:tr -d [:punct:] <WORK:test-special-chars.txt
+# EXPECT: line	with	tabs
+# EXPECT_LINE: 3,quoted string
+# EXPECT_RC: 0
+
+# ============================================================
+# FUNCTIONAL TESTS -- -d flag (delete)
+# ============================================================
+
+# Native: echo "hello world" | tr -d 'aeiou'
+TEST: Delete vowels using character set
+CMD: WORK:tr -d aeiou <WORK:test-tr-basic.txt
+EXPECT: hll wrld
+EXPECT_RC: 0
+
+# Native: echo "abcdefghij" | tr -d 'a-e'
+TEST: Delete character range a-e with -d flag
+CMD: WORK:tr -d a-e <WORK:test-tr-range.txt
+EXPECT: fghij
+EXPECT_RC: 0
+
+# ============================================================
+# FUNCTIONAL TESTS -- -s flag (squeeze)
+# ============================================================
+
+# Native: echo "hello    world" | tr -s ' '
+TEST: Squeeze repeated spaces to single space
+CMD: WORK:tr -s " " <WORK:test-tr-spaces.txt
+EXPECT: hello world
+EXPECT_RC: 0
+
+# Native: echo "aabbccdd" | tr -s 'a-z'
+TEST: Squeeze repeated lowercase letters
+CMD: WORK:tr -s a-z <WORK:test-tr-repeated.txt
+EXPECT: abcd
+EXPECT_RC: 0
+
+# ============================================================
+# FUNCTIONAL TESTS -- -c/-C flags (complement)
+# ============================================================
+
+# Native: printf "hello 123\n" | tr -c '[:alpha:]' 'X'
+# Output replaces space, digits, and newline with X -> "helloXXXXX" (no trailing newline)
+# TEST: Complement flag -c translates non-alpha chars to X
+# SKIP (AmigaDOS [: volume issue): CMD: WORK:tr -c [:alpha:] X <WORK:test-tr-mixed.txt
+# EXPECT: helloXXXXX
+# EXPECT_RC: 0
+
+# Native: printf "hello 123\n" | tr -C '[:alpha:]' 'X'
+# TEST: Complement flag -C (uppercase) is equivalent to -c
+# SKIP (AmigaDOS [: volume issue): CMD: WORK:tr -C [:alpha:] X <WORK:test-tr-mixed.txt
+# EXPECT: helloXXXXX
+# EXPECT_RC: 0
+
+# ============================================================
+# FUNCTIONAL TESTS -- combined flags
+# ============================================================
+
+# Native: printf "hello   123   world\n" | tr -cs '[:alpha:]' 'X'
+# Output: helloXworldX (squeeze multiple non-alpha runs into single X, newline also becomes X)
+# TEST: -cs complement and squeeze non-alpha to single X
+# SKIP (AmigaDOS [: volume issue): CMD: WORK:tr -cs [:alpha:] X <WORK:test-tr-words.txt
+# EXPECT: helloXworldX
+# EXPECT_RC: 0
+
+# Native: echo "aabbbccdd" | tr -ds 'aeiou' 'a-z'
+TEST: -ds delete vowels then squeeze remaining consonants
+CMD: WORK:tr -ds aeiou a-z <WORK:test-tr-ds.txt
+EXPECT: bcd
+EXPECT_RC: 0
+
+# Native: echo "abc123def456" | tr -cd '0-9'
+# Output: "123456" with no trailing newline (newline in complement gets deleted too)
+TEST: -cd complement delete (keep only digits)
+CMD: WORK:tr -cd 0-9 <WORK:test-tr-alphanum.txt
+EXPECT: 123456
+EXPECT_RC: 0
+
+# ============================================================
+# FUNCTIONAL TESTS -- escape sequences
+# ============================================================
+
+# Native: printf "hello\tworld\n" | tr '\011' ' '
+TEST: Translate tab character using octal escape \011
+CMD: WORK:tr \011 " " <WORK:test-tr-tabs.txt
+EXPECT: hello world
+EXPECT_RC: 0
+
+# ============================================================
+# ERROR PATH TESTS (RC=10)
+# ============================================================
+
+# Source: usage() called when argc < 1 (no args at all would hang -- use invalid flag instead)
+TEST: Invalid flag causes usage error
+CMD: WORK:tr -Z a-z <WORK:test-tr-basic.txt
+EXPECT_RC: 10
+
+# Source: usage() when dflag && argc != 2 for -ds
+TEST: -ds requires exactly two string arguments -- one arg is error
+CMD: WORK:tr -ds aeiou <WORK:test-tr-basic.txt
+EXPECT_RC: 10
+
+# Source: usage() when !dflag && !sflag && argc != 2
+TEST: Translation mode requires two string arguments -- one is error
+CMD: WORK:tr a <WORK:test-tr-basic.txt
+EXPECT_RC: 10
+
+# Source: usage() called when dflag && argc != 1 (delete mode given 2 string args)
+TEST: Delete mode with two string arguments is usage error
+CMD: WORK:tr -d aeiou xyz <WORK:test-tr-basic.txt
+EXPECT_RC: 10
+
+# SKIP: [x*3] bracket syntax triggers AmigaDOS "insert volume [" requester
+# Source: errx(10, "sequences only valid in string2") in genseq() when STRING1 has [x*n]
+
+# ============================================================
+# EXIT CODE TESTS
+# ============================================================
+
+# Normal successful translation
+TEST: Successful translation returns RC 0
+CMD: WORK:tr a-z A-Z <WORK:test-tr-basic.txt
+EXPECT: HELLO WORLD
+EXPECT_RC: 0
+
+# Error case returns RC 10
+TEST: Invalid flag returns RC 10
+CMD: WORK:tr -Q a-z <WORK:test-tr-basic.txt
+EXPECT_RC: 10
+
+# ============================================================
+# EDGE CASE TESTS
+# ============================================================
+
+# Empty file input
+TEST: Empty file input produces empty output
+CMD: WORK:tr a-z A-Z <WORK:test-empty.txt
+EXPECT:
+EXPECT_RC: 0
+
+# Multiline input -- verify translation across multiple lines
+# Native: cat test-multiline.txt | tr 'a-z' 'A-Z' -> line1=HELLO WORLD, line2=FOO BAR BAZ, line10=LAST LINE
+TEST: Translate lowercase across multiple input lines
+CMD: WORK:tr a-z A-Z <WORK:test-multiline.txt
+EXPECT: HELLO WORLD
+EXPECT_LINE: 2,FOO BAR BAZ
+EXPECT_LINE: 10,LAST LINE
+EXPECT_RC: 0
+
+# Delete vowels on multiline input
+# Native: cat test-multiline.txt | tr -d 'aeiou' -> line1=hll wrld, line2=f br bz
+TEST: Delete characters across multiple input lines
+CMD: WORK:tr -d aeiou <WORK:test-multiline.txt
+EXPECT: hll wrld
+EXPECT_LINE: 2,f br bz
+EXPECT_RC: 0
+
+# ============================================================
+# AMIGA-SPECIFIC TESTS
+# ============================================================
+
+# WORK: volume path handling
+TEST: WORK: volume path works for stdin redirection
+CMD: WORK:tr a-z A-Z <WORK:test-tr-basic.txt
+EXPECT: HELLO WORLD
+EXPECT_RC: 0
+
+# Squeeze [:space:] class removes blank lines and collapses whitespace runs
+# Native: cat test-multiline.txt | tr -s '[:space:]' -- squeezes double-newline (blank line) into one
+# test-multiline.txt has 10 lines; after squeeze, line 5 (blank) is removed -> 9 lines
+# Line 4 UPPERCASE LINE, line 5 (was 6) hello world
+# TEST: Squeeze space class collapses blank lines from multiline input
+# SKIP (AmigaDOS [: volume issue): CMD: WORK:tr -s [:space:] <WORK:test-multiline.txt
+# EXPECT: hello world
+# EXPECT_LINE: 4,UPPERCASE LINE
+# EXPECT_LINE: 9,last line
+# EXPECT_RC: 0
+
+# ============================================================
+# REAL-WORLD TESTS
+# ============================================================
+
+# Real-world: extract digits only from phone number
+# Native: echo "Phone: (555) 123-4567" | tr -dc '0-9' -> "5551234567" (no newline)
+TEST: Real-world: extract digits from phone number string
+CMD: WORK:tr -dc 0-9 <WORK:test-tr-phone.txt
+EXPECT: 5551234567
+EXPECT_RC: 0
+
+# Real-world: normalize whitespace (squeeze) before processing
+# Native: echo "hello    world" | tr -s ' ' -> "hello world"
+TEST: Real-world: normalize multiple spaces to single space
+CMD: WORK:tr -s " " <WORK:test-tr-spaces.txt
+EXPECT: hello world
+EXPECT_RC: 0
+
+# Real-world: delete carriage returns to fix DOS/Windows line endings
+# Native: printf "hello\r\nworld\r\n" | tr -d '\015' -> "hello\nworld\n"
+# test-tr-crlf.txt has CR+LF endings created by bash
+TEST: Real-world: delete carriage returns from CRLF line endings
+CMD: WORK:tr -d \015 <WORK:test-tr-crlf.txt
+EXPECT: hello
+EXPECT_LINE: 2,world
+EXPECT_RC: 0
+
+# ============================================================
+# STRESS TESTS
+# ============================================================
+
+# Stress: 200 lines of uppercase text translated to lowercase
+# Native: cat test-tr-stress.txt | tr 'A-Z' 'a-z' -> line 1="line 000: hello world abc 123"
+TEST: Stress: translate 200 lines of uppercase text
+CMD: WORK:tr A-Z a-z <WORK:test-tr-stress.txt
+EXPECT: line 000: hello world abc 123
+EXPECT_LINE: 200,line 199: hello world abc 123
+EXPECT_RC: 0
+
+# Stress: delete and squeeze on large input
+# Native: cat test-tr-stress.txt | tr -ds 'aeiou' 'a-z'
+# Line 1 of test-tr-stress.txt is "Line 000: HELLO WORLD ABC 123"
+# After tr -ds 'aeiou' 'a-z': deletes lowercase vowels (a,e,i,o,u) then squeezes consonants
+# "Line" -> "Ln" (L stays, i deleted, n stays, e deleted), HELLO/WORLD unchanged (uppercase)
+# Result: "Ln 000: HELLO WORLD ABC 123"
+TEST: Stress: -ds on 200-line file deletes and squeezes correctly
+CMD: WORK:tr -ds aeiou a-z <WORK:test-tr-stress.txt
+EXPECT: Ln 000: HELLO WORLD ABC 123
+EXPECT_RC: 0
+```
+
+## Emulator Log
+
+```
+(log not captured in this run)
+```
+
+## Sentinel File
+
+Written by the ARexx harness when all tests complete:
+
+```
+TESTS_COMPLETE
+passed=27
+failed=0
+total=27
+```
+
+---
+Generated by `make test-fsemu TARGET=ports/tr`
+Report template: `toolchain/templates/test-report.md.template`

@@ -1,0 +1,4 @@
+alice:1001:admin
+bob:1002:user
+charlie:1003:user
+dave:1004:admin

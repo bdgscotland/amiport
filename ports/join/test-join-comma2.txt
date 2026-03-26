@@ -1,0 +1,3 @@
+apple,alpha,X
+cherry,gamma,Z
+fig,zeta,W

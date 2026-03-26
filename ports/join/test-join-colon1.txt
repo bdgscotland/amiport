@@ -1,0 +1,3 @@
+apple:10:red
+banana:20:yellow
+cherry:30:red

@@ -1,0 +1,4 @@
+10 apple red
+20 banana yellow
+30 cherry red
+40 date brown

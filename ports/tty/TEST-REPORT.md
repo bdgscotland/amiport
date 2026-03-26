@@ -1,0 +1,171 @@
+# FS-UAE Test Report: tty
+
+## Summary
+
+| Field | Value |
+|-------|-------|
+| Port | tty |
+| Date | 2026-03-26 16:28:24 |
+| Duration | 61s |
+| Platform | FS-UAE 3.2.35 (A1200, Kickstart 3.1) |
+| Binary | `WORK:tty` (29K) |
+| Test method | ARexx harness → TAP output |
+| Result | **PASS** — 11/11 passed |
+
+## Test Results
+
+```
+1..11
+ok 1 - Default invocation prints CON when run from console
+ok 2 - Silent flag -s suppresses output from interactive console
+ok 3 - Invalid flag -Z exits with RETURN_FAIL
+ok 4 - Invalid flag -x exits with RETURN_FAIL
+ok 5 - Invalid flag -f exits with RETURN_FAIL
+ok 6 - Stdin redirected from file produces not a tty
+ok 7 - Silent flag with file redirect returns RC 10
+ok 8 - Second invocation succeeds without resource leak
+ok 9 - Third invocation still works
+ok 10 - Interactive tty from console prints CON and exits RC 0
+ok 11 - Interactive tty with silent flag exits RC 0 from console
+# passed: 11 failed: 0 total: 11
+```
+
+### Breakdown
+
+| # | Test | Status | Details |
+|---|------|--------|---------|
+| 1 | Default invocation prints CON when run from console | PASS | |
+| 2 | Silent flag -s suppresses output from interactive console | PASS | |
+| 3 | Invalid flag -Z exits with RETURN_FAIL | PASS | |
+| 4 | Invalid flag -x exits with RETURN_FAIL | PASS | |
+| 5 | Invalid flag -f exits with RETURN_FAIL | PASS | |
+| 6 | Stdin redirected from file produces not a tty | PASS | |
+| 7 | Silent flag with file redirect returns RC 10 | PASS | |
+| 8 | Second invocation succeeds without resource leak | PASS | |
+| 9 | Third invocation still works | PASS | |
+| 10 | Interactive tty from console prints CON and exits RC 0 | PASS | |
+| 11 | Interactive tty with silent flag exits RC 0 from console | PASS | |
+
+## Environment
+
+| Component | Version/Path |
+|-----------|-------------|
+| FS-UAE | 3.2.35 |
+| Kickstart | 3.1 (40.68) |
+| Amiga model | A1200 (68020) |
+| Compiler | m68k-amigaos-gcc (bebbo) |
+| POSIX shim | libamiport.a |
+| Regex emu | libamiport-emu.a |
+| Test harness | ARexx (test-runner.rexx) |
+
+## Test Cases
+
+Each test runs the command inside AmigaOS, captures stdout to a file,
+and compares against the expected output string.
+
+```
+# tty 1.14 -- FS-UAE test suite
+#
+# tty prints the terminal device name connected to stdin.
+# On AmigaOS: IsInteractive(Input()) -> "CON:" (RC=0) or "not a tty" (RC=10).
+#
+# NOTE: In the FS-UAE test harness, commands run via Execute script
+# from a CON: window. Input() IS connected to an interactive console,
+# so IsInteractive() returns TRUE. Therefore most tests see "CON:" / RC=0.
+
+# ==============================================================
+# 1. BASIC FUNCTIONAL TESTS
+# ==============================================================
+
+# In FS-UAE harness context, Input() is interactive (CON: window)
+TEST: Default invocation prints CON when run from console
+CMD: WORK:tty
+EXPECT: CON:
+EXPECT_RC: 0
+
+# Silent flag suppresses output, but still returns RC=0 (is a tty)
+TEST: Silent flag -s suppresses output from interactive console
+CMD: WORK:tty -s
+EXPECT:
+EXPECT_RC: 0
+
+# ==============================================================
+# 2. ERROR PATH TESTS
+# ==============================================================
+
+TEST: Invalid flag -Z exits with RETURN_FAIL
+CMD: WORK:tty -Z
+EXPECT_RC: 20
+
+TEST: Invalid flag -x exits with RETURN_FAIL
+CMD: WORK:tty -x
+EXPECT_RC: 20
+
+TEST: Invalid flag -f exits with RETURN_FAIL
+CMD: WORK:tty -f
+EXPECT_RC: 20
+
+# ==============================================================
+# 3. REDIRECT TESTS (non-interactive path)
+# ==============================================================
+
+# When stdin is redirected from a file, IsInteractive() returns FALSE
+TEST: Stdin redirected from file produces not a tty
+CMD: WORK:tty <WORK:test-tty-input.txt
+EXPECT: not a tty
+EXPECT_RC: 10
+
+TEST: Silent flag with file redirect returns RC 10
+CMD: WORK:tty -s <WORK:test-tty-input.txt
+EXPECT:
+EXPECT_RC: 10
+
+# ==============================================================
+# 4. REPEATED INVOCATION / RESOURCE SAFETY
+# ==============================================================
+
+TEST: Second invocation succeeds without resource leak
+CMD: WORK:tty
+EXPECT: CON:
+EXPECT_RC: 0
+
+TEST: Third invocation still works
+CMD: WORK:tty
+EXPECT: CON:
+EXPECT_RC: 0
+
+# ==============================================================
+# 5. INTERACTIVE TESTS (ITEST via ADR-023)
+# ==============================================================
+
+ITEST: Interactive tty from console prints CON and exits RC 0
+LAUNCH: WORK:tty
+KEYS: WAIT2000
+EXPECT_RC: 0
+
+ITEST: Interactive tty with silent flag exits RC 0 from console
+LAUNCH: WORK:tty -s
+KEYS: WAIT2000
+EXPECT_RC: 0
+```
+
+## Emulator Log
+
+```
+(log not captured in this run)
+```
+
+## Sentinel File
+
+Written by the ARexx harness when all tests complete:
+
+```
+TESTS_COMPLETE
+passed=11
+failed=0
+total=11
+```
+
+---
+Generated by `make test-fsemu TARGET=ports/tty`
+Report template: `toolchain/templates/test-report.md.template`

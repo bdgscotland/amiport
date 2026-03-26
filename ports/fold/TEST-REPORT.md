@@ -1,0 +1,295 @@
+# FS-UAE Test Report: fold
+
+## Summary
+
+| Field | Value |
+|-------|-------|
+| Port | fold |
+| Date | 2026-03-26 16:45:57 |
+| Duration | 117s |
+| Platform | FS-UAE 3.2.35 (A1200, Kickstart 3.1) |
+| Binary | `WORK:fold` (41K) |
+| Test method | ARexx harness → TAP output |
+| Result | **PASS** — 19/19 passed |
+
+## Test Results
+
+```
+1..19
+ok 1 - Default 80-column fold breaks line at column 80
+ok 2 - Short line shorter than width passes through unchanged
+ok 3 - -w 20 folds at column 20
+ok 4 - -w 5 processes multiple file arguments sequentially
+ok 5 - -s breaks at word boundary before column 20
+ok 6 - -s wraps realistic paragraph at 40 columns
+ok 7 - -s with no spaces falls back to hard break at width
+ok 8 - -b counts tab as 1 byte not 8 columns
+ok 9 - Tab counts as columns to next 8-stop boundary
+ok 10 - Old-style numeric -N sets width (e.g. -20 means -w 20)
+ok 11 - -bs combined: byte counting with word boundary splitting
+ok 12 - Empty file produces no output and exits cleanly
+ok 13 - Very long line (1100 chars) is correctly folded at 80 columns
+ok 14 - Non-existent input file returns error exit code
+ok 15 - Width of zero is rejected as illegal
+ok 16 - Non-numeric width argument is rejected
+ok 17 - Unknown flag prints usage and exits with error
+ok 18 - Real-world wrap of descriptive text at 72 columns with -s
+ok 19 - Fold 500-line input file at width 30 produces 1000 output lines
+# passed: 19 failed: 0 total: 19
+```
+
+### Breakdown
+
+| # | Test | Status | Details |
+|---|------|--------|---------|
+| 1 | Default 80-column fold breaks line at column 80 | PASS | |
+| 2 | Short line shorter than width passes through unchanged | PASS | |
+| 3 | -w 20 folds at column 20 | PASS | |
+| 4 | -w 5 processes multiple file arguments sequentially | PASS | |
+| 5 | -s breaks at word boundary before column 20 | PASS | |
+| 6 | -s wraps realistic paragraph at 40 columns | PASS | |
+| 7 | -s with no spaces falls back to hard break at width | PASS | |
+| 8 | -b counts tab as 1 byte not 8 columns | PASS | |
+| 9 | Tab counts as columns to next 8-stop boundary | PASS | |
+| 10 | Old-style numeric -N sets width (e.g. -20 means -w 20) | PASS | |
+| 11 | -bs combined: byte counting with word boundary splitting | PASS | |
+| 12 | Empty file produces no output and exits cleanly | PASS | |
+| 13 | Very long line (1100 chars) is correctly folded at 80 columns | PASS | |
+| 14 | Non-existent input file returns error exit code | PASS | |
+| 15 | Width of zero is rejected as illegal | PASS | |
+| 16 | Non-numeric width argument is rejected | PASS | |
+| 17 | Unknown flag prints usage and exits with error | PASS | |
+| 18 | Real-world wrap of descriptive text at 72 columns with -s | PASS | |
+| 19 | Fold 500-line input file at width 30 produces 1000 output lines | PASS | |
+
+## Environment
+
+| Component | Version/Path |
+|-----------|-------------|
+| FS-UAE | 3.2.35 |
+| Kickstart | 3.1 (40.68) |
+| Amiga model | A1200 (68020) |
+| Compiler | m68k-amigaos-gcc (bebbo) |
+| POSIX shim | libamiport.a |
+| Regex emu | libamiport-emu.a |
+| Test harness | ARexx (test-runner.rexx) |
+
+## Test Cases
+
+Each test runs the command inside AmigaOS, captures stdout to a file,
+and compares against the expected output string.
+
+```
+# fold test suite for AmigaOS FS-UAE
+# Category 1 (CLI utility) -- 20 tests
+# Flags covered: (default), -b, -s, -w, -N (numeric), combined -bs, -sw, -bsw
+# fold wraps long input lines at a configurable column width (default 80).
+
+# =============================================================================
+# FUNCTIONAL: Default behavior (fold at 80 columns)
+# =============================================================================
+
+# Native: cat test-fold-wide.txt | fold | head -1
+TEST: Default 80-column fold breaks line at column 80
+CMD: WORK:fold WORK:test-fold-wide.txt
+EXPECT: The quick brown fox jumps over the lazy dog The quick brown fox jumps over the l
+EXPECT_LINE: 2,azy dog
+EXPECT_RC: 0
+
+# Native: fold -w 80 test-oneline.txt
+TEST: Short line shorter than width passes through unchanged
+CMD: WORK:fold WORK:test-oneline.txt
+EXPECT: hello world
+EXPECT_RC: 0
+
+# =============================================================================
+# FUNCTIONAL: -w flag (custom width)
+# =============================================================================
+
+# Native: fold -w 20 test-fold-wide.txt | head -1
+TEST: -w 20 folds at column 20
+CMD: WORK:fold -w 20 WORK:test-fold-wide.txt
+EXPECT: The quick brown fox
+EXPECT_LINE: 2,jumps over the lazy
+EXPECT_RC: 0
+
+# Native: fold -w 5 test-fold-file1.txt test-fold-file2.txt
+TEST: -w 5 processes multiple file arguments sequentially
+CMD: WORK:fold -w 5 WORK:test-fold-file1.txt WORK:test-fold-file2.txt
+EXPECT: lineo
+EXPECT_LINE: 2,ne
+EXPECT_LINE: 3,linet
+EXPECT_LINE: 4,wo
+EXPECT_RC: 0
+
+# =============================================================================
+# FUNCTIONAL: -s flag (break at word boundaries)
+# =============================================================================
+
+# Native: fold -s -w 20 test-fold-wordwrap.txt
+TEST: -s breaks at word boundary before column 20
+CMD: WORK:fold -s -w 20 WORK:test-fold-wordwrap.txt
+EXPECT: The quick brown fox
+EXPECT_LINE: 2,jumps over the lazy
+EXPECT_LINE: 3,dog
+EXPECT_RC: 0
+
+# Native: fold -s -w 40 test-fold-para.txt
+TEST: -s wraps realistic paragraph at 40 columns
+CMD: WORK:fold -s -w 40 WORK:test-fold-para.txt
+EXPECT: The Amiga 1000 was released in 1985. It
+EXPECT_LINE: 2,featured the Motorola 68000 processor
+EXPECT_LINE: 4,RAM.
+EXPECT_RC: 0
+
+# Native: fold -s -w 10 test-fold-nospaces.txt
+TEST: -s with no spaces falls back to hard break at width
+CMD: WORK:fold -s -w 10 WORK:test-fold-nospaces.txt
+EXPECT: superlongw
+EXPECT_LINE: 2,ordwithout
+EXPECT_LINE: 3,nospaces
+EXPECT_RC: 0
+
+# =============================================================================
+# FUNCTIONAL: -b flag (count bytes instead of columns)
+# =============================================================================
+
+# Native: fold -b -w 8 test-fold-bytes.txt
+# "hello\tworld" -- tab counts as 1 byte with -b, so bytes 1-8 = "hello\two"
+TEST: -b counts tab as 1 byte not 8 columns
+CMD: WORK:fold -b -w 8 WORK:test-fold-bytes.txt
+EXPECT: hello	wo
+EXPECT_LINE: 2,rld
+EXPECT_RC: 0
+
+# =============================================================================
+# FUNCTIONAL: Tab handling (tabs count as multiple columns)
+# =============================================================================
+
+# Native: fold -w 16 test-fold-tabs.txt
+# "col1\tcol2\tcol3" -- col1(4)+tab(4)=8, col2(4)+tab(4)=16, fold here, then col3
+TEST: Tab counts as columns to next 8-stop boundary
+CMD: WORK:fold -w 16 WORK:test-fold-tabs.txt
+EXPECT: col1	col2	
+EXPECT_LINE: 2,col3
+EXPECT_RC: 0
+
+# =============================================================================
+# FUNCTIONAL: Backspace handling
+# =============================================================================
+
+# Native: fold -w 5 test-fold-backspace.txt
+# "ABCDE\bXFGHI" -- backspace decrements col; ABCDE\bX = col 5, then F exceeds 5
+# SKIP: Backspace test - backspace byte in output confuses test harness comparison
+# TEST: Backspace decrements column count in fold calculation
+# CMD: WORK:fold -w 5 WORK:test-fold-backspace.txt
+
+# =============================================================================
+# FUNCTIONAL: Old-style numeric width flag
+# =============================================================================
+
+# Native: fold -20 test-fold-wide.txt | head -1
+TEST: Old-style numeric -N sets width (e.g. -20 means -w 20)
+CMD: WORK:fold -20 WORK:test-fold-wide.txt
+EXPECT: The quick brown fox
+EXPECT_LINE: 2,jumps over the lazy
+EXPECT_RC: 0
+
+# =============================================================================
+# FUNCTIONAL: Combined flags
+# =============================================================================
+
+# Native: fold -b -s -w 20 test-fold-wide.txt | head -1
+# -b counts bytes, -s splits at space -- with bytes a space is 1 byte same as column
+TEST: -bs combined: byte counting with word boundary splitting
+CMD: WORK:fold -b -s -w 20 WORK:test-fold-wide.txt
+EXPECT: The quick brown fox
+EXPECT_LINE: 2,jumps over the lazy
+EXPECT_RC: 0
+
+# =============================================================================
+# EDGE CASES
+# =============================================================================
+
+# Native: fold -w 80 test-empty.txt  (empty file produces no output, RC=0)
+TEST: Empty file produces no output and exits cleanly
+CMD: WORK:fold -w 80 WORK:test-empty.txt
+EXPECT_RC: 0
+
+# Native: fold -w 80 test-longline.txt | sed -n '14p'
+# Longline.txt is 1100+ chars of A's ending in MARKER -- fold at 80 produces 14 lines
+TEST: Very long line (1100 chars) is correctly folded at 80 columns
+CMD: WORK:fold -w 80 WORK:test-longline.txt
+EXPECT: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+EXPECT_LINE: 14,AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMARKER
+EXPECT_RC: 0
+
+# =============================================================================
+# ERROR PATH TESTS
+# =============================================================================
+
+# Error: missing file argument (error goes to stderr, test RC only)
+TEST: Non-existent input file returns error exit code
+CMD: WORK:fold -w 10 WORK:nonexistent-file-xyz.txt
+EXPECT_RC: 10
+
+# Error: invalid width value zero
+TEST: Width of zero is rejected as illegal
+CMD: WORK:fold -w 0 WORK:test-empty.txt
+EXPECT_RC: 10
+
+# Error: invalid width as non-numeric string
+TEST: Non-numeric width argument is rejected
+CMD: WORK:fold -w abc WORK:test-empty.txt
+EXPECT_RC: 10
+
+# Error: unknown flag
+TEST: Unknown flag prints usage and exits with error
+CMD: WORK:fold -z WORK:test-empty.txt
+EXPECT_RC: 10
+
+# =============================================================================
+# REAL-WORLD TESTS
+# =============================================================================
+
+# Real-world: wrap C comment text at 72 columns with word splitting
+# Native: fold -s -w 72 test-fold-para.txt | head -1
+TEST: Real-world wrap of descriptive text at 72 columns with -s
+CMD: WORK:fold -s -w 72 WORK:test-fold-para.txt
+EXPECT: The Amiga 1000 was released in 1985. It featured the Motorola 68000
+EXPECT_LINE: 2,processor running at 7.16 MHz and had 256KB of RAM.
+EXPECT_RC: 0
+
+# =============================================================================
+# STRESS TESTS
+# =============================================================================
+
+# Stress: 500-line file (1000 output lines at -w 30)
+# Native: fold -w 30 test-fold-stress.txt | head -1 -> "Line 001: The Amiga computer s"
+TEST: Fold 500-line input file at width 30 produces 1000 output lines
+CMD: WORK:fold -w 30 WORK:test-fold-stress.txt
+EXPECT: Line 001: The Amiga computer s
+EXPECT_LINE: 2,ystem.
+EXPECT_RC: 0
+```
+
+## Emulator Log
+
+```
+(log not captured in this run)
+```
+
+## Sentinel File
+
+Written by the ARexx harness when all tests complete:
+
+```
+TESTS_COMPLETE
+passed=19
+failed=0
+total=19
+```
+
+---
+Generated by `make test-fsemu TARGET=ports/fold`
+Report template: `toolchain/templates/test-report.md.template`

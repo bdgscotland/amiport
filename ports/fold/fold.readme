@@ -1,0 +1,20 @@
+Short:        Fold long lines for fixed-width output
+Type:         util/cli
+Architecture: m68k-amigaos >= 3.0
+Uploader:     duncan@bowring.us
+Author:       Kevin Ruddy, UC Berkeley (ported by Duncan Bowring)
+Version:      1.18
+
+fold - Fold long lines for fixed-width output
+
+Original author: Kevin Ruddy, UC Berkeley
+Ported by Duncan Bowring using amiport (AI-assisted porting toolkit).
+Project: https://github.com/bdgscotland/amiport
+
+Cross-compiled with bebbo-gcc for AmigaOS 3.x (68000+).
+Tested via vamos emulator and FS-UAE with Workbench 3.1.
+
+Standalone binary, no ixemul.library needed (-noixemul).
+
+Includes full source code (original POSIX and ported Amiga versions)
+and PORT.md documenting every transformation applied.

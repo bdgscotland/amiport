@@ -1,0 +1,83 @@
+# tty 1.14 -- FS-UAE test suite
+#
+# tty prints the terminal device name connected to stdin.
+# On AmigaOS: IsInteractive(Input()) -> "CON:" (RC=0) or "not a tty" (RC=10).
+#
+# NOTE: In the FS-UAE test harness, commands run via Execute script
+# from a CON: window. Input() IS connected to an interactive console,
+# so IsInteractive() returns TRUE. Therefore most tests see "CON:" / RC=0.
+
+# ==============================================================
+# 1. BASIC FUNCTIONAL TESTS
+# ==============================================================
+
+# In FS-UAE harness context, Input() is interactive (CON: window)
+TEST: Default invocation prints CON when run from console
+CMD: WORK:tty
+EXPECT: CON:
+EXPECT_RC: 0
+
+# Silent flag suppresses output, but still returns RC=0 (is a tty)
+TEST: Silent flag -s suppresses output from interactive console
+CMD: WORK:tty -s
+EXPECT:
+EXPECT_RC: 0
+
+# ==============================================================
+# 2. ERROR PATH TESTS
+# ==============================================================
+
+TEST: Invalid flag -Z exits with RETURN_FAIL
+CMD: WORK:tty -Z
+EXPECT_RC: 20
+
+TEST: Invalid flag -x exits with RETURN_FAIL
+CMD: WORK:tty -x
+EXPECT_RC: 20
+
+TEST: Invalid flag -f exits with RETURN_FAIL
+CMD: WORK:tty -f
+EXPECT_RC: 20
+
+# ==============================================================
+# 3. REDIRECT TESTS (non-interactive path)
+# ==============================================================
+
+# When stdin is redirected from a file, IsInteractive() returns FALSE
+TEST: Stdin redirected from file produces not a tty
+CMD: WORK:tty <WORK:test-tty-input.txt
+EXPECT: not a tty
+EXPECT_RC: 10
+
+TEST: Silent flag with file redirect returns RC 10
+CMD: WORK:tty -s <WORK:test-tty-input.txt
+EXPECT:
+EXPECT_RC: 10
+
+# ==============================================================
+# 4. REPEATED INVOCATION / RESOURCE SAFETY
+# ==============================================================
+
+TEST: Second invocation succeeds without resource leak
+CMD: WORK:tty
+EXPECT: CON:
+EXPECT_RC: 0
+
+TEST: Third invocation still works
+CMD: WORK:tty
+EXPECT: CON:
+EXPECT_RC: 0
+
+# ==============================================================
+# 5. INTERACTIVE TESTS (ITEST via ADR-023)
+# ==============================================================
+
+ITEST: Interactive tty from console prints CON and exits RC 0
+LAUNCH: WORK:tty
+KEYS: WAIT2000
+EXPECT_RC: 0
+
+ITEST: Interactive tty with silent flag exits RC 0 from console
+LAUNCH: WORK:tty -s
+KEYS: WAIT2000
+EXPECT_RC: 0

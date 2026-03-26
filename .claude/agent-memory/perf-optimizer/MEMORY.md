@@ -27,3 +27,4 @@
 - [port_test_perf.md](port_test_perf.md) - Performance findings for ports/test 1.23 — linear ops[] scan, no I/O, clean bill of health reviewed 2026-03-26
 - [port_cat_perf.md](port_cat_perf.md) - Performance findings for ports/cat 1.34 — cook_buf getc per-byte (HIGH), BUFSIZ=512 too small for raw_cat (HIGH) reviewed 2026-03-26
 - [port_rs_perf.md](port_rs_perf.md) - Performance findings for ports/rs 1.30 — putchar per padding space in prints() (HIGH), strlen per token in mbsavis (MEDIUM) reviewed 2026-03-26
+- [port_column_ln_expr_look_tty_perf.md](port_column_ln_expr_look_tty_perf.md) - Performance findings for ports/column 1.27, ln 1.25, expr 1.28, look 1.27, tty 1.14 — batch review 2026-03-26

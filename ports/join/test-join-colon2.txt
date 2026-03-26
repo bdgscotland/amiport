@@ -1,0 +1,3 @@
+apple:A:alpha
+cherry:C:gamma
+elderberry:E:delta
