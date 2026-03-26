@@ -739,7 +739,8 @@ void FATAL(const char *fmt, ...)
 	error();
 	if (dbg > 1)		/* core dump if serious debugging on */
 		abort();
-	exit(2);
+	/* amiport: exit(2) -> exit(10) -- RETURN_ERROR for AmigaDOS shells */
+	exit(10);
 }
 
 void WARNING(const char *fmt, ...)

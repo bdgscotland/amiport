@@ -255,8 +255,11 @@ int hash(const char *s, int n)	/* form hash value for string s */
 {
 	unsigned hashval;
 
+	/* amiport: replaced 31*hashval multiply with shift+add equivalent.
+	 * (hashval<<5)-hashval == 31*hashval but avoids MULU instruction on 68000.
+	 * MULU costs 38-70 cycles on 68000 vs 2+2 cycles for shift+sub. */
 	for (hashval = 0; *s != '\0'; s++)
-		hashval = (*s + 31 * hashval);
+		hashval = (*s + ((hashval << 5) - hashval));
 	return hashval % n;
 }
 

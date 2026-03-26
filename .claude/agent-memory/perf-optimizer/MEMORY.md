@@ -12,3 +12,4 @@
 - [port_comm_perf.md](port_comm_perf.md) - Performance findings for ports/comm 1.11 — printf hotpath, strcoll overhead, amiport_check_break batching reviewed 2026-03-24
 - [port_rev_perf.md](port_rev_perf.md) - Performance findings for ports/rev 1.16 — putchar-per-byte hotloop replaced with in-place swap + fwrite, multibyte dead branch removed 2026-03-25
 - [port_expand_perf.md](port_expand_perf.md) - Performance findings for ports/expand 1.15 — getchar/putchar per-byte hotloop, fgets+fwrite rewrite recommended reviewed 2026-03-25
+- [port_awk_perf.md](port_awk_perf.md) - Performance findings for ports/awk (BWK One True Awk) — hash MULU eliminated, subseploc strlen cached, gototab bsearch vs linear scan reviewed 2026-03-25

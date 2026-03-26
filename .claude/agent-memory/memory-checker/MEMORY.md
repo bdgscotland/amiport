@@ -82,3 +82,12 @@
   - Summary: Simple CLI comparison tool with static line buffers, perfectly balanced file handle usage
   - Key findings: No malloc/calloc/strdup (static buffers only), file handles never explicitly closed (AmigaOS auto-cleanup is correct), stdin/stdout handling avoids Workbench crash pitfall
   - All exit paths safe, no error path leaks
+
+- [memory-audit-jq-oniguruma.md](memory-audit-jq-oniguruma.md) - ports/jq 1.7.1-2 Oniguruma integration memory audit (2026-03-25)
+  - Status: CRITICAL LEAKS FOUND — 2 unfixed paths in f_match()
+  - Issues: 2 critical (modarray leak on invalid modifier, onig_free missing on regex error)
+  - Verdict: Cannot ship — new Oniguruma code has allocation/deallocation imbalances
+  - Issue 1: modarray allocated at line 883, early return at line 915 skips free (20-50 bytes/error)
+  - Issue 2: onig_new() at line 928, error path at 938 never calls onig_free() (100-500 bytes/error)
+  - onig_initialize/atexit(onig_end) cleanup correct ✓
+  - Root cause: Incomplete error-path cleanup in new Oniguruma integration code

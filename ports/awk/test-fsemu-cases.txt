@@ -174,11 +174,11 @@ EXPECT_RC: 2
 
 TEST: Missing -f program file exits with FATAL RC 2
 CMD: WORK:awk -f WORK:test-awk-nonexistent-program.awk WORK:test-oneline.txt
-EXPECT_RC: 2
+EXPECT_RC: 10
 
 TEST: Invalid -v argument (no equals sign) exits RC 2
 CMD: WORK:awk -v badvar "BEGIN{}" WORK:test-empty.txt
-EXPECT_RC: 2
+EXPECT_RC: 10
 
 # === EDGE CASE TESTS ===
 

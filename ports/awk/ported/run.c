@@ -40,6 +40,9 @@ THIS SOFTWARE.
  * only what we need manually. */
 #define AMIPORT_NO_STAT_MACROS
 #include <amiport/sys/stat.h>
+#ifdef __AMIGA__
+#include <amiport/signal.h>  /* amiport: for amiport_check_break() Ctrl-C handling */
+#endif
 #define stat    amiport_stat
 #undef  S_ISDIR
 #define S_ISDIR AMIPORT_S_ISDIR
@@ -218,6 +221,12 @@ Cell *program(Node **a, int n)	/* execute an awk program */
 	}
 	if (a[1] || a[2])
 		while (getrec(&record, &recsize, true) > 0) {
+#ifdef __AMIGA__
+			/* amiport: check Ctrl-C -- no OS-level SIGINT on AmigaOS */
+			if (amiport_check_break()) {
+				break;
+			}
+#endif
 			x = execute(a[1]);
 			if (isexit(x))
 				break;
@@ -508,10 +517,16 @@ makearraystring(Node *p, const char *func)
 	blen = 0;
 	buf[blen] = '\0';
 
+	/* amiport: cache SUBSEP length before loop -- getsval()+strlen() per
+	 * iteration was calling two functions on every subscript separator.
+	 * SUBSEP is invariant during array access, so compute once up front. */
+	{
+	size_t seplen_cache = strlen(getsval(subseploc));
+
 	for (; p; p = p->nnext) {
 		Cell *x = execute(p);	/* expr */
 		char *s = getsval(x);
-		size_t seplen = strlen(getsval(subseploc));
+		size_t seplen = seplen_cache;
 		size_t nsub = p->nnext ? seplen : 0;
 		size_t slen = strlen(s);
 		size_t tlen = blen + slen + nsub;
@@ -528,6 +543,7 @@ makearraystring(Node *p, const char *func)
 		blen = tlen;
 		tempfree(x);
 	}
+	} /* end SUBSEP cache block */
 	return buf;
 }
 
@@ -1182,7 +1198,9 @@ int format(char **pbuf, int *pbufsize, const char *s, Node *a)	/* printf-like co
 			break;
 		case 'd': case 'i': case 'o': case 'x': case 'X': case 'u':
 			flag = (*s == 'd' || *s == 'i') ? 'd' : 'u';
-			*(t-1) = 'j';
+			/* amiport: libnix does not support %j (intmax_t). Use %l (long)
+			 * instead -- intmax_t == long on 32-bit 68k. */
+			*(t-1) = 'l';
 			*t = *s;
 			*++t = '\0';
 			break;
@@ -1219,8 +1237,9 @@ int format(char **pbuf, int *pbufsize, const char *s, Node *a)	/* printf-like co
 		case 'a':
 		case 'A':
 		case 'f':	snprintf(p, BUFSZ(p), fmt, getfval(x)); break;
-		case 'd':	snprintf(p, BUFSZ(p), fmt, (intmax_t) getfval(x)); break;
-		case 'u':	snprintf(p, BUFSZ(p), fmt, (uintmax_t) getfval(x)); break;
+		/* amiport: cast to long/unsigned long to match %ld/%lu format */
+		case 'd':	snprintf(p, BUFSZ(p), fmt, (long) getfval(x)); break;
+		case 'u':	snprintf(p, BUFSZ(p), fmt, (unsigned long) getfval(x)); break;
 
 		case 's': {
 			t = getsval(x);
@@ -2269,13 +2288,15 @@ static void stdinit(void)	/* in case stdin, etc., are not constants */
 	if (files == NULL)
 		FATAL("can't allocate file memory for %lu files", (unsigned long)nfiles);	/* amiport: %zu -> %lu, libnix lacks C99 size_t format */
         files[0].fp = stdin;
-	files[0].fname = tostring("/dev/stdin");
+	/* amiport: AmigaOS has no /dev/stdin etc. Use internal tracking names.
+	 * These are compared via strcmp in openfile()/closefile(), never opened. */
+	files[0].fname = tostring("STDIN");
 	files[0].mode = LT;
         files[1].fp = stdout;
-	files[1].fname = tostring("/dev/stdout");
+	files[1].fname = tostring("STDOUT");
 	files[1].mode = GT;
         files[2].fp = stderr;
-	files[2].fname = tostring("/dev/stderr");
+	files[2].fname = tostring("STDERR");
 	files[2].mode = GT;
 }
 
