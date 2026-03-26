@@ -5884,7 +5884,7 @@
     {
       "id": "jq",
       "name": "jq",
-      "version": "1.7.1",
+      "version": "1.7.1-2",
       "description": "Lightweight command-line JSON processor",
       "amiport_category": "cli",
       "aminet_category": "util/cli",
@@ -5892,9 +5892,9 @@
       "upstream_license": "MIT",
       "port_date": "2026-03-23",
       "aminet_status": "submitted",
-      "measured_binary_kb": 368,
+      "measured_binary_kb": 519,
       "measured_stack_kb": 128,
-      "test_count": 50,
+      "test_count": 60,
       "test_pass_rate": 1.0,
       "hardware_verified": [
         "a1200_accel"
