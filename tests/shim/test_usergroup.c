@@ -17,6 +17,7 @@
 #include <amiport/unistd.h>
 #include <amiport/err.h>
 #include <amiport/sys/stat.h>
+#include <amiport/dirent.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -498,6 +499,158 @@ TEST(ioctl_tiocgwinsz_defaults)
     ASSERT(ws.ws_col >= 80);
 }
 
+/* ========== FTS ========== */
+
+#define AMIPORT_NO_FTS_MACROS
+#include <amiport/fts.h>
+
+TEST(fts_open_null_argv)
+{
+    AMIPORT_FTS *ftsp;
+    ftsp = amiport_fts_open(NULL, AMIPORT_FTS_PHYSICAL, NULL);
+    ASSERT_NULL(ftsp);
+}
+
+TEST(fts_open_close_basic)
+{
+    char *argv[2];
+    AMIPORT_FTS *ftsp;
+    int ret;
+
+    argv[0] = "T:";
+    argv[1] = NULL;
+    ftsp = amiport_fts_open(argv, AMIPORT_FTS_PHYSICAL, NULL);
+    ASSERT_NOT_NULL(ftsp);
+    ret = amiport_fts_close(ftsp);
+    ASSERT_EQ(ret, 0);
+}
+
+TEST(fts_read_directory)
+{
+    char *argv[2];
+    AMIPORT_FTS *ftsp;
+    AMIPORT_FTSENT *ent;
+    int got_dir;
+
+    /* T: should exist and be a directory */
+    argv[0] = "T:";
+    argv[1] = NULL;
+    ftsp = amiport_fts_open(argv, AMIPORT_FTS_PHYSICAL, NULL);
+    ASSERT_NOT_NULL(ftsp);
+
+    /* First entry should be the directory itself (FTS_D) */
+    ent = amiport_fts_read(ftsp);
+    ASSERT_NOT_NULL(ent);
+    got_dir = (ent->fts_info == AMIPORT_FTS_D);
+    ASSERT(got_dir);
+    ASSERT_NOT_NULL(ent->fts_path);
+    ASSERT(ent->fts_pathlen > 0);
+
+    amiport_fts_close(ftsp);
+}
+
+TEST(fts_read_file)
+{
+    char *argv[2];
+    AMIPORT_FTS *ftsp;
+    AMIPORT_FTSENT *ent;
+    FILE *fp;
+
+    /* Create a temp file */
+    fp = fopen("T:test_fts_file.tmp", "w");
+    ASSERT_NOT_NULL(fp);
+    fprintf(fp, "test\n");
+    fclose(fp);
+
+    argv[0] = "T:test_fts_file.tmp";
+    argv[1] = NULL;
+    ftsp = amiport_fts_open(argv, AMIPORT_FTS_PHYSICAL, NULL);
+    ASSERT_NOT_NULL(ftsp);
+
+    ent = amiport_fts_read(ftsp);
+    ASSERT_NOT_NULL(ent);
+    ASSERT_EQ(ent->fts_info, AMIPORT_FTS_F);
+    ASSERT_NOT_NULL(ent->fts_statp);
+    ASSERT(ent->fts_statp->st_size > 0);
+
+    /* Next read should return NULL (done) */
+    ent = amiport_fts_read(ftsp);
+    ASSERT_NULL(ent);
+
+    amiport_fts_close(ftsp);
+    remove("T:test_fts_file.tmp");
+}
+
+TEST(fts_read_postorder)
+{
+    char *argv[2];
+    AMIPORT_FTS *ftsp;
+    AMIPORT_FTSENT *ent;
+    int got_dp;
+
+    /* Create a subdir */
+    amiport_mkdir("T:test_fts_dir", 0755);
+
+    argv[0] = "T:test_fts_dir";
+    argv[1] = NULL;
+    ftsp = amiport_fts_open(argv, AMIPORT_FTS_PHYSICAL, NULL);
+    ASSERT_NOT_NULL(ftsp);
+
+    /* Should get FTS_D then FTS_DP */
+    got_dp = 0;
+    while ((ent = amiport_fts_read(ftsp)) != NULL) {
+        if (ent->fts_info == AMIPORT_FTS_DP)
+            got_dp = 1;
+    }
+    ASSERT(got_dp);
+
+    amiport_fts_close(ftsp);
+
+    /* Cleanup -- rmdir on empty dir */
+    remove("T:test_fts_dir");
+}
+
+TEST(fts_set_skip)
+{
+    char *argv[2];
+    AMIPORT_FTS *ftsp;
+    AMIPORT_FTSENT *ent;
+    int ret;
+
+    argv[0] = "T:";
+    argv[1] = NULL;
+    ftsp = amiport_fts_open(argv, AMIPORT_FTS_PHYSICAL, NULL);
+    ASSERT_NOT_NULL(ftsp);
+
+    ent = amiport_fts_read(ftsp);
+    ASSERT_NOT_NULL(ent);
+
+    /* Skip this directory's children */
+    ret = amiport_fts_set(ftsp, ent, AMIPORT_FTS_SKIP);
+    ASSERT_EQ(ret, 0);
+
+    amiport_fts_close(ftsp);
+}
+
+TEST(fts_read_level)
+{
+    char *argv[2];
+    AMIPORT_FTS *ftsp;
+    AMIPORT_FTSENT *ent;
+
+    argv[0] = "T:";
+    argv[1] = NULL;
+    ftsp = amiport_fts_open(argv, AMIPORT_FTS_PHYSICAL, NULL);
+    ASSERT_NOT_NULL(ftsp);
+
+    /* Root entry should be level 0 */
+    ent = amiport_fts_read(ftsp);
+    ASSERT_NOT_NULL(ent);
+    ASSERT_EQ(ent->fts_level, 0);
+
+    amiport_fts_close(ftsp);
+}
+
 /* ========== RUN ALL ========== */
 
 int main(void)
@@ -579,6 +732,15 @@ int main(void)
     RUN_TEST(ioctl_unsupported_request);
     RUN_TEST(ioctl_tiocgwinsz_null_arg);
     RUN_TEST(ioctl_tiocgwinsz_defaults);
+
+    /* FTS */
+    RUN_TEST(fts_open_null_argv);
+    RUN_TEST(fts_open_close_basic);
+    RUN_TEST(fts_read_directory);
+    RUN_TEST(fts_read_file);
+    RUN_TEST(fts_read_postorder);
+    RUN_TEST(fts_set_skip);
+    RUN_TEST(fts_read_level);
 
     return test_summary();
 }

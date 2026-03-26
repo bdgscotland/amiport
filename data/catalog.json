@@ -512,67 +512,38 @@
     },
     "fts_open": {
       "tier": 3,
-      "status": "not_implemented",
-      "complexity": "high",
-      "unlocks": [
-        "ls",
-        "du",
-        "find",
-        "cp",
-        "rm",
-        "chmod"
-      ],
-      "unlocks_count": 6
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
     },
     "fts_read": {
       "tier": 3,
-      "status": "not_implemented",
-      "complexity": "high",
-      "unlocks": [
-        "ls",
-        "du",
-        "find",
-        "cp",
-        "rm",
-        "chmod"
-      ],
-      "unlocks_count": 6
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
     },
     "fts_close": {
       "tier": 3,
-      "status": "not_implemented",
-      "complexity": "high",
-      "unlocks": [
-        "ls",
-        "du",
-        "find",
-        "cp",
-        "rm",
-        "chmod"
-      ],
-      "unlocks_count": 6
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
     },
     "fts_set": {
       "tier": 3,
-      "status": "not_implemented",
-      "complexity": "high",
-      "unlocks": [
-        "ls",
-        "find",
-        "cp",
-        "rm",
-        "chmod"
-      ],
-      "unlocks_count": 5
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
     },
     "fts_children": {
       "tier": 3,
-      "status": "not_implemented",
-      "complexity": "high",
-      "unlocks": [
-        "ls"
-      ],
-      "unlocks_count": 1
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
     },
     "getpwuid": {
       "tier": 3,
@@ -1549,8 +1520,8 @@
       "publishable": true,
       "notes": "Complex multi-file (ls.c, print.c, cmp.c, util.c, extern.h, ls.h). Needs fts replacement or shim. User/group display needs stubs. Significant effort.",
       "readiness": {
-        "score": 0.445,
-        "tier": "blocked"
+        "score": 0.844,
+        "tier": "feasible"
       },
       "hardware_fit": {
         "stock_a1200": "fits",
@@ -1566,20 +1537,8 @@
           "tier2": 2,
           "tier3": 9
         },
-        "missing_shims": [
-          "fts_open",
-          "fts_read",
-          "fts_close",
-          "fts_set",
-          "fts_children"
-        ],
-        "blocking_shims": [
-          "fts_open",
-          "fts_read",
-          "fts_close",
-          "fts_set",
-          "fts_children"
-        ],
+        "missing_shims": [],
+        "blocking_shims": [],
         "blocker_workaround": "fts can be replaced with opendir/readdir recursive walk; user/group stubs return \"amiga\"; readlink returns -1; ioctl(TIOCGWINSZ) use COLUMNS env",
         "dependencies": [],
         "source_complexity": 0.88,
@@ -1667,8 +1626,8 @@
       "publishable": true,
       "notes": "Disk usage. Core logic is simple but depends on fts for directory traversal. Rewrite with opendir/readdir is straightforward.",
       "readiness": {
-        "score": 0.47,
-        "tier": "blocked"
+        "score": 0.87,
+        "tier": "ready"
       },
       "hardware_fit": {
         "stock_a1200": "fits",
@@ -1684,16 +1643,8 @@
           "tier2": 0,
           "tier3": 3
         },
-        "missing_shims": [
-          "fts_open",
-          "fts_read",
-          "fts_close"
-        ],
-        "blocking_shims": [
-          "fts_open",
-          "fts_read",
-          "fts_close"
-        ],
+        "missing_shims": [],
+        "blocking_shims": [],
         "blocker_workaround": "fts can be replaced with opendir/readdir recursive walk + stat for sizes",
         "dependencies": [],
         "source_complexity": 0.97,
@@ -1743,20 +1694,12 @@
           "tier3": 13
         },
         "missing_shims": [
-          "fts_open",
-          "fts_read",
-          "fts_close",
-          "fts_set",
           "execvp",
           "execve",
           "vfork",
           "waitpid"
         ],
         "blocking_shims": [
-          "fts_open",
-          "fts_read",
-          "fts_close",
-          "fts_set",
           "execvp",
           "execve",
           "vfork",
@@ -1951,8 +1894,8 @@
       "publishable": true,
       "notes": "Copy files. Multi-file (cp.c, utils.c). Needs fts replacement. Ownership/symlink operations need stubs. Recursive copy feasible with workarounds.",
       "readiness": {
-        "score": 0.502,
-        "tier": "blocked"
+        "score": 0.902,
+        "tier": "ready"
       },
       "hardware_fit": {
         "stock_a1200": "fits",
@@ -1968,18 +1911,8 @@
           "tier2": 0,
           "tier3": 10
         },
-        "missing_shims": [
-          "fts_open",
-          "fts_read",
-          "fts_close",
-          "fts_set"
-        ],
-        "blocking_shims": [
-          "fts_open",
-          "fts_read",
-          "fts_close",
-          "fts_set"
-        ],
+        "missing_shims": [],
+        "blocking_shims": [],
         "blocker_workaround": "fts replaceable with opendir/readdir. fchmod/fchown/lchown can be no-ops. symlink/readlink: skip -R symlink preservation. Major effort.",
         "dependencies": [],
         "source_complexity": 0.92,
@@ -2061,8 +1994,8 @@
       "publishable": true,
       "notes": "Remove files. fts needed only for -r (recursive). Simple rm without -r is trivial. fts replacement for -r is moderate effort.",
       "readiness": {
-        "score": 0.538,
-        "tier": "blocked"
+        "score": 0.938,
+        "tier": "ready"
       },
       "hardware_fit": {
         "stock_a1200": "fits",
@@ -2078,18 +2011,8 @@
           "tier2": 0,
           "tier3": 4
         },
-        "missing_shims": [
-          "fts_open",
-          "fts_read",
-          "fts_close",
-          "fts_set"
-        ],
-        "blocking_shims": [
-          "fts_open",
-          "fts_read",
-          "fts_close",
-          "fts_set"
-        ],
+        "missing_shims": [],
+        "blocking_shims": [],
         "blocker_workaround": "fts can be replaced with opendir/readdir recursive walk for -r mode. Non-recursive rm needs no fts.",
         "dependencies": [],
         "source_complexity": 0.96,
@@ -2221,8 +2144,8 @@
       "publishable": true,
       "notes": "Change file modes. fts only for -R. AmigaOS has limited permission bits but chmod shim exists. Non-recursive mode is clean.",
       "readiness": {
-        "score": 0.469,
-        "tier": "blocked"
+        "score": 0.869,
+        "tier": "ready"
       },
       "hardware_fit": {
         "stock_a1200": "fits",
@@ -2238,18 +2161,8 @@
           "tier2": 0,
           "tier3": 4
         },
-        "missing_shims": [
-          "fts_open",
-          "fts_read",
-          "fts_close",
-          "fts_set"
-        ],
-        "blocking_shims": [
-          "fts_open",
-          "fts_read",
-          "fts_close",
-          "fts_set"
-        ],
+        "missing_shims": [],
+        "blocking_shims": [],
         "blocker_workaround": "fts needed for -R (recursive). Non-recursive chmod is simple (just chmod() shim). fts replaceable with opendir/readdir.",
         "dependencies": [],
         "source_complexity": 0.96,

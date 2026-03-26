@@ -119,16 +119,17 @@ One wrapper per function. Semantics match POSIX for all common use cases. The tr
 |`futimens()`    |`amiport_futimens()`    |`NameFromFH()` + `SetFileDate()` |Recovers path from fd, then calls utimensat                      |
 |`ioctl(TIOCGWINSZ)`|`amiport_ioctl()`    |CSI Window Status Request        |Queries console.device; only TIOCGWINSZ supported; 80x24 fallback|
 
+|`fts_open()`      |`amiport_fts_open()`    |`opendir()`+`readdir()` recursive|Stack-based walk with opendir probe for dir detection            |
+|`fts_read()`      |`amiport_fts_read()`    |`ExNext()` via readdir           |Returns FTS_D/FTS_DP/FTS_F/FTS_DNR; max depth 64                |
+|`fts_close()`     |`amiport_fts_close()`   |Close all open handles           |                                                                 |
+|`fts_set()`       |`amiport_fts_set()`     |FTS_SKIP only                    |FTS_FOLLOW is no-op (no symlinks); FTS_AGAIN not implemented     |
+|`fts_children()`  |`amiport_fts_children()`|Re-reads current directory       |Returns malloc'd linked list via fts_link                        |
+
 ### Planned Tier 1 additions
 
 |POSIX function    |Implementation approach      |Priority                                           |
 |------------------|-----------------------------|---------------------------------------------------|
 |`fileno()`        |Lookup in amiport_files table|Medium -- already partially implemented            |
-|`fts_open()`      |`Lock()`+`Examine()`+`ExNext()`|High -- unlocks ls, du, find, cp, rm, chmod     |
-|`fts_read()`      |Recursive dir walk            |High                                               |
-|`fts_close()`     |Free state                   |High                                               |
-|`fts_set()`       |Mark skip/follow             |High                                               |
-|`fts_children()`  |List dir children            |High                                               |
 
 -----
 
