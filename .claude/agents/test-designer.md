@@ -223,6 +223,7 @@ EXPECT_RC: expected-return-code
 - The harness waits 3s for init, runs KeyInject, waits 3s for exit, force-kills if needed
 - Interactive tests are skipped on vamos (KeyInject requires AmigaOS libraries)
 - ITEST blocks in `test-fsemu-cases.txt` only verify exit codes (RC), not visual output. For screen content verification, use SCRAPE tests in the separate `test-fsemu-visual-cases.txt` file (ADR-024).
+- **Quotes in CMD expressions break on FS-UAE.** AmigaDOS strips escaped quotes (`\"`) from `ADDRESS COMMAND` lines. For programs that take expression arguments with quotes (jq, sed, awk, grep), use `-f` filter files instead of inline expressions. Write the expression to a `.txt` file and reference it with `-f WORK:filter.txt`. This is invisible on vamos (works by accident) — only fails on FS-UAE.
 
 ### Example (pager)
 

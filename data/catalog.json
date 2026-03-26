@@ -415,13 +415,10 @@
     },
     "sigaction": {
       "tier": 2,
-      "status": "not_implemented",
-      "complexity": "medium",
-      "unlocks": [
-        "find",
-        "pr"
-      ],
-      "unlocks_count": 2
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
     },
     "fork": {
       "tier": 3,
@@ -582,149 +579,94 @@
     },
     "getpwuid": {
       "tier": 3,
-      "status": "not_implemented",
-      "complexity": "medium",
-      "unlocks": [
-        "file",
-        "find",
-        "id",
-        "whoami"
-      ],
-      "unlocks_count": 4
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
     },
     "getpwnam": {
       "tier": 3,
-      "status": "not_implemented",
-      "complexity": "medium",
-      "unlocks": [
-        "file",
-        "find",
-        "id",
-        "whoami"
-      ],
-      "unlocks_count": 4
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
     },
     "getgrnam": {
       "tier": 3,
-      "status": "not_implemented",
-      "complexity": "medium",
-      "unlocks": [
-        "find"
-      ],
-      "unlocks_count": 1
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
     },
     "getgrgid": {
       "tier": 3,
-      "status": "not_implemented",
-      "complexity": "medium",
-      "unlocks": [
-        "id",
-        "whoami"
-      ],
-      "unlocks_count": 2
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
     },
     "getuid": {
       "tier": 3,
-      "status": "not_implemented",
-      "complexity": "low",
-      "unlocks": [
-        "ls",
-        "file",
-        "cp",
-        "id",
-        "whoami"
-      ],
-      "unlocks_count": 5
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
     },
     "geteuid": {
       "tier": 3,
-      "status": "not_implemented",
-      "complexity": "low",
-      "unlocks": [
-        "file",
-        "find",
-        "id",
-        "whoami",
-        "test",
-        "which"
-      ],
-      "unlocks_count": 6
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
     },
     "getgid": {
       "tier": 3,
-      "status": "not_implemented",
-      "complexity": "low",
-      "unlocks": [
-        "id",
-        "whoami"
-      ],
-      "unlocks_count": 2
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
     },
     "getegid": {
       "tier": 3,
-      "status": "not_implemented",
-      "complexity": "low",
-      "unlocks": [
-        "id",
-        "whoami",
-        "test",
-        "which"
-      ],
-      "unlocks_count": 4
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
     },
     "getgroups": {
       "tier": 3,
-      "status": "not_implemented",
-      "complexity": "low",
-      "unlocks": [
-        "id",
-        "whoami"
-      ],
-      "unlocks_count": 2
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
     },
     "getgrouplist": {
       "tier": 3,
-      "status": "not_implemented",
-      "complexity": "low",
-      "unlocks": [
-        "id",
-        "whoami"
-      ],
-      "unlocks_count": 2
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
     },
     "getlogin": {
       "tier": 3,
-      "status": "not_implemented",
-      "complexity": "low",
-      "unlocks": [
-        "id",
-        "whoami",
-        "logname",
-        "date"
-      ],
-      "unlocks_count": 4
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
     },
     "symlink": {
       "tier": 3,
-      "status": "not_implemented",
-      "complexity": "blocker",
-      "unlocks": [
-        "ln",
-        "cp"
-      ],
-      "unlocks_count": 2
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
     },
     "readlink": {
       "tier": 3,
       "status": "not_implemented",
       "complexity": "blocker",
-      "unlocks": [
-        "ls",
-        "file",
-        "find",
-        "cp"
-      ],
-      "unlocks_count": 4
+      "unlocks": [],
+      "unlocks_count": 0
     },
     "link": {
       "tier": 3,
@@ -742,41 +684,31 @@
     },
     "lchown": {
       "tier": 3,
-      "status": "not_implemented",
-      "complexity": "low",
-      "unlocks": [
-        "cp"
-      ],
-      "unlocks_count": 1
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
     },
     "fchown": {
       "tier": 3,
-      "status": "not_implemented",
-      "complexity": "low",
-      "unlocks": [
-        "cp",
-        "mv"
-      ],
-      "unlocks_count": 2
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
     },
     "fchmod": {
       "tier": 3,
-      "status": "not_implemented",
-      "complexity": "low",
-      "unlocks": [
-        "cp",
-        "mv"
-      ],
-      "unlocks_count": 2
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
     },
     "gethostname": {
       "tier": 3,
-      "status": "not_implemented",
-      "complexity": "medium",
-      "unlocks": [
-        "hostname"
-      ],
-      "unlocks_count": 1
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
     },
     "sethostname": {
       "tier": 3,
@@ -789,30 +721,24 @@
     },
     "ttyname": {
       "tier": 3,
-      "status": "not_implemented",
-      "complexity": "medium",
-      "unlocks": [
-        "tty"
-      ],
-      "unlocks_count": 1
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
     },
     "user_from_uid": {
       "tier": 3,
-      "status": "not_implemented",
-      "complexity": "medium",
-      "unlocks": [
-        "ls"
-      ],
-      "unlocks_count": 1
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
     },
     "group_from_gid": {
       "tier": 3,
-      "status": "not_implemented",
-      "complexity": "medium",
-      "unlocks": [
-        "ls"
-      ],
-      "unlocks_count": 1
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
     },
     "utimensat": {
       "tier": 2,
@@ -843,13 +769,10 @@
     },
     "sysconf": {
       "tier": 2,
-      "status": "not_implemented",
-      "complexity": "medium",
-      "unlocks": [
-        "find",
-        "xargs"
-      ],
-      "unlocks_count": 2
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
     },
     "setlocale": {
       "tier": 1,
@@ -919,6 +842,97 @@
       "tier": 2,
       "status": "not_implemented",
       "complexity": "medium",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "setuid": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "setgid": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "getprogname": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "uname": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "getrusage": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "setproctitle": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "sigemptyset": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "sigaddset": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "sigprocmask": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "nanosleep": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "timegm": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "localeconv": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "errc": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
       "unlocks": [],
       "unlocks_count": 0
     }
@@ -1580,10 +1594,6 @@
           "fts_close",
           "fts_set",
           "fts_children",
-          "getuid",
-          "readlink",
-          "user_from_uid",
-          "group_from_gid",
           "ioctl"
         ],
         "blocking_shims": [
@@ -1591,11 +1601,7 @@
           "fts_read",
           "fts_close",
           "fts_set",
-          "fts_children",
-          "getuid",
-          "readlink",
-          "user_from_uid",
-          "group_from_gid"
+          "fts_children"
         ],
         "blocker_workaround": "fts can be replaced with opendir/readdir recursive walk; user/group stubs return \"amiga\"; readlink returns -1; ioctl(TIOCGWINSZ) use COLUMNS env",
         "dependencies": [],
@@ -1647,12 +1653,7 @@
         },
         "missing_shims": [
           "fork",
-          "wait",
-          "getpwuid",
-          "getpwnam",
-          "geteuid",
-          "getuid",
-          "readlink"
+          "wait"
         ],
         "blocking_shims": [
           "fork",
@@ -1772,14 +1773,7 @@
           "execvp",
           "execve",
           "vfork",
-          "waitpid",
-          "getpwnam",
-          "getpwuid",
-          "getgrnam",
-          "geteuid",
-          "readlink",
-          "sigaction",
-          "sysconf"
+          "waitpid"
         ],
         "blocking_shims": [
           "fts_open",
@@ -1789,12 +1783,7 @@
           "execvp",
           "execve",
           "vfork",
-          "waitpid",
-          "getpwnam",
-          "getpwuid",
-          "getgrnam",
-          "geteuid",
-          "readlink"
+          "waitpid"
         ],
         "blocker_workaround": "-exec requires fork/exec (Tier 3 blocker). Subset without -exec/-user/-group is feasible with fts replacement.",
         "dependencies": [],
@@ -1847,8 +1836,7 @@
         "missing_shims": [
           "execvp",
           "vfork",
-          "waitpid",
-          "sysconf"
+          "waitpid"
         ],
         "blocking_shims": [
           "execvp",
@@ -1939,8 +1927,8 @@
       "publishable": true,
       "notes": "Create links. symlink() is a hard blocker (no AmigaOS equivalent). Hard link via AmigaOS MakeLink() is possible for -f mode. ln -s would fail gracefully.",
       "readiness": {
-        "score": 0.566,
-        "tier": "blocked"
+        "score": 0.966,
+        "tier": "ready"
       },
       "hardware_fit": {
         "stock_a1200": "fits",
@@ -1956,12 +1944,8 @@
           "tier2": 0,
           "tier3": 1
         },
-        "missing_shims": [
-          "symlink"
-        ],
-        "blocking_shims": [
-          "symlink"
-        ],
+        "missing_shims": [],
+        "blocking_shims": [],
         "blocker_workaround": "AmigaOS has no symlinks (only MakeLink for hard links on FFS). Hard link only mode feasible.",
         "dependencies": [],
         "source_complexity": 0.98,
@@ -2014,25 +1998,13 @@
           "fts_open",
           "fts_read",
           "fts_close",
-          "fts_set",
-          "fchmod",
-          "fchown",
-          "getuid",
-          "lchown",
-          "readlink",
-          "symlink"
+          "fts_set"
         ],
         "blocking_shims": [
           "fts_open",
           "fts_read",
           "fts_close",
-          "fts_set",
-          "fchmod",
-          "fchown",
-          "getuid",
-          "lchown",
-          "readlink",
-          "symlink"
+          "fts_set"
         ],
         "blocker_workaround": "fts replaceable with opendir/readdir. fchmod/fchown/lchown can be no-ops. symlink/readlink: skip -R symlink preservation. Major effort.",
         "dependencies": [],
@@ -2065,8 +2037,8 @@
       "publishable": true,
       "notes": "Move/rename files. Calls cpmain/rmmain directly for cross-device (no fork). fchmod/fchown are trivial no-op stubs. Feasible.",
       "readiness": {
-        "score": 0.568,
-        "tier": "blocked"
+        "score": 0.968,
+        "tier": "ready"
       },
       "hardware_fit": {
         "stock_a1200": "fits",
@@ -2082,14 +2054,8 @@
           "tier2": 0,
           "tier3": 2
         },
-        "missing_shims": [
-          "fchmod",
-          "fchown"
-        ],
-        "blocking_shims": [
-          "fchmod",
-          "fchown"
-        ],
+        "missing_shims": [],
+        "blocking_shims": [],
         "blocker_workaround": "fchmod/fchown can be no-op stubs \u2014 AmigaOS has limited permission model. Uses cpmain/rmmain directly (no fork).",
         "dependencies": [],
         "source_complexity": 0.96,
@@ -2515,11 +2481,9 @@
           "tier3": 2
         },
         "missing_shims": [
-          "gethostname",
           "sethostname"
         ],
         "blocking_shims": [
-          "gethostname",
           "sethostname"
         ],
         "blocker_workaround": "gethostname via AmigaOS GetVar(\"hostname\",...) or bsdsocket.library gethostname(). sethostname can be a stub or SetVar.",
@@ -2553,8 +2517,8 @@
       "publishable": true,
       "notes": "Print user/group IDs. Fundamentally Unix user model. Can stub everything to return single-user values. Useful for scripts expecting id output.",
       "readiness": {
-        "score": 0.402,
-        "tier": "blocked"
+        "score": 0.802,
+        "tier": "feasible"
       },
       "hardware_fit": {
         "stock_a1200": "fits",
@@ -2570,30 +2534,8 @@
           "tier2": 0,
           "tier3": 10
         },
-        "missing_shims": [
-          "getuid",
-          "geteuid",
-          "getgid",
-          "getegid",
-          "getgroups",
-          "getgrouplist",
-          "getlogin",
-          "getpwuid",
-          "getpwnam",
-          "getgrgid"
-        ],
-        "blocking_shims": [
-          "getuid",
-          "geteuid",
-          "getgid",
-          "getegid",
-          "getgroups",
-          "getgrouplist",
-          "getlogin",
-          "getpwuid",
-          "getpwnam",
-          "getgrgid"
-        ],
+        "missing_shims": [],
+        "blocking_shims": [],
         "blocker_workaround": "All user/group functions need stubs. AmigaOS is single-user: uid=0, gid=0, user=\"amiga\". Feasible but many stubs.",
         "dependencies": [],
         "source_complexity": 0.96,
@@ -2625,8 +2567,8 @@
       "publishable": true,
       "notes": "Print effective user name. Symlink to id on OpenBSD (same binary). Same stubs as id needed.",
       "readiness": {
-        "score": 0.402,
-        "tier": "blocked"
+        "score": 0.802,
+        "tier": "feasible"
       },
       "hardware_fit": {
         "stock_a1200": "fits",
@@ -2642,30 +2584,8 @@
           "tier2": 0,
           "tier3": 10
         },
-        "missing_shims": [
-          "getuid",
-          "geteuid",
-          "getgid",
-          "getegid",
-          "getgroups",
-          "getgrouplist",
-          "getlogin",
-          "getpwuid",
-          "getpwnam",
-          "getgrgid"
-        ],
-        "blocking_shims": [
-          "getuid",
-          "geteuid",
-          "getgid",
-          "getegid",
-          "getgroups",
-          "getgrouplist",
-          "getlogin",
-          "getpwuid",
-          "getpwnam",
-          "getgrgid"
-        ],
+        "missing_shims": [],
+        "blocking_shims": [],
         "blocker_workaround": "Same as id \u2014 whoami is a symlink to id on OpenBSD. Stub user functions to return \"amiga\".",
         "dependencies": [],
         "source_complexity": 0.96,
@@ -2697,8 +2617,8 @@
       "publishable": true,
       "notes": "Print login name. Just getlogin() + puts. Trivial with stub.",
       "readiness": {
-        "score": 0.515,
-        "tier": "blocked"
+        "score": 0.915,
+        "tier": "ready"
       },
       "hardware_fit": {
         "stock_a1200": "fits",
@@ -2714,12 +2634,8 @@
           "tier2": 0,
           "tier3": 1
         },
-        "missing_shims": [
-          "getlogin"
-        ],
-        "blocking_shims": [
-          "getlogin"
-        ],
+        "missing_shims": [],
+        "blocking_shims": [],
         "blocker_workaround": "getlogin() stubbed to return \"amiga\" \u2014 AmigaOS is single-user",
         "dependencies": [],
         "source_complexity": 0.99,
@@ -2751,8 +2667,8 @@
       "publishable": true,
       "notes": "Print terminal name. Just ttyname() + isatty. Trivial with stub.",
       "readiness": {
-        "score": 0.515,
-        "tier": "blocked"
+        "score": 0.915,
+        "tier": "ready"
       },
       "hardware_fit": {
         "stock_a1200": "fits",
@@ -2768,12 +2684,8 @@
           "tier2": 0,
           "tier3": 1
         },
-        "missing_shims": [
-          "ttyname"
-        ],
-        "blocking_shims": [
-          "ttyname"
-        ],
+        "missing_shims": [],
+        "blocking_shims": [],
         "blocker_workaround": "ttyname() stubbed to return \"CON:\" or \"*\" \u2014 AmigaOS console device name",
         "dependencies": [],
         "source_complexity": 0.99,
@@ -3008,8 +2920,8 @@
       "publishable": true,
       "notes": "Simple single-file; uses open/read/write/fstat for raw mode, pledge/getprogname for BSD; straightforward port",
       "readiness": {
-        "score": 0.697,
-        "tier": "feasible"
+        "score": 0.997,
+        "tier": "ready"
       },
       "hardware_fit": {
         "stock_a1200": "fits",
@@ -3025,9 +2937,7 @@
           "tier2": 0,
           "tier3": 0
         },
-        "missing_shims": [
-          "getprogname"
-        ],
+        "missing_shims": [],
         "blocking_shims": [],
         "blocker_workaround": "getprogname replaced with __progname",
         "dependencies": [],
@@ -3168,10 +3078,7 @@
           "tier2": 0,
           "tier3": 0
         },
-        "missing_shims": [
-          "nanosleep",
-          "getprogname"
-        ],
+        "missing_shims": [],
         "blocking_shims": [],
         "blocker_workaround": "nanosleep can be replaced with amiport_sleep() for whole seconds or Delay() for sub-second; getprogname replaced with __progname",
         "dependencies": [],
@@ -3181,8 +3088,8 @@
         "estimated_data_kb": 1
       },
       "readiness": {
-        "score": 0.699,
-        "tier": "feasible"
+        "score": 0.999,
+        "tier": "ready"
       },
       "hardware_fit": {
         "stock_a1200": "fits",
@@ -3232,13 +3139,10 @@
         },
         "missing_shims": [
           "strptime",
-          "timegm",
           "adjtime",
           "settimeofday",
           "logwtmp",
-          "syslog",
-          "getlogin",
-          "strtonum"
+          "syslog"
         ],
         "blocking_shims": [],
         "blocker_workaround": "adjtime/settimeofday/logwtmp/syslog/getlogin only used for set-time mode (stub as no-ops returning error); strptime bundleable; timegm = mktime with TZ trick; strtonum replaceable with strtol",
@@ -3290,7 +3194,6 @@
           "tier3": 0
         },
         "missing_shims": [
-          "strtonum",
           "strcoll"
         ],
         "blocking_shims": [],
@@ -3325,8 +3228,8 @@
       "publishable": true,
       "notes": "Uses stat/lstat/access/isatty (all Tier 1); geteuid/getegid stub as 0; strtonum/strlcpy/timespeccmp available; pure logic",
       "readiness": {
-        "score": 0.693,
-        "tier": "feasible"
+        "score": 0.993,
+        "tier": "ready"
       },
       "hardware_fit": {
         "stock_a1200": "fits",
@@ -3342,11 +3245,7 @@
           "tier2": 0,
           "tier3": 0
         },
-        "missing_shims": [
-          "geteuid",
-          "getegid",
-          "strtonum"
-        ],
+        "missing_shims": [],
         "blocking_shims": [],
         "blocker_workaround": "geteuid/getegid stub as returning 0 (single-user AmigaOS); strtonum replaceable with strtol",
         "dependencies": [],
@@ -3379,8 +3278,8 @@
       "publishable": true,
       "notes": "OpenBSD has standalone seq (separate from jot); uses getopt_long/asprintf/localeconv; pure math + formatting",
       "readiness": {
-        "score": 0.694,
-        "tier": "feasible"
+        "score": 0.994,
+        "tier": "ready"
       },
       "hardware_fit": {
         "stock_a1200": "fits",
@@ -3396,9 +3295,7 @@
           "tier2": 0,
           "tier3": 0
         },
-        "missing_shims": [
-          "localeconv"
-        ],
+        "missing_shims": [],
         "blocking_shims": [],
         "blocker_workaround": "localeconv can return stub struct with '.' as decimal point",
         "dependencies": [],
@@ -3450,8 +3347,7 @@
         },
         "missing_shims": [
           "arc4random",
-          "arc4random_uniform",
-          "strtonum"
+          "arc4random_uniform"
         ],
         "blocking_shims": [],
         "blocker_workaround": "arc4random/arc4random_uniform replaced with rand()/srand(); strtonum replaceable with strtol",
@@ -3535,8 +3431,8 @@
       "publishable": true,
       "notes": "Scans PATH for executables; uses getenv/stat/access (Tier 1); setgid/setuid/getegid/geteuid stub; strsep available in libnix",
       "readiness": {
-        "score": 0.697,
-        "tier": "feasible"
+        "score": 0.997,
+        "tier": "ready"
       },
       "hardware_fit": {
         "stock_a1200": "fits",
@@ -3552,13 +3448,7 @@
           "tier2": 0,
           "tier3": 0
         },
-        "missing_shims": [
-          "setgid",
-          "setuid",
-          "geteuid",
-          "getegid",
-          "warnc"
-        ],
+        "missing_shims": [],
         "blocking_shims": [],
         "blocker_workaround": "setgid/setuid/geteuid/getegid stub as no-ops (single-user AmigaOS); warnc replaceable with warn; PATH maps to C: directory scanning",
         "dependencies": [],
@@ -3645,8 +3535,8 @@
       "publishable": true,
       "notes": "Binary search on sorted file using mmap (Tier 2 implemented); needs substitute for /usr/share/dict/words; uses open/fstat/mmap",
       "readiness": {
-        "score": 0.646,
-        "tier": "feasible"
+        "score": 0.945,
+        "tier": "ready"
       },
       "hardware_fit": {
         "stock_a1200": "fits",
@@ -3662,9 +3552,7 @@
           "tier2": 1,
           "tier3": 0
         },
-        "missing_shims": [
-          "errc"
-        ],
+        "missing_shims": [],
         "blocking_shims": [],
         "blocker_workaround": "errc replaceable with err; default dictionary path changed to S:words or LOCALE:words",
         "dependencies": [],
@@ -3847,8 +3735,8 @@
       "publishable": true,
       "notes": "Handles MD5/SHA1/SHA256/SHA512/RMD160/CKSUM; depends on libc hash implementations (MD5_*, SHA256_*, etc.) which are NOT in libnix \u2014 need to bundle. Uses getline/getrusage.",
       "readiness": {
-        "score": 0.585,
-        "tier": "blocked"
+        "score": 0.885,
+        "tier": "ready"
       },
       "hardware_fit": {
         "stock_a1200": "fits",
@@ -3864,9 +3752,7 @@
           "tier2": 0,
           "tier3": 0
         },
-        "missing_shims": [
-          "getrusage"
-        ],
+        "missing_shims": [],
         "blocking_shims": [],
         "blocker_workaround": "getrusage stub as returning zeros (timing mode only); MD5/SHA hash implementations must be bundled from libressl-portable or public domain sources",
         "dependencies": [
@@ -3905,8 +3791,8 @@
       "publishable": true,
       "notes": "Complex text formatter; uses signal/sigaction (Tier 2 not implemented)/sigprocmask, time/localtime/strftime, isatty, fstat, vasprintf, strtonum. Signal handling is for SIGINT during pagination.",
       "readiness": {
-        "score": 0.652,
-        "tier": "feasible"
+        "score": 0.952,
+        "tier": "ready"
       },
       "hardware_fit": {
         "stock_a1200": "fits",
@@ -3922,13 +3808,7 @@
           "tier2": 1,
           "tier3": 0
         },
-        "missing_shims": [
-          "sigaction",
-          "sigprocmask",
-          "sigemptyset",
-          "sigaddset",
-          "strtonum"
-        ],
+        "missing_shims": [],
         "blocking_shims": [],
         "blocker_workaround": "sigaction/sigprocmask replaced with signal() shim for basic SIGINT handling; strtonum replaceable with strtol",
         "dependencies": [],
@@ -3961,8 +3841,8 @@
       "publishable": true,
       "notes": "Single file, pure character processing; uses reallocarray (Tier 1), strtonum, getopt, err/errx/warnx; no file I/O beyond stdio",
       "readiness": {
-        "score": 0.693,
-        "tier": "feasible"
+        "score": 0.993,
+        "tier": "ready"
       },
       "hardware_fit": {
         "stock_a1200": "fits",
@@ -3978,9 +3858,7 @@
           "tier2": 0,
           "tier3": 0
         },
-        "missing_shims": [
-          "strtonum"
-        ],
+        "missing_shims": [],
         "blocking_shims": [],
         "blocker_workaround": "strtonum replaceable with strtol wrapper",
         "dependencies": [],
@@ -4031,8 +3909,7 @@
           "tier3": 0
         },
         "missing_shims": [
-          "vis",
-          "strtonum"
+          "vis"
         ],
         "blocking_shims": [],
         "blocker_workaround": "vis(3) function can be bundled from OpenBSD libc (single file, ~200 LOC, ISC license); strtonum replaceable with strtol",
@@ -4068,8 +3945,8 @@
       "publishable": true,
       "notes": "Matrix reshape; uses getline/reallocarray (Tier 1), strtonum, setlocale; pure stdio + malloc",
       "readiness": {
-        "score": 0.694,
-        "tier": "feasible"
+        "score": 0.994,
+        "tier": "ready"
       },
       "hardware_fit": {
         "stock_a1200": "fits",
@@ -4085,9 +3962,7 @@
           "tier2": 0,
           "tier3": 0
         },
-        "missing_shims": [
-          "strtonum"
-        ],
+        "missing_shims": [],
         "blocking_shims": [],
         "blocker_workaround": "strtonum replaceable with strtol; setlocale stub as no-op",
         "dependencies": [],
@@ -4120,8 +3995,8 @@
       "publishable": true,
       "notes": "Arbitrary precision calculator (5 .c files + 3 .h); DEPENDS ON OpenSSL BN_* (BIGNUM) for arbitrary precision \u2014 major external dependency. Uses signal, reallocarray, err/errx/warn/warnx, strlcpy, fstat, asprintf.",
       "readiness": {
-        "score": 0.569,
-        "tier": "blocked"
+        "score": 0.869,
+        "tier": "ready"
       },
       "hardware_fit": {
         "stock_a1200": "fits",
@@ -4137,9 +4012,7 @@
           "tier2": 0,
           "tier3": 0
         },
-        "missing_shims": [
-          "setproctitle"
-        ],
+        "missing_shims": [],
         "blocking_shims": [],
         "blocker_workaround": "setproctitle stubbed as no-op",
         "dependencies": [
@@ -5892,7 +5765,7 @@
       "upstream_license": "MIT",
       "port_date": "2026-03-23",
       "aminet_status": "submitted",
-      "measured_binary_kb": 519,
+      "measured_binary_kb": 578,
       "measured_stack_kb": 128,
       "test_count": 60,
       "test_pass_rate": 1.0,

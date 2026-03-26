@@ -43,7 +43,7 @@ Limitations:
 
 Changes in 1.7.1-2:
 - Added Oniguruma regex engine (test/match/sub/gsub now work)
-- Binary size: 377 KB -> 519 KB (+142 KB)
+- Binary size: 377 KB -> 578 KB (+201 KB)
 
 Includes full source code (original POSIX and ported Amiga
 versions) and PORT.md documenting every transformation.

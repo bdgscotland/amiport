@@ -531,3 +531,13 @@ The flag was originally added to fix exit code 252 on vamos (libnix init list pl
 - **NOT a crash** -- wrong output only. But easily misdiagnosed as a FP precision or math error.
 - **Port:** awk (BWK "One True Awk" 2024.12.25)
 - **Date:** 2026-03-25
+
+## 21. Static Library Initialization Missing — Silent Failure on Real AmigaOS
+
+- **Signature:** Bundled static library function returns error code or crashes on FS-UAE/real hardware, but works perfectly on vamos. RC 20 (RETURN_FAIL) with empty output.
+- **Root cause:** Static linking (`.a` archives) does not run library constructor functions (`__attribute__((constructor))` or C++ static initializers). On vamos, uninitialized BSS is zeroed, so globals happen to be in a valid initial state. On real AmigaOS, uninitialized memory contains garbage from previous allocations.
+- **Diagnostic clue:** Works on vamos, fails on FS-UAE. No Guru Meditation — the library function returns an error that the calling program handles as a fatal exit. Switching between -O0 and -O2 does NOT fix it (rules out codegen bug).
+- **Fix:** Check if the bundled library requires explicit initialization (e.g., `onig_initialize()` for Oniguruma, `pcre2_config()` for PCRE2). Call the init function early in `main()`, guarded by `#ifdef HAVE_LIB*`. Register the cleanup function via `atexit()`.
+- **General rule:** When bundling a third-party static library, always check its documentation for required init/shutdown functions. The autotools/cmake build system typically calls these automatically via shared library constructors — static builds do not.
+- **Port:** jq 1.7.1-2 (Oniguruma 6.9.9 integration)
+- **Date:** 2026-03-25

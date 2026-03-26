@@ -218,6 +218,12 @@ When a port bundles its own GNU getopt (the correct approach — libnix's `getop
 
 When programs use `more_*()` growth functions (realloc pattern: allocate larger array, copy old entries, leave new entries uninitialized), the `atexit` cleanup MUST NOT iterate and free individual entries. The new entries contain garbage pointers, and `free(garbage)` causes Guru `8100 0005` (AN_MemCorrupt — non-recoverable memory list corruption). **Fix:** Only free the array headers (`free(array_ptr)`), not individual entries like `free(array_ptr[i])`. Accept the ~200 byte leak of individual name strings as a tradeoff vs crashing. Discovered in bc 1.07.1 port — aggressive cleanup of `f_names[i]`/`v_names[i]`/`a_names[i]` entries caused AN_MemCorrupt because `more_functions()` leaves uninitialized slots after reallocation.
 
+## Default to -O0 for Bundled Libraries Until Proven Safe
+
+bebbo-gcc (GCC 6.5.0b) has multiple codegen bugs at -O1/-O2 on 68k. The struct-by-value return corruption (crash-patterns #16) is the documented one, but there are others -- Oniguruma regex failed on real AmigaOS at -O2 with no obvious struct returns. The failure mode is silent (works on vamos, fails on FS-UAE) making it extremely hard to diagnose.
+
+**Rule:** Build any new bundled library (`lib/<name>/`) with `-O0` initially. Only switch to `-O2` after the full FS-UAE test suite passes AND you've verified no regressions by switching back and forth. The binary size penalty (~30-50%) is acceptable for correctness.
+
 ## bebbo-gcc -O1/-O2 Corrupts Large Struct Returns
 
 GCC 6.5.0b for 68k generates incorrect code for functions returning structs > 8 bytes by value at `-O1` or `-O2`. The first byte of the struct reads as 0 in the caller despite being correct inside the function. **Fix:** Compile with `-O0`. Add `CFLAGS := $(subst -O2,-O0,$(CFLAGS))` to the port Makefile. No source-level workaround exists. See crash-patterns #16.
@@ -354,3 +360,41 @@ This is because IEEE 754 double has ~15.9 significant decimal digits. Beyond 15 
 **Detection:** `grep -rn '%\.\(1[5-9]\|[2-9][0-9]\)g' ported/*.c`
 
 Discovered in the awk port -- upstream uses `%.30g` for integer formatting. Outputs like `1.0000000000` and `6765.00000000000056840000000000` were initially misdiagnosed as a libnix `%g` bug and FP accumulation errors respectively. See crash-patterns #20.
+
+## vamos GetVar() Returns 0 for Missing Variables
+
+On real AmigaOS, `GetVar()` returns -1 when a variable does not exist. On vamos, `GetVar()` returns **0** (not -1) and writes an empty string to the buffer. Code that checks `len < 0` to detect missing variables will fall through to the `else` branch and use an empty string instead of a fallback default.
+
+**Fix:** Always check `len <= 0` (not `len < 0`) when using `GetVar()` to detect missing environment variables:
+```c
+len = GetVar((CONST_STRPTR)"VARNAME", (STRPTR)buf, bufsize - 1, 0);
+if (len <= 0) {
+    /* Variable not set or empty -- use default */
+    strcpy(buf, "default");
+} else {
+    buf[len] = '\0';
+}
+```
+
+This affects `amiport_getenv()` (which already handles it by returning NULL for len < 0 -- but len=0 returns an empty malloc'd string) and any new shim functions using `GetVar()` directly.
+
+Discovered in the POSIX shim batch extension (2026-03-25) -- `amiport_gethostname()` returned an empty string on vamos instead of the "amiga" fallback.
+
+## FS-UAE Test Expressions With Quotes Must Use -f Filter Files
+
+The ARexx test harness passes CMD lines via `ADDRESS COMMAND`, which goes through AmigaDOS command parsing. Escaped double quotes (`\"`) inside inline expressions do NOT survive this path — they get stripped or misinterpreted.
+
+This affects any program that takes expression arguments containing quotes: jq (`test("pattern")`), sed (`s/"old"/"new"/`), awk (`{print "hello"}`), grep (`-e "pattern"`).
+
+**Fix for tests:** Write the expression to a filter file and use `-f`:
+```
+# WRONG — quotes stripped by AmigaDOS
+CMD: WORK:jq ".text | test(\"Hello\")" WORK:input.txt
+
+# RIGHT — filter file preserves quotes
+CMD: WORK:jq -f WORK:test-filter.txt WORK:input.txt
+```
+
+Where `test-filter.txt` contains: `.text | test("Hello")`
+
+This is invisible to the vamos test suite (which pipes directly without ARexx), so tests pass on vamos but fail on FS-UAE. Discovered in jq 1.7.1-2 regex tests.

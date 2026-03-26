@@ -109,7 +109,7 @@ Verdict: HARD
 | Target | m68k-amigaos, 68020+ |
 | CFLAGS | `-O0 -noixemul -std=gnu99 -m68000 -Wall` (see crash-patterns #16) |
 | Libraries | `-lamiport -loniguruma -lm` |
-| Binary size | 519 KB (unstripped) — includes Oniguruma 6.9.9 regex engine |
+| Binary size | 578 KB (unstripped) — includes Oniguruma 6.9.9 regex engine (-O0) |
 
 ## Test Results
 
