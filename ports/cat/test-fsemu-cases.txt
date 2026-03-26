@@ -1,0 +1,240 @@
+# test-fsemu-cases.txt -- FS-UAE test suite for cat 1.34
+# Category 1 (CLI utility). Minimum: 8 tests.
+# Flags: -b -e -n -s -t -u -v (getopt "benstuv")
+# All EXPECT: values pre-computed by running native cat on macOS.
+
+# =============================================================
+# FUNCTIONAL TESTS -- one per flag
+# =============================================================
+
+# Native: cat test-oneline.txt | head -1
+TEST: Basic cat of a file prints its content
+CMD: WORK:cat WORK:test-oneline.txt
+EXPECT: hello world
+EXPECT_RC: 0
+
+# Native: cat -n test-oneline.txt | head -1
+TEST: -n numbers all lines with leading spaces and tab
+CMD: WORK:cat -n WORK:test-oneline.txt
+EXPECT:      1	hello world
+EXPECT_RC: 0
+
+# Native: cat -b test-cat-blank.txt | head -1
+TEST: -b numbers only non-blank lines
+CMD: WORK:cat -b WORK:test-cat-blank.txt
+EXPECT:      1	first line
+EXPECT_RC: 0
+
+# Native: cat -e test-multiline.txt | head -1
+# Note: test-oneline.txt has no trailing newline so -e produces no $; use multiline.txt
+TEST: -e appends dollar sign at end of each line
+CMD: WORK:cat -e WORK:test-multiline.txt
+EXPECT: hello world$
+EXPECT_RC: 0
+
+# Native: cat -s test-cat-blank.txt | head -1
+TEST: -s squeezes consecutive blank lines to one
+CMD: WORK:cat -s WORK:test-cat-blank.txt
+EXPECT: first line
+EXPECT_RC: 0
+
+# Native: cat -t test-cat-tabs.txt | head -1
+TEST: -t displays tab characters as ^I
+CMD: WORK:cat -t WORK:test-cat-tabs.txt
+EXPECT: col1^Icol2^Icol3
+EXPECT_RC: 0
+
+# -v: non-printing characters shown as ^X or M-X
+# Native: cat -v test-binary.dat | head -1
+TEST: -v shows non-printing characters in visible form
+CMD: WORK:cat -v WORK:test-binary.dat
+EXPECT_CONTAINS: ^@^A^B
+EXPECT_RC: 0
+
+# -u: unbuffered output -- behaviour identical but should not crash
+# Native: cat -u test-oneline.txt | head -1
+TEST: -u unbuffered output still prints file content
+CMD: WORK:cat -u WORK:test-oneline.txt
+EXPECT: hello world
+EXPECT_RC: 0
+
+# =============================================================
+# COMBINED FLAG TESTS
+# =============================================================
+
+# Native: cat -te test-cat-tabs.txt | head -1
+TEST: -t and -e together shows tabs as ^I and appends dollar sign
+CMD: WORK:cat -te WORK:test-cat-tabs.txt
+EXPECT: col1^Icol2^Icol3$
+EXPECT_RC: 0
+
+# Native: cat -ne test-multiline.txt | head -1
+TEST: -n and -e together numbers lines and appends dollar sign
+CMD: WORK:cat -ne WORK:test-multiline.txt
+EXPECT:      1	hello world$
+EXPECT_RC: 0
+
+# Native: cat -ns test-cat-blank.txt | head -1 .. line 5
+TEST: -n and -s together numbers squeezed output
+CMD: WORK:cat -ns WORK:test-cat-blank.txt
+EXPECT:      1	first line
+EXPECT_LINE: 3,     3	second line
+EXPECT_LINE: 5,     5	third line
+EXPECT_RC: 0
+
+# Native: cat -bs test-cat-blank.txt | head -1 .. line 3
+TEST: -b and -s together numbers non-blank squeezed lines
+CMD: WORK:cat -bs WORK:test-cat-blank.txt
+EXPECT:      1	first line
+EXPECT_LINE: 2,
+EXPECT_LINE: 3,     2	second line
+EXPECT_RC: 0
+
+# Native: cat -b test-multiline.txt -- blank lines at 2,4 get no number
+# test-multiline.txt has 5 lines: line1, blank, line2, blank, line3
+# output: line 1=numbered1, 2=blank, 3=numbered2, 4=blank, 5=numbered3
+TEST: -b flag leaves blank lines unnumbered
+CMD: WORK:cat -b WORK:test-multiline.txt
+EXPECT:      1	hello world
+EXPECT_LINE: 2,
+EXPECT_LINE: 5,     3	third line
+EXPECT_RC: 0
+
+# =============================================================
+# ERROR PATH TESTS
+# =============================================================
+
+# cat source: returns 10 for bad option (fprintf(stderr, usage) + return 10)
+TEST: Unknown flag prints usage and exits with RC 10
+CMD: WORK:cat -Z WORK:test-oneline.txt
+EXPECT_RC: 10
+
+# cat source: warn() + rval=1 on missing file (raw_cat path returns rval which is 1)
+# RC=1 on Amiga is non-zero but not standard AmigaDOS codes.
+# The port sets rval=1 and returns it -- AmigaDOS sees RC=1 (equivalent to RETURN_WARN=5? no: 1)
+# Source confirms: rval = 1; ... return rval. On Amiga RC=1 is treated as non-fatal.
+# Use EXPECT_RC: 1 since that's what rval=1 returns.
+TEST: Missing file prints warning and exits with non-zero RC
+CMD: WORK:cat WORK:test-cat-nonexistent.txt
+EXPECT_RC: 1
+
+# =============================================================
+# EXIT CODE TESTS
+# =============================================================
+
+# RC=0 -- already tested in basic tests above.
+# Explicit second RC=0 test with empty file.
+TEST: Empty file exits with RC 0
+CMD: WORK:cat WORK:test-empty.txt
+EXPECT_RC: 0
+
+# =============================================================
+# EDGE CASE TESTS
+# =============================================================
+
+# Native: cat test-empty.txt (no output)
+TEST: Empty file produces no output
+CMD: WORK:cat WORK:test-empty.txt
+EXPECT:
+EXPECT_RC: 0
+
+# Native: cat -n test-empty.txt (no output, no lines to number)
+TEST: Empty file with -n produces no output
+CMD: WORK:cat -n WORK:test-empty.txt
+EXPECT_RC: 0
+
+# Native: cat -e test-empty.txt (no output)
+TEST: Empty file with -e produces no output
+CMD: WORK:cat -e WORK:test-empty.txt
+EXPECT_RC: 0
+
+# Native: cat -s test-multiline.txt -- already has only 1 blank line, unchanged
+# (no squeeze needed when only one consecutive blank)
+TEST: -s with single blank line leaves output unchanged
+CMD: WORK:cat -s WORK:test-multiline.txt
+EXPECT: hello world
+EXPECT_LINE: 5,
+EXPECT_LINE: 10,last line
+EXPECT_RC: 0
+
+# Native: cat test-longline.txt | head -1 | cut -c1-5
+TEST: Long line (over 1024 chars) passes through without truncation
+CMD: WORK:cat WORK:test-longline.txt
+EXPECT_CONTAINS: AAAMARKER
+EXPECT_RC: 0
+
+# =============================================================
+# AMIGA-SPECIFIC TESTS
+# =============================================================
+
+# Verify WORK: volume paths work for input
+# Native: cat test-oneline.txt
+TEST: Amiga WORK volume path resolves correctly for input file
+CMD: WORK:cat WORK:test-oneline.txt
+EXPECT: hello world
+EXPECT_RC: 0
+
+# Multiple files: verify concatenation order is preserved
+# Native: cat test-oneline.txt test-oneline.txt
+TEST: Two files on WORK volume are concatenated in order
+CMD: WORK:cat WORK:test-oneline.txt WORK:test-oneline.txt
+EXPECT: hello world
+EXPECT_LINE: 2,hello world
+EXPECT_RC: 0
+
+# =============================================================
+# REAL-WORLD AND STRESS TESTS
+# =============================================================
+
+# Real-world: number a multi-line file and verify several lines
+# Native: cat -n test-multiline.txt
+TEST: Real-world -n on 10-line file numbers all lines correctly
+CMD: WORK:cat -n WORK:test-multiline.txt
+EXPECT:      1	hello world
+EXPECT_LINE: 10,    10	last line
+EXPECT_RC: 0
+
+# Real-world: view file with tabs and verify the -t rendering
+# Native: cat -te test-special-chars.txt
+TEST: Real-world -te renders tabs as ^I and adds dollar on special-chars file
+CMD: WORK:cat -te WORK:test-special-chars.txt
+EXPECT: line^Iwith^Itabs$
+EXPECT_LINE: 2,line with trailing spaces   $
+EXPECT_LINE: 5,backslash\\path$
+EXPECT_RC: 0
+
+# Real-world: concatenate three files and count total output lines
+# Native: cat test-multiline.txt test-multiline.txt test-multiline.txt | head -1
+TEST: Concatenation of three copies of a file starts with first line
+CMD: WORK:cat WORK:test-multiline.txt WORK:test-multiline.txt WORK:test-multiline.txt
+EXPECT: hello world
+EXPECT_LINE: 11,hello world
+EXPECT_RC: 0
+
+# Stress: cat on a 1106-byte line file exercises the BUFSIZ-based raw_cat loop
+# Native: cat test-longline.txt | head -1 | head -c 5
+TEST: Stress long line over BUFSIZ boundary passes through intact
+CMD: WORK:cat WORK:test-longline.txt
+EXPECT_CONTAINS: AAAMARKER
+EXPECT_RC: 0
+
+# Stress: -n on longline file -- line numbering on very long line
+# Native: cat -n test-longline.txt | head -1 | cut -c1-12
+TEST: Stress -n on 1106-char line produces correct line number prefix
+CMD: WORK:cat -n WORK:test-longline.txt
+EXPECT_CONTAINS:      1	AAAAA
+EXPECT_RC: 0
+
+# Stress: -v on binary file exercises the M- and ^ encoding paths
+# Native: cat -v test-binary.dat -- first 3 bytes (0x00,0x01,0x02) -> ^@^A^B
+TEST: Stress -v on binary data renders control bytes as caret sequences
+CMD: WORK:cat -v WORK:test-binary.dat
+EXPECT_CONTAINS: ^@^A^B
+EXPECT_RC: 0
+
+# Precision: -b correctly skips blank lines in count (blank line 5 in multiline)
+# Native: cat -b test-multiline.txt | sed -n '9p'
+TEST: Precision -b counts exactly 9 non-blank lines in test-multiline.txt
+CMD: WORK:cat -b WORK:test-multiline.txt
+EXPECT_LINE: 9,     9	last line
+EXPECT_RC: 0

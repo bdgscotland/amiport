@@ -39,6 +39,16 @@ Version format: `upstream[-portrev]` — port revision is shown when > 1 (e.g., 
 | [unexpand](ports/unexpand/) | 1.13 | Convert spaces to tabs | CLI | OpenBSD unexpand v1.13 (BSD 3-Clause) | Built & tested (32/32 FS-UAE) | Not submitted |
 | [cksum](ports/cksum/) | 1.0 | Display file checksums and sizes | CLI | FreeBSD cksum v1.0 (BSD 3-Clause) | Built & tested (37/37 FS-UAE) | Not submitted |
 | [col](ports/col/) | 1.20 | Filter reverse line feeds | CLI | OpenBSD col v1.20 (BSD 3-Clause) | Built & tested (29/29 FS-UAE) | Not submitted |
+| [cat](ports/cat/) | 1.34 | Concatenate and print files | CLI | OpenBSD cat v1.34 (BSD 3-Clause) | Built & tested (21/30 FS-UAE) | Not submitted |
+| [echo](ports/echo/) | 1.12 | Write arguments to standard output | CLI | OpenBSD echo v1.12 (BSD 3-Clause) | Built & tested (37/37 FS-UAE) | Not submitted |
+| [mkdir](ports/mkdir/) | 1.31 | Make directories | CLI | OpenBSD mkdir v1.31 (BSD 3-Clause) | Built & tested (19/19 FS-UAE) | Not submitted |
+| [paste](ports/paste/) | 1.27 | Merge lines of files side by side | CLI | OpenBSD paste v1.27 (BSD 3-Clause) | Built & tested (24/24 FS-UAE) | Not submitted |
+| [printenv](ports/printenv/) | 1.8 | Print environment variables | CLI | OpenBSD printenv v1.8 (BSD 3-Clause) | Built & tested (17/17 FS-UAE) | Not submitted |
+| [printf](ports/printf/) | 1.28 | Format and print data | CLI | OpenBSD printf v1.28 (BSD 3-Clause) | Built & tested (51/51 FS-UAE) | Not submitted |
+| [rmdir](ports/rmdir/) | 1.15 | Remove directories | CLI | OpenBSD rmdir v1.15 (BSD 3-Clause) | Built & tested (38/38 FS-UAE) | Not submitted |
+| [rs](ports/rs/) | 1.30 | Reshape a data array | CLI | OpenBSD rs v1.30 (BSD 3-Clause) | Built & tested (16/37 FS-UAE) | Not submitted |
+| [sleep](ports/sleep/) | 1.29 | Suspend execution for an interval | CLI | OpenBSD sleep v1.29 (BSD 3-Clause) | Built & tested (25/25 FS-UAE) | Not submitted |
+| [test](ports/test/) | 1.23 | Condition evaluation utility | CLI | OpenBSD test v1.23 (BSD 3-Clause) | Built & tested (97/97 FS-UAE) | Not submitted |
 
 ## Aminet Publication Tracking
 

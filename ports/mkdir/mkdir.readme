@@ -1,0 +1,21 @@
+Short:        Make directories
+Type:         util/dir
+Architecture: m68k-amigaos >= 3.0
+Uploader:     duncan@bowring.us
+Author:       University of California, Berkeley (ported by Duncan Bowring)
+Version:      1.31
+
+mkdir - Make directories
+
+Original author: University of California, Berkeley
+Ported by Duncan Bowring using amiport (AI-assisted porting toolkit).
+Project: https://github.com/bdgscotland/amiport
+
+Cross-compiled for AmigaOS 3.x (68000+).
+Tested in vamos emulator and FS-UAE.
+
+Usage:
+  mkdir [options] [arguments]
+
+Includes full source code (original POSIX and ported Amiga versions)
+and PORT.md documenting every transformation applied.

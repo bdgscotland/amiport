@@ -1,0 +1,273 @@
+# test-fsemu-cases.txt -- rs (reshape data array) test suite
+# Category 1 (CLI tool) -- minimum 15 tests required
+# rs reads from stdin only -- all CMD lines use AmigaDOS < redirection.
+# Since CMD is written into an Execute script, AmigaDOS shell parses < as
+# stdin redirection. Pattern: "CMD: WORK:rs [args] <WORK:input.txt"
+# See ports/colrm/test-fsemu-cases.txt for the established precedent.
+# getopt option string: "c::C::s::S::k:K:g:G:w:tTeEnyjhHmz"
+
+# ===========================================================================
+# FUNCTIONAL TESTS -- one test per flag
+# ===========================================================================
+
+# Native: rs 2 3 < test-rs-6elem.txt
+TEST: Basic reshape 6 elements into 2 rows x 3 cols
+CMD: WORK:rs 2 3 <WORK:test-rs-6elem.txt
+EXPECT: a  b  c
+EXPECT_LINE: 2,d  e  f
+EXPECT_RC: 0
+
+# Native: rs -t < test-rs-2x3.txt
+TEST: Transpose -t flattens 2x3 matrix to single row
+CMD: WORK:rs -t <WORK:test-rs-2x3.txt
+EXPECT: a  b  c  d  e  f
+EXPECT_RC: 0
+
+# Native: rs -T < test-rs-2x3.txt
+TEST: Matrix transpose -T swaps rows and cols (2x3 becomes 3x2)
+CMD: WORK:rs -T <WORK:test-rs-2x3.txt
+EXPECT: a  d
+EXPECT_LINE: 2,b  e
+EXPECT_LINE: 3,c  f
+EXPECT_RC: 0
+
+# Native: rs -c: < test-rs-colon.txt
+TEST: Input column separator -c: reads colon-delimited input strictly
+CMD: WORK:rs -c: <WORK:test-rs-colon.txt
+EXPECT: a  b  c  d  e  f
+EXPECT_RC: 0
+
+# Native: rs -C, < test-rs-2x3.txt
+TEST: Output column separator -C, writes comma only between columns
+CMD: WORK:rs -C, <WORK:test-rs-2x3.txt
+EXPECT: a,b,c,d,e,f,
+EXPECT_RC: 0
+
+# Native: rs -S, < test-rs-2x3.txt
+TEST: Output separator -S, inserts double comma between columns (multi-sep)
+CMD: WORK:rs -S, <WORK:test-rs-2x3.txt
+EXPECT: a,,b,,c,,d,,e,,f
+EXPECT_RC: 0
+
+# Native: rs -h < test-rs-2x3.txt
+TEST: Shape only -h prints row and column count then exits
+CMD: WORK:rs -h <WORK:test-rs-2x3.txt
+EXPECT: 2 3
+EXPECT_RC: 0
+
+# Native: rs -H < test-rs-2x3.txt
+TEST: Detail shape -H prints per-line lengths then row and col count
+CMD: WORK:rs -H <WORK:test-rs-2x3.txt
+EXPECT:  5 line 1
+EXPECT_LINE: 2, 5 line 2
+EXPECT_LINE: 3,2 3
+EXPECT_RC: 0
+
+# Native: rs -j < test-rs-rightjust.txt
+TEST: Right-justify -j right-aligns each element within its column
+CMD: WORK:rs -j <WORK:test-rs-rightjust.txt
+EXPECT:   a   bb  ccc   dd    e  fff
+EXPECT_RC: 0
+
+# Native: rs -g4 < test-rs-2x3.txt
+TEST: Gutter width -g4 uses 4-space inter-column gap
+CMD: WORK:rs -g4 <WORK:test-rs-2x3.txt
+EXPECT: a    b    c    d    e    f
+EXPECT_RC: 0
+
+# Native: rs -w10 < test-rs-width10.txt
+TEST: Output width -w10 wraps output to fit 10-character display width
+CMD: WORK:rs -w10 <WORK:test-rs-width10.txt
+EXPECT: one
+EXPECT_LINE: 6,six
+EXPECT_RC: 0
+
+# Native: rs -e < test-rs-lines.txt
+TEST: Each-line-as-entry -e treats each input line as one element
+CMD: WORK:rs -e <WORK:test-rs-lines.txt
+EXPECT: alpha  beta   gamma  delta
+EXPECT_RC: 0
+
+# Native: rs -e 2 2 < test-rs-lines.txt
+TEST: Each-line -e with explicit 2x2 output dimensions
+CMD: WORK:rs -e 2 2 <WORK:test-rs-lines.txt
+EXPECT: alpha  beta
+EXPECT_LINE: 2,gamma  delta
+EXPECT_RC: 0
+
+# Native: rs -E < test-rs-chars.txt
+TEST: Each-char -E treats each character as a separate element
+CMD: WORK:rs -E <WORK:test-rs-chars.txt
+EXPECT: abc  def
+EXPECT_RC: 0
+
+# Native: rs -n < test-rs-uneven.txt
+TEST: Null padding -n fills missing values with blank entries
+CMD: WORK:rs -n <WORK:test-rs-uneven.txt
+EXPECT: a  b  c  d  e
+EXPECT_RC: 0
+
+# Native: rs -y 2 3 < test-rs-6elem.txt
+TEST: Recycle data -y fills output grid by repeating elements
+CMD: WORK:rs -y 2 3 <WORK:test-rs-6elem.txt
+EXPECT: a  b  c
+EXPECT_LINE: 2,d  e  f
+EXPECT_RC: 0
+
+# Native: rs -z < test-rs-widths.txt
+TEST: Squeeze column widths -z sizes each column to its widest element
+CMD: WORK:rs -z <WORK:test-rs-widths.txt
+EXPECT: ab  cde  f  gh  ij  klmno
+EXPECT_RC: 0
+
+# Native: rs -m < test-rs-2x3.txt
+TEST: No-trim-end-col -m preserves trailing padding on last column
+CMD: WORK:rs -m <WORK:test-rs-2x3.txt
+EXPECT: a  b  c  d  e  f
+EXPECT_RC: 0
+
+# Native: rs -k1 2 3 < test-rs-skip.txt
+TEST: Skip lines -k1 discards first line silently then reshapes
+CMD: WORK:rs -k1 2 3 <WORK:test-rs-skip.txt
+EXPECT: a  b  c
+EXPECT_LINE: 2,d  e  f
+EXPECT_RC: 0
+
+# Native: rs -K1 2 3 < test-rs-skip.txt
+TEST: Skip-and-print -K1 echoes skipped line then reshapes remainder
+CMD: WORK:rs -K1 2 3 <WORK:test-rs-skip.txt
+EXPECT: header line
+EXPECT_LINE: 2,a  b  c
+EXPECT_LINE: 3,d  e  f
+EXPECT_RC: 0
+
+# Native: rs 0 2 < test-rs-6elem.txt (rows=0 means auto-compute rows)
+TEST: Auto-rows with explicit 2 cols via rows=0 positional arg
+CMD: WORK:rs 0 2 <WORK:test-rs-6elem.txt
+EXPECT: a  b
+EXPECT_LINE: 3,e  f
+EXPECT_RC: 0
+
+# Native: rs 2 0 < test-rs-6elem.txt (cols=0 means auto-compute cols)
+TEST: Auto-cols with explicit 2 rows via cols=0 positional arg
+CMD: WORK:rs 2 0 <WORK:test-rs-6elem.txt
+EXPECT: a  b  c
+EXPECT_LINE: 2,d  e  f
+EXPECT_RC: 0
+
+# Native: rs -g0 < test-rs-widths.txt
+TEST: Gutter zero -g0 removes all inter-column spacing
+CMD: WORK:rs -g0 <WORK:test-rs-widths.txt
+EXPECT: ab   cde  f    gh   ij   klmno
+EXPECT_RC: 0
+
+# Native: rs -G50 < test-rs-widths.txt (50% of maxwidth added to gutter)
+TEST: Proportional gutter -G50 adds 50 percent of max-element-width to spacing
+CMD: WORK:rs -G50 <WORK:test-rs-widths.txt
+EXPECT: ab       cde      f        gh       ij       klmno
+EXPECT_RC: 0
+
+# ===========================================================================
+# ERROR PATH TESTS
+# ===========================================================================
+
+# Native: rs -Z (invalid flag) exits RC=1; ported source calls exit(10)
+# rs calls usage() immediately on bad flag before reading stdin
+TEST: Invalid flag -Z triggers usage error RC 10
+CMD: WORK:rs -Z <WORK:test-rs-empty.txt
+EXPECT_RC: 10
+
+# Native: rs 2 3 4 (3 positional args) triggers usage()
+# 3 positional args after getopt hits default: case in switch(ac)
+TEST: Three positional args triggers usage error RC 10
+CMD: WORK:rs 2 3 4 <WORK:test-rs-empty.txt
+EXPECT_RC: 10
+
+# ===========================================================================
+# EDGE CASE TESTS
+# ===========================================================================
+
+# Native: rs < /dev/null exits 0 with no output
+TEST: Empty input exits cleanly with no output
+CMD: WORK:rs <WORK:test-rs-empty.txt
+EXPECT:
+EXPECT_RC: 0
+
+# Native: rs 1 1 < test-rs-lines.txt
+TEST: Single element extracted with explicit 1x1 dimensions
+CMD: WORK:rs 1 1 <WORK:test-rs-lines.txt
+EXPECT: alpha
+EXPECT_RC: 0
+
+# Native: rs -h < test-rs-6elem.txt
+TEST: Shape -h on single-line input correctly identifies 1 row 6 cols
+CMD: WORK:rs -h <WORK:test-rs-6elem.txt
+EXPECT: 1 6
+EXPECT_RC: 0
+
+# ===========================================================================
+# AMIGA-SPECIFIC TESTS
+# ===========================================================================
+
+# Verify WORK: volume path works for stdin redirect and program path
+TEST: Amiga WORK volume path resolved correctly with stdin redirect
+CMD: WORK:rs 2 3 <WORK:test-rs-6elem.txt
+EXPECT: a  b  c
+EXPECT_RC: 0
+
+# Verify output goes to stdout with Amiga console path
+TEST: Shape output via WORK volume path confirms AmigaDOS path handling
+CMD: WORK:rs -h <WORK:test-rs-2x3.txt
+EXPECT: 2 3
+EXPECT_RC: 0
+
+# ===========================================================================
+# REAL-WORLD AND STRESS TESTS
+# ===========================================================================
+
+# Real-world: reshape month data table
+# Native: rs -e 2 3 < test-rs-months.txt
+TEST: Real-world reshape of month-data records into 2-row display
+CMD: WORK:rs -e 2 3 <WORK:test-rs-months.txt
+EXPECT: Jan 10  Feb 20  Mar 30
+EXPECT_LINE: 2,Apr 40  May 50  Jun 60
+EXPECT_RC: 0
+
+# Real-world: matrix transpose for data analysis
+# Native: rs -T < test-rs-2x3.txt
+TEST: Real-world matrix transpose converts row-oriented to column-oriented data
+CMD: WORK:rs -T <WORK:test-rs-2x3.txt
+EXPECT: a  d
+EXPECT_LINE: 3,c  f
+EXPECT_RC: 0
+
+# Stress: reshape 50 elements into 5x10 grid
+# Native: rs 5 10 < test-rs-50elem.txt
+TEST: Stress reshape of 50 space-separated elements into 5x10 grid
+CMD: WORK:rs 5 10 <WORK:test-rs-50elem.txt
+EXPECT: 1   2   3   4   5   6   7   8   9   10
+EXPECT_LINE: 5,41  42  43  44  45  46  47  48  49  50
+EXPECT_RC: 0
+
+# Stress: reshape 100 elements into 10x10 grid
+# Native: rs 10 10 < test-rs-100elem.txt
+TEST: Stress reshape of 100 space-separated elements into 10x10 grid
+CMD: WORK:rs 10 10 <WORK:test-rs-100elem.txt
+EXPECT: 1    2    3    4    5    6    7    8    9    10
+EXPECT_LINE: 10,91   92   93   94   95   96   97   98   99   100
+EXPECT_RC: 0
+
+# Stress: shape-only on 100 elements exercises element counting loop
+# Native: rs -h < test-rs-100elem.txt
+TEST: Stress shape-only -h on 100 elements confirms element counting
+CMD: WORK:rs -h <WORK:test-rs-100elem.txt
+EXPECT: 1 100
+EXPECT_RC: 0
+
+# Precision: right-justify with each-line and 2x2 layout verifies column arithmetic
+# Native: rs -j -e 2 2 < test-rs-lines.txt
+TEST: Precision right-justify -j combined with -e each-line and explicit 2x2 layout
+CMD: WORK:rs -j -e 2 2 <WORK:test-rs-lines.txt
+EXPECT: alpha   beta
+EXPECT_LINE: 2,gamma  delta
+EXPECT_RC: 0

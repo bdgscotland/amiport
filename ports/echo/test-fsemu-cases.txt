@@ -1,0 +1,271 @@
+# test-fsemu-cases.txt -- FS-UAE functional tests for echo 1.12
+# Source: ports/echo/ported/echo.c (OpenBSD echo.c 1.12)
+# Category: 1 (CLI tool) -- minimum 15 tests
+# echo always exits 0 (no error paths -- pledge is a no-op, unknown flags treated as args)
+#
+# Note: echo reads no files -- all tests pass arguments directly.
+# No test input files needed for this port.
+
+# --- Functional: basic output ---
+
+# Native: echo "hello world"
+TEST: Basic string output with space
+CMD: WORK:echo hello world
+EXPECT: hello world
+EXPECT_RC: 0
+
+# Native: echo one two three four five
+TEST: Multiple arguments joined with spaces
+CMD: WORK:echo one two three four five
+EXPECT: one two three four five
+EXPECT_RC: 0
+
+# Native: echo (no args) -> just a newline, first line is empty
+TEST: No arguments outputs a single newline (first line is blank)
+CMD: WORK:echo
+EXPECT:
+EXPECT_RC: 0
+
+# --- Functional: -n flag ---
+
+# Native: echo -n hello -> no trailing newline; output captured as first line = "hello"
+TEST: -n suppresses trailing newline
+CMD: WORK:echo -n hello
+EXPECT: hello
+EXPECT_RC: 0
+
+# Native: echo -n -> no output at all (0 bytes)
+TEST: -n with no arguments produces no output
+CMD: WORK:echo -n
+EXPECT:
+EXPECT_RC: 0
+
+# --- Functional: -e flag and escape sequences ---
+
+# Native: echo -e "hello\nworld" -> two lines; first line = "hello"
+TEST: -e enables escape sequences (backslash-n becomes newline)
+CMD: WORK:echo -e hello\nworld
+EXPECT: hello
+EXPECT_LINE: 2,world
+EXPECT_RC: 0
+
+# Native: echo -e "hello\tworld" -> "hello<TAB>world"
+TEST: -e backslash-t produces tab character
+CMD: WORK:echo -e hello\tworld
+EXPECT: hello	world
+EXPECT_RC: 0
+
+# Native: echo -e "back\\slash" -> "back\slash"
+TEST: -e double backslash produces single backslash
+CMD: WORK:echo -e back\\slash
+EXPECT: back\slash
+EXPECT_RC: 0
+
+# Native: echo -e "hello\c" rest -> "hi" (2 chars, no trailing newline, no "rest")
+# \c stops output immediately; nothing after it is printed
+TEST: -e backslash-c stops output before rest of argument and subsequent args
+CMD: WORK:echo -e hello\c world
+EXPECT: hello
+EXPECT_RC: 0
+
+# Native: echo -e "\c" rest -> 0 bytes output
+TEST: -e backslash-c at start produces no output
+CMD: WORK:echo -e \c word
+EXPECT:
+EXPECT_RC: 0
+
+# Native: echo -e "bell\a" -> bell<0x07> then newline; first line = "bell<BEL>"
+# \a = 0x07 (BEL)
+TEST: -e backslash-a produces bell character (0x07)
+CMD: WORK:echo -e bell\a
+EXPECT_CONTAINS: bell
+EXPECT_RC: 0
+
+# Native: echo -e "ab\bc" -> a backspace b c newline; first line contains backspace
+# \b = 0x08 (backspace) -- output contains control chars, use CONTAINS
+TEST: -e backslash-b produces backspace character (0x08)
+CMD: WORK:echo -e ab\bc
+EXPECT_CONTAINS: ab
+EXPECT_RC: 0
+
+# Native: echo -e "\e[0m" -> ESC[0m (ESC=0x1b, then "[0m"); first char is ESC
+# \e = 0x1b (escape)
+TEST: -e backslash-e produces ESC character (0x1b)
+CMD: WORK:echo -e \e[0m
+EXPECT_CONTAINS: [0m
+EXPECT_RC: 0
+
+# Native: echo -e "ff\f" -> "ff" then form feed (0x0c); use CONTAINS to avoid control char issues
+TEST: -e backslash-f produces form feed character (0x0c)
+CMD: WORK:echo -e ff\f
+EXPECT_CONTAINS: ff
+EXPECT_RC: 0
+
+# Native: echo -e "hello\rworld" -> "hello<CR>world"; first line = "hello<CR>world"
+# \r = 0x0d (carriage return)
+TEST: -e backslash-r produces carriage return character (0x0d)
+CMD: WORK:echo -e hello\rworld
+EXPECT_CONTAINS: hello
+EXPECT_RC: 0
+
+# Native: echo -e "vt\v" -> "vt<VT>"; first line = "vt<VT>"
+# \v = 0x0b (vertical tab)
+TEST: -e backslash-v produces vertical tab character (0x0b)
+CMD: WORK:echo -e vt\v
+EXPECT_CONTAINS: vt
+EXPECT_RC: 0
+
+# --- Functional: -e octal and hex escapes ---
+
+# Native: echo -e "\0101" -> "A" (\0101 = octal 101 = 65 = 'A')
+TEST: -e octal escape backslash-0101 produces A (65)
+CMD: WORK:echo -e \0101
+EXPECT: A
+EXPECT_RC: 0
+
+# Native: echo -e "\077" -> "?" (\077 = octal 77 = 63 = '?')
+TEST: -e octal escape backslash-077 produces question mark (63)
+CMD: WORK:echo -e \077
+EXPECT: ?
+EXPECT_RC: 0
+
+# Native: echo -e "\x41" -> "A" (\x41 = hex 41 = 65 = 'A')
+TEST: -e hex escape backslash-x41 produces A (65)
+CMD: WORK:echo -e \x41
+EXPECT: A
+EXPECT_RC: 0
+
+# Native: echo -e "\x48ello" -> "Hello"
+TEST: -e hex escape backslash-x48 produces H; full word Hello
+CMD: WORK:echo -e \x48ello
+EXPECT: Hello
+EXPECT_RC: 0
+
+# --- Functional: -E flag ---
+
+# Native: echo -E "hello\nworld" -> "hello\nworld" (literal backslash-n, no escape)
+TEST: -E disables escape processing (backslash-n printed literally)
+CMD: WORK:echo -E hello\nworld
+EXPECT: hello\nworld
+EXPECT_RC: 0
+
+# Native: echo -e -E "hello\nworld" -> "hello\nworld" (-E after -e turns escapes off)
+TEST: -E after -e disables escape processing
+CMD: WORK:echo -e -E hello\nworld
+EXPECT: hello\nworld
+EXPECT_RC: 0
+
+# --- Functional: combined flags ---
+
+# Native: echo -ne "hello\nworld" -> "hello<newline>world" (no trailing newline)
+# First line = "hello", second line = "world" (no newline at end)
+TEST: Combined -ne enables escapes and suppresses trailing newline
+CMD: WORK:echo -ne hello\nworld
+EXPECT: hello
+EXPECT_LINE: 2,world
+EXPECT_RC: 0
+
+# Native: echo -en "hello\nworld" -> same as -ne
+TEST: Combined -en same result as -ne (order irrelevant)
+CMD: WORK:echo -en hello\nworld
+EXPECT: hello
+EXPECT_LINE: 2,world
+EXPECT_RC: 0
+
+# Native: echo -nE "hello\nworld" -> "hello\nworld" (literal, no trailing newline)
+TEST: Combined -nE suppresses newline and disables escapes
+CMD: WORK:echo -nE hello\nworld
+EXPECT: hello\nworld
+EXPECT_RC: 0
+
+# --- Edge cases ---
+
+# Native: echo -z hello -> "-z hello" (unknown flag resets flags, arg printed as-is)
+# Per POSIX echo spec: unknown flag terminates flag processing, arg is data
+TEST: Unknown flag treated as argument per POSIX echo spec
+CMD: WORK:echo -z hello
+EXPECT: -z hello
+EXPECT_RC: 0
+
+# Native: echo -X -> "-X" (unknown flag by itself)
+TEST: Single unknown flag argument printed as-is
+CMD: WORK:echo -X
+EXPECT: -X
+EXPECT_RC: 0
+
+# Native: echo -e "test\\" -> "test\" (trailing backslash outputs backslash)
+# Source case '\0': putchar('\\'); return 0; -- lone \ at end outputs backslash
+TEST: -e trailing backslash at end of string outputs single backslash
+CMD: WORK:echo -e test\\
+EXPECT: test\
+EXPECT_RC: 0
+
+# Native: echo "" -> empty line (newline only)
+TEST: Empty string argument outputs blank line
+CMD: WORK:echo
+EXPECT:
+EXPECT_RC: 0
+
+# --- Amiga-specific tests ---
+
+# echo is purely argument-based (no file I/O), so Amiga path handling is
+# tested implicitly by all tests using WORK:echo. Add explicit WORK: path test.
+TEST: Amiga WORK volume path invocation works correctly
+CMD: WORK:echo Amiga WORK path test
+EXPECT: Amiga WORK path test
+EXPECT_RC: 0
+
+# --- Real-world tests ---
+
+# Native: echo -e "Name:\tAlice\nRole:\tDeveloper"
+# Two-column tab-formatted report -- real-world use case
+TEST: Real-world tab-formatted two-column report
+CMD: WORK:echo -e Name:\tAlice\nRole:\tDeveloper
+EXPECT: Name:	Alice
+EXPECT_LINE: 2,Role:	Developer
+EXPECT_RC: 0
+
+# Native: echo -n "Enter value: " -> "Enter value: " (no newline, simulates prompt)
+TEST: Real-world prompt simulation with -n (no trailing newline)
+CMD: WORK:echo -n Enter value:
+EXPECT: Enter value:
+EXPECT_RC: 0
+
+# Native: echo -e "STATUS:\tOK\nCODE:\t0\nMSG:\tDone"
+# Script diagnostic output -- multi-line formatted status
+TEST: Real-world multi-line status report with tabs and newlines
+CMD: WORK:echo -e STATUS:\tOK\nCODE:\t0\nMSG:\tDone
+EXPECT: STATUS:	OK
+EXPECT_LINE: 2,CODE:	0
+EXPECT_LINE: 3,MSG:	Done
+EXPECT_RC: 0
+
+# --- Stress tests ---
+
+# Native: echo a b c d e f g h i j k l m n o p q r s t u v w x y z
+# 26 single-char args, all space-separated -- tests many-argument handling
+TEST: Stress 26-word argument output (full alphabet)
+CMD: WORK:echo a b c d e f g h i j k l m n o p q r s t u v w x y z
+EXPECT: a b c d e f g h i j k l m n o p q r s t u v w x y z
+EXPECT_RC: 0
+
+# Native: echo -e "a\tb\tc\td\te\tf\tg\th"
+# 8 tab-separated values -- tests repeated escape processing
+TEST: Stress multiple tab escapes in single argument
+CMD: WORK:echo -e a\tb\tc\td\te\tf\tg\th
+EXPECT: a	b	c	d	e	f	g	h
+EXPECT_RC: 0
+
+# Native: echo -e "\0101\0102\0103\0104\0105" -> "ABCDE"
+# Five octal escapes in sequence -- tests octal parser loop stability
+TEST: Stress five consecutive octal escapes producing ABCDE
+CMD: WORK:echo -e \0101\0102\0103\0104\0105
+EXPECT: ABCDE
+EXPECT_RC: 0
+
+# Native: echo -e "\x41\x42\x43\x44\x45" -> "ABCDE"
+# Five hex escapes -- tests hex parser loop stability
+TEST: Stress five consecutive hex escapes producing ABCDE
+CMD: WORK:echo -e \x41\x42\x43\x44\x45
+EXPECT: ABCDE
+EXPECT_RC: 0

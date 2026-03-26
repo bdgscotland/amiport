@@ -52,6 +52,20 @@ subagent_type: "amiport-publisher"      # Test-gated publishing to amiport site
 subagent_type: "port-worker"            # Parallel batch: self-contained stages 0-4 in worktree
 ```
 
+## Never Bypass a Running Agent
+
+**If an agent is dispatched and running in the background, WAIT for it.** Do not:
+- Write the output yourself because the agent is "taking too long"
+- Dispatch a second agent to replace it without cancelling the first
+- Do the agent's job inline while it runs in parallel
+
+If an agent has not returned after 15 minutes, it may be stuck. In that case:
+1. Note the timeout
+2. Re-dispatch a NEW agent for the same task
+3. Do NOT write the output manually
+
+**Why:** Manual bypasses produce inferior output (test-designer agents analyze source for flags, exit codes, error paths — manual tests miss edge cases). The whole point of the pipeline is agent-quality output at every stage.
+
 ## Entry Point
 
 For a **single port**, start with `/port-project` — it orchestrates the full pipeline (Stage 0 through Stage 7) and dispatches the right agents at each step.

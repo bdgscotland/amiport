@@ -1,0 +1,205 @@
+# test-fsemu-cases.txt -- FS-UAE test suite for sleep 1.29
+# Category 1 (CLI tool) -- minimum 15 tests required, 20 provided
+#
+# sleep accepts exactly one argument: a decimal number of seconds.
+# No flags/options (getopt string is empty "").
+# All errors exit RC=10 via errx(10,...) or exit(10) in usage().
+# Success is always silent (no stdout output).
+#
+# Error messages go to stderr -- NOT captured by test harness.
+# All error path tests use EXPECT_RC: only (no EXPECT: for error text).
+#
+# Stdin hang note: sleep reads no stdin at all. Running sleep with no
+# arguments: argc==0 after optind -> usage() -> exit(10) immediately.
+# We can't pass zero tokens after CMD: in the harness format, so we test
+# the argc==0 path via an unknown option (-Z) which hits the same usage()
+# code path and produces the same RC=10.
+
+# ==========================================================================
+# FUNCTIONAL TESTS
+# ==========================================================================
+
+# Native: /bin/sleep 0; echo $? -> 0, no stdout output
+TEST: sleep 0 returns immediately with RC=0
+CMD: WORK:sleep 0
+EXPECT:
+EXPECT_RC: 0
+
+# Native: /bin/sleep 1; echo $? -> 0, no stdout output
+# Source: tv_sec=1, ticks=1*50=50, Delay(50) called
+TEST: sleep 1 waits one second and returns RC=0
+CMD: WORK:sleep 1
+EXPECT:
+EXPECT_RC: 0
+
+# Native: /bin/sleep 0.1; echo $? -> 0, no stdout output
+# Source: tv_nsec=100000000, ticks=100000000/20000000=5, exact -> Delay(5)
+TEST: Fractional 0.1 second maps to 5 ticks and returns RC=0
+CMD: WORK:sleep 0.1
+EXPECT:
+EXPECT_RC: 0
+
+# Source: tv_nsec=20000000, ticks += 20000000/20000000=1, no remainder -> Delay(1)
+TEST: Small fractional 0.02 maps to exactly 1 tick and returns RC=0
+CMD: WORK:sleep 0.02
+EXPECT:
+EXPECT_RC: 0
+
+# Source: tv_nsec=1000000, ticks += 1000000/20000000=0,
+# but 1000000 % 20000000 != 0 -> ticks += 1 (round-up) -> Delay(1)
+TEST: Sub-tick value 0.001 rounds up to 1 tick and returns RC=0
+CMD: WORK:sleep 0.001
+EXPECT:
+EXPECT_RC: 0
+
+# Source: tv_nsec=500000000, 500000000/20000000=25, no remainder -> Delay(25)
+TEST: Half-second 0.5 maps to exactly 25 ticks and returns RC=0
+CMD: WORK:sleep 0.5
+EXPECT:
+EXPECT_RC: 0
+
+# Source: tv_sec=0, tv_nsec=0 -> condition (tv_sec>0 || tv_nsec>0) is FALSE
+# -> Delay() is NOT called -> return 0 immediately
+TEST: sleep 0.0 skips Delay entirely and returns RC=0
+CMD: WORK:sleep 0.0
+EXPECT:
+EXPECT_RC: 0
+
+# Source: first char is '.', integer loop body never executes (tv_sec stays 0).
+# Fraction loop: '5' * 100000000 = 500000000 ns -> ticks=25 -> Delay(25)
+TEST: Leading-dot fractional .5 is valid and returns RC=0
+CMD: WORK:sleep .5
+EXPECT:
+EXPECT_RC: 0
+
+# ==========================================================================
+# ERROR PATH TESTS
+# ==========================================================================
+
+# Source: getopt(argc, argv, "") -- empty options string.
+# Any flag character returns '?' -> default: -> usage() -> exit(10)
+TEST: Unknown option -Z triggers usage and returns RC=10
+CMD: WORK:sleep -Z
+EXPECT_RC: 10
+
+# Source: if (argc != 1) usage(); -- two args after optind
+TEST: Two arguments trigger usage and return RC=10
+CMD: WORK:sleep 0 0
+EXPECT_RC: 10
+
+# Source: if (!isdigit((unsigned char)*cp)) errx(10, "seconds is invalid: ...")
+# First char 'a' is not a digit
+TEST: Non-numeric argument abc is rejected and returns RC=10
+CMD: WORK:sleep abc
+EXPECT_RC: 10
+
+# Source: '-' is not a digit -> errx(10, "seconds is invalid: ...")
+# Note: getopt also processes this as option '1' (unknown) -> hits default: -> usage()
+# Either code path produces RC=10.
+TEST: Negative number -1 is rejected and returns RC=10
+CMD: WORK:sleep -1
+EXPECT_RC: 10
+
+# Source: integer parsing succeeds ("1"), then '.' triggers fraction loop,
+# 'x' fails isdigit check -> errx(10, "seconds is invalid: 1.5x")
+TEST: Fractional part with letter 1.5x is rejected and returns RC=10
+CMD: WORK:sleep 1.5x
+EXPECT_RC: 10
+
+# Source: '1' parsed ok (tv_sec=1), 'x' is not '.' and not '\0' in integer loop
+# -> errx(10, "seconds is invalid: 1x")
+TEST: Integer part with trailing letter 1x is rejected and returns RC=10
+CMD: WORK:sleep 1x
+EXPECT_RC: 10
+
+# ==========================================================================
+# EDGE CASE TESTS
+# ==========================================================================
+
+# Source overflow check: t = (tv_sec * 10) + digit; if (t / 10 != tv_sec) errx(10)
+# With 32-bit long: tv_sec=214748364, t=214748364*10+8=2147483648 -> wraps to
+# -2147483648 in 32-bit; -2147483648/10=-214748365 != 214748364 -> overflow detected
+TEST: 32-bit overflow on 2147483648 is detected and returns RC=10
+CMD: WORK:sleep 2147483648
+EXPECT_RC: 10
+
+# Clearly-huge number: overflow detected at 10th '9' character
+TEST: Very large number 99999999999999999999 triggers overflow and returns RC=10
+CMD: WORK:sleep 99999999999999999999
+EXPECT_RC: 10
+
+# Source: first char '\0' -> integer loop skipped (tv_sec=0), *cp is not '.'
+# -> fraction skipped -> tv_nsec=0 -> no Delay -> return 0
+# Note: AmigaDOS may or may not pass empty-string argv. Tests harness behavior.
+TEST: Empty string argument treated as 0 seconds and returns RC=0
+CMD: WORK:sleep ""
+EXPECT_RC: 0
+
+# Source: '.' -> integer loop ends (tv_sec=0), *cp IS '.',
+# cp++ -> *cp is '\0' -> fraction loop exits immediately -> tv_nsec=0 -> no Delay -> RC=0
+TEST: Dot-only argument . parses as 0 seconds and returns RC=0
+CMD: WORK:sleep .
+EXPECT_RC: 0
+
+# Source: multiplier i starts at 100000000, divides by 10 each digit.
+# After 9 digits i=0. Digit 10 contributes 0 * i = 0. Still validated as digit.
+# tv_nsec=0 here -> condition false -> no Delay -> return 0
+TEST: 10-digit fractional 0.0000000001 is accepted and returns RC=0
+CMD: WORK:sleep 0.0000000001
+EXPECT_RC: 0
+
+# ==========================================================================
+# AMIGA-SPECIFIC TESTS
+# ==========================================================================
+
+# Amiga-specific: AmigaDOS globbing (amiport_expand_argv) must not corrupt
+# a pure numeric argument like "3". tv_sec=3 -> Delay(150).
+TEST: AmigaDOS argv expansion does not corrupt numeric argument 3
+CMD: WORK:sleep 3
+EXPECT:
+EXPECT_RC: 0
+
+# Amiga-specific: Delay() uses 1/50s ticks. Verify a fractional argument that
+# maps to a non-trivial tick count returns promptly without hanging or looping.
+# 0.04 seconds = 40000000 ns, ticks = 40000000/20000000=2, no remainder -> Delay(2)
+TEST: Amiga Delay 2 ticks for 0.04 seconds exits without hanging
+CMD: WORK:sleep 0.04
+EXPECT:
+EXPECT_RC: 0
+
+# ==========================================================================
+# REAL-WORLD AND STRESS TESTS
+# ==========================================================================
+
+# Real-world: 0.3 second inter-command delay (timing-sensitive shell scripts)
+TEST: Real-world 0.3 second inter-command delay returns RC=0
+CMD: WORK:sleep 0.3
+EXPECT:
+EXPECT_RC: 0
+
+# Real-world: 2-second wait used in install scripts and timed sequences.
+# Source: ticks = 2 * 50 = 100, Delay(100) called.
+TEST: Real-world 2-second install-script wait returns RC=0
+CMD: WORK:sleep 2
+EXPECT:
+EXPECT_RC: 0
+
+# Precision: 9-digit fractional exercises all multiplier stages in the parse loop.
+# "1.123456789": tv_sec=1, tv_nsec=123456789
+# ticks = 1*50 + 123456789/20000000 = 50+6=56
+# 123456789 % 20000000 = 3456789 != 0 -> ticks++ = 57, Delay(57) ~= 1.14 seconds
+# Validates the shift-based tick arithmetic end-to-end.
+TEST: Precision 9-digit fractional 1.123456789 exercises full tick calculation RC=0
+CMD: WORK:sleep 1.123456789
+EXPECT:
+EXPECT_RC: 0
+
+# Precision regression: sub-1-tick fractional with exact round-up boundary.
+# 0.019 seconds = 19000000 ns.
+# 19000000 / 20000000 = 0 (integer division), 19000000 % 20000000 = 19000000 != 0
+# -> round-up fires -> ticks=1 -> Delay(1)
+# Tests that the "if (tv_nsec % 20000000L != 0) ticks += 1" branch executes.
+TEST: Sub-tick 0.019 triggers round-up to 1 tick and returns RC=0
+CMD: WORK:sleep 0.019
+EXPECT:
+EXPECT_RC: 0

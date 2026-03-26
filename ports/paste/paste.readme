@@ -1,0 +1,21 @@
+Short:        Merge lines of files side by side
+Type:         util/cli
+Architecture: m68k-amigaos >= 3.0
+Uploader:     duncan@bowring.us
+Author:       Adam S. Moskowitz, UC Berkeley (ported by Duncan Bowring)
+Version:      1.27
+
+paste - Merge lines of files side by side
+
+Original author: Adam S. Moskowitz, UC Berkeley
+Ported by Duncan Bowring using amiport (AI-assisted porting toolkit).
+Project: https://github.com/bdgscotland/amiport
+
+Cross-compiled for AmigaOS 3.x (68000+).
+Tested in vamos emulator and FS-UAE.
+
+Usage:
+  paste [options] [arguments]
+
+Includes full source code (original POSIX and ported Amiga versions)
+and PORT.md documenting every transformation applied.
