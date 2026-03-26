@@ -22,3 +22,8 @@
 - [port_getopt_perf.md](port_getopt_perf.md) - Performance findings for ports/getopt 1.10 — trivial single-shot CLI, clean bill of health reviewed 2026-03-26
 - [port_jot_perf.md](port_jot_perf.md) - Performance findings for ports/jot 1.56 — printf-per-value hotloop, fputs single-char fast path reviewed 2026-03-26
 - [port_unexpand_perf.md](port_unexpand_perf.md) - Performance findings for ports/unexpand 1.13 — dead linebuf scan loop (HIGH), printf->fputs (MEDIUM) reviewed 2026-03-26
+- [port_paste_perf.md](port_paste_perf.md) - Performance findings for ports/paste 1.27 — modulo in parallel inner loop, putchar per delimiter, I/O-bound reviewed 2026-03-26
+- [port_printf_perf.md](port_printf_perf.md) - Performance findings for ports/printf 1.28 — strchr->isdigit in format scan loop, single-shot tool reviewed 2026-03-26
+- [port_test_perf.md](port_test_perf.md) - Performance findings for ports/test 1.23 — linear ops[] scan, no I/O, clean bill of health reviewed 2026-03-26
+- [port_cat_perf.md](port_cat_perf.md) - Performance findings for ports/cat 1.34 — cook_buf getc per-byte (HIGH), BUFSIZ=512 too small for raw_cat (HIGH) reviewed 2026-03-26
+- [port_rs_perf.md](port_rs_perf.md) - Performance findings for ports/rs 1.30 — putchar per padding space in prints() (HIGH), strlen per token in mbsavis (MEDIUM) reviewed 2026-03-26
