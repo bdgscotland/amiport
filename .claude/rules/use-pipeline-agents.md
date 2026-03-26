@@ -49,8 +49,11 @@ subagent_type: "aminet-publisher"       # Publishing (never automatic)
 subagent_type: "site-manager"           # Website deployment and testing
 subagent_type: "visual-test-expert"    # Visual test authoring and debugging (ADR-024/025)
 subagent_type: "amiport-publisher"      # Test-gated publishing to amiport site
+subagent_type: "port-worker"            # Parallel batch: self-contained stages 0-4 in worktree
 ```
 
 ## Entry Point
 
-For any new port, always start with `/port-project` — it orchestrates the full pipeline (Stage 0 through Stage 7) and dispatches the right agents at each step.
+For a **single port**, start with `/port-project` — it orchestrates the full pipeline (Stage 0 through Stage 7) and dispatches the right agents at each step.
+
+For **multiple ports in parallel**, use `/batch-port-parallel` — it dispatches `port-worker` agents in isolated worktrees, then runs FS-UAE testing and reviews serially from the main session.

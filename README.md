@@ -86,6 +86,14 @@ make smoke-test         # Verify everything works
 
 The `/port-project` command runs the full pipeline: analyze source for POSIX dependencies, transform calls to Amiga equivalents, cross-compile, test in emulator, review for memory safety and performance. See the [porting guide](docs/porting-guide.md) for details.
 
+For **batch porting** multiple programs in parallel:
+
+```bash
+/batch-port-parallel 5          # 5 Cat 1 ports simultaneously
+```
+
+This dispatches `port-worker` agents in isolated git worktrees — each runs the full pipeline independently. FS-UAE testing and reviews run serially after all workers complete.
+
 ## Compatibility Libraries
 
 Most porting failures come from the POSIX gap. amiport bridges it with a three-tier model:

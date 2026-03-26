@@ -13,6 +13,7 @@ The porting pipeline has 5 stages, each backed by a Claude skill:
 3. **Build** (`/build-amiga`) — Cross-compile with bebbo-gcc or VBCC
 4. **Test** (`/test-amiga`) — Run in vamos emulator, verify output
 5. **Orchestrate** (`/port-project`) — Run the full pipeline end-to-end
+6. **Parallel Batch** (`/batch-port-parallel`) — Dispatch N ports simultaneously in isolated worktrees
 
 ## Codebase Map
 
@@ -80,6 +81,7 @@ The `/port-project` skill has GATE checks — it will not proceed to the next st
 | `visual-test-expert` | Visual test authoring and debugging — SCRAPE/SCREEN_READ/EXPECT_TRAP_CURSOR (ADR-024/025) |
 | `amiport-publisher` | Publish ports to amiport.platesteel.net — test-gated, never automatic |
 | `catalog-engineer` | Catalog management — candidate enumeration, dry-run analysis, scoring, batch dispatch |
+| `port-worker` | Self-contained porting worker for parallel batch dispatch — runs stages 0-4 in an isolated worktree |
 
 ## Documentation Rules — IMPORTANT
 

@@ -223,7 +223,7 @@ Port C:           [Analyze]→[Transform]→[Build]→[vamos]──────�
 
 The long poles are agent dispatch times (Analyze ~2min, Transform ~3min), not FS-UAE (~30-60s). Pipeline overlap gives ~2-3x throughput with zero code changes.
 
-### How to Dispatch Concurrently
+### Manual Pipeline Overlap
 
 Use the Agent tool with `run_in_background: true` to overlap stages across ports:
 
@@ -231,6 +231,18 @@ Use the Agent tool with `run_in_background: true` to overlap stages across ports
 2. While Port A is in transform/build, dispatch `source-analyzer` for Port B
 3. While Port A runs FS-UAE, dispatch `code-transformer` for Port B
 4. Run FS-UAE tests one port at a time (serial — shared `build/amiga/` and `build/system.hdf`)
+
+### Automated Parallel Batch
+
+Use `/batch-port-parallel` to dispatch multiple ports at once:
+
+```bash
+/batch-port-parallel              # 5 Cat 1 ports (default)
+/batch-port-parallel 3            # 3 ports
+/batch-port-parallel 5 cli        # 5 Cat 1 CLI ports
+```
+
+This dispatches `port-worker` agents in isolated git worktrees. Each worker runs stages 0-4 independently (analyze, transform, build, vamos test). FS-UAE testing and reviews run serially after all workers complete. Max 8 concurrent workers.
 
 ### Safety Rules
 
