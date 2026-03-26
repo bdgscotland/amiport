@@ -1,0 +1,22 @@
+{
+    "name": "expand",
+    "version": "1.15",
+    "description": "Convert tabs to spaces",
+    "category": "util/cli",
+    "source": "OpenBSD src/usr.bin/expand/expand.c rev 1.15",
+    "license": "BSD 3-Clause",
+    "size": 20905,
+    "sha256": "018a4169e3c543b3189acc9b5b13477a9b68f7161682cd35f1e5c605925802c2",
+    "download": "/packages/expand-1.15.lha",
+    "requires": [],
+    "aminet": "",
+    "stack": 32768,
+    "status": "stable",
+    "revision": 1,
+    "test_count": 29,
+    "test_pass": 29,
+    "published_at": "2026-03-26T01:45:53Z",
+    "porting_notes": "Single-file port (170 lines, pure C89). Transformations: err()/errx() via amiport/err.h shim, pledge() stubbed as macro, exit(1) changed to exit(10) (RETURN_ERROR), __progname defined directly to avoid weak-symbol linker stripping. Performance optimised: getchar() loop replaced with fgets() + pointer scan (~40x fewer JSR calls per line); putchar(' ') loops replaced with fwrite(spaces, 1, n, stdout) (~7x fewer calls per tab); modulo in single-stop case replaced with precomputed target (1 DIVU per tab vs 7). Memory audit: CLEAN -- single allocation (amiport_expand_argv), atexit cleanup covers all exit paths. 29/29 FS-UAE tests pass.",
+    "known_limitations": "No multibyte/locale support -- tab expansion is byte-based, correct for ISO 8859-1.",
+    "readme": "Short:        Convert tabs to spaces\nType:         util/cli\nArchitecture: m68k-amigaos >= 3.0\nUploader:     duncan (at) bowring (dot) us\nAuthor:       University of California, Berkeley (ported by Duncan Bowring)\nVersion:      1.15\n\nexpand - Convert tabs to spaces\n\nOriginal author: University of California, Berkeley\nPorted by Duncan Bowring using amiport (AI-assisted porting toolkit).\nProject: https://github.com/bdgscotland/amiport\n\nCross-compiled with m68k-amigaos-gcc for AmigaOS 3.x (68000+).\nTested in vamos emulator and FS-UAE.\n\nUsage:\n  expand [-t tablist] [file ...]\n\n  expand file.txt           Expand tabs to spaces (8-column stops)\n  expand -t 4 file.txt      Use 4-column tab stops\n  expand -t 4,8,12 file.txt Custom tab stops at columns 4, 8, 12\n\nIncludes full source code (original POSIX and ported Amiga versions)\nand PORT.md documenting every transformation applied."
+}

@@ -13,6 +13,7 @@ After editing any file in `ports/<name>/ported/`, you MUST:
 3. **FS-UAE full test**: `make test-fsemu TARGET=ports/<name>` from the project root
 4. **All tests must pass**: 0 failures in the TAP output
 5. **NEVER weaken assertions to pass** — if tests fail, fix the code or halt. Do NOT replace `EXPECT:` with `EXPECT_CONTAINS:` to hide output differences. See `.claude/rules/never-weaken-tests.md`.
+6. **Mandatory agent reviews**: dispatch `memory-checker` and `perf-optimizer` agents. This applies to ALL code changes — not just initial ports. Adding a dependency (e.g., linking Oniguruma to jq) introduces new code paths that need memory safety and performance review.
 
 Do NOT skip step 3. vamos does not simulate real AmigaOS behavior — programs that pass on vamos can crash on real hardware (crash-patterns #7, #10). The FS-UAE test is the only way to verify correctness on real AmigaOS.
 
