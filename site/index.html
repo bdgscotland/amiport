@@ -73,11 +73,11 @@
     <!-- Big Stats -->
     <section class="home-stats" role="status" aria-label="Project statistics">
         <div class="home-stats__card">
-            <span class="home-stats__value" id="stats-ports">...</span>
+            <span class="home-stats__value" id="stats-ports">20</span>
             <span class="home-stats__label">ports shipped</span>
         </div>
         <div class="home-stats__card">
-            <span class="home-stats__value" id="stats-tests">...</span>
+            <span class="home-stats__value" id="stats-tests">550+</span>
             <span class="home-stats__label">tests passing</span>
         </div>
         <div class="home-stats__card">
@@ -313,7 +313,7 @@
 // Dynamic stats from API
 (function() {
     var xhr = new XMLHttpRequest();
-    xhr.open('GET', 'api/v1/packages.php');
+    xhr.open('GET', 'api/v1/packages.php?_=' + Date.now());
     xhr.onload = function() {
         try {
             var pkgs = JSON.parse(xhr.responseText);
