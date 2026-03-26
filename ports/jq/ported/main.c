@@ -16,6 +16,10 @@
 /* amiport: declare dirname() — provided by libnix libc.a, no header in sysroot */
 extern char *dirname(char *path);
 
+#ifdef HAVE_LIBONIG
+#include <oniguruma.h>
+#endif
+
 /* amiport: Amiga version string */
 static const char *verstag = "$VER: jq 1.7.1-2 (25.03.2026)";
 
@@ -393,6 +397,17 @@ int main(int argc, char* argv[]) {
   (void) setlocale(LC_ALL, "");
 #endif
 
+#ifdef HAVE_LIBONIG
+  /* amiport: Oniguruma must be initialized before use. Static linking
+   * doesn't run library constructors. Without this, onig_new() fails
+   * on real AmigaOS (uninitialized globals contain garbage). */
+  {
+    OnigEncoding encodings[1];
+    encodings[0] = ONIG_ENCODING_ASCII;
+    onig_initialize(encodings, 1);
+  }
+#endif
+
 #ifdef __OpenBSD__
   if (pledge("stdio rpath", NULL) == -1) {
     perror("pledge");
@@ -404,6 +419,11 @@ int main(int argc, char* argv[]) {
   /* amiport: ensure output buffer is flushed on all exit paths.
    * hardware-expert review: fclose(stdout) doesn't flush our app-level buffer. */
   atexit(amiport_jv_flush);
+#endif
+
+#ifdef HAVE_LIBONIG
+  /* amiport: clean up Oniguruma on exit */
+  atexit(onig_end);
 #endif
 
 #ifdef WIN32

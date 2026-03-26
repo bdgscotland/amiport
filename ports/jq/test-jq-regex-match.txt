@@ -1,0 +1,1 @@
+.text | [match("[0-9]+")] | .[0] | {offset, string}

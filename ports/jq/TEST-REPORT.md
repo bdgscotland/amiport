@@ -5,17 +5,17 @@
 | Field | Value |
 |-------|-------|
 | Port | jq |
-| Date | 2026-03-23 17:04:35 |
-| Duration | 399s |
+| Date | 2026-03-25 21:32:17 |
+| Duration | 285s |
 | Platform | FS-UAE 3.2.35 (A1200, Kickstart 3.1) |
-| Binary | `WORK:jq` (369K) |
+| Binary | `WORK:jq` (578K) |
 | Test method | ARexx harness → TAP output |
-| Result | **PASS** — 50/50 passed |
+| Result | **PASS** — 60/60 passed |
 
 ## Test Results
 
 ```
-1..50
+1..60
 ok 1 - Identity filter pretty-prints JSON object (basic smoke test)
 ok 2 - Field access extracts string value
 ok 3 - Raw output (-r) strips JSON string quotes
@@ -66,7 +66,17 @@ ok 47 - Find package with most tests (sort + reverse + index)
 ok 48 - Summarize dataset (object construction + add + length)
 ok 49 - Extract all category values (unique + sort)
 ok 50 - Group by status and count (group_by + map + from_entries)
-# passed: 50 failed: 0 total: 50
+ok 51 - Regex test() basic match
+ok 52 - Regex test() no match
+ok 53 - Regex test() with character class
+ok 54 - Regex test() case-insensitive flag
+ok 55 - Regex match() returns offset and string
+ok 56 - Regex capture() with named groups
+ok 57 - Regex scan() returns all matches
+ok 58 - Regex sub() single replacement
+ok 59 - Regex gsub() global replacement
+ok 60 - Regex test() anchored pattern
+# passed: 60 failed: 0 total: 60
 ```
 
 ### Breakdown
@@ -123,6 +133,16 @@ ok 50 - Group by status and count (group_by + map + from_entries)
 | 48 | Summarize dataset (object construction + add + length) | PASS | |
 | 49 | Extract all category values (unique + sort) | PASS | |
 | 50 | Group by status and count (group_by + map + from_entries) | PASS | |
+| 51 | Regex test() basic match | PASS | |
+| 52 | Regex test() no match | PASS | |
+| 53 | Regex test() with character class | PASS | |
+| 54 | Regex test() case-insensitive flag | PASS | |
+| 55 | Regex match() returns offset and string | PASS | |
+| 56 | Regex capture() with named groups | PASS | |
+| 57 | Regex scan() returns all matches | PASS | |
+| 58 | Regex sub() single replacement | PASS | |
+| 59 | Regex gsub() global replacement | PASS | |
+| 60 | Regex test() anchored pattern | PASS | |
 
 ## Environment
 
@@ -145,7 +165,7 @@ and compares against the expected output string.
 # jq FS-UAE test suite
 # jq 1.7.1 -- Category 1 (CLI), minimum 15 tests required
 # Uses input files instead of piping (ARexx limitation)
-# Built without oniguruma (regex builtins return runtime errors)
+# Includes Oniguruma 6.9.9 regex engine (ASCII-only build)
 # Built without decNumber (IEEE 754 doubles)
 #
 # Flags covered: -n -R -s -c -r -j -a -S -C -M -e -f -V -h
@@ -293,7 +313,7 @@ EXPECT_RC: 0
 
 TEST: Build configuration (--build-configuration) prints compile-time options
 CMD: WORK:jq --build-configuration
-EXPECT_CONTAINS: without-oniguruma
+EXPECT_CONTAINS: with-oniguruma
 EXPECT_RC: 0
 
 TEST: Help flag (-h) prints usage to stdout
@@ -431,6 +451,69 @@ FILE: test-jq-packages.txt
 CMD: WORK:jq -c "[group_by(.status)[] | {(.[0].status): length}] | add" WORK:test-jq-packages.txt
 EXPECT: {"published":5,"submitted":1,"testing":1}
 EXPECT_RC: 0
+
+# --- Regex tests (Oniguruma 6.9.9, ASCII-only) ---
+# Uses -f filter files to avoid AmigaDOS quote-escaping issues
+
+TEST: Regex test() basic match
+FILE: test-jq-regex.txt
+CMD: WORK:jq -f WORK:test-jq-regex-test.txt WORK:test-jq-regex.txt
+EXPECT: true
+EXPECT_RC: 0
+
+TEST: Regex test() no match
+FILE: test-jq-regex.txt
+CMD: WORK:jq -f WORK:test-jq-regex-nomatch.txt WORK:test-jq-regex.txt
+EXPECT: false
+EXPECT_RC: 0
+
+TEST: Regex test() with character class
+FILE: test-jq-regex.txt
+CMD: WORK:jq -f WORK:test-jq-regex-charclass.txt WORK:test-jq-regex.txt
+EXPECT: true
+EXPECT_RC: 0
+
+TEST: Regex test() case-insensitive flag
+FILE: test-jq-regex.txt
+CMD: WORK:jq -f WORK:test-jq-regex-icase.txt WORK:test-jq-regex.txt
+EXPECT: true
+EXPECT_RC: 0
+
+TEST: Regex match() returns offset and string
+FILE: test-jq-regex.txt
+CMD: WORK:jq -c -f WORK:test-jq-regex-match.txt WORK:test-jq-regex.txt
+EXPECT: {"offset":12,"string":"123"}
+EXPECT_RC: 0
+
+TEST: Regex capture() with named groups
+FILE: test-jq-regex.txt
+CMD: WORK:jq -c -f WORK:test-jq-regex-capture.txt WORK:test-jq-regex.txt
+EXPECT: {"year":"2026","month":"03","day":"25"}
+EXPECT_RC: 0
+
+TEST: Regex scan() returns all matches
+FILE: test-jq-regex.txt
+CMD: WORK:jq -c -f WORK:test-jq-regex-scan.txt WORK:test-jq-regex.txt
+EXPECT: ["Hello","World"]
+EXPECT_RC: 0
+
+TEST: Regex sub() single replacement
+FILE: test-jq-regex.txt
+CMD: WORK:jq -f WORK:test-jq-regex-sub.txt WORK:test-jq-regex.txt
+EXPECT: "Hello Amiga 123"
+EXPECT_RC: 0
+
+TEST: Regex gsub() global replacement
+FILE: test-jq-regex.txt
+CMD: WORK:jq -f WORK:test-jq-regex-gsub.txt WORK:test-jq-regex.txt
+EXPECT: "Hello World XXX"
+EXPECT_RC: 0
+
+TEST: Regex test() anchored pattern
+FILE: test-jq-regex.txt
+CMD: WORK:jq -f WORK:test-jq-regex-anchor.txt WORK:test-jq-regex.txt
+EXPECT: true
+EXPECT_RC: 0
 ```
 
 ## Emulator Log
@@ -445,9 +528,9 @@ Written by the ARexx harness when all tests complete:
 
 ```
 TESTS_COMPLETE
-passed=50
+passed=60
 failed=0
-total=50
+total=60
 ```
 
 ---

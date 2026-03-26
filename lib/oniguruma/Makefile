@@ -10,9 +10,10 @@ CC = $(TOOLCHAIN_BIN)/m68k-amigaos-gcc
 AR = $(TOOLCHAIN_BIN)/m68k-amigaos-ar
 RANLIB = $(TOOLCHAIN_BIN)/m68k-amigaos-ranlib
 
-# -O2 is safe here (no struct-by-value returns > 8 bytes in oniguruma)
+# -O0 for safety on 68k — -O2 causes regex failures on real AmigaOS
+# (vamos works but FS-UAE/real hardware fails — likely GCC codegen bug)
 # -m68000 for vamos compatibility
-CFLAGS = -O2 -noixemul -m68000 -Wall -Wno-unused-parameter \
+CFLAGS = -O0 -noixemul -m68000 -Wall -Wno-unused-parameter \
          -DHAVE_CONFIG_H -Isrc -Iinclude
 TARGET = liboniguruma.a
 
