@@ -28,3 +28,8 @@
 - [port_cat_perf.md](port_cat_perf.md) - Performance findings for ports/cat 1.34 — cook_buf getc per-byte (HIGH), BUFSIZ=512 too small for raw_cat (HIGH) reviewed 2026-03-26
 - [port_rs_perf.md](port_rs_perf.md) - Performance findings for ports/rs 1.30 — putchar per padding space in prints() (HIGH), strlen per token in mbsavis (MEDIUM) reviewed 2026-03-26
 - [port_column_ln_expr_look_tty_perf.md](port_column_ln_expr_look_tty_perf.md) - Performance findings for ports/column 1.27, ln 1.25, expr 1.28, look 1.27, tty 1.14 — batch review 2026-03-26
+- [port_tr_perf.md](port_tr_perf.md) - Performance findings for ports/tr 1.22 — getchar/putchar per-byte hotloops (HIGH), int[] tables vs char[] (MEDIUM) reviewed 2026-03-26
+- [port_fold_perf.md](port_fold_perf.md) - Performance findings for ports/fold 1.18 — getchar per-byte inner loop (HIGH), MB_CUR_MAX correctly guarded reviewed 2026-03-26
+- [port_nl_perf.md](port_nl_perf.md) - Performance findings for ports/nl 1.8 — printf(format,...) per line (HIGH), printf("%*s") for blank lines (HIGH) reviewed 2026-03-26
+- [port_join_perf.md](port_join_perf.md) - Performance findings for ports/join 1.34 — mbssep ndelim recount per call (HIGH), ferror per field (MEDIUM) reviewed 2026-03-26
+- [port_tsort_perf.md](port_tsort_perf.md) - Performance findings for ports/tsort 1.38 — MULU in hash function (MEDIUM), static line_buf already correct reviewed 2026-03-26

@@ -1,0 +1,22 @@
+{
+    "name": "nl",
+    "version": "1.8",
+    "revision": 1,
+    "description": "Line numbering filter",
+    "category": "util/cli",
+    "source": "OpenBSD nl.c 1.8",
+    "license": "BSD",
+    "size": 26960,
+    "sha256": "69ba7a93b95322f78250e1c26024c144d7ef309388c70d8fc6fc149107459775",
+    "download": "/packages/nl-1.8.lha",
+    "requires": [],
+    "aminet": "",
+    "stack": 16384,
+    "status": "stable",
+    "published_at": "2026-03-26T17:35:00Z",
+    "readme": "Short:        Line numbering filter\nType:         util/cli\nArchitecture: m68k-amigaos >= 3.0\nUploader:     duncan (at) bowring (dot) us\nAuthor:       OpenBSD (ported by Duncan Bowring)\nVersion:      1.8\n\nnl - Line numbering filter\n\nOriginal author: OpenBSD\nPorted by Duncan Bowring using amiport (AI-assisted porting toolkit).\nProject: https://github.com/bdgscotland/amiport\n\nCross-compiled with bebbo-gcc for AmigaOS 3.x (68000+).\nTested via vamos emulator and FS-UAE with Workbench 3.1.\n\nStandalone binary, no ixemul.library needed (-noixemul).\n\nIncludes full source code (original POSIX and ported Amiga versions)\nand PORT.md documenting every transformation applied.",
+    "test_count": 42,
+    "test_pass": 42,
+    "porting_notes": "OpenBSD nl 1.8 ported to AmigaOS 3.x. 42/42 FS-UAE tests pass. Standard amiport transformations: argv expansion, Amiga exit codes, stack cookie 16384.",
+    "known_limitations": "None known."
+}

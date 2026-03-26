@@ -179,3 +179,11 @@
   - look: CLEAN — mmap/munmap properly paired, atexit cleanup correct ✓
   - tty: CLEAN — no dynamic allocations beyond argv expansion ✓
   - Key finding: Input processing pattern with static growth state (column) is hard to cleanup; recursive descent expression parsing (expr) requires cleanup before every errx() call
+
+- [memory-audit-batch-5.md](memory-audit-batch-5.md) - Batch 6: tr 1.22, fold 1.18, nl 1.8, join 1.34, tsort 1.38 (2026-03-26)
+  - **tr 1.22:** CLEAN ✓ — argv only, atexit covers all paths, class set allocations bounded
+  - **fold 1.18:** CRITICAL LEAK ✗ — static buf malloc never freed, 2-4 KB per invocation, unfixable without moving buf to global
+  - **nl 1.8:** CLEAN ✓ — getline buffer tracked with double-free protection, all paths covered
+  - **join 1.34:** CRITICAL LEAK ✗ — 2 leaks: obsolete() malloc strings (~200B) + getline buffers (100KB-1MB), unfixable without tracking
+  - **tsort 1.38:** CLEAN ✓ — ohash allocations freed via emem(), files freed explicitly, process cleanup via OS
+  - Key findings: Static buffers inside functions are invisible to atexit cleanup (fold pitfall); obsolete() pattern allocates new strings without tracking; getline() tracking pattern (nl) is correct model
