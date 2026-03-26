@@ -58,23 +58,30 @@ if git diff --cached --name-only | grep -qE '\.rexx$'; then
 fi
 
 echo "=== Pre-commit: checking PORT.md enrichment ==="
-# Block commits with placeholder PORT.md files (Phase 11b not completed)
-PLACEHOLDER_PORTS=""
+# Block commits with stub/placeholder PORT.md files (Phase 11b not completed)
+# A real PORT.md must have >60 lines AND contain required section headers.
+STUB_PORTS=""
 for portmd in $(git diff --cached --name-only | grep -E '^ports/[^/]+/PORT\.md$'); do
-    if [ -f "$portmd" ] && grep -q '<!-- Populated by' "$portmd"; then
-        PLACEHOLDER_PORTS="$PLACEHOLDER_PORTS\n  $portmd"
+    if [ -f "$portmd" ]; then
+        lines=$(wc -l < "$portmd")
+        # Check for placeholder markers (multiple patterns that stubs use)
+        has_placeholder=$(grep -cE 'To be filled|To be documented|<!-- Populated by' "$portmd" || true)
+        # Check for required section content (not just headers)
+        has_transforms=$(grep -c '|.*amiport.*|' "$portmd" || true)
+        if [ "$lines" -lt 60 ] || [ "$has_placeholder" -gt 0 ] || [ "$has_transforms" -lt 1 ]; then
+            STUB_PORTS="$STUB_PORTS\n  $portmd ($lines lines, $has_placeholder placeholders)"
+        fi
     fi
 done
-if [ -n "$PLACEHOLDER_PORTS" ]; then
-    echo "BLOCKED: PORT.md files contain placeholder comments (Phase 11b not completed):"
-    echo -e "$PLACEHOLDER_PORTS"
+if [ -n "$STUB_PORTS" ]; then
+    echo "BLOCKED: PORT.md files are stubs (Phase 11b enrichment not completed):"
+    echo -e "$STUB_PORTS"
     echo ""
-    echo "Run PORT.md enrichment before committing. Each PORT.md must have:"
-    echo "  - Description (2-3 sentences, not one line)"
-    echo "  - Portability Analysis table"
-    echo "  - Transformations Applied table"
-    echo "  - Build Configuration"
-    echo "  - Test Results"
+    echo "Each PORT.md must have >60 lines with real content including:"
+    echo "  - Portability Analysis table (POSIX deps, tiers, resolutions)"
+    echo "  - Transformations Applied table (file, line, original, transformed)"
+    echo "  - Test Results (count, pass rate)"
+    echo "  - No 'To be filled' or 'To be documented' placeholders"
     exit 1
 fi
 
