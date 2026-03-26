@@ -358,6 +358,91 @@ else
     FAIL=$((FAIL + 1))
 fi
 
+# --- Per-Port Pages ---
+echo ""
+echo "Per-Port Pages"
+echo "--------------"
+
+STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$BASE_URL/packages/?name=grep")
+assert "Per-port page returns 200" "200" "$STATUS"
+
+BODY=$(curl -s "$BASE_URL/packages/?name=grep")
+assert_contains "Per-port page has package name" "grep" "$BODY"
+assert_contains "Per-port page has version" "1.68" "$BODY"
+assert_contains "Per-port page has breadcrumb" "Packages" "$BODY"
+assert_contains "Per-port page has porting story" "Porting Story" "$BODY"
+
+STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$BASE_URL/packages/?name=nonexistent")
+assert "Per-port unknown package returns 404" "404" "$STATUS"
+
+STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$BASE_URL/packages/?name=../etc/passwd")
+TOTAL=$((TOTAL + 1))
+if [ "$STATUS" = "404" ] || [ "$STATUS" = "500" ] || [ "$STATUS" = "400" ]; then
+    echo -e "  ${GREEN}PASS${NC} Per-port path traversal blocked ($STATUS)"
+    PASS=$((PASS + 1))
+else
+    echo -e "  ${RED}FAIL${NC} Per-port path traversal not blocked (got $STATUS)"
+    FAIL=$((FAIL + 1))
+fi
+
+# --- Activity Feed API ---
+echo ""
+echo "Activity Feed API"
+echo "-----------------"
+
+STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$BASE_URL/api/v1/activity.php")
+assert "Activity API returns 200" "200" "$STATUS"
+
+BODY=$(curl -s "$BASE_URL/api/v1/activity.php")
+assert_contains "Activity returns JSON" '"type"' "$BODY"
+
+# --- Catalog Vote API ---
+echo ""
+echo "Catalog Vote API"
+echo "----------------"
+
+BODY=$(curl -s -X POST "$BASE_URL/api/v1/catalog-vote.php" \
+    -H "Content-Type: application/json" \
+    -d '{"slug":"less","vote":1}')
+assert_contains "Catalog vote succeeds" '"ok":true' "$BODY"
+assert_contains "Catalog vote returns score" '"score"' "$BODY"
+
+STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$BASE_URL/api/v1/catalog-vote.php" \
+    -H "Content-Type: application/json" \
+    -d '{"slug":"","vote":1}')
+assert "Catalog vote empty slug returns 400" "400" "$STATUS"
+
+STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$BASE_URL/api/v1/catalog-vote.php")
+assert "GET on catalog-vote returns 405" "405" "$STATUS"
+
+# --- Changelog Page ---
+echo ""
+echo "Changelog Page"
+echo "--------------"
+
+STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$BASE_URL/changelog.html")
+assert "Changelog page returns 200" "200" "$STATUS"
+
+BODY=$(curl -s "$BASE_URL/changelog.html")
+assert_contains "Changelog has heading" "Changelog" "$BODY"
+
+# --- RSS Category Filter ---
+echo ""
+echo "RSS Category Filter"
+echo "-------------------"
+
+STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$BASE_URL/feed.php")
+assert "RSS feed returns 200" "200" "$STATUS"
+
+# --- Homepage Activity ---
+echo ""
+echo "Homepage Activity"
+echo "-----------------"
+
+BODY=$(curl -s "$BASE_URL/")
+assert_contains "Homepage has activity feed" "activity-feed" "$BODY"
+assert_contains "Homepage has activity.js" "activity.js" "$BODY"
+
 # --- Summary ---
 echo ""
 echo "================================"

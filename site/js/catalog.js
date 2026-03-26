@@ -48,6 +48,8 @@
         'stack_risk': 'Stack too deep', 'exceeds': 'Won\'t fit', 'unknown': 'Not analyzed'
     };
 
+    var VOTE_API = 'api/v1/catalog-vote.php';
+
     // --- Safe DOM helpers ---
 
     function el(tag, attrs, children) {
@@ -119,6 +121,70 @@
             if (i < 2) wrapper.appendChild(text(' '));
         }
         return wrapper;
+    }
+
+    function voteCell(c) {
+        var v = c.community_votes || { up: 0, down: 0, score: 0 };
+        var wrapper = el('span', { style: { whiteSpace: 'nowrap', display: 'inline-flex', alignItems: 'center', gap: '2px' } });
+
+        var upBtn = el('button', {
+            'aria-label': 'Upvote ' + (c.name || c.id),
+            title: 'Upvote',
+            className: 'vote-btn',
+            style: { background: 'none', border: 'none', cursor: 'pointer', padding: '0 2px', fontSize: '11px', color: '#448844', lineHeight: '1' }
+        }, '\u25B2');
+        upBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            castVote(c, 1);
+        });
+
+        var scoreSpan = el('span', {
+            className: 'vote-score',
+            'data-slug': c.id,
+            style: { fontSize: '12px', minWidth: '20px', textAlign: 'center', fontWeight: v.score > 0 ? 'bold' : 'normal', color: v.score > 0 ? '#448844' : v.score < 0 ? '#BB4444' : '#606060' }
+        }, String(v.score));
+
+        var downBtn = el('button', {
+            'aria-label': 'Downvote ' + (c.name || c.id),
+            title: 'Downvote',
+            className: 'vote-btn',
+            style: { background: 'none', border: 'none', cursor: 'pointer', padding: '0 2px', fontSize: '11px', color: '#BB4444', lineHeight: '1' }
+        }, '\u25BC');
+        downBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            castVote(c, -1);
+        });
+
+        wrapper.appendChild(upBtn);
+        wrapper.appendChild(scoreSpan);
+        wrapper.appendChild(downBtn);
+        return wrapper;
+    }
+
+    function castVote(c, vote) {
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', VOTE_API, true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.onload = function() {
+            if (xhr.status >= 200 && xhr.status < 300) {
+                try {
+                    var resp = JSON.parse(xhr.responseText);
+                    if (resp.ok) {
+                        // Update candidate data
+                        c.community_votes = { up: resp.votes_up, down: resp.votes_down, score: resp.score };
+                        // Update displayed score
+                        var scoreEls = document.querySelectorAll('.vote-score[data-slug="' + c.id + '"]');
+                        for (var i = 0; i < scoreEls.length; i++) {
+                            clearNode(scoreEls[i]);
+                            scoreEls[i].appendChild(text(String(resp.score)));
+                            scoreEls[i].style.fontWeight = resp.score > 0 ? 'bold' : 'normal';
+                            scoreEls[i].style.color = resp.score > 0 ? '#448844' : resp.score < 0 ? '#BB4444' : '#606060';
+                        }
+                    }
+                } catch (e) { /* ignore parse errors */ }
+            }
+        };
+        xhr.send(JSON.stringify({ slug: c.id, vote: vote }));
     }
 
     // --- Fetch ---
@@ -194,6 +260,7 @@
                 va = ao[a.aminet_status] || 0; vb = ao[b.aminet_status] || 0;
             }
             else if (sk === 'value') { va = a.community_value || 0; vb = b.community_value || 0; }
+            else if (sk === 'votes') { va = (a.community_votes || {}).score || 0; vb = (b.community_votes || {}).score || 0; }
             else { va = 0; vb = 0; }
             return dir * (va - vb);
         });
@@ -233,7 +300,8 @@
                 el('td', null, (c.upstream || {}).source || '?'),
                 el('td', null, hwDots(c.hardware_fit)),
                 el('td', null, aminetBadge(c.aminet_status)),
-                el('td', null, valueBadge(c.community_value))
+                el('td', null, valueBadge(c.community_value)),
+                el('td', null, voteCell(c))
             ]);
             tr.addEventListener('click', toggleDetail);
             tr.addEventListener('keydown', function(e) { if (e.key === 'Enter') toggleDetail.call(this, e); });
@@ -375,7 +443,7 @@
 
         // Wrap in a detail row spanning all columns
         var content = el('div', { style: { display: 'flex', gap: '24px', flexWrap: 'wrap', padding: '8px 0' } }, [left, right]);
-        var td = el('td', { colspan: '8', style: { background: '#A8A8A8', borderTop: '1px solid #606060' } }, content);
+        var td = el('td', { colspan: '9', style: { background: '#A8A8A8', borderTop: '1px solid #606060' } }, content);
         return el('tr', { className: 'cat-detail-row' }, td);
     }
 

@@ -1,0 +1,22 @@
+{
+    "name": "awk",
+    "version": "2024.12.25",
+    "description": "Pattern scanning and processing language",
+    "category": "dev/lang",
+    "source": "Brian W. Kernighan's One True Awk (github.com/onetrueawk/awk) 2024.12.25",
+    "license": "MIT-like",
+    "size": 298451,
+    "sha256": "65cea866b6fc03f562a3ce1641e24328cb469b5fc438a19912c7c84b1084ab9c",
+    "download": "/packages/awk-2024.12.25.lha",
+    "requires": [],
+    "aminet": "",
+    "stack": 65536,
+    "status": "stable",
+    "revision": 1,
+    "test_count": 134,
+    "test_pass": 134,
+    "published_at": "2026-03-26T01:45:35Z",
+    "porting_notes": "One True Awk by Brian Kernighan ported to AmigaOS 3.x. Key changes: popen/pclose replaced with amiport_emu_popen (temp-file emulation); system() uses amiport_emu_system returning AmigaDOS RC; MB_CUR_MAX forced to 1 (no wchar on AmigaOS); random()/srandom() mapped to rand()/srand(); /dev/null replaced with NIL:; stat()/S_ISDIR() use amiport_stat(); fcntl(FD_CLOEXEC) stubbed as no-op; %zu format specifiers replaced with %lu + cast; compiled with -std=gnu99 (ADR-022). Bug fix: upstream uses %.30g for integer formatting -- at 30 significant digits IEEE 754 double precision noise becomes visible in libnix output. Fixed to %.15g (max meaningful precision for 64-bit double). All 134 FS-UAE tests pass.",
+    "known_limitations": "Pipe commands (print | \"cmd\", \"cmd\" | getline) use temp files -- not concurrent. Shell syntax in pipe commands limited to AmigaDOS (no &&, ||, backticks). Multibyte/UTF-8 disabled -- operates on raw bytes (correct for ISO 8859-1). ENVIRON array is empty (AmigaOS has no environ). SIGFPE not delivered -- math errors caught via errno. Exit code for syntax errors is 2 (below AmigaDOS RETURN_WARN threshold of 5).",
+    "readme": "Short:        Pattern scanning and processing language\nType:         dev/lang\nArchitecture: m68k-amigaos >= 3.0\nUploader:     duncan (at) bowring (dot) us\nAuthor:       Brian W. Kernighan (ported by Duncan Bowring)\nVersion:      2024.12.25\n\nawk - Pattern scanning and processing language\n\nThe \"One True AWK\" by Brian Kernighan -- the canonical implementation\nby the original author. Replaces ATT-awk-1_0 (1994) with 30 years of\nbug fixes and improvements.\n\nPorted by Duncan Bowring using amiport (AI-assisted porting toolkit).\nProject: https://github.com/bdgscotland/amiport\n\nCross-compiled with m68k-amigaos-gcc for AmigaOS 3.x (68000+).\nTested in vamos emulator and FS-UAE.\n\nUsage:\n  awk 'pattern { action }' file ...\n  awk -f progfile file ...\n  awk -F: '{ print $1 }' /etc/passwd\n\nExamples:\n  awk '{ print NR, $0 }' file.txt       Number each line\n  awk -F, '{ print $2 }' data.csv       Print second CSV field\n  awk '/pattern/' file.txt               Print matching lines (like grep)\n  awk '{ sum += $1 } END { print sum }' numbers.txt   Sum column 1\n  awk 'NF > 0' file.txt                 Remove blank lines\n  awk '{ print length, $0 }' file.txt   Print line lengths\n\nLimitations on AmigaOS:\n  - Pipe commands (print | \"cmd\") use temp files, not concurrent pipes\n  - Shell syntax in pipe commands limited to AmigaDOS (no &&, ||)\n  - Multibyte/UTF-8 disabled -- operates on raw bytes (ISO 8859-1)\n  - ENVIRON array is empty (AmigaOS has no environ)\n\nIncludes full source code (original and ported versions)\nand PORT.md documenting every transformation applied."
+}

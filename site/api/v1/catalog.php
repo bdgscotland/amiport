@@ -8,6 +8,8 @@
  * GET /api/v1/catalog.php?profile=a1200_accel          — Filter by hardware profile fit
  */
 
+require_once dirname(__DIR__, 2) . '/db.php';
+
 header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: https://amiport.platesteel.net');
 header('Access-Control-Allow-Methods: GET');
@@ -76,6 +78,35 @@ $catalog['summary'] = [
     'shim_implemented' => $shimImpl,
     'shim_total' => $shimTotal,
 ];
+
+// Load community vote counts
+$voteMap = [];
+$pdo = amiport_db();
+if ($pdo !== null) {
+    try {
+        $stmt = $pdo->query(
+            'SELECT candidate_slug,
+                SUM(CASE WHEN vote = 1 THEN 1 ELSE 0 END) as up,
+                SUM(CASE WHEN vote = -1 THEN 1 ELSE 0 END) as dn
+             FROM catalog_votes GROUP BY candidate_slug'
+        );
+        while ($row = $stmt->fetch()) {
+            $voteMap[$row['candidate_slug']] = [
+                'up' => (int) $row['up'],
+                'down' => (int) $row['dn'],
+                'score' => (int) $row['up'] - (int) $row['dn'],
+            ];
+        }
+    } catch (PDOException $e) {
+        error_log('amiport catalog votes query failed: ' . $e->getMessage());
+    }
+}
+
+// Add community_votes to each candidate
+for ($i = 0; $i < count($catalog['candidates']); $i++) {
+    $slug = $catalog['candidates'][$i]['id'] ?? '';
+    $catalog['candidates'][$i]['community_votes'] = $voteMap[$slug] ?? ['up' => 0, 'down' => 0, 'score' => 0];
+}
 
 // Build shim unlock opportunities — show ALL unimplemented shims, not just those with unlocks
 $unlocks = [];

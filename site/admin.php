@@ -97,6 +97,9 @@ if ($isAdmin && isset($_SESSION['admin_time']) && (time() - $_SESSION['admin_tim
     <meta name="robots" content="noindex, nofollow">
     <title>Admin — amiport</title>
     <link rel="stylesheet" href="css/style.css">
+    <?php if (isset($_SESSION['admin']) && $_SESSION['admin'] === true): ?>
+    <meta name="csrf-token" content="<?php echo htmlspecialchars(amiport_csrf_token()); ?>">
+    <?php endif; ?>
 </head>
 <body>
 
@@ -177,10 +180,18 @@ if ($pdo !== null) {
              FROM downloads ORDER BY downloaded_at DESC LIMIT 50'
         )->fetchAll();
 
-        $portRequests = $pdo->query(
-            'SELECT id, tool_name, tool_url, status, admin_notes, requested_at
-             FROM port_requests ORDER BY requested_at DESC LIMIT 50'
-        )->fetchAll();
+        try {
+            $portRequests = $pdo->query(
+                'SELECT id, tool_name, tool_url, status, pipeline_status, admin_notes, requested_at
+                 FROM port_requests ORDER BY requested_at DESC LIMIT 50'
+            )->fetchAll();
+        } catch (PDOException $eCol) {
+            // pipeline_status column may not exist yet
+            $portRequests = $pdo->query(
+                'SELECT id, tool_name, tool_url, status, admin_notes, requested_at
+                 FROM port_requests ORDER BY requested_at DESC LIMIT 50'
+            )->fetchAll();
+        }
 
         $voteSummary = $pdo->query(
             'SELECT package_name,
@@ -264,6 +275,27 @@ if ($pdo !== null) {
                 <br>
                 <span class="text-muted"><?php echo htmlspecialchars($req['requested_at']); ?></span>
                 — <span class="badge"><?php echo htmlspecialchars($req['status']); ?></span>
+                <?php
+                $pipelineStatuses = ['requested', 'evaluating', 'in_progress', 'testing', 'shipped', 'declined'];
+                $currentPipeline = $req['pipeline_status'] ?? 'requested';
+                $badgeColors = [
+                    'requested' => '#8C8C8C',
+                    'evaluating' => '#CC9933',
+                    'in_progress' => '#DAA520',
+                    'testing' => '#6699AA',
+                    'shipped' => '#669944',
+                    'declined' => '#BB4444',
+                ];
+                $badgeColor = $badgeColors[$currentPipeline] ?? '#8C8C8C';
+                ?>
+                — <span class="badge" style="background:<?php echo $badgeColor; ?>;color:#fff;padding:2px 6px" id="pipeline-badge-<?php echo (int)$req['id']; ?>"><?php echo htmlspecialchars($currentPipeline); ?></span>
+                <select class="wb-select pipeline-status-select"
+                        data-request-id="<?php echo (int)$req['id']; ?>"
+                        style="margin-left:var(--sp-xs);min-height:24px;padding:2px 4px;font-size:0.85rem">
+                    <?php foreach ($pipelineStatuses as $ps): ?>
+                    <option value="<?php echo htmlspecialchars($ps); ?>"<?php if ($ps === $currentPipeline) echo ' selected'; ?>><?php echo htmlspecialchars($ps); ?></option>
+                    <?php endforeach; ?>
+                </select>
                 <?php if ($req['admin_notes']): ?>
                 <br><em class="text-muted"><?php echo htmlspecialchars($req['admin_notes']); ?></em>
                 <?php endif; ?>
@@ -320,6 +352,58 @@ if ($pdo !== null) {
     <span><a href="/">Home</a></span>
     <span class="text-muted">Admin Dashboard</span>
 </footer>
+
+<script>
+(function() {
+    var selects = document.querySelectorAll('.pipeline-status-select');
+    var csrfMeta = document.querySelector('meta[name="csrf-token"]');
+    var csrfToken = csrfMeta ? csrfMeta.getAttribute('content') : '';
+
+    var badgeColors = {
+        'requested': '#8C8C8C',
+        'evaluating': '#CC9933',
+        'in_progress': '#DAA520',
+        'testing': '#6699AA',
+        'shipped': '#669944',
+        'declined': '#BB4444'
+    };
+
+    for (var i = 0; i < selects.length; i++) {
+        selects[i].addEventListener('change', function() {
+            var select = this;
+            var requestId = select.getAttribute('data-request-id');
+            var newStatus = select.value;
+            var badge = document.getElementById('pipeline-badge-' + requestId);
+
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '/api/v1/request.php', true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            xhr.onload = function() {
+                try {
+                    var resp = JSON.parse(xhr.responseText);
+                    if (resp.ok) {
+                        badge.textContent = resp.pipeline_status;
+                        badge.style.background = badgeColors[resp.pipeline_status] || '#8C8C8C';
+                    } else {
+                        alert('Update failed: ' + (resp.error || 'Unknown error'));
+                    }
+                } catch (ex) {
+                    alert('Update failed.');
+                }
+            };
+            xhr.onerror = function() {
+                alert('Update failed (network error).');
+            };
+            xhr.send(JSON.stringify({
+                action: 'update_status',
+                request_id: requestId,
+                pipeline_status: newStatus,
+                csrf_token: csrfToken
+            }));
+        });
+    }
+})();
+</script>
 
 </body>
 </html>

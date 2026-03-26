@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="amiport — the first package manager for classic AmigaOS 3.x. AI-powered POSIX tool porting pipeline.">
     <title>amiport — Package Manager for Classic AmigaOS</title>
-    <link rel="stylesheet" href="css/style.css?v=20260322b">
+    <link rel="stylesheet" href="css/style.css?v=20260325c">
     <link rel="icon" type="image/svg+xml" href="img/favicon.svg">
     <link rel="alternate" type="application/rss+xml" title="amiport — New Ports" href="/feed.php">
 </head>
@@ -34,8 +34,8 @@
             <li><a href="packages.html">Packages</a></li>
             <li><a href="catalog.html">Catalog</a></li>
             <li><a href="stats.html">Stats</a></li>
+            <li><a href="changelog.html">Changelog</a></li>
             <li><a href="amiga.html">Amiga</a></li>
-            <li><a href="#about">About</a></li>
             <li><a href="https://github.com/bdgscotland/amiport" target="_blank" rel="noopener">GitHub</a></li>
         </ul>
     </nav>
@@ -78,43 +78,14 @@
         <span class="stats-bar__item">Classic <span class="stats-bar__value">68k</span></span>
     </div>
 
-    <!-- Featured Packages -->
-    <section class="group-frame" aria-labelledby="featured-heading">
-        <div class="group-frame__title" id="featured-heading" role="heading" aria-level="2">Featured Packages</div>
+    <!-- Recent Activity -->
+    <section class="group-frame" aria-labelledby="activity-heading">
+        <div class="group-frame__title" id="activity-heading" role="heading" aria-level="2">Recent Activity</div>
         <div class="group-frame__body">
-            <ul class="featured-list" id="featured-list">
-                <li class="featured-list__item">
-                    <a href="packages.html?name=grep" class="featured-list__name">grep</a>
-                    <span class="featured-list__ver">1.68</span>
-                    <span class="featured-list__desc">- Pattern search (regex/fixed string)</span>
-                </li>
-                <li class="featured-list__item">
-                    <a href="packages.html?name=lua" class="featured-list__name">lua</a>
-                    <span class="featured-list__ver">5.4.7</span>
-                    <span class="featured-list__desc">- Lightweight scripting language</span>
-                </li>
-                <li class="featured-list__item">
-                    <a href="packages.html?name=sed" class="featured-list__name">sed</a>
-                    <span class="featured-list__ver">1.47</span>
-                    <span class="featured-list__desc">- Stream editor for text transforms</span>
-                </li>
-                <li class="featured-list__item">
-                    <a href="packages.html?name=diff" class="featured-list__name">diff</a>
-                    <span class="featured-list__ver">1.95</span>
-                    <span class="featured-list__desc">- Compare files line by line</span>
-                </li>
-                <li class="featured-list__item">
-                    <a href="packages.html?name=jq" class="featured-list__name">jq</a>
-                    <span class="featured-list__ver">1.7.1</span>
-                    <span class="featured-list__desc">- Command-line JSON processor</span>
-                </li>
-                <li class="featured-list__item">
-                    <a href="packages.html?name=mg" class="featured-list__name">mg</a>
-                    <span class="featured-list__ver">3.7</span>
-                    <span class="featured-list__desc">- Emacs-style screen editor</span>
-                </li>
-            </ul>
-            <p class="mt-md"><a href="packages.html">Browse all packages</a></p>
+            <div id="activity-feed" role="feed" aria-label="Recent amiport activity">
+                <p class="text-muted">Loading activity...</p>
+            </div>
+            <p class="mt-md"><a href="changelog.html">View full changelog</a></p>
         </div>
     </section>
 
@@ -249,6 +220,7 @@
 </footer>
 
 <script src="js/terminal-anim.js"></script>
+<script src="js/activity.js?v=20260325c"></script>
 <script>
 // Boot sequence: skip on repeat visits
 (function() {

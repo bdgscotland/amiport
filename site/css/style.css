@@ -1453,3 +1453,302 @@ a:focus-visible {
 .catalog-summary__item strong {
     color: var(--amber-light);
 }
+
+/* ==========================================================================
+   Per-Port Detail Page
+   ========================================================================== */
+
+/* --- Breadcrumb --- */
+.breadcrumb {
+    font-size: var(--fs-sm);
+    color: var(--text-muted);
+    padding: var(--sp-sm) 0;
+}
+
+.breadcrumb a {
+    color: var(--brown);
+    text-decoration: none;
+}
+
+.breadcrumb a:hover {
+    color: var(--salmon);
+}
+
+.breadcrumb__sep {
+    margin: 0 var(--sp-xs);
+    color: var(--text-muted);
+}
+
+.breadcrumb__current {
+    color: var(--text);
+    font-weight: 600;
+}
+
+/* --- Port Header --- */
+.port-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: var(--sp-md);
+}
+
+.port-header__name {
+    font-size: var(--fs-2xl);
+    font-weight: 700;
+    color: var(--text);
+}
+
+.port-header__version {
+    font-size: var(--fs-lg);
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    margin-left: var(--sp-sm);
+}
+
+.port-header__desc {
+    font-size: var(--fs-base);
+    color: var(--text-muted);
+    margin-top: var(--sp-xs);
+}
+
+.port-header__badges {
+    display: flex;
+    gap: var(--sp-xs);
+    margin-top: var(--sp-sm);
+    flex-wrap: wrap;
+}
+
+.port-header__actions {
+    flex-shrink: 0;
+}
+
+/* --- Port Test Gauge --- */
+.port-test {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-md);
+}
+
+.port-test .gauge {
+    flex: 1;
+    max-width: 300px;
+}
+
+.port-test__label {
+    font-size: var(--fs-sm);
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+
+/* --- Port Details Table --- */
+.port-details-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.port-details-table td {
+    padding: var(--sp-xs) var(--sp-sm);
+    font-size: var(--fs-sm);
+    border-bottom: 1px solid var(--bevel-shadow);
+    vertical-align: top;
+}
+
+.port-details-table__label {
+    font-weight: 600;
+    color: var(--text);
+    width: 120px;
+    white-space: nowrap;
+}
+
+.port-details-table td:last-child {
+    color: var(--text-muted);
+    word-break: break-all;
+}
+
+.port-details-table a {
+    color: var(--brown);
+    text-decoration: none;
+}
+
+.port-details-table a:hover {
+    color: var(--salmon);
+}
+
+/* --- Port Community Section --- */
+.port-community {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-lg);
+}
+
+.port-community__votes {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-sm);
+}
+
+.port-community__score {
+    font-size: var(--fs-xl);
+    font-weight: 700;
+    color: var(--amber);
+    min-width: 24px;
+    text-align: center;
+}
+
+.port-vote-btn {
+    font-size: var(--fs-sm);
+    line-height: 1;
+    padding: var(--sp-xs) var(--sp-sm);
+    min-height: 28px;
+}
+
+/* --- Install Block --- */
+.install-block {
+    background: var(--terminal-bg);
+    padding: var(--sp-sm) var(--sp-md);
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    border-top: 1px solid var(--bevel-dark);
+    border-left: 1px solid var(--bevel-dark);
+    border-bottom: 1px solid var(--bevel-shine);
+    border-right: 1px solid var(--bevel-shine);
+}
+
+.install-block__prompt {
+    color: var(--terminal-output);
+}
+
+.install-block__cmd {
+    color: var(--amber);
+}
+
+/* ==========================================================================
+   Activity Feed
+   ========================================================================== */
+
+.activity-feed {
+    list-style: none;
+}
+
+.activity-feed__item {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: var(--sp-xs) var(--sp-sm);
+    border-bottom: 1px solid var(--bevel-shadow);
+    font-size: var(--fs-sm);
+}
+
+.activity-feed__item:last-child {
+    border-bottom: none;
+}
+
+.activity-feed__item:hover {
+    background: var(--light-surface);
+}
+
+.activity-feed__bullet {
+    color: var(--amber);
+    font-weight: 700;
+    margin-right: var(--sp-sm);
+    display: inline-block;
+    width: 14px;
+    text-align: center;
+}
+
+.activity-feed__title {
+    flex: 1;
+    color: var(--text);
+}
+
+.activity-feed__title a {
+    color: var(--brown);
+    text-decoration: none;
+}
+
+.activity-feed__title a:hover {
+    color: var(--salmon);
+}
+
+.activity-feed__time {
+    color: var(--text-muted);
+    font-size: var(--fs-xs);
+    white-space: nowrap;
+    margin-left: var(--sp-md);
+}
+
+/* ==========================================================================
+   Catalog Vote Buttons
+   ========================================================================== */
+
+.catalog-vote-btn {
+    background: none;
+    border: 1px solid var(--bevel-shadow);
+    color: var(--text-muted);
+    font-size: var(--fs-xs);
+    padding: 1px var(--sp-xs);
+    cursor: pointer;
+    line-height: 1;
+}
+
+.catalog-vote-btn:hover {
+    color: var(--amber);
+    border-color: var(--amber);
+}
+
+.catalog-vote-score {
+    font-weight: 700;
+    color: var(--amber);
+    font-size: var(--fs-sm);
+    min-width: 20px;
+    display: inline-block;
+    text-align: center;
+}
+
+/* ==========================================================================
+   Pipeline Status Badges
+   ========================================================================== */
+
+.badge--requested { background: var(--elevated); color: var(--text-muted); border-color: var(--bevel-shadow); }
+.badge--evaluating { background: var(--info-bg); color: var(--text); border-color: var(--info-border); }
+.badge--in-progress { background: var(--warning-bg); color: var(--text); border-color: var(--warning-border); }
+.badge--testing { background: var(--info-bg); color: var(--text); border-color: var(--info-border); }
+.badge--shipped { background: var(--success-bg); color: var(--text); border-color: var(--success-border); }
+.badge--declined { background: var(--error-bg); color: var(--text); border-color: var(--error-border); }
+
+/* ==========================================================================
+   Responsive — Per-Port Page
+   ========================================================================== */
+
+@media (max-width: 600px) {
+    .port-header {
+        flex-direction: column;
+    }
+
+    .port-header__actions {
+        width: 100%;
+    }
+
+    .port-header__actions .btn {
+        width: 100%;
+        text-align: center;
+    }
+
+    .port-details-table__label {
+        width: 90px;
+    }
+
+    .port-community {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .activity-feed__item {
+        flex-direction: column;
+        gap: var(--sp-2xs);
+    }
+
+    .activity-feed__time {
+        margin-left: 22px;
+    }
+}

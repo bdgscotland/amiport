@@ -11,9 +11,23 @@ header('Content-Type: application/rss+xml; charset=UTF-8');
 $dataDir = __DIR__ . '/data/packages';
 $packages = [];
 
+// Optional category filter (validated: alphanumeric + / . _ - only)
+$categoryFilter = '';
+$categoryFilterEscaped = '';
+if (isset($_GET['category']) && $_GET['category'] !== '') {
+    $raw = $_GET['category'];
+    if (preg_match('/^[a-zA-Z0-9_\/.\-]+$/', $raw)) {
+        $categoryFilter = $raw;
+        $categoryFilterEscaped = htmlspecialchars($categoryFilter, ENT_XML1, 'UTF-8');
+    }
+}
+
 foreach (glob($dataDir . '/*.json') as $file) {
     $data = json_decode(file_get_contents($file), true);
     if ($data && isset($data['name']) && ($data['status'] ?? '') !== 'testing') {
+        if ($categoryFilter !== '' && ($data['category'] ?? '') !== $categoryFilter) {
+            continue;
+        }
         $packages[] = $data;
     }
 }
@@ -32,7 +46,7 @@ echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
 ?>
 <rss version="2.0">
   <channel>
-    <title>amiport — New Ports</title>
+    <title><?php echo $categoryFilterEscaped !== '' ? 'amiport — New Ports (' . $categoryFilterEscaped . ')' : 'amiport — New Ports'; ?></title>
     <link>https://amiport.platesteel.net</link>
     <description>POSIX tools ported to AmigaOS 3.x</description>
     <language>en-us</language>
