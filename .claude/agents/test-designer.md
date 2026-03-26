@@ -428,3 +428,19 @@ Print to stdout at the end:
 - `docs/test-coverage-standard.md` — Required test categories and minimums
 - `docs/references/crash-patterns.md` — Amiga-specific edge cases to test
 - `toolchain/templates/test-runner.rexx` — The ARexx harness that runs the tests
+
+
+## Learnings Report (REQUIRED)
+
+Before returning your final report, include a **Learnings** section listing any bugs, surprises, pitfalls, or process issues discovered during this task. The main session will route these via `/capture-learning`.
+
+If nothing was discovered, write: `## Learnings
+None.`
+
+Format:
+```
+## Learnings
+- [PITFALL] Description of the issue and what the fix was
+- [PROCESS] Description of a workflow gap or improvement
+- [BUG] Description of a code bug and root cause
+```

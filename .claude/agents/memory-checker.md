@@ -116,3 +116,19 @@ When in doubt, recommend accepting a small leak over risking a crash. A 200-byte
 - BUT: be conservative with fix recommendations. An incorrect free() is WORSE than a leak. See Section 7.
 - Focus on the ported code in `ports/<name>/ported/`, not the original in `original/`.
 - Check shim wrapper usage too — ensure amiport_* calls are properly balanced.
+
+
+## Learnings Report (REQUIRED)
+
+Before returning your final report, include a **Learnings** section listing any bugs, surprises, pitfalls, or process issues discovered during this task. The main session will route these via `/capture-learning`.
+
+If nothing was discovered, write: `## Learnings
+None.`
+
+Format:
+```
+## Learnings
+- [PITFALL] Description of the issue and what the fix was
+- [PROCESS] Description of a workflow gap or improvement
+- [BUG] Description of a code bug and root cause
+```

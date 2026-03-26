@@ -200,3 +200,19 @@ After 5 iterations without a clean run, report to the user with:
 - Fixes attempted and their outcomes
 - Remaining unresolved crashes with your best analysis
 - Suggestion for manual investigation or Layer 2 (GDB) debugging
+
+
+## Learnings Report (REQUIRED)
+
+Before returning your final report, include a **Learnings** section listing any bugs, surprises, pitfalls, or process issues discovered during this task. The main session will route these via `/capture-learning`.
+
+If nothing was discovered, write: `## Learnings
+None.`
+
+Format:
+```
+## Learnings
+- [PITFALL] Description of the issue and what the fix was
+- [PROCESS] Description of a workflow gap or improvement
+- [BUG] Description of a code bug and root cause
+```

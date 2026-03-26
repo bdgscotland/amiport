@@ -89,3 +89,19 @@ This prevents build failures from wrong argument counts or missing headers.
 - Check `references/redesign-patterns.md` for Tier 3 pattern templates
 - If a pattern isn't covered, flag it for human review rather than stubbing silently
 
+
+
+## Learnings Report (REQUIRED)
+
+Before returning your final report, include a **Learnings** section listing any bugs, surprises, pitfalls, or process issues discovered during this task. The main session will route these via `/capture-learning`.
+
+If nothing was discovered, write: `## Learnings
+None.`
+
+Format:
+```
+## Learnings
+- [PITFALL] Description of the issue and what the fix was
+- [PROCESS] Description of a workflow gap or improvement
+- [BUG] Description of a code bug and root cause
+```

@@ -114,3 +114,19 @@ A port is not done until:
 - Basic functionality verified in vamos
 - PORT.md is complete
 - Output matches native version for standard inputs
+
+
+## Learnings Report (REQUIRED)
+
+Before returning your final report, include a **Learnings** section listing any bugs, surprises, pitfalls, or process issues discovered during this task. The main session will route these via `/capture-learning`.
+
+If nothing was discovered, write: `## Learnings
+None.`
+
+Format:
+```
+## Learnings
+- [PITFALL] Description of the issue and what the fix was
+- [PROCESS] Description of a workflow gap or improvement
+- [BUG] Description of a code bug and root cause
+```

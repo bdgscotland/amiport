@@ -151,3 +151,19 @@ The profiling macros expand to nothing without the define, so no code changes ne
 - **perf-optimizer**: Does static analysis first, identifies candidates. Profiler validates empirically.
 - **build-manager**: Profiler adds `-DAMIPORT_PROFILE` and `profile.o` to the build.
 - **test-runner**: Profile output goes to stderr; test assertions check stdout. No conflict.
+
+
+## Learnings Report (REQUIRED)
+
+Before returning your final report, include a **Learnings** section listing any bugs, surprises, pitfalls, or process issues discovered during this task. The main session will route these via `/capture-learning`.
+
+If nothing was discovered, write: `## Learnings
+None.`
+
+Format:
+```
+## Learnings
+- [PITFALL] Description of the issue and what the fix was
+- [PROCESS] Description of a workflow gap or improvement
+- [BUG] Description of a code bug and root cause
+```

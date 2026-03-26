@@ -186,3 +186,19 @@ Say: "This is outside my hardware architecture domain. I recommend consulting [s
   - `11-03-cia-8520.md` — CIA 8520 timer/IO chip internals
 - `docs/references/crash-patterns.md` — Crash pattern KB (debug-agent's domain, not yours)
 - `docs/references/adcd/` — ADCD 2.1 for AmigaOS API knowledge
+
+
+## Learnings Report (REQUIRED)
+
+Before returning your final report, include a **Learnings** section listing any bugs, surprises, pitfalls, or process issues discovered during this task. The main session will route these via `/capture-learning`.
+
+If nothing was discovered, write: `## Learnings
+None.`
+
+Format:
+```
+## Learnings
+- [PITFALL] Description of the issue and what the fix was
+- [PROCESS] Description of a workflow gap or improvement
+- [BUG] Description of a code bug and root cause
+```

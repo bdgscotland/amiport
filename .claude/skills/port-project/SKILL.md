@@ -329,6 +329,12 @@ A port is successful when:
 - PORT.md documents the entire process, including port category and test strategy
 - The port is in `ports/<name>/` and buildable with `make build TARGET=ports/<name>`
 
+## Capture Learnings (REQUIRED — Final Step)
+
+Before considering the port complete, review the session for any bugs, mistakes, or process failures. If any occurred, invoke `/capture-learning` to route the fix to the right enforcement mechanism (hook > rule > agent instruction > skill > pitfall > memory).
+
+Check each agent's **Learnings** section in their reports — they flag pitfalls and process issues discovered during their work.
+
 ## Listing Ports
 
 After a successful port, `make list-ports` shows all ports and their status:

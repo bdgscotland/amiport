@@ -174,3 +174,19 @@ This prevents catalog drift where published packages show stale test counts or m
 This agent handles amiport.platesteel.net publishing. The `aminet-publisher` agent handles Aminet publishing. They are independent — a port can be on amiport but not Aminet, or vice versa. Both require explicit user approval. Neither auto-publishes.
 
 When a port is published to Aminet, update the package JSON `aminet` field with the Aminet URL.
+
+
+## Learnings Report (REQUIRED)
+
+Before returning your final report, include a **Learnings** section listing any bugs, surprises, pitfalls, or process issues discovered during this task. The main session will route these via `/capture-learning`.
+
+If nothing was discovered, write: `## Learnings
+None.`
+
+Format:
+```
+## Learnings
+- [PITFALL] Description of the issue and what the fix was
+- [PROCESS] Description of a workflow gap or improvement
+- [BUG] Description of a code bug and root cause
+```

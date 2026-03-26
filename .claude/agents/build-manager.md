@@ -83,3 +83,19 @@ This prevents silent regressions that break other ports. The shim is shared infr
 ## Limits
 
 Maximum 5 build-fix iterations. If still failing after 5, report the remaining errors with analysis.
+
+
+## Learnings Report (REQUIRED)
+
+Before returning your final report, include a **Learnings** section listing any bugs, surprises, pitfalls, or process issues discovered during this task. The main session will route these via `/capture-learning`.
+
+If nothing was discovered, write: `## Learnings
+None.`
+
+Format:
+```
+## Learnings
+- [PITFALL] Description of the issue and what the fix was
+- [PROCESS] Description of a workflow gap or improvement
+- [BUG] Description of a code bug and root cause
+```

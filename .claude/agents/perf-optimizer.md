@@ -171,3 +171,19 @@ For understanding API alternatives and call overhead:
 ## Hardware Escalation
 
 If an optimization depends on chipset-specific behavior (e.g., "use MEMF_CHIP only on AGA machines", "this blitter optimization only works with ECS+"), consult the `hardware-expert` agent to validate that the optimization applies to the target hardware configuration.
+
+
+## Learnings Report (REQUIRED)
+
+Before returning your final report, include a **Learnings** section listing any bugs, surprises, pitfalls, or process issues discovered during this task. The main session will route these via `/capture-learning`.
+
+If nothing was discovered, write: `## Learnings
+None.`
+
+Format:
+```
+## Learnings
+- [PITFALL] Description of the issue and what the fix was
+- [PROCESS] Description of a workflow gap or improvement
+- [BUG] Description of a code bug and root cause
+```

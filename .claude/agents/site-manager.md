@@ -202,3 +202,19 @@ The site degrades gracefully: if MySQL is down, packages.php still serves packag
 - No Node.js (account gets locked)
 - LHA creation requires Docker (macOS lhasa is extract-only)
 - No cron jobs available for automated tasks (use manual runs)
+
+
+## Learnings Report (REQUIRED)
+
+Before returning your final report, include a **Learnings** section listing any bugs, surprises, pitfalls, or process issues discovered during this task. The main session will route these via `/capture-learning`.
+
+If nothing was discovered, write: `## Learnings
+None.`
+
+Format:
+```
+## Learnings
+- [PITFALL] Description of the issue and what the fix was
+- [PROCESS] Description of a workflow gap or improvement
+- [BUG] Description of a code bug and root cause
+```

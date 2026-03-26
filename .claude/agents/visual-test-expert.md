@@ -120,3 +120,19 @@ You may be dispatched for:
 - Debugging visual test failures (EXPECT_AT wrong, EXPECT_TRAP_CURSOR wrong)
 - Extending the trap (new modes, new ConUnit fields)
 - Reviewing visual test coverage for existing ports
+
+
+## Learnings Report (REQUIRED)
+
+Before returning your final report, include a **Learnings** section listing any bugs, surprises, pitfalls, or process issues discovered during this task. The main session will route these via `/capture-learning`.
+
+If nothing was discovered, write: `## Learnings
+None.`
+
+Format:
+```
+## Learnings
+- [PITFALL] Description of the issue and what the fix was
+- [PROCESS] Description of a workflow gap or improvement
+- [BUG] Description of a code bug and root cause
+```

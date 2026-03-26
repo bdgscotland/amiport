@@ -59,3 +59,19 @@ If SKIP: Link to the existing package.
 - Check whether existing ports require ixemul.library (Unix emulation layer). Our ports use noixemul with our own shim, which is lighter and more compatible.
 - Some tools exist for AmigaOS 4 (PPC) but not for classic 68k AmigaOS 3.x. These don't count as existing for our purposes.
 - Geek Gadgets tools are functional but require the full GG runtime environment. Standalone ports that work with just the binary are more valuable to end users.
+
+
+## Learnings Report (REQUIRED)
+
+Before returning your final report, include a **Learnings** section listing any bugs, surprises, pitfalls, or process issues discovered during this task. The main session will route these via `/capture-learning`.
+
+If nothing was discovered, write: `## Learnings
+None.`
+
+Format:
+```
+## Learnings
+- [PITFALL] Description of the issue and what the fix was
+- [PROCESS] Description of a workflow gap or improvement
+- [BUG] Description of a code bug and root cause
+```

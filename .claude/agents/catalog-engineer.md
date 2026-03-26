@@ -97,3 +97,19 @@ When invoked for `/batch-port`:
 - Schema: `docs/catalog-schema.json` (future — validate with catalog-score.py --validate)
 - Scoring: `scripts/catalog-score.py`
 - Dashboard: `/catalog-status` skill (invokes catalog-score.py --status)
+
+
+## Learnings Report (REQUIRED)
+
+Before returning your final report, include a **Learnings** section listing any bugs, surprises, pitfalls, or process issues discovered during this task. The main session will route these via `/capture-learning`.
+
+If nothing was discovered, write: `## Learnings
+None.`
+
+Format:
+```
+## Learnings
+- [PITFALL] Description of the issue and what the fix was
+- [PROCESS] Description of a workflow gap or improvement
+- [BUG] Description of a code bug and root cause
+```
