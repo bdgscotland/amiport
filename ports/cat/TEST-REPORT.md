@@ -1,3 +1,107 @@
+# FS-UAE Test Report: cat
+
+## Summary
+
+| Field | Value |
+|-------|-------|
+| Port | cat |
+| Date | 2026-03-26 13:56:41 |
+| Duration | 32s |
+| Platform | FS-UAE 3.2.35 (A1200, Kickstart 3.1) |
+| Binary | `WORK:cat` (34K) |
+| Test method | ARexx harness → TAP output |
+| Result | **PASS** — 30/30 passed |
+
+## Test Results
+
+```
+1..30
+ok 1 - Basic cat of a file prints its content
+ok 2 - -n numbers all lines with leading spaces and tab
+ok 3 - -b numbers only non-blank lines
+ok 4 - -e appends dollar sign at end of each line
+ok 5 - -s squeezes consecutive blank lines to one
+ok 6 - -t displays tab characters as ^I
+ok 7 - -v shows non-printing characters in visible form
+ok 8 - -u unbuffered output still prints file content
+ok 9 - -t and -e together shows tabs as ^I and appends dollar sign
+ok 10 - -n and -e together numbers lines and appends dollar sign
+ok 11 - -n and -s together numbers squeezed output
+ok 12 - -b and -s together numbers non-blank squeezed lines
+ok 13 - -b flag leaves blank lines unnumbered
+ok 14 - Unknown flag prints usage and exits with RC 10
+ok 15 - Missing file prints warning and exits with non-zero RC
+ok 16 - Empty file exits with RC 0
+ok 17 - Empty file produces no output
+ok 18 - Empty file with -n produces no output
+ok 19 - Empty file with -e produces no output
+ok 20 - -s with single blank line leaves output unchanged
+ok 21 - Long line (over 1024 chars) passes through without truncation
+ok 22 - Amiga WORK volume path resolves correctly for input file
+ok 23 - Two files on WORK volume are concatenated in order
+ok 24 - Real-world -n on 5-line file numbers all lines correctly
+ok 25 - Real-world -te renders tabs as ^I and adds dollar on special-chars file
+ok 26 - Concatenation of three copies of a file starts with first line
+ok 27 - Stress long line over BUFSIZ boundary passes through intact
+ok 28 - Stress -n on 1007-char line produces correct line number prefix
+ok 29 - Stress -v on binary data renders control bytes as caret sequences
+ok 30 - Precision -b counts exactly 3 non-blank lines in test-multiline.txt
+# passed: 30 failed: 0 total: 30
+```
+
+### Breakdown
+
+| # | Test | Status | Details |
+|---|------|--------|---------|
+| 1 | Basic cat of a file prints its content | PASS | |
+| 2 | -n numbers all lines with leading spaces and tab | PASS | |
+| 3 | -b numbers only non-blank lines | PASS | |
+| 4 | -e appends dollar sign at end of each line | PASS | |
+| 5 | -s squeezes consecutive blank lines to one | PASS | |
+| 6 | -t displays tab characters as ^I | PASS | |
+| 7 | -v shows non-printing characters in visible form | PASS | |
+| 8 | -u unbuffered output still prints file content | PASS | |
+| 9 | -t and -e together shows tabs as ^I and appends dollar sign | PASS | |
+| 10 | -n and -e together numbers lines and appends dollar sign | PASS | |
+| 11 | -n and -s together numbers squeezed output | PASS | |
+| 12 | -b and -s together numbers non-blank squeezed lines | PASS | |
+| 13 | -b flag leaves blank lines unnumbered | PASS | |
+| 14 | Unknown flag prints usage and exits with RC 10 | PASS | |
+| 15 | Missing file prints warning and exits with non-zero RC | PASS | |
+| 16 | Empty file exits with RC 0 | PASS | |
+| 17 | Empty file produces no output | PASS | |
+| 18 | Empty file with -n produces no output | PASS | |
+| 19 | Empty file with -e produces no output | PASS | |
+| 20 | -s with single blank line leaves output unchanged | PASS | |
+| 21 | Long line (over 1024 chars) passes through without truncation | PASS | |
+| 22 | Amiga WORK volume path resolves correctly for input file | PASS | |
+| 23 | Two files on WORK volume are concatenated in order | PASS | |
+| 24 | Real-world -n on 5-line file numbers all lines correctly | PASS | |
+| 25 | Real-world -te renders tabs as ^I and adds dollar on special-chars file | PASS | |
+| 26 | Concatenation of three copies of a file starts with first line | PASS | |
+| 27 | Stress long line over BUFSIZ boundary passes through intact | PASS | |
+| 28 | Stress -n on 1007-char line produces correct line number prefix | PASS | |
+| 29 | Stress -v on binary data renders control bytes as caret sequences | PASS | |
+| 30 | Precision -b counts exactly 3 non-blank lines in test-multiline.txt | PASS | |
+
+## Environment
+
+| Component | Version/Path |
+|-----------|-------------|
+| FS-UAE | 3.2.35 |
+| Kickstart | 3.1 (40.68) |
+| Amiga model | A1200 (68020) |
+| Compiler | m68k-amigaos-gcc (bebbo) |
+| POSIX shim | libamiport.a |
+| Regex emu | libamiport-emu.a |
+| Test harness | ARexx (test-runner.rexx) |
+
+## Test Cases
+
+Each test runs the command inside AmigaOS, captures stdout to a file,
+and compares against the expected output string.
+
+```
 # test-fsemu-cases.txt -- FS-UAE test suite for cat 1.34
 # Category 1 (CLI utility). Minimum: 8 tests.
 # Flags: -b -e -n -s -t -u -v (getopt "benstuv")
@@ -244,3 +348,25 @@ TEST: Precision -b counts exactly 3 non-blank lines in test-multiline.txt
 CMD: WORK:cat -b WORK:test-multiline.txt
 EXPECT_LINE: 5,     3	third line
 EXPECT_RC: 0
+```
+
+## Emulator Log
+
+```
+(log not captured in this run)
+```
+
+## Sentinel File
+
+Written by the ARexx harness when all tests complete:
+
+```
+TESTS_COMPLETE
+passed=30
+failed=0
+total=30
+```
+
+---
+Generated by `make test-fsemu TARGET=ports/cat`
+Report template: `toolchain/templates/test-report.md.template`
