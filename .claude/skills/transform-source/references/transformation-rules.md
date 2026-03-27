@@ -1013,3 +1013,19 @@ These apply only to programs using terminal capabilities (less, nano, vim, htop)
 **Replace:** `strcmp(a, b)`
 **Comment:** `/* amiport: strcoll -> strcmp -- no functional locale on AmigaOS 3.x */`
 **Why:** strcoll() invokes locale infrastructure even in C locale, adding ~30% overhead per comparison. AmigaOS has no functional locale support, so strcoll() == strcmp() semantically but costs more.
+
+### INIT-SUPPRESS-REQUESTERS: Suppress AmigaDOS volume requesters (Category 3+)
+
+**When:** Category 3+ port (editors, shells, interpreters) that probes config/runtime paths at startup
+**Pattern:** Program init function (e.g., `main()` or OS-specific init)
+**Add:**
+```c
+/* amiport: suppress "Please insert volume" system requesters.
+ * CLI tools should handle missing paths gracefully, not pop up dialogs. */
+{
+    struct Process *me = (struct Process *)FindTask(NULL);
+    me->pr_WindowPtr = (APTR)-1L;
+}
+```
+**Comment:** `/* amiport: suppress system requesters -- see crash-patterns #22 */`
+**Why:** Any Lock()/Open() on a bare name triggers AmigaDOS volume requesters. Programs that search for config files (vim->$VIM, python->$PYTHONPATH, shell->.profile) hit this on every non-existent path. The requester freezes the FS-UAE test harness. Global suppression via pr_WindowPtr = -1 is the ADCD-documented approach.

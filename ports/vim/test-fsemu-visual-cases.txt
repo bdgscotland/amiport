@@ -1,0 +1,63 @@
+# vim 9.1 Visual Verification Tests (ADR-024)
+# Separate pass: make test-fsemu TARGET=ports/vim VISUAL=1
+#
+# These tests verify screen content using SCRAPE + EXPECT_AT.
+# Requires forked FS-UAE with ANSI capture support.
+# Key injection uses host-side osascript (ADR-025) -- required for RAW mode programs.
+#
+# vim terminal display is RAW mode (raw_in/raw_out on Amiga).
+# ConUnit cursor fields stay at (0,0) in RAW mode -- use EXPECT_AT on status line.
+# vim's status line is on the last row (row 24 for a 24-row window).
+#
+# Screen layout (80x24 default):
+#   Row 1:    First line of file content
+#   Row 2-23: Remaining content / ~ for empty lines
+#   Row 24:   Status line (filename, modified flag, line/col info)
+#   Row 24:   When ':' command mode active: shows command being typed
+
+ITEST: Visual: file content appears on row 1 after opening
+LAUNCH: WORK:vim -u NONE WORK:test-vim-hello.txt
+KEYS: WAIT2500
+SCRAPE
+EXPECT_AT 1,1,Hello, World!
+CLEANUP: :,q,!,RETURN
+EXPECT_RC: 0
+
+ITEST: Visual: status line shows filename on last row
+LAUNCH: WORK:vim -u NONE WORK:test-vim-hello.txt
+KEYS: WAIT2500
+SCRAPE
+EXPECT_AT 24,1,test-vim-hello.txt
+CLEANUP: :,q,!,RETURN
+EXPECT_RC: 0
+
+ITEST: Visual: tilde markers appear for lines past end of file
+LAUNCH: WORK:vim -u NONE WORK:test-vim-hello.txt
+KEYS: WAIT2500
+SCRAPE
+EXPECT_AT 2,1,~
+CLEANUP: :,q,!,RETURN
+EXPECT_RC: 0
+
+ITEST: Visual: multi-line file shows all lines starting at row 1
+LAUNCH: WORK:vim -u NONE WORK:test-vim-search.txt
+KEYS: WAIT2500
+SCRAPE
+EXPECT_AT 1,1,First line of text
+EXPECT_AT 2,1,FINDME is on this line
+CLEANUP: :,q,!,RETURN
+EXPECT_RC: 0
+
+ITEST: Visual: command-line area shows colon when entering command mode
+LAUNCH: WORK:vim -u NONE WORK:test-vim-hello.txt
+KEYS: WAIT2500,:
+SCRAPE
+EXPECT_AT 24,1,:
+CLEANUP: ESC,WAIT300,:,q,!,RETURN
+EXPECT_RC: 0
+
+ITEST: Visual: screen clears cleanly after quit (no stray output)
+LAUNCH: WORK:vim -u NONE WORK:test-vim-hello.txt
+KEYS: WAIT2500,:,q,!,RETURN,WAIT1000
+SCRAPE
+EXPECT_RC: 0

@@ -489,3 +489,54 @@ When a helper function (e.g., `input()`, `fold()`, `slurp()`) allocates memory v
 **This is NOT optional.** Every port must have ALL dynamic allocations reachable from `cleanup()`. The memory-checker agent will flag this, but the code-transformer MUST apply this pattern during initial transformation -- do not defer to review.
 
 Discovered in 10-port batch (2026-03-26) -- fold, join, column, expr all had unreachable allocations. 4 out of 10 ports failed memory audit on first pass.
+
+## AmigaDOS Volume Requester on Path Probing — Suppress pr_WindowPtr
+
+Any AmigaDOS `Lock()` or `Open()` call on a bare name (e.g., `"vim"`) triggers a system requester: "Please insert volume vim in any drive." This happens because AmigaDOS interprets any name without `/` or `:` as a potential volume reference. Programs that probe multiple paths during startup (editors, shells, interpreters) will pop up requesters for each non-existent path component.
+
+This affects both direct AmigaDOS calls AND libnix `fopen()`/`stat()` which call `Lock()`/`Open()` internally. Fixing only the ported code's Lock() calls is insufficient — libnix paths also trigger it.
+
+**Fix:** Suppress requesters globally at process startup:
+```c
+/* In the program's init function (e.g., mch_init for vim): */
+struct Process *me = (struct Process *)FindTask(NULL);
+me->pr_WindowPtr = (APTR)-1L;
+```
+
+`pr_WindowPtr = -1` is the ADCD-documented approach (see `dos.library/ErrorReport`). It causes all system requesters (volume insert, disk write-protected, etc.) to return failure immediately instead of prompting the user. This is appropriate for CLI tools that should handle errors programmatically.
+
+For individual Lock() calls, use a save/restore wrapper:
+```c
+static BPTR safe_Lock(UBYTE *name, long mode) {
+    struct Process *me = (struct Process *)FindTask(NULL);
+    APTR oldwin = me->pr_WindowPtr;
+    me->pr_WindowPtr = (APTR)-1L;
+    BPTR flock = Lock(name, mode);
+    me->pr_WindowPtr = oldwin;
+    return flock;
+}
+```
+
+Discovered in the vim 9.1 port (2026-03-26) — vim probes `$VIM`, `$VIMRUNTIME`, `defaults.vim`, multiple vimrc locations during startup. Each non-existent path triggered a "Please insert volume" requester. The global suppression in `mch_init()` was the only complete fix because libnix's `fopen()` also calls Lock() internally.
+
+## Large Binary ITEST OOM — 2.7MB vim Exhausts 8MB Fast RAM
+
+Interactive tests (ITEST: blocks) spawn a new shell process per test via `Run`. Each process loads the full binary into memory. For large binaries (vim at 2.7MB), 3 ITEST launches in 8MB fast RAM cause "not enough memory available" on the 3rd launch, even if previous instances exited — AmigaOS memory fragmentation prevents reuse of contiguous blocks.
+
+**Fix:** Limit ITESTs to 2-3 for binaries >1MB. Use `-c` command tests for non-interactive functionality instead. Document additional interactive tests in PORT.md manual checklist.
+
+Discovered in the vim 9.1 port (2026-03-26) — first 2 ITESTs passed, 3rd got OOM.
+
+## libnix -noixemul Has Native POSIX fd Functions — Use Them for Large Ports
+
+bebbo-gcc's libc.a (newlib-based, `-noixemul`) provides `open()`, `close()`, `read()`, `write()`, `lseek()`, `fdopen()`, `fileno()`, `fopen()`, `fclose()` in a **unified fd table**. `open()` returns fd=3+ (after stdin=0, stdout=1, stderr=2), and `fdopen()` works correctly on those fds. `fileno(stdin)` returns 0.
+
+This means **the fd namespace conflict (crash-patterns #12) only applies when mixing `amiport_open()` with libnix's `fdopen()`/`fileno()`**. For large ports like CPython that use raw POSIX fd operations extensively, use libnix's native `open()`/`read()`/`write()` directly instead of `amiport_open()`. Only use amiport shims for functions libnix doesn't provide (stat, getenv, signal, time, directory ops).
+
+**When to use which:**
+- **Small ports using `fopen()`/`fclose()` only:** libnix native (default). No shim needed for file I/O.
+- **Ports that use `open()`/`fdopen()` together:** libnix native — they share a fd table.
+- **Ports that need `amiport_stat()` on an open fd:** Use `amiport_fstat()` with amiport fds, OR use libnix's `fstat()` with libnix fds. Don't cross namespaces.
+- **Legacy ports already using `amiport_open()`:** Keep using `amiport_read()`/`amiport_write()`/`amiport_close()` consistently. Don't mix with libnix `fdopen()`.
+
+Discovered during CPython 3.11 feasibility analysis (2026-03-26) — empirical vamos test confirmed `open()` + `fdopen()` interop works on bebbo-gcc libc.a.

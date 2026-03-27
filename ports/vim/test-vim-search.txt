@@ -1,0 +1,6 @@
+First line of text
+FINDME is on this line
+Another line here
+Pattern appears here
+Second FINDME occurrence
+Last line of file

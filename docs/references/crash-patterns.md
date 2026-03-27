@@ -340,6 +340,7 @@ test:
   ```
 - **When amiport_open() IS correct:** When using raw fd I/O (`amiport_read()`, `amiport_write()`, `amiport_close()`) — these all use the amiport fd table consistently. The bug only occurs when crossing the boundary into libnix stdio.
 - **Scope:** This affects **any port** that uses the pattern `amiport_open()` + `fdopen()`. Check all existing ports.
+- **Alternative:** For large ports that need unified fds (e.g., CPython), use libnix's native `open()`/`read()`/`write()`/`fdopen()`/`fileno()` directly — they share a single fd table. bebbo-gcc's libc.a (newlib-based) provides all POSIX fd functions. Only use `amiport_open()` when you also need `amiport_stat()`/`amiport_fstat()` on the same fd. See known-pitfalls.md "libnix Has Native POSIX fd Functions."
 - **Port:** sort (Plan 9)
 - **Date:** 2026-03-22
 
@@ -539,5 +540,24 @@ The flag was originally added to fix exit code 252 on vamos (libnix init list pl
 - **Diagnostic clue:** Works on vamos, fails on FS-UAE. No Guru Meditation — the library function returns an error that the calling program handles as a fatal exit. Switching between -O0 and -O2 does NOT fix it (rules out codegen bug).
 - **Fix:** Check if the bundled library requires explicit initialization (e.g., `onig_initialize()` for Oniguruma, `pcre2_config()` for PCRE2). Call the init function early in `main()`, guarded by `#ifdef HAVE_LIB*`. Register the cleanup function via `atexit()`.
 - **General rule:** When bundling a third-party static library, always check its documentation for required init/shutdown functions. The autotools/cmake build system typically calls these automatically via shared library constructors — static builds do not.
+
+---
+
+## 22. AmigaDOS Volume Requester Hangs Program During Path Probing
+
+- **Symptom:** Program hangs at startup with a system requester "Please insert volume X in any drive." The Retry/Cancel dialog cannot be dismissed by the test harness, causing FS-UAE test timeouts with 0 tests run.
+- **Enforcer signature:** None — this is not a crash. The system requester is a normal AmigaDOS feature.
+- **Root cause:** Any `Lock()` or `Open()` call on a bare name (e.g., `"vim"`, `"python"`) causes AmigaDOS to interpret it as a volume reference (`vim:`) and pop a system requester asking the user to insert that volume. This happens in BOTH direct AmigaDOS calls in ported code AND in libnix's `fopen()`/`stat()` which call `Lock()`/`Open()` internally. Programs that probe multiple paths during startup (editors, shells, interpreters searching for config/runtime files like `$VIM`, `$PYTHONPATH`, etc.) trigger this for each non-existent path.
+- **Diagnostic clue:** Tests 1-N pass (simple invocations like `--version`), then test N+1 hangs forever. The hung test uses a flag that triggers runtime file loading (e.g., `--clean`, `-u`, loading rc files). The FS-UAE window shows the system requester dialog.
+- **Fix:** Suppress system requesters globally at process startup by setting `pr_WindowPtr = -1`:
+```c
+/* In the program's init function: */
+struct Process *me = (struct Process *)FindTask(NULL);
+me->pr_WindowPtr = (APTR)-1L;
+```
+This causes all system requesters (volume insert, disk write-protected, etc.) to return failure immediately instead of prompting. For individual Lock() calls, use a save/restore wrapper (see known-pitfalls.md). The global suppression is preferred for CLI tools.
+- **ADCD reference:** `dos.library/ErrorReport` documents that `pr_WindowPtr = -1` suppresses all requesters.
+- **Example port:** vim 9.1 — probed `$VIM`, `$VIMRUNTIME`, `defaults.vim`, multiple vimrc paths. Each missing path triggered a requester. Global suppression in `mch_init()` was the only complete fix.
+- **General rule:** Any Category 3+ port (editors, shells, interpreters) that searches for config/runtime files should suppress system requesters at startup. Category 1-2 ports rarely need this since they don't probe paths.
 - **Port:** jq 1.7.1-2 (Oniguruma 6.9.9 integration)
 - **Date:** 2026-03-25

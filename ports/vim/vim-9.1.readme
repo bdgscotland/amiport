@@ -1,0 +1,92 @@
+Short:        Vi IMproved 9.1 text editor
+Type:         text/edit
+Architecture: m68k-amigaos >= 3.0
+Uploader:     duncan@bowring.us
+Author:       Bram Moolenaar et al. (ported by Duncan Bowring)
+Version:      9.1
+Requires:     68020+, AmigaOS 3.0+, 4MB RAM recommended
+
+vim 9.1 - Vi IMproved text editor
+
+The first modern Vim for classic AmigaOS in 25 years.
+
+The last working 68k Vim was version 5.8 from 1998. This port brings
+Vim 9.1 (2024) to AmigaOS 3.x with FEAT_NORMAL: syntax highlighting,
+code folding, split windows, Vimscript, Vim9 script, spell checking,
+diff mode, blowfish encryption, and the full regex engine.
+
+Vim 9.1 ships with built-in Amiga support (os_amiga.c) maintained since
+the original Amiga release on Fred Fish Disk 591 in 1992. This port
+required only 4 surgical changes to the upstream source -- a stack
+cookie for OS3, a volume requester suppression, a gethostname fallback,
+and libnix compatibility stubs. All changes are upstreamable.
+
+Ported by Duncan Bowring using amiport (AI-assisted porting toolkit).
+Project: https://github.com/bdgscotland/amiport
+
+Cross-compiled with m68k-amigaos-gcc (bebbo) for AmigaOS 3.x (68020+).
+Built with -Os -noixemul (standalone binary, no ixemul.library needed).
+Tested on FS-UAE with Workbench 3.1 -- 23 automated tests passing.
+
+Requirements:
+  - 68020 or higher CPU (A1200, A4000, accelerated A500/A2000)
+  - AmigaOS 3.0 or higher
+  - 4MB RAM recommended (vim binary is 2.2MB)
+  - No external libraries required (-noixemul build)
+
+Installation:
+  Copy vim to C: or any directory in your path.
+
+  Optional: create S:vim/ for runtime files (syntax highlighting,
+  color schemes, help files). Set the VIM environment variable:
+    setenv VIM S:vim
+
+  Without runtime files, vim works as a fully functional editor
+  with all core features -- just no syntax coloring or help.
+
+Usage:
+  vim file.txt              Edit a file
+  vim -R file.txt           Read-only mode
+  vim -o file1 file2        Open files in split windows
+  vim -c "set number" file  Open with line numbers enabled
+  vim -u NONE file          Start without loading any config
+
+  In vim:
+    i          Enter insert mode (type text)
+    ESC        Return to normal mode
+    :w         Save file
+    :q         Quit (or :q! to force quit without saving)
+    :wq        Save and quit
+    /pattern   Search forward
+    dd         Delete current line
+    u          Undo last change
+    :split     Split window horizontally
+
+Features enabled (FEAT_NORMAL):
+  - Syntax highlighting (requires runtime files in $VIMRUNTIME)
+  - Code folding
+  - Multiple windows and splits
+  - Vimscript and Vim9 script
+  - Spell checking
+  - Diff mode (requires external diff command)
+  - Blowfish encryption (:X to encrypt a file)
+  - Visual mode selection
+  - Unlimited undo/redo
+  - File recovery via swap files (stored in T:)
+
+Known limitations:
+  - No terminal job/channel support (needs PTY, not available on AmigaOS)
+  - No cscope integration (needs fork/exec)
+  - No clipboard/GUI integration (console-only)
+  - No UTF-8 (AmigaOS is single-byte; UTF-8 files show raw bytes)
+  - Diff mode requires a separate diff command in the PATH
+
+Build info:
+  Compiler: m68k-amigaos-gcc 6.5.0b (bebbo)
+  Flags:    -Os -noixemul -m68020 -std=gnu99 -DFEAT_NORMAL
+  Source:   93 C files, 385,000 lines of code
+  Binary:   2.2MB (stripped)
+  Stack:    256KB
+
+Includes full source code (original and ported Amiga versions)
+and PORT.md documenting every transformation applied.

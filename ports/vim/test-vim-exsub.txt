@@ -1,0 +1,4 @@
+:set nomore
+:1s/Hello/Greetings/
+:w T:vim-test-output.txt
+:q!
