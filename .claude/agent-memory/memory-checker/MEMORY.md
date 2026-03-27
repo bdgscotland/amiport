@@ -196,3 +196,13 @@
   - Probability: Extremely rare (only on filesystem errors, file deletion, or corruption)
   - Impact: Permanent file handle leak (~16 bytes) per occurrence until reboot
   - All other allocations CLEAN: argv expansion via atexit, libnix getenv static, FILE* properly closed, termcap strings in static buffer
+
+- [memory-audit-vim.md](memory-audit-vim.md) - ports/vim 9.1 memory safety review (2026-03-26)
+  - Status: CRITICAL FILE HANDLE LEAK — 1 issue
+  - Verdict: Cannot ship without 1-line fix
+  - Issue: nilfh file handle Open("NIL:") at line 469 never closed on error exits (lines 462, 472, 492, 574)
+  - Fix required: Add `if (nilfh) Close(nilfh);` before `exit:` label cleanup (1 line)
+  - Probability: Very low — only when vim launched with `-f` flag or from Workbench, and "Cannot open NIL:" error occurs (extremely rare)
+  - Impact: Permanent file handle leak (~16 bytes) per occurrence, resource exhaustion after ~254 leaks
+  - Root cause: mch_check_win() uses goto exit for all error paths but exit label doesn't close file handles before exit()
+  - All other code CLEAN: ml_close_all() properly cleanup swap files on mch_exit(), safe_Lock() restores pr_WindowPtr, vim_stubs.c has no allocations

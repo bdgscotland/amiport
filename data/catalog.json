@@ -4602,6 +4602,24 @@
             "test_count": 18,
             "test_pass_rate": 1.0,
             "hardware_verified": []
+        },
+        {
+            "id": "vim",
+            "name": "vim",
+            "version": "9.1",
+            "description": "Vi IMproved text editor",
+            "amiport_category": "console_ui",
+            "aminet_category": "text/edit",
+            "upstream_source": "vim/vim",
+            "upstream_license": "Vim License (GPL-compatible, charityware)",
+            "port_date": "2026-03-26",
+            "aminet_status": "not_submitted",
+            "aminet_url": "",
+            "measured_binary_kb": 2213,
+            "measured_stack_kb": 256,
+            "test_count": 23,
+            "test_pass_rate": 1.0,
+            "hardware_verified": []
         }
     ]
 }
