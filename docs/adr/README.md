@@ -33,6 +33,7 @@ ADRs capture significant technical and architectural decisions with their contex
 | [ADR-023](023-automated-interactive-testing.md) | Automated interactive testing via KeyInject | Accepted | 2026-03-22 |
 | [ADR-024](024-visual-verification.md) | FS-UAE visual verification via ANSI capture | Accepted | 2026-03-24 |
 | [ADR-025](025-screen-read-trap.md) | FS-UAE custom trap for interactive visual verification | Accepted | 2026-03-24 |
+| [ADR-026](026-cpython-port.md) | CPython 3.11.12 port architecture | Accepted | 2026-03-27 |
 
 ## Template
 
