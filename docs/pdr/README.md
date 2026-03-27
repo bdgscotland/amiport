@@ -15,6 +15,8 @@ PDRs capture product-level decisions — what we build, who it's for, and why. T
 | [PDR-005](005-compiled-binaries-as-committed-artifacts.md) | Compiled binaries as committed artifacts | Accepted | 2026-03-21 |
 | [PDR-006](006-fs-uae-testing-mandatory-for-all-categories.md) | FS-UAE testing mandatory for all port categories | Accepted | 2026-03-21 |
 | [PDR-007](007-design-system-redesign.md) | Website design system redesign — MUI on warm gray | Accepted | 2026-03-22 |
+| [PDR-008](008-sdl2-amigaos3-vision.md) | SDL2 for AmigaOS 3.x — vision and feasibility | Proposed | 2026-03-27 |
+| [PDR-009](009-hardware-expansion-and-sdl.md) | Hardware expansion, SDL, and WHDLoad — exploration notes | Proposed | 2026-03-27 |
 
 ## Template
 
