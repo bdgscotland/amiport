@@ -527,6 +527,14 @@ Interactive tests (ITEST: blocks) spawn a new shell process per test via `Run`. 
 
 Discovered in the vim 9.1 port (2026-03-26) — first 2 ITESTs passed, 3rd got OOM.
 
+## vamos Needs -C 68020 for 68020+ Binaries
+
+vamos defaults to 68000 CPU emulation. Binaries compiled with `-m68020` (like vim, python3) will crash with `ALERT: code=00068020` — an illegal instruction trap when the 68000 emulator hits a 68020-only opcode. **Fix:** Pass `-C 68020` to vamos. In Makefiles: `VAMOS_CPU = 68020` and add `-C $(VAMOS_CPU)` to vamos invocations. The existing `-m68000` rule for libraries (crash-patterns) is the inverse: libraries must use `-m68000` so they work on vamos's default CPU, but port binaries that intentionally target 68020+ must tell vamos to emulate that CPU.
+
+Note: vamos also has a 24-bit address space limit. Binaries larger than ~3MB (like CPython at 3.06MB) need `-m 4096` or more for memory, but cannot use `-m 16384` (too much for 24-bit).
+
+Discovered in the CPython 3.11 port (2026-03-26).
+
 ## libnix -noixemul Has Native POSIX fd Functions — Use Them for Large Ports
 
 bebbo-gcc's libc.a (newlib-based, `-noixemul`) provides `open()`, `close()`, `read()`, `write()`, `lseek()`, `fdopen()`, `fileno()`, `fopen()`, `fclose()` in a **unified fd table**. `open()` returns fd=3+ (after stdin=0, stdout=1, stderr=2), and `fdopen()` works correctly on those fds. `fileno(stdin)` returns 0.

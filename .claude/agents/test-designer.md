@@ -232,6 +232,9 @@ EXPECT_RC: expected-return-code
 - Interactive tests are skipped on vamos (KeyInject requires AmigaOS libraries)
 - ITEST blocks in `test-fsemu-cases.txt` only verify exit codes (RC), not visual output. For screen content verification, use SCRAPE tests in the separate `test-fsemu-visual-cases.txt` file (ADR-024).
 - **Quotes in CMD expressions break on FS-UAE.** AmigaDOS strips escaped quotes (`\"`) from `ADDRESS COMMAND` lines. For programs that take expression arguments with quotes (jq, sed, awk, grep), use `-f` filter files instead of inline expressions. Write the expression to a `.txt` file and reference it with `-f WORK:filter.txt`. This is invisible on vamos (works by accident) — only fails on FS-UAE.
+- **Editors (vim, mg, less): use `-c command` not `-e -s scriptfile`.** In vim's ex mode, `-s` means "silent" (boolean flag), NOT "read from file". The command `vim -e -s WORK:script.txt` opens script.txt for EDITING and waits for stdin commands — hanging the harness. Use `-c q` to quit, `-c cq` for error exit, `-S WORK:script.txt` to source a vim script file. For multi-command sequences, chain `-c` flags: `vim -u NONE -c nohlsearch -c q file.txt`.
+- **`--clean` flag loads `defaults.vim` which may not exist.** On Amiga without vim runtime files, `--clean` triggers `E1187: Failed to source defaults.vim` + "Press ENTER" prompt, blocking the harness. Use `-u NONE --noplugin` instead — functionally equivalent for testing.
+- **Large binaries (>1MB) limit ITESTs to 2-3.** Each ITEST spawns a new process that loads the full binary. With 8MB FS-UAE fast RAM, a 2.2MB vim binary allows only 2-3 launches before OOM. Put the most critical tests first (quit, insert+quit). Test error exits non-interactively via `-c cq`.
 
 ### Example (pager)
 

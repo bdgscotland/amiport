@@ -122,12 +122,24 @@ docker run --rm -v /path/to/amiport:/work ubuntu:22.04 bash -c "
 "
 ```
 
-## Deployment
+## Deployment — MANDATORY rsync
 
-After LHA is built and package JSON is updated:
+After LHA is built and package JSON is updated, you MUST run the rsync command directly.
+Do NOT rely on `git push` triggering the pre-push hook — if there are no new commits to push,
+the hook never runs and the site is never deployed. Always rsync explicitly:
+
 ```bash
 rsync -avz --delete --exclude '.env' --exclude 'data/counters/*.txt' \
   -e ssh site/ amiport-deploy:amiport.platesteel.net/
+```
+
+After rsync, **clear the server-side activity cache** so new packages appear
+immediately in the homepage activity feed. The activity.php endpoint caches to
+a temp file that persists until TTL expires (5 minutes), but this causes the
+new package to be invisible to users for up to 5 minutes after deploy:
+
+```bash
+ssh amiport-deploy "rm -f /tmp/amiport-activity-cache.json"
 ```
 
 Verify after deploy:
