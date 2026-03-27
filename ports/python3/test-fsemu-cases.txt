@@ -1,0 +1,67 @@
+# CPython 3.11.12 -- comprehensive test suite
+# All tests use -ISEc (isolated, no site, no encodings)
+# No .py files -- all inline to avoid WORK: path issues
+# Keep each test small to avoid FS-UAE resource exhaustion (~13 test limit)
+
+TEST: Version flag
+CMD: WORK:python3 -V
+EXPECT_RC: 0
+
+TEST: Pass statement
+CMD: WORK:python3 -ISEc pass
+EXPECT_RC: 0
+
+TEST: Print integer
+CMD: WORK:python3 -ISEc print(42)
+EXPECT: 42
+EXPECT_RC: 0
+
+TEST: Arithmetic
+CMD: WORK:python3 -ISEc print(7*6)
+EXPECT: 42
+EXPECT_RC: 0
+
+TEST: Power and bignum
+CMD: WORK:python3 -ISEc print(2**10)
+EXPECT: 1024
+EXPECT_RC: 0
+
+TEST: Boolean logic
+CMD: WORK:python3 -ISEc print(1==1)
+EXPECT: True
+EXPECT_RC: 0
+
+TEST: List and len
+CMD: WORK:python3 -ISEc print(len([1,2,3]))
+EXPECT: 3
+EXPECT_RC: 0
+
+TEST: Dict access
+CMD: WORK:python3 -ISEc print({1:2}[1])
+EXPECT: 2
+EXPECT_RC: 0
+
+TEST: Negative number
+CMD: WORK:python3 -ISEc print(-42)
+EXPECT: -42
+EXPECT_RC: 0
+
+TEST: Modulo
+CMD: WORK:python3 -ISEc print(17%5)
+EXPECT: 2
+EXPECT_RC: 0
+
+TEST: Type name
+CMD: WORK:python3 -ISEc print(type(42).__name__)
+EXPECT: int
+EXPECT_RC: 0
+
+TEST: String length
+CMD: WORK:python3 -ISEc print(len(str(2**100)))
+EXPECT: 31
+EXPECT_RC: 0
+
+TEST: Sorted list
+CMD: WORK:python3 -ISEc print(sorted([3,1,2]))
+EXPECT: [1, 2, 3]
+EXPECT_RC: 0

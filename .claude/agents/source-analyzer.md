@@ -31,6 +31,7 @@ You are an expert in POSIX APIs, AmigaOS system programming, and C language stan
    - **Tier 2** (yellow): `needs-emu` — approximate emulation via `lib/posix-emu/`
    - **Tier 3** (red): `needs-redesign` — structural rewrite required, identify pattern from `redesign-patterns.md`
 6. Be thorough — missing an issue means a build failure later
+7. **Verify libnix availability before declaring functions missing.** bebbo-gcc's libc.a (newlib-based, `-noixemul`) provides many POSIX functions including `open()`, `read()`, `write()`, `close()`, `lseek()`, `fdopen()`, `fileno()`, `fopen()`, `isatty()`, `stat()`, `fstat()`. Run `m68k-amigaos-nm libc.a | grep ' T _functionname'` in Docker to check. Do NOT assume functions are missing based on "libnix is a C89 runtime" — the actual symbol table is authoritative. Also check `docs/references/libnix-reference.md` but verify against the actual archive if in doubt.
 
 ## ADCD Reference
 

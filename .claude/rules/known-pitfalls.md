@@ -339,6 +339,8 @@ This affects ALL ports that accept expression arguments with spaces: sed, grep (
 
 **Impact on testing:** The FS-UAE test harness passes arguments directly via ARexx `ADDRESS COMMAND`, bypassing shell quoting entirely. This means quoting issues are invisible to the test suite. Consider adding `-f` script file tests for expressions that would need quoting in real usage. Discovered via user report on sed port (2026-03-25).
 
+**Parentheses and brackets also mangled:** AmigaDOS treats `()` and `[]` as special characters in command parsing. `python3 -c print((lambda x:x*2)(21))` gets truncated at the first `)`. `print(sum([i*i...]))` gets truncated at `[`. Any `-c` argument containing nested parentheses or brackets will be silently truncated. **Fix:** Write complex expressions to `.py` files and use `python3 script.py`, or use only simple single-expression `-c` arguments without nesting. Discovered in CPython 3.11 port (2026-03-27).
+
 ## atexit Cleanup of getline() Buffer Requires NULL After free()
 
 When using `getline()` with a static tracking pointer for atexit cleanup (the standard pattern for catching err() exit paths), the tracking pointer MUST be set to NULL after `free(p)` in the normal path. Otherwise, atexit cleanup calls `free()` on an already-freed pointer -- a double-free.
@@ -526,6 +528,41 @@ Interactive tests (ITEST: blocks) spawn a new shell process per test via `Run`. 
 **Fix:** Limit ITESTs to 2-3 for binaries >1MB. Use `-c` command tests for non-interactive functionality instead. Document additional interactive tests in PORT.md manual checklist.
 
 Discovered in the vim 9.1 port (2026-03-26) — first 2 ITESTs passed, 3rd got OOM.
+
+## No /dev/urandom on AmigaOS -- Programs Needing Entropy Crash at Startup
+
+Programs that use `getrandom()`, `getentropy()`, or read `/dev/urandom` for random seed initialization will crash or fail at startup on AmigaOS. There is no kernel entropy source. Common symptom: `failed to get random numbers` or similar fatal error during initialization.
+
+**Fix:** Provide an `#ifdef __AMIGA__` path that seeds from available sources: `clock()`, `time()`, stack address (ASLR-like), `DateStamp()` ticks. Use a simple LCG to stretch these into a buffer of pseudo-random bytes. Not cryptographically secure but sufficient for hash randomization, temp filenames, and non-crypto PRNG.
+
+**Pattern:**
+```c
+#ifdef __AMIGA__
+{
+    unsigned char *buf = (unsigned char *)buffer;
+    unsigned long seed = (unsigned long)&buf;  /* stack address */
+    seed ^= (unsigned long)clock() * 2654435761UL;
+    seed ^= (unsigned long)time(NULL) * 1103515245UL;
+    for (i = 0; i < size; i++) {
+        seed = seed * 1103515245UL + 12345UL;
+        buf[i] = (unsigned char)(seed >> 16);
+    }
+    return 0;
+}
+#endif
+```
+
+**Affected programs:** CPython (hash randomization), any program using OpenBSD `arc4random()`, programs seeding `srand()` from `/dev/urandom`.
+
+Discovered in the CPython 3.11 port (2026-03-26) -- `_Py_HashRandomization_Init` called `pyurandom()` which fell through to `dev_urandom()` which tried to open `/dev/urandom`.
+
+## FS-UAE JIT and A4000 Model Are Unreliable
+
+FS-UAE's JIT compiler (`jit_compiler = 1`) causes VRAM corruption on the A1200 model — garbled display rendering. The A4000 model (`amiga_model = A4000`) with 68040 CPU crashes with `FA7(11) Software Failure` on some binaries. Neither is reliable for testing.
+
+**Fix:** Always use `amiga_model = A1200` without JIT for testing. Accept the slower emulation speed. The host machine's raw speed is the bottleneck — a modern Mac emulates 68020 fast enough for most testing.
+
+Discovered during CPython 3.11 testing (2026-03-27).
 
 ## vamos Needs -C 68020 for 68020+ Binaries
 

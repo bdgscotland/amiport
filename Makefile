@@ -226,7 +226,14 @@ emu: install-emu
 		echo "You also need a Kickstart 3.1 ROM in ~/Documents/FS-UAE/Kickstarts/"; \
 		exit 1; \
 	fi
-	fs-uae toolchain/configs/amiport-test.fs-uae
+	fs-uae $(or $(FSEMU_CONFIG),toolchain/configs/amiport-test.fs-uae)
+
+emu-highspec: install-emu  ## Launch FS-UAE with high-spec profile (A4000/68040/32MB)
+	@if ! command -v fs-uae >/dev/null 2>&1; then \
+		echo "FS-UAE not found. Install with: brew install fs-uae"; \
+		exit 1; \
+	fi
+	fs-uae toolchain/configs/amiport-highspec.fs-uae
 
 scrape-adcd:
 	python3 scripts/scrape-adcd.py all --output docs/references/adcd/

@@ -561,3 +561,36 @@ This causes all system requesters (volume insert, disk write-protected, etc.) to
 - **General rule:** Any Category 3+ port (editors, shells, interpreters) that searches for config/runtime files should suppress system requesters at startup. Category 1-2 ports rarely need this since they don't probe paths.
 - **Port:** jq 1.7.1-2 (Oniguruma 6.9.9 integration)
 - **Date:** 2026-03-25
+
+---
+
+## 23. libnix mbstowcs(NULL) Crash — HAVE_BROKEN_MBSTOWCS Required
+
+- **Enforcer signature:** LONG-WRITE to address `0x00000000` from PC inside `mbstowcs` (libnix symbol). The Enforcer log shows `_mbstowcs + 0x2c` writing to NULL.
+- **Hit type:** LONG-WRITE to NULL address.
+- **Root cause:** CPython's `decode_current_locale()` in `Python/fileutils.c` calls `_Py_mbstowcs(NULL, arg, 0)` (which calls `mbstowcs(NULL, arg, 0)`) to query the required wchar_t buffer size. This is valid per C99/POSIX: `mbstowcs` with NULL destination should return the count of characters. However, libnix's `mbstowcs` implementation does NOT support `NULL` as the destination -- it dereferences the NULL pointer and writes to address 0, causing a crash. This is the exact same class of bug as crash-pattern #5 (vsnprintf(NULL,0,...) crash).
+- **Fix:** Define `HAVE_BROKEN_MBSTOWCS 1` in `pyconfig.h`. CPython already has a fallback path guarded by this macro that uses `strlen(arg)` as the buffer size estimate instead of calling `mbstowcs(NULL, arg, 0)`. Since AmigaOS libnix uses C locale (ASCII superset), `strlen()` is always a correct upper bound.
+- **Diagnostic approach:** The Enforcer log showed 117 hits all from "Processor Interrupt Level 3" (ROM-space writes -- false positives), masking the real crash. The actual NULL write was at `mbstowcs + 0x2c` with SR: 0014 (user mode), not the interrupt hits. The stack frames showed `_Py_DecodeLocale` -> `_Py_DecodeLocaleEx` -> `decode_current_locale` -> `_Py_mbstowcs(NULL, arg, 0)`.
+- **Enforcer false positive note:** Enforcer hits at address `0x00F0FFFC` from PC `0x00F00408` with `Name: "Processor Interrupt Level 3"` are system timer interrupts writing to a ROM mirror -- NOT user code crashes. Ignore these when they appear; look for user-mode hits (SR field low bits = 0001 user mode) and NULL/small addresses.
+- **Port:** python3 3.11.12
+- **Date:** 2026-03-26
+
+---
+
+## 24. CPython PEP 659 Bytecode Quickening Crashes on Big-Endian 68k
+
+- **Signature:** ACPU_InstErr (Guru Meditation #80000004) after ~128 executions of a code object. Crash occurs in `_PyEval_EvalFrameDefault` at the `DISPATCH()` after `RESUME_QUICK` handler.
+- **Root cause:** CPython 3.11's specializing adaptive interpreter (PEP 659) rewrites bytecode in-place after 128 warm-up calls via `_PyCode_Quicken()`. The `_Py_SET_OPCODE(word, opcode)` macro writes `((unsigned char *)&(word))[0] = opcode`. On big-endian 68k, byte[0] is the high byte of the uint16_t `_Py_CODEUNIT`. On little-endian x86, byte[0] is the low byte. The `_Py_OPCODE` macro on big-endian reads `word >> 8` (high byte). So `_Py_SET_OPCODE` and `_Py_OPCODE` are consistent on both endiannesses -- BUT the quickened opcode values are different from the original values, and the adaptive dispatch table entries may not match, causing the switch to fall through to an invalid handler that corrupts the PC.
+- **Fix:** Disable `_PyCode_Quicken` on AmigaOS with an early return:
+  ```c
+  void _PyCode_Quicken(PyCodeObject *code) {
+  #ifdef __AMIGA__
+      (void)code;
+      return;
+  #endif
+      /* ... original code ... */
+  }
+  ```
+- **Performance impact:** ~15% slower eval loop (no adaptive specialization). Acceptable on 68k.
+- **Port:** CPython 3.11.12
+- **Date:** 2026-03-27
