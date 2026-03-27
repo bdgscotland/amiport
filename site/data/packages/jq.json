@@ -1,6 +1,6 @@
 {
     "name": "jq",
-    "version": "1.7.1-2",
+    "version": "1.7.1",
     "description": "Lightweight command-line JSON processor",
     "category": "util/cli",
     "source": "https://github.com/jqlang/jq (jq-1.7.1)",
