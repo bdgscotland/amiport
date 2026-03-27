@@ -123,5 +123,14 @@ int amiport_map_errno(void)
 {
     LONG ioerr = IoErr();
     errno = amiport_errno_from_ioerr(ioerr);
+    /*
+     * amiport: if IoErr() returned 0 but we got here, the operation DID fail
+     * (callers only call map_errno on failure paths). vamos often returns
+     * IoErr()==0 for missing files. Default to ENOENT since file-not-found
+     * is the most common failure mode. Better than errno==0 (no error) which
+     * is always wrong when the operation failed.
+     */
+    if (errno == 0)
+        errno = ENOENT;
     return errno;
 }

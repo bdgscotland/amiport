@@ -369,6 +369,14 @@ int amiport_unlink(const char *path)
 {
     if (!DeleteFile((CONST_STRPTR)path)) {
         amiport_map_errno();
+        /*
+         * amiport: vamos returns ERROR_OBJECT_WRONG_TYPE (EINVAL) for
+         * DeleteFile on nonexistent files. Real AmigaOS returns
+         * ERROR_OBJECT_NOT_FOUND (ENOENT). Normalize to ENOENT when
+         * EINVAL doesn't make sense for unlink().
+         */
+        if (errno == EINVAL)
+            errno = ENOENT;
         return -1;
     }
     return 0;
@@ -392,6 +400,12 @@ int amiport_access(const char *path, int mode)
     lock = Lock((CONST_STRPTR)path, SHARED_LOCK);
     if (!lock) {
         amiport_map_errno();
+        /*
+         * amiport: vamos returns ERROR_OBJECT_WRONG_TYPE (EINVAL) for
+         * Lock on nonexistent files. Normalize to ENOENT.
+         */
+        if (errno == EINVAL)
+            errno = ENOENT;
         return -1;
     }
     UnLock(lock);

@@ -1,0 +1,22 @@
+{
+    "name": "tetris",
+    "version": "1.35",
+    "revision": 1,
+    "description": "Terminal tetris game from OpenBSD",
+    "category": "game/think",
+    "source": "OpenBSD games/tetris rev 1.35",
+    "license": "BSD-3-Clause",
+    "size": 89186,
+    "sha256": "79b9dc065ef65092c7a14f61643a97053fb5e22ff9fe9c707d78fcd07f6aeba5",
+    "download": "/packages/tetris-1.35.lha",
+    "requires": [],
+    "aminet": "",
+    "stack": 32768,
+    "status": "stable",
+    "published_at": "2026-03-26T20:30:00Z",
+    "readme": "Short:        Terminal tetris game from OpenBSD\nType:         game/think\nArchitecture: m68k-amigaos >= 3.0\nUploader:     duncan (at) bowring (dot) us\nAuthor:       Chris Torek, Darren F. Provine (ported by Duncan Bowring)\nVersion:      1.35\n\ntetris - Terminal tetris game from OpenBSD\n\nThe classic BSD Tetris game, running in your Amiga shell window.\nThis is the first terminal-mode tetris for AmigaOS -- all existing\nAmiga tetris games use Intuition windows.\n\nOriginal authors: Chris Torek and Darren F. Provine (UC Berkeley).\nPorted by Duncan Bowring using amiport (AI-assisted porting toolkit).\nProject: https://github.com/bdgscotland/amiport\n\nCross-compiled with m68k-amigaos-gcc for AmigaOS 3.x (68000+).\nTested on AmigaOS 3.1 via FS-UAE emulator.\n\nUsage:\n  tetris [-cps] [-k keys] [-l level]\n\nOptions:\n  -c        Classic mode (different rotation, no reverse video)\n  -k keys   Custom key bindings (6 chars: left rotate right drop pause quit)\n  -l level  Starting level 1-9 (default: 2, higher = faster)\n  -p        Show preview of next piece (score penalty)\n  -s        Show high scores and exit\n\nDefault keys:\n  j - move left      k - rotate     l - move right\n  <space> - drop     p - pause      q - quit\n\nHigh scores are saved to PROGDIR:tetris.scores\n\nRequirements:\n  AmigaOS 3.0+, 68000+, any console window\n\nKnown limitations:\n  - Timer granularity ~20ms (vs nanosecond on Unix). Playable at all levels.\n  - All scores recorded under \"amiga\" unless LOGNAME/USER env vars are set.\n  - No job control (Ctrl-Z) -- AmigaOS has no job control.\n\nIncludes full source code (original POSIX and ported Amiga versions)\nand PORT.md documenting every transformation applied.",
+    "test_count": 18,
+    "test_pass": 18,
+    "porting_notes": "The first terminal-mode tetris for AmigaOS. All existing Amiga tetris games are graphical Intuition applications -- this one runs in any shell window.\n\nThe game timing loop was completely redesigned: the Unix ppoll()+clock_gettime() approach was replaced with AmigaOS WaitForChar() from dos.library, which provides ~20ms granularity (one Amiga tick) without requiring any POSIX timer infrastructure. The game is playable at all 9 speed levels.\n\nDisplay uses the amiport console-shim termcap API (tgetent/tgetstr/tgoto/tputs) -- no curses dependency. This port also improved the console-shim library itself: added classic termcap globals (PC, BC, UP), optimized tputs() from per-character callbacks to fputs(), and replaced snprintf() in tgoto() with direct digit emission for a 10-30x render path speedup.\n\nScore file is stored in PROGDIR:tetris.scores (no hidden dot prefix, since AmigaOS does not use hidden files). The fdopen(open()) pattern in scores.c was replaced with fopen() per crash-patterns #12. 18 FS-UAE functional tests pass across all flags and interactive gameplay paths.",
+    "known_limitations": "- All scores recorded under username \"amiga\" unless LOGNAME or USER environment variables are set\n- No job control (Ctrl-Z) -- AmigaOS has no job control subsystem\n- Board is fixed at 20 rows regardless of terminal window size (upstream design)\n- Timer granularity is ~20ms (AmigaOS tick rate) vs nanosecond on Unix; playable at all 9 levels"
+}

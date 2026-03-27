@@ -33,3 +33,4 @@
 - [port_nl_perf.md](port_nl_perf.md) - Performance findings for ports/nl 1.8 — printf(format,...) per line (HIGH), printf("%*s") for blank lines (HIGH) reviewed 2026-03-26
 - [port_join_perf.md](port_join_perf.md) - Performance findings for ports/join 1.34 — mbssep ndelim recount per call (HIGH), ferror per field (MEDIUM) reviewed 2026-03-26
 - [port_tsort_perf.md](port_tsort_perf.md) - Performance findings for ports/tsort 1.38 — MULU in hash function (MEDIUM), static line_buf already correct reviewed 2026-03-26
+- [port_tetris_perf.md](port_tetris_perf.md) - Performance findings for ports/tetris 1.35 — tputs callback per-char, tgoto snprintf per frame, CTOD multiply constant reviewed 2026-03-26

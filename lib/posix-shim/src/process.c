@@ -114,7 +114,8 @@ char *amiport_getenv(const char *name)
     char *result;
 
     len = GetVar((CONST_STRPTR)name, (STRPTR)tmp, sizeof(tmp) - 1, 0);
-    if (len < 0) {
+    if (len <= 0) {
+        /* amiport: len<0 = not found, len==0 = empty (unsetenv workaround) */
         return NULL;
     }
     tmp[len] = '\0';
@@ -183,7 +184,12 @@ int amiport_unsetenv(const char *name)
         return -1;
     }
 
-    /* Try both scopes — one will work on real AmigaOS, the other on vamos */
+    /* Try both scopes — one will work on real AmigaOS, the other on vamos.
+     * amiport: vamos DeleteVar() may not actually remove the variable.
+     * Workaround: set to empty string first, then delete. GetVar() returns
+     * len<=0 for empty strings, which amiport_getenv() treats as NULL. */
+    SetVar((CONST_STRPTR)name, (CONST_STRPTR)"", 0, GVF_GLOBAL_ONLY);
+    SetVar((CONST_STRPTR)name, (CONST_STRPTR)"", 0, 0);
     DeleteVar((CONST_STRPTR)name, GVF_GLOBAL_ONLY);
     DeleteVar((CONST_STRPTR)name, 0);
     return 0;

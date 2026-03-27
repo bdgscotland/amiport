@@ -187,3 +187,12 @@
   - **join 1.34:** CRITICAL LEAK ✗ — 2 leaks: obsolete() malloc strings (~200B) + getline buffers (100KB-1MB), unfixable without tracking
   - **tsort 1.38:** CLEAN ✓ — ohash allocations freed via emem(), files freed explicitly, process cleanup via OS
   - Key findings: Static buffers inside functions are invisible to atexit cleanup (fold pitfall); obsolete() pattern allocates new strings without tracking; getline() tracking pattern (nl) is correct model
+
+- [memory-audit-tetris.md](memory-audit-tetris.md) - ports/tetris 1.35 memory safety review (2026-03-26)
+  - Status: CRITICAL LEAK FOUND — 1 issue
+  - Verdict: Cannot ship without 1-line fix
+  - Issue: savescore() fseek() error path (line 226) calls err() without fclose(sf), leaking file handle
+  - Fix required: Add `fclose(sf)` before err(10, "fseek") call (1 line)
+  - Probability: Extremely rare (only on filesystem errors, file deletion, or corruption)
+  - Impact: Permanent file handle leak (~16 bytes) per occurrence until reboot
+  - All other allocations CLEAN: argv expansion via atexit, libnix getenv static, FILE* properly closed, termcap strings in static buffer

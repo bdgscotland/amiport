@@ -45,9 +45,23 @@ Each rule specifies: pattern to match, replacement, and when to apply.
 #include <amiport/getopt.h>
 
 // Before:
+#include <err.h>
+// After:
+#include <amiport/err.h>
+// Note: bare <err.h> does NOT exist in bebbo-gcc libnix. Always replace.
+// Also provides strtonum(), errc(), warnc() macros.
+
+// Before:
 #include <signal.h>
 // After:
 #include <amiport/signal.h>
+
+// Before (Category 3 console ports):
+#include <term.h>
+// After:
+#include <amiport-console/term.h>
+// Note: Provides termcap API (tgetent, tgetstr, tgetnum, tgetflag, tgoto, tputs)
+// and classic termcap globals (PC, BC, UP). Link with -lamiport-console.
 
 // Before:
 #include <stdlib.h>

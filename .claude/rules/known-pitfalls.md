@@ -461,6 +461,20 @@ Discovered in factor 1.30 (2026-03-26) -- `TABSIZE=256*1024` in `primes.h` cause
 
 Discovered across multiple Cat 3 ports (less, mg, tetris) on 2026-03-26.
 
+## Do NOT Open("*") in Library Init Code (Console Handle Disruption)
+
+`Open("*", MODE_OLDFILE)` opens a direct handle to the current console window. This was attempted as a fallback in `tgetent()` when `Input()` is non-interactive (Execute script launches). **It destabilized the ITEST harness** — crash rate jumped from 3 missed tests to 12 missed tests. The `Open("*")` / `Close("*")` during library initialization disrupts the console handle state for programs launched via `Run >clinumfile Execute scriptfile`.
+
+**Rule:** Never call `Open("*")` in shim or console-shim library initialization functions (`tgetent()`, `setupterm()`, `initscr()`). These run early in program startup when the console handle lifecycle is fragile, especially under the ITEST harness. Programs that need `"*"` should open it explicitly in their own code (like the less port does in `ttyin.c`), not have it opened implicitly by a library call.
+
+Discovered in the tetris 1.35 port (2026-03-26) — attempted fix for window size detection was reverted.
+
+## Bare `<err.h>` Does Not Exist in bebbo-gcc
+
+bebbo-gcc libnix does not ship `<err.h>`. Any ported source with `#include <err.h>` will fail with `fatal error: err.h: No such file or directory`. The code-transformer MUST replace bare `<err.h>` with `<amiport/err.h>`. Also provides `strtonum()`, `errc()`, `warnc()` macros.
+
+Discovered in the tetris 1.35 port (2026-03-26) -- screen.c had a bare `<err.h>` that survived the initial transform.
+
 ## Static Local Buffers in Helper Functions Must Be Global for atexit Cleanup
 
 When a helper function (e.g., `input()`, `fold()`, `slurp()`) allocates memory via `static` local variables or `getline()`, the `cleanup()` function registered via `atexit()` has NO visibility to free those allocations. On AmigaOS with `-noixemul`, these are permanent leaks -- there is no OS-level process memory cleanup.
