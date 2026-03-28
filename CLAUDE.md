@@ -179,34 +179,45 @@ In QA mode, flag any code that doesn't match DESIGN.md.
 
 ## Key References
 
-**Critical (consult during every port):**
+**Shared Knowledge Base (amiga-kb via MCP):**
+
+General Amiga reference docs are in the shared amiga-kb knowledge base. Use MCP tools
+instead of reading local files:
+
+- `amiga_search` — semantic search across all Amiga docs (replaces manual grep through ADCD)
+- `amiga_api_lookup` — function/struct lookup with graph traversal (replaces `/amiga-api-lookup` skill for simple lookups)
+- `amiga_pitfalls_for` — known pitfalls for an API or concept (replaces reading known-pitfalls.md)
+- `amiga_crash_diagnosis` — crash diagnosis from Guru codes (replaces `/crash-patterns` skill for diagnosis)
+- `amiga_report_gap` — report missing knowledge (feeds the learning compiler)
+
+The amiga-kb MCP server must be running (`docker compose up -d` in the amiga-kb repo).
+All queries from this project are tagged with `source_project: "amiport"` for cross-project analytics.
+
+**Critical (project-specific, consult during every port):**
 - `docs/posix-tiers.md` — Master POSIX tier classification (Tier 1/2/3 for every function)
-- `docs/references/crash-patterns.md` — Crash pattern KB — check BEFORE fixing any bug
-- `docs/references/68k-hardware.md` — 68k hardware reference — memory map, addressing modes, crash signatures, vamos differences
-- `docs/references/adcd/` — Complete ADCD 2.1 in markdown — HOW to use AmigaOS functions, not just signatures
-- `docs/references/amiga-intern/` — "Amiga Intern" (1992) — 68030 internals, custom chip architecture, memory map, DMA timing, hardware programming
-- `docs/references/libnix-reference.md` — Complete libnix function list (700+ functions) extracted from libc.a, plus runtime behavior docs from libnix.texi
-- `docs/references/m68000-prm/` — Motorola M68000 Family Programmer's Reference Manual (646 pages, converted to searchable markdown) — instruction set, addressing modes, timing. Section 4 (integer instructions) split into four files (A-B, B-E, E-N, O-U) for fast lookup.
-- `docs/test-coverage-standard.md` — **Mandatory** test coverage requirements (no happy-path-only testing)
+- `docs/references/adcd/` — Complete ADCD 2.1 in markdown (also indexed in amiga-kb vectors)
+- `docs/references/amiga-intern/` — "Amiga Intern" (1992) — 68030 internals, custom chip architecture
+- `docs/references/m68000-prm/` — Motorola M68000 Family Programmer's Reference Manual (646 pages)
+- `docs/test-coverage-standard.md` — **Mandatory** test coverage requirements
 - `.claude/skills/transform-source/references/transformation-rules.md` — Tier 1 transformation rules
 
 **Skills for on-demand context loading:**
-- `/amiga-api-lookup` — **Invoke this skill** when writing or reviewing code that uses AmigaOS APIs (exec.library, dos.library, timer.device, etc.). Loads the ADCD reference library with function signatures, struct layouts, usage patterns, and code examples. Do NOT guess at AmigaOS APIs — look them up via this skill.
-- `/c89-reference` — **Invoke this skill** when writing or reviewing C code. Loads the C89/ANSI C constraint set — what C99+ features are NOT available, libnix function availability, printf format restrictions, and common agent mistakes. Prevents generating code that won't compile.
-- `/write-arexx` — Invoke when writing or modifying ARexx scripts. Loads ARexx syntax reference and known gotchas.
-- `/crash-patterns` — **Invoke this skill** when debugging crashes, reviewing code for crash risks, or writing transformations that touch memory/IO/exit paths. Loads the crash patterns KB with documented signatures and fixes from real ports.
-- `/libnix-reference` — **Invoke this skill** when checking whether a C library function is available on AmigaOS, or when a linker reports undefined symbols. Loads the complete libnix function list (700+ functions).
+- `/amiga-api-lookup` — Loads ADCD reference. For simple lookups, prefer `amiga_api_lookup` MCP tool (faster, includes graph data and pitfall warnings).
+- `/c89-reference` — C89/ANSI C constraints. No MCP equivalent (project-specific).
+- `/write-arexx` — ARexx syntax reference. Also available via `amiga_search "arexx ..."`.
+- `/crash-patterns` — Crash KB loader. For quick diagnosis, prefer `amiga_crash_diagnosis` MCP tool.
+- `/libnix-reference` — libnix function list. Also available via `amiga_search "libnix ..."`.
 
 **Skill injection:** Knowledge base skills are injected into agent definitions via the `skills:` frontmatter field. When an agent is dispatched, its injected skills are loaded into context automatically. See individual agent definitions in `.claude/agents/` for the injection matrix.
 - `/extend-shim` — Invoke when adding new POSIX functions to the shim library.
 - `/review-amiga` — Invoke for Amiga-specific code review.
-- `/capture-learning` — Invoke when a bug, mistake, or process failure occurs. Routes the learning to the right enforcement mechanism (hook > rule > agent instruction > skill > pitfall > memory).
+- `/capture-learning` — Invoke when a bug, mistake, or process failure occurs. Routes universal knowledge (OS behavior, 68k gotchas) to amiga-kb via `amiga_add_pitfall` / `amiga_report_gap`. Routes project-specific knowledge to local rules/skills.
 
 **Architecture & guides:** `docs/architecture.md`, `docs/porting-guide.md`, `docs/api-mapping.md`
 
 **ADRs:** `docs/adr/008` (tiers), `009` (console), `010` (bsdsocket), `011` (categories), `014` (FS-UAE testing), `015` (CI/quality), `016` (debug agent), `017` (hooks enforcement), `018` (ADCD knowledge base), `019` (agent persona matrix), `020` (git hooks validation), `021` (design system — MUI warm gray), `022` (C99 compiler support), `023` (automated interactive testing), `024` (visual verification), `025` (screen read trap — interactive cursor verification)
 
-**Shim references:** `docs/references/bsd-isms.md`, `docs/references/newlib-availability.md`, `docs/references/adcd/FUNCTIONS.md`, `docs/references/adcd/TYPES.md`
+**Shim references (in amiga-kb):** Use `amiga_search "bsd socket mapping"`, `amiga_search "newlib availability"` etc. ADCD FUNCTIONS.md and TYPES.md still local at `docs/references/adcd/`.
 
 ## Safety Hooks
 
