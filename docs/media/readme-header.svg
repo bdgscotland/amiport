@@ -1,0 +1,82 @@
+<svg width="1200" height="300" viewBox="0 0 1200 300" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="1200" height="300" fill="#8C8C8C" />
+  
+  <!-- Subtle MUI-style bevel border (1px shine top/left, shadow bottom/right) -->
+  <line x1="0" y1="0.5" x2="1200" y2="0.5" stroke="#C8C8C8" stroke-width="1" />
+  <line x1="0.5" y1="0" x2="0.5" y2="300" stroke="#C8C8C8" stroke-width="1" />
+  <line x1="0" y1="299.5" x2="1200" y2="299.5" stroke="#606060" stroke-width="1" />
+  <line x1="1199.5" y1="0" x2="1199.5" y2="300" stroke="#606060" stroke-width="1" />
+  
+  <!-- Centered Content Group -->
+  <g transform="translate(290, 85)">
+    <!-- 68k Chip Icon (Gold/Amber IC Package) -->
+    <g id="chip">
+      <!-- Pins (Amber #DAA520) -->
+      <!-- Top Pins -->
+      <g fill="#DAA520">
+        <rect x="24" y="0" width="4" height="15" />
+        <rect x="36" y="0" width="4" height="15" />
+        <rect x="48" y="0" width="4" height="15" />
+        <rect x="60" y="0" width="4" height="15" />
+        <rect x="72" y="0" width="4" height="15" />
+        <rect x="84" y="0" width="4" height="15" />
+        <rect x="96" y="0" width="4" height="15" />
+      </g>
+      <!-- Bottom Pins -->
+      <g fill="#DAA520">
+        <rect x="24" y="115" width="4" height="15" />
+        <rect x="36" y="115" width="4" height="15" />
+        <rect x="48" y="115" width="4" height="15" />
+        <rect x="60" y="115" width="4" height="15" />
+        <rect x="72" y="115" width="4" height="15" />
+        <rect x="84" y="115" width="4" height="15" />
+        <rect x="96" y="115" width="4" height="15" />
+      </g>
+      <!-- Left Pins -->
+      <g fill="#DAA520">
+        <rect x="0" y="24" width="15" height="4" />
+        <rect x="0" y="36" width="15" height="4" />
+        <rect x="0" y="48" width="15" height="4" />
+        <rect x="0" y="60" width="15" height="4" />
+        <rect x="0" y="72" width="15" height="4" />
+        <rect x="0" y="84" width="15" height="4" />
+        <rect x="0" y="96" width="15" height="4" />
+      </g>
+      <!-- Right Pins -->
+      <g fill="#DAA520">
+        <rect x="115" y="24" width="15" height="4" />
+        <rect x="115" y="36" width="15" height="4" />
+        <rect x="115" y="48" width="15" height="4" />
+        <rect x="115" y="60" width="15" height="4" />
+        <rect x="115" y="72" width="15" height="4" />
+        <rect x="115" y="84" width="15" height="4" />
+        <rect x="115" y="96" width="15" height="4" />
+      </g>
+      
+      <!-- Chip Body (Dark Amber #8B6914) -->
+      <rect x="15" y="15" width="100" height="100" fill="#8B6914" />
+      
+      <!-- Body Bevels -->
+      <line x1="15" y1="15.5" x2="115" y2="15.5" stroke="#DAA520" stroke-width="1" />
+      <line x1="15.5" y1="15" x2="15.5" y2="115" stroke="#DAA520" stroke-width="1" />
+      <line x1="15" y1="114.5" x2="115" y2="114.5" stroke="#776644" stroke-width="1" />
+      <line x1="114.5" y1="15" x2="114.5" y2="115" stroke="#776644" stroke-width="1" />
+      
+      <!-- 68030 Label (Subtle Monospace) -->
+      <text x="65" y="72" font-family="monospace" font-size="12" fill="#DAA520" text-anchor="middle" font-weight="bold" opacity="0.6">68030</text>
+    </g>
+    
+    <!-- Wordmark and Tagline -->
+    <g transform="translate(150, 68)">
+      <!-- amiport Wordmark -->
+      <text font-family="Verdana, Geneva, sans-serif" font-weight="bold" font-size="82" letter-spacing="-3">
+        <tspan fill="#E0D0B8">ami</tspan><tspan fill="#DAA520">port</tspan>
+      </text>
+      <!-- Tagline (Cream #E0D0B8) -->
+      <text x="4" y="38" font-family="Verdana, Geneva, sans-serif" font-size="24" fill="#E0D0B8" font-weight="normal">
+        Modern Unix tools for the Commodore Amiga
+      </text>
+    </g>
+  </g>
+</svg>

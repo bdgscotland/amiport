@@ -1,18 +1,18 @@
-# amiport
-
-Modern Unix tools for the Commodore Amiga.
+<p align="center">
+  <img src="docs/media/readme-header.svg" alt="amiport — Modern Unix tools for the Commodore Amiga" width="100%">
+</p>
 
 [![CI](https://github.com/bdgscotland/amiport/actions/workflows/ci.yml/badge.svg)](https://github.com/bdgscotland/amiport/actions/workflows/ci.yml)
-[![Ports](https://img.shields.io/badge/ports-22-8B6914)](https://amiport.platesteel.net/packages.html)
+[![Ports](https://img.shields.io/badge/ports-60-8B6914)](https://amiport.platesteel.net/packages.html)
 [![POSIX shim](https://img.shields.io/badge/POSIX_shim-150+_functions-554433)](docs/posix-tiers.md)
 [![Aminet](https://img.shields.io/badge/Aminet-7_live-8B6914)](https://aminet.net)
-[![amiport.platesteel.net](https://img.shields.io/badge/amiport-16_packages-554433)](https://amiport.platesteel.net)
+[![amiport.platesteel.net](https://img.shields.io/badge/amiport-60_packages-554433)](https://amiport.platesteel.net)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![GitHub stars](https://img.shields.io/github/stars/bdgscotland/amiport?style=social)](https://github.com/bdgscotland/amiport/stargazers)
 
 amiport ports POSIX/Linux C programs to AmigaOS 3.x. It provides POSIX compatibility libraries, a cross-compilation toolchain, and an AI-powered pipeline that takes a C source file from analysis through to a tested, [Aminet](https://aminet.net)-ready binary.
 
-**22 ports shipped. 784 test cases. 7 live on Aminet.**
+**60 ports shipped. 1,384 test cases. 7 live on Aminet.**
 
 ![End-to-end port of OpenBSD tee to AmigaOS 3.x](docs/media/teeport-demo.gif)
 
@@ -26,21 +26,52 @@ AmigaOS predates POSIX. There is no `stat()`, no `opendir()`, no `getopt()`, no 
 
 | Port | Version | Source | Status |
 |------|---------|--------|--------|
-| [bc](ports/bc/) | 1.07.1 | GNU | Built & tested |
+| [basename](ports/basename/) | 1.14 | OpenBSD | Built & tested |
+| [bc](ports/bc/) | 1.07.1 | GNU | [Aminet](https://aminet.net) |
 | [cal](ports/cal/) | 1.32 | OpenBSD | [Aminet](https://aminet.net/package/util/cli/cal-1.0) |
+| [cat](ports/cat/) | 1.34 | OpenBSD | Built & tested |
+| [cksum](ports/cksum/) | 1.0 | FreeBSD | Built & tested |
+| [col](ports/col/) | 1.20 | OpenBSD | Built & tested |
+| [colrm](ports/colrm/) | 1.14 | OpenBSD | Built & tested |
+| [column](ports/column/) | 1.27-2 | OpenBSD | Built & tested |
 | [comm](ports/comm/) | 1.11 | OpenBSD | Built & tested |
 | [cut](ports/cut/) | 1.28 | OpenBSD | [Aminet](https://aminet.net/package/util/cli/cut-1.0) |
 | [diff](ports/diff/) | 1.95 | OpenBSD | Submitted to Aminet |
+| [dirname](ports/dirname/) | 1.17 | OpenBSD | Built & tested |
+| [echo](ports/echo/) | 1.12 | OpenBSD | Built & tested |
 | [expand](ports/expand/) | 1.15 | OpenBSD | Built & tested |
+| [expr](ports/expr/) | 1.28-2 | OpenBSD | Built & tested |
+| [factor](ports/factor/) | 1.30 | OpenBSD | Built & tested |
+| [false](ports/false/) | 1.1 | OpenBSD | Built & tested |
+| [fold](ports/fold/) | 1.18-2 | OpenBSD | Built & tested |
+| [getopt](ports/getopt/) | 1.10 | OpenBSD | Built & tested |
 | [grep](ports/grep/) | 1.68 | OpenBSD | [Aminet](https://aminet.net/package/util/cli/grep-1.68) |
 | [head](ports/head/) | 1.24 | OpenBSD | [Aminet](https://aminet.net/package/util/cli/head-1.24) |
-| [jq](ports/jq/) | 1.7.1 | jqlang | Built & tested |
+| [join](ports/join/) | 1.34-2 | OpenBSD | Built & tested |
+| [jot](ports/jot/) | 1.56 | OpenBSD | Built & tested |
+| [jq](ports/jq/) | 1.7.1-2 | jqlang | Submitted to Aminet |
+| [ln](ports/ln/) | 1.25 | OpenBSD | Built & tested |
+| [look](ports/look/) | 1.27-2 | OpenBSD | Built & tested |
+| [mkdir](ports/mkdir/) | 1.31 | OpenBSD | Built & tested |
+| [nl](ports/nl/) | 1.8-2 | OpenBSD | Built & tested |
+| [paste](ports/paste/) | 1.27 | OpenBSD | Built & tested |
 | [patch](ports/patch/) | 1.78 | OpenBSD | Built & tested |
+| [printenv](ports/printenv/) | 1.8 | OpenBSD | Built & tested |
+| [printf](ports/printf/) | 1.28 | OpenBSD | Built & tested |
 | [rev](ports/rev/) | 1.16 | OpenBSD | Built & tested |
+| [rmdir](ports/rmdir/) | 1.15 | OpenBSD | Built & tested |
+| [rs](ports/rs/) | 1.30 | OpenBSD | Built & tested |
 | [sed](ports/sed/) | 1.47 | OpenBSD | [Aminet](https://aminet.net/package/util/cli/sed-1.47) |
+| [sleep](ports/sleep/) | 1.29 | OpenBSD | Built & tested |
 | [sort](ports/sort/) | 1.0 | Plan 9 | Built & tested |
 | [tail](ports/tail/) | 1.24 | OpenBSD | Built & tested |
 | [tee](ports/tee/) | 1.15 | OpenBSD | [Aminet](https://aminet.net/package/util/cli/tee-1.15) |
+| [test](ports/test/) | 1.23 | OpenBSD | Built & tested |
+| [tr](ports/tr/) | 1.22-2 | OpenBSD | Built & tested |
+| [true](ports/true/) | 1.1 | OpenBSD | Built & tested |
+| [tsort](ports/tsort/) | 1.38-2 | OpenBSD | Built & tested |
+| [tty](ports/tty/) | 1.14 | OpenBSD | Built & tested |
+| [unexpand](ports/unexpand/) | 1.13 | OpenBSD | Built & tested |
 | [uniq](ports/uniq/) | 1.33 | OpenBSD | Built & tested |
 | [wc](ports/wc/) | 1.32 | OpenBSD | Built & tested |
 | [yes](ports/yes/) | 1.9 | OpenBSD | [Aminet](https://aminet.net/package/util/cli/yes-1.9) |
@@ -51,6 +82,7 @@ AmigaOS predates POSIX. There is no `stat()`, no `opendir()`, no `getopt()`, no 
 |------|---------|--------|--------|
 | [awk](ports/awk/) | 2024.12.25 | BWK "One True Awk" | Built & tested |
 | [lua](ports/lua/) | 5.4.7 | PUC-Rio | Submitted to Aminet |
+| [python3](ports/python3/) | 3.11.12 | CPython | Built & tested |
 
 ### Console UI (Interactive)
 
@@ -58,6 +90,8 @@ AmigaOS predates POSIX. There is no `stat()`, no `opendir()`, no `getopt()`, no 
 |------|---------|--------|--------|
 | [less](ports/less/) | 692 | GNU | Built & tested |
 | [mg](ports/mg/) | 3.7 | troglobit/OpenBSD | Built & tested |
+| [tetris](ports/tetris/) | 1.35 | OpenBSD | Built & tested |
+| [vim](ports/vim/) | 9.1 | Vim | Built & tested |
 
 Version format: `upstream[-portrev]` — port revision shown when > 1 (e.g., `1.68-2` = upstream 1.68, second port revision).
 
@@ -116,7 +150,7 @@ See [posix-tiers.md](docs/posix-tiers.md) for the complete function classificati
 
 ## AI Pipeline
 
-The pipeline uses 16 specialized [Claude Code](https://claude.ai/claude-code) agents, each constrained to a specific role:
+The pipeline uses 19 specialized [Claude Code](https://claude.ai/claude-code) agents, each constrained to a specific role:
 
 ```
 analyze → transform → build → test → memory-check → perf-optimize → publish
@@ -135,7 +169,7 @@ Every port is tested at two levels:
 - **vamos** — fast headless smoke tests (milliseconds, no emulator setup)
 - **FS-UAE** — automated testing inside real AmigaOS 3.1 via ARexx harness, with TAP output and automatic emulator shutdown
 
-Interactive programs (less, mg) get automated keystroke injection ([ADR-023](docs/adr/023-automated-interactive-testing.md)) and visual screen verification with character-level assertions ([ADR-024](docs/adr/024-visual-verification.md), [ADR-025](docs/adr/025-screen-read-trap.md)). 784 test cases across all ports, all automated.
+Interactive programs (less, mg, vim, tetris) get automated keystroke injection ([ADR-023](docs/adr/023-automated-interactive-testing.md)) and visual screen verification with character-level assertions ([ADR-024](docs/adr/024-visual-verification.md), [ADR-025](docs/adr/025-screen-read-trap.md)). 1,384 test cases across all ports, all automated.
 
 ```bash
 make test TARGET=ports/grep             # Quick vamos smoke test
