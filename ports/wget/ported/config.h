@@ -97,7 +97,7 @@
 /* #undef HAVE_RAND_EGD */      /* No EGD entropy */
 
 /* === SSL/TLS -- Phase 2: AmiSSL 5.26 (OpenSSL 3.6.1 API) === */
-#define HAVE_LIBSSL 1
+/* #undef HAVE_LIBSSL */
 
 /* AmiSSL uses Amiga shared library model -- no static OpenSSL linking.
  * openssl.c calls standard OpenSSL API (SSL_CTX_new, SSL_connect, etc.)

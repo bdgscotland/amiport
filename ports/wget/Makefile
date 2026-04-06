@@ -20,8 +20,8 @@ CFLAGS = -std=gnu99 -O2 -noixemul -m68020 -Wall \
 
 LDFLAGS = -L../../lib/posix-shim -lamiport \
           -L../../lib/bsdsocket-shim -lamiport-net \
-          -L../../lib/amissl-sdk/lib -lamisslstubs -lamisslauto \
-          -Wl,--allow-multiple-definition \
+          \
+           \
           -lm
 
 AMINET_CAT = comm/tcp
@@ -57,7 +57,6 @@ SRC_SOURCES = \
 	ported/src/log.c \
 	ported/src/main.c \
 	ported/src/netrc.c \
-	ported/src/openssl.c \
 	ported/src/progress.c \
 	ported/src/ptimer.c \
 	ported/src/recur.c \
@@ -69,7 +68,6 @@ SRC_SOURCES = \
 	ported/src/version.c \
 	ported/src/warc.c \
 	ported/src/amiga_stubs.c \
-	ported/src/amiga_errno.c
 
 # Gnulib support library (subset needed by wget)
 LIB_SOURCES = \

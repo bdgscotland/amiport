@@ -625,3 +625,32 @@ On AmigaOS with `-noixemul`, **there is no process memory cleanup on exit**. Eve
 **Also:** Register `atexit(cleanup)` early in main() so cleanup runs on ALL exit paths including err()/errx()/exit() from error handlers.
 
 Discovered in the wget 1.20.3 port (2026-04-05) — init.c:cleanup() had 70+ xfree() calls and 8 subsystem cleanup functions gated behind `#if defined DEBUG_MALLOC || defined TESTING`. Production builds leaked 2-150KB per invocation.
+
+## libamisslauto.a Is a Hard Runtime Dependency — Never Use for Optional HTTPS
+
+AmiSSL's `libamisslauto.a` uses a GCC `__attribute__((constructor))` to open `bsdsocket.library` and `amisslmaster.library` **before main() runs**. If AmiSSL is not installed on the target Amiga, the constructor prints "Couldn't open amisslmaster.library v5!" and calls `exit(RETURN_FAIL)` (RC=20). The program never reaches `main()`.
+
+This means any binary linked with `-lamisslauto` **cannot run at all** on systems without AmiSSL — even for HTTP-only operations that don't need TLS. It's a hard runtime dependency, not a soft/optional one.
+
+**Symptom:** Program prints "Couldn't open amisslmaster.library v5!" and exits immediately with RC=20. No arguments are parsed, no `--version`, nothing.
+
+**Fix:** Do NOT use `libamisslauto.a`. Instead, do manual AmiSSL opening in the SSL init function:
+```c
+struct Library *AmiSSLMasterBase = NULL;
+struct Library *AmiSSLBase = NULL;
+
+bool ssl_init(void) {
+    AmiSSLMasterBase = OpenLibrary("amisslmaster.library", AMISSLMASTER_MIN_VERSION);
+    if (!AmiSSLMasterBase) {
+        logprintf(LOG_NOTQUIET, "HTTPS not available (AmiSSL not installed)\n");
+        return false;  /* Graceful fallback — HTTP still works */
+    }
+    /* ... proceed with OpenAmiSSLTags() ... */
+}
+```
+
+This allows HTTPS when AmiSSL is installed and gracefully degrades to HTTP-only when it's not. Use `-lamisslstubs` (the function stub library) instead of `-lamisslauto`.
+
+**Also affects:** The `SocketBase` global. `libamisslauto.a` defines its own `SocketBase` which conflicts with `libamiport-net.a`'s definition, requiring `-Wl,--allow-multiple-definition`. Manual opening avoids this conflict entirely.
+
+Discovered in the wget 1.20.3 port (2026-04-06) — Phase 2 binary with AmiSSL crashed on real A2000 hardware because AmiSSL was not installed. Had to revert to HTTP-only build for the real hardware.
