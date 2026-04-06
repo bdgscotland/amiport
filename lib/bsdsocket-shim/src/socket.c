@@ -307,6 +307,59 @@ int amiport_shutdown(int sockfd, int how)
 #endif
 }
 
+/* --- getsockname / getpeername --- */
+
+int amiport_getsockname(int sockfd, struct sockaddr *addr, socklen_t *addrlen)
+{
+    if (ensure_init() != 0) return -1;
+
+#ifdef __AMIGA__
+    return getsockname(sockfd, addr, addrlen);
+#else
+    (void)sockfd; (void)addr; (void)addrlen;
+    errno = ENOSYS;
+    return -1;
+#endif
+}
+
+int amiport_getpeername(int sockfd, struct sockaddr *addr, socklen_t *addrlen)
+{
+    if (ensure_init() != 0) return -1;
+
+#ifdef __AMIGA__
+    return getpeername(sockfd, addr, addrlen);
+#else
+    (void)sockfd; (void)addr; (void)addrlen;
+    errno = ENOSYS;
+    return -1;
+#endif
+}
+
+/* --- select() --- */
+
+int amiport_select(int nfds, fd_set *readfds, fd_set *writefds,
+                   fd_set *exceptfds, struct timeval *timeout)
+{
+    if (ensure_init() != 0) return -1;
+
+#ifdef __AMIGA__
+    return WaitSelect(nfds, readfds, writefds, exceptfds, timeout, NULL);
+#else
+    (void)nfds; (void)readfds; (void)writefds;
+    (void)exceptfds; (void)timeout;
+    errno = ENOSYS;
+    return -1;
+#endif
+}
+
+/* --- h_errno --- */
+
+/* amiport: h_errno is provided as an integer variable.
+ * bsdsocket.library stores h_errno separately from errno.
+ * We use amiport_h_errno() for reading (defined in resolve.c),
+ * but exports a global variable for code that accesses h_errno directly. */
+int h_errno = 0;
+
 /* --- Error --- */
 
 int amiport_socket_errno(void)

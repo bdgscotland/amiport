@@ -36,3 +36,4 @@
 - [port_tetris_perf.md](port_tetris_perf.md) - Performance findings for ports/tetris 1.35 — tputs callback per-char, tgoto snprintf per frame, CTOD multiply constant reviewed 2026-03-26
 - [port_vim_perf.md](port_vim_perf.md) - Performance findings for ports/vim 9.1 — safe_Lock redundancy, -O2 struct analysis, -Os size reduction, stack cookie discrepancy reviewed 2026-03-26
 - [port_amiget_perf.md](port_amiget_perf.md) - Performance findings for ports/amiget 1.0 — sha256_update byte loop, db_reload per-call, HTTP recv buffer, cmd_search lowercase copies reviewed 2026-04-05
+- [port_wget_perf.md](port_wget_perf.md) - Performance findings for ports/wget 1.20.3 — fflush per-write in download loop (HIGH), progress bar DIVU, memset waste reviewed 2026-04-05

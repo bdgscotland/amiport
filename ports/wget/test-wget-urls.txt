@@ -1,0 +1,2 @@
+http://nonexistent.invalid/file1.html
+http://nonexistent.invalid/file2.html

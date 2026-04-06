@@ -11,3 +11,5 @@ JS files on Dreamhost are served with `Cache-Control: max-age=2592000` (30 days)
 **How to apply:** Whenever editing an HTML file's `<script src>`, check that the referenced JS has a `?v=YYYYMMDDX` query string. When updating JS, bump the version string in the HTML. Pattern: `?v=20260327a`.
 
 Fixed 2026-03-27: added `?v=20260327a` to packages.js, stats.js, changelog.js.
+
+Also fixed 2026-03-26: terminal-anim.js in index.html and style.css in admin.php were missing version strings. Always grep for `src="js/` and `href="css/` across ALL html/php before deploying, filtering for missing `?v=`.

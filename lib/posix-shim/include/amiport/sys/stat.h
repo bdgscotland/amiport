@@ -9,22 +9,33 @@
 
 #include <exec/types.h>
 
-/* Minimal stat structure */
+/* Full POSIX-compatible stat structure for AmigaOS.
+ * Fields not natively supported by AmigaOS are zero-filled by amiport_stat().
+ * amiport: debug-agent -- extended to match CPython posixmodule.c expectations
+ */
 struct amiport_stat {
     ULONG st_mode;      /* File type and permissions */
-    LONG  st_size;      /* File size in bytes */
-    ULONG st_mtime;     /* Modification time (Unix timestamp approx) */
-    int   st_isdir;     /* Non-zero if directory */
+    ULONG st_ino;       /* Inode number (from fib_DiskKey) */
     ULONG st_dev;       /* Device ID (from volume lock) */
-    ULONG st_ino;       /* Inode number (from fib_DiskKey — unique per file on a volume) */
+    ULONG st_nlink;     /* Number of hard links (always 1 on AmigaOS) */
+    ULONG st_uid;       /* User ID of owner (always 0 on AmigaOS) */
+    ULONG st_gid;       /* Group ID of owner (always 0 on AmigaOS) */
+    LONG  st_size;      /* File size in bytes */
+    ULONG st_atime;     /* Time of last access (same as mtime on AmigaOS) */
+    ULONG st_mtime;     /* Modification time (Unix timestamp approx) */
+    ULONG st_ctime;     /* Time of last change (same as mtime on AmigaOS) */
+    ULONG st_blksize;   /* Block size for filesystem I/O (always 512) */
+    ULONG st_blocks;    /* Number of 512-byte blocks allocated */
+    ULONG st_rdev;      /* Device ID if special file (always 0) */
+    int   st_isdir;     /* Non-zero if directory (internal use) */
 };
 
-/* POSIX compatibility alias — suppressed when system stat.h already declares
- * int stat() as a function (e.g. pulled in transitively via fcntl.h).
- * Define AMIPORT_NO_STAT_MACROS before including this header in that case. */
-#ifndef AMIPORT_NO_STAT_MACROS
-typedef struct amiport_stat stat;
-#endif
+/* amiport: do NOT typedef struct amiport_stat to stat.
+ * The NDK's <sys/stat.h> (pulled in by <fcntl.h> or directly) already
+ * declares int stat() as a function, so typedef-ing the struct to the same
+ * name causes "redeclared as different kind of symbol" errors.
+ * We use only the #define stat amiport_stat macro approach below,
+ * and code should use struct amiport_stat for the struct type directly. */
 
 /* Mode flags */
 #define AMIPORT_S_IFMT   0170000  /* Mask for file type bits */

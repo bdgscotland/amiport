@@ -1029,3 +1029,12 @@ These apply only to programs using terminal capabilities (less, nano, vim, htop)
 ```
 **Comment:** `/* amiport: suppress system requesters -- see crash-patterns #22 */`
 **Why:** Any Lock()/Open() on a bare name triggers AmigaDOS volume requesters. Programs that search for config files (vim->$VIM, python->$PYTHONPATH, shell->.profile) hit this on every non-existent path. The requester freezes the FS-UAE test harness. Global suppression via pr_WindowPtr = -1 is the ADCD-documented approach.
+
+### Ungated DEBUG_MALLOC Cleanup Code
+
+**Pattern:** `#if defined DEBUG_MALLOC || defined TESTING` (or similar guards) around cleanup/free functions.
+**Search:** `grep -n 'DEBUG_MALLOC\|#ifdef TESTING' ported/src/*.c` in any function named `cleanup`, `free_*`, `destroy_*`.
+**Action:** Remove the `#ifdef` guard and its matching `#endif`. Make cleanup unconditional.
+**Also:** Add `atexit(cleanup)` early in main() after `amiport_expand_argv()`.
+**Comment:** `/* amiport: removed DEBUG_MALLOC/TESTING guard -- AmigaOS has no process memory cleanup with -noixemul */`
+**Why:** GNU programs assume the OS reclaims process memory on exit. AmigaOS with -noixemul does not. Production builds with these guards leak ALL dynamic allocations permanently. Discovered in wget 1.20.3 where cleanup() had 70+ xfree() calls gated behind DEBUG_MALLOC.

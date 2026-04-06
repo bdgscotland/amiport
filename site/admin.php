@@ -96,7 +96,7 @@ if ($isAdmin && isset($_SESSION['admin_time']) && (time() - $_SESSION['admin_tim
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex, nofollow">
     <title>Admin — amiport</title>
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/style.css?v=20260325d">
     <?php if (isset($_SESSION['admin']) && $_SESSION['admin'] === true): ?>
     <meta name="csrf-token" content="<?php echo htmlspecialchars(amiport_csrf_token()); ?>">
     <?php endif; ?>

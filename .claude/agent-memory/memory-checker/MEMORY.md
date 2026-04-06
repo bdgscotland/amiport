@@ -206,3 +206,13 @@
   - Impact: Permanent file handle leak (~16 bytes) per occurrence, resource exhaustion after ~254 leaks
   - Root cause: mch_check_win() uses goto exit for all error paths but exit label doesn't close file handles before exit()
   - All other code CLEAN: ml_close_all() properly cleanup swap files on mch_exit(), safe_Lock() restores pr_WindowPtr, vim_stubs.c has no allocations
+
+- [memory-audit-wget.md](memory-audit-wget.md) - ports/wget 1.20.3 memory safety review (2026-04-05)
+  - Status: CRITICAL LEAKS FOUND — architectural mismatch with AmigaOS
+  - Issues: 10 critical (cleanup() is no-op in production build)
+  - Verdict: CANNOT SHIP — 2-6 KB guaranteed leak per invocation, 150+ KB for real-world usage
+  - Root cause: cleanup() gated on DEBUG_MALLOC/TESTING (not enabled in production), assumes OS cleanup on exit
+  - Tier 1 guaranteed: argstring (200-500B), argv (256-512B), homedir (32-64B), wgetrc paths (128-256B), opt.* fields (1-5KB)
+  - Tier 2 real-world: DNS cache (10-100KB), cookies (1-10KB), HSTS (1-50KB)
+  - Socket/SSL cleanup CLEAN ✅
+  - Upstream design violates AmigaOS -noixemul assumption: no automatic process memory cleanup

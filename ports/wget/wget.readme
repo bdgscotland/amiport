@@ -1,0 +1,57 @@
+Short:        HTTP/HTTPS download utility
+Type:         comm/tcp
+Architecture: m68k-amigaos >= 3.0; 68020+
+Uploader:     duncan@bowring.us
+Author:       Free Software Foundation (ported by Duncan Bowring)
+Version:      1.20.3
+
+wget - HTTP/HTTPS download utility
+
+GNU Wget is a non-interactive network retriever. It supports HTTP,
+FTP, recursive downloading, resume of interrupted transfers, cookies,
+authentication, proxy support, and many other features.
+
+Original author: Free Software Foundation
+Ported by Duncan Bowring using amiport (AI-assisted porting toolkit).
+Project: https://github.com/bdgscotland/amiport
+
+Cross-compiled with m68k-amigaos-gcc for AmigaOS 3.x (68020+).
+Requires bsdsocket.library (Roadshow, AmiTCP, or Miami).
+
+Usage:
+  wget http://example.com/file.lha
+  wget -O output.txt http://example.com/page.html
+  wget -c http://example.com/large-file.lha   (resume download)
+  wget -r -l 2 http://example.com/            (recursive, depth 2)
+  wget -q http://example.com/file.lha         (quiet mode)
+
+Features:
+  - HTTP and FTP downloads
+  - Recursive download with depth control
+  - Resume interrupted downloads (-c)
+  - Cookie support (--load-cookies, --save-cookies)
+  - HTTP authentication (--user, --password)
+  - Proxy support (http_proxy environment variable)
+  - Progress bar with ETA
+  - Timestamping (-N, only download if newer)
+  - Spider mode (--spider, check links only)
+  - Custom user-agent (--user-agent)
+  - Custom headers (--header)
+
+Known limitations:
+  - HTTPS not yet supported (Phase 2 via AmiSSL planned)
+  - No --background (-b) flag (use "Run >NIL: wget URL")
+  - No --use-askpass (use --password instead)
+  - No --timeout per-operation (TCP-level timeouts still work)
+  - No gzip transfer encoding (servers send uncompressed)
+  - No internationalized domain names (ASCII URLs only)
+  - English only (NLS disabled)
+
+System requirements:
+  - AmigaOS 3.0 or later
+  - 68020 or higher CPU
+  - bsdsocket.library (Roadshow, AmiTCP, or Miami)
+  - 1MB free RAM recommended
+
+Includes full source code (original POSIX and ported Amiga versions)
+and PORT.md documenting every transformation applied.

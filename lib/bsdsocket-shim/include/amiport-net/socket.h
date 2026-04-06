@@ -177,7 +177,22 @@ int amiport_getsockopt(int sockfd, int level, int optname,
 /* Shutdown */
 int amiport_shutdown(int sockfd, int how);
 
-/* Select — handles mixed file/socket fd sets */
+/* Peer/socket name queries */
+int amiport_getsockname(int sockfd, struct sockaddr *addr, socklen_t *addrlen);
+int amiport_getpeername(int sockfd, struct sockaddr *addr, socklen_t *addrlen);
+
+/* Select using POSIX fd_set / struct timeval types (from NDK sys/socket.h) */
+#ifdef __AMIGA__
+#include <sys/time.h>   /* struct timeval */
+#endif
+#ifndef _AMIPORT_TIMEVAL_POSIX
+#define _AMIPORT_TIMEVAL_POSIX
+/* struct timeval is provided by <sys/time.h> on Amiga (via NDK) */
+#endif
+int amiport_select(int nfds, fd_set *readfds, fd_set *writefds,
+                   fd_set *exceptfds, struct timeval *timeout);
+
+/* Select — handles mixed file/socket fd sets (old internal API) */
 int amiport_net_select(int nfds, amiport_net_fd_set *readfds,
                        amiport_net_fd_set *writefds,
                        amiport_net_fd_set *exceptfds,
@@ -188,6 +203,9 @@ int amiport_is_socket(int fd);
 
 /* Get last socket error */
 int amiport_socket_errno(void);
+
+/* h_errno -- host resolution error variable */
+extern int h_errno;
 
 /* ================================================================
  * Convenience macros for transparent name mapping
@@ -207,6 +225,9 @@ int amiport_socket_errno(void);
 #define setsockopt(s,l,o,v,n) amiport_setsockopt((s),(l),(o),(v),(n))
 #define getsockopt(s,l,o,v,n) amiport_getsockopt((s),(l),(o),(v),(n))
 #define shutdown(s,h)       amiport_shutdown((s),(h))
+#define getsockname(s,a,l)  amiport_getsockname((s),(a),(l))
+#define getpeername(s,a,l)  amiport_getpeername((s),(a),(l))
+#define select(n,r,w,e,t)   amiport_select((n),(r),(w),(e),(t))
 #endif
 
 #ifdef __cplusplus

@@ -585,3 +585,43 @@ This means **the fd namespace conflict (crash-patterns #12) only applies when mi
 - **Legacy ports already using `amiport_open()`:** Keep using `amiport_read()`/`amiport_write()`/`amiport_close()` consistently. Don't mix with libnix `fdopen()`.
 
 Discovered during CPython 3.11 feasibility analysis (2026-03-26) — empirical vamos test confirmed `open()` + `fdopen()` interop works on bebbo-gcc libc.a.
+
+## GNU getopt_long Two-Pass Pattern Requires optind=0 Reset
+
+GNU programs (wget, coreutils, etc.) commonly use a **two-pass getopt_long pattern**: the first pass scans for a specific option (e.g., `--config`), then resets `optind = 0` and re-scans all options in a second pass. The GNU `optind=0` extension means "restart scanning from argv[1]".
+
+`amiport_getopt_long` and `amiport_getopt` now support this (fixed 2026-04-05). Without the reset handler, the second pass returns -1 immediately and ALL arguments fall through as non-option args. The symptom is bizarre: the program treats its own name and flags as positional arguments (e.g., wget tries to download `http://wget/` and `http://--version/`).
+
+**Detection:** If a port using `getopt_long` ignores all options and treats everything as positional arguments, check whether it resets `optind = 0` between passes. Search for `optind = 0` or `optind=0` in the source.
+
+**Fix:** Already applied to `lib/posix-shim/src/getopt.c` — both `amiport_getopt` and `amiport_getopt_long` check `if (amiport_optind == 0) { amiport_optind = 1; optpos = 0; }` at entry.
+
+Discovered in the wget 1.20.3 port (2026-04-05) — wget's main.c uses a config-finding first pass then resets optind=0 for the real option processing pass.
+
+## amiport_getopt_long Lacks GNU Argument Permutation
+
+POSIX `getopt` stops processing options at the first non-option argument. **GNU `getopt` permutes argv**, allowing options to appear after non-option arguments: `wget http://url -O file` works because GNU getopt reorders argv so `-O file` is processed before `http://url`.
+
+`amiport_getopt_long` uses POSIX behavior — it returns -1 at the first non-option. Any GNU program where users mix options and positional arguments (very common with wget, curl, grep, etc.) will silently ignore options that appear after the first positional argument.
+
+**Symptom:** Options after the first non-option argument are treated as positional args. `wget http://url -O file` downloads to the default filename and then tries to resolve `-O` and `file` as hostnames. `grep pattern -i file` would ignore `-i`.
+
+**Fix (pending):** Add GNU-style argument permutation to `amiport_getopt` and `amiport_getopt_long` in `lib/posix-shim/src/getopt.c`. When a non-option is encountered, scan forward for the next option, rotate it to the front, and continue processing. Alternatively, shuffle all non-options to the end of argv.
+
+**Workaround:** Put all options before positional arguments: `wget -O file http://url` instead of `wget http://url -O file`.
+
+Discovered in the wget 1.20.3 port (2026-04-05) — user tested `WORK:wget http://amiport.platesteel.net/amiga.html -O RAM:test.html` and the -O flag was silently ignored.
+
+## GNU Programs Gate Cleanup Behind DEBUG_MALLOC — Must Ungated for AmigaOS
+
+Many GNU programs (wget, coreutils, etc.) wrap their memory cleanup code in `#if defined DEBUG_MALLOC || defined TESTING` guards. The upstream rationale is: "the OS reclaims process memory on exit, so cleanup is only needed for leak detection during development."
+
+On AmigaOS with `-noixemul`, **there is no process memory cleanup on exit**. Every malloc'd byte leaks permanently until reboot. If the `#ifdef` guards are left in place, the production binary leaks ALL dynamically allocated memory.
+
+**Detection:** After the code-transformer runs, grep the ported source for `#if.*DEBUG_MALLOC\|#ifdef TESTING` in any function named `cleanup`, `free_*`, `destroy_*`, or similar. If found, the guards MUST be removed.
+
+**Fix:** Remove the `#if defined DEBUG_MALLOC || defined TESTING` guard and its matching `#endif`. Make the cleanup code unconditional. This is always safe — the cleanup functions only free memory that was allocated, using xfree() which handles NULL.
+
+**Also:** Register `atexit(cleanup)` early in main() so cleanup runs on ALL exit paths including err()/errx()/exit() from error handlers.
+
+Discovered in the wget 1.20.3 port (2026-04-05) — init.c:cleanup() had 70+ xfree() calls and 8 subsystem cleanup functions gated behind `#if defined DEBUG_MALLOC || defined TESTING`. Production builds leaked 2-150KB per invocation.

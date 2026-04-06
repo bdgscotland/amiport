@@ -1,0 +1,5 @@
+# wgetrc -- minimal test config for wget test suite
+# This file is used to test wgetrc reading via --config
+robots = off
+verbose = off
+tries = 1

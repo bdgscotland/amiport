@@ -474,11 +474,21 @@ int amiport_fstat(int fd, struct amiport_stat *buf)
 
     buf->st_size = fib->fib_Size;
 
+    /* amiport: debug-agent -- fill POSIX fields; mirrors stat.c logic */
+    buf->st_nlink   = 1;
+    buf->st_ino     = (ULONG)fib->fib_DiskKey;
+    buf->st_blksize = 512;
+    buf->st_blocks  = (buf->st_size + 511) / 512;
+
     /* Convert Amiga DateStamp to Unix timestamp */
     buf->st_mtime = (fib->fib_Date.ds_Days * 86400L) +
                     (fib->fib_Date.ds_Minute * 60L) +
                     (fib->fib_Date.ds_Tick / TICKS_PER_SECOND) +
                     AMIGA_EPOCH_OFFSET;
+
+    /* amiport: mirror mtime to atime/ctime */
+    buf->st_atime = buf->st_mtime;
+    buf->st_ctime = buf->st_mtime;
 
     FreeDosObject(DOS_FIB, fib);
     return 0;

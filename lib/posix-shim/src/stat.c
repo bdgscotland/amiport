@@ -67,6 +67,15 @@ int amiport_stat(const char *path, struct amiport_stat *buf)
 
     buf->st_size = fib->fib_Size;
 
+    /* amiport: debug-agent -- fill POSIX fields missing from original minimal struct.
+     * st_nlink: AmigaOS has no hard links; always 1.
+     * st_uid/st_gid: AmigaOS has no user/group; always 0 (set by memset).
+     * st_atime/st_ctime: AmigaOS only tracks mtime; use mtime for all three.
+     * st_blksize: Standard filesystem block size.
+     * st_blocks: Approximate 512-byte block count from file size.
+     * st_rdev: Not a special file; always 0 (set by memset). */
+    buf->st_nlink = 1;
+
     /* amiport: populate st_ino from fib_DiskKey — this is the filesystem
      * block number of the file header, unique per file on a volume.
      * Without this, programs that compare st_dev/st_ino to detect "same file"
@@ -90,6 +99,14 @@ int amiport_stat(const char *path, struct amiport_stat *buf)
                     (fib->fib_Date.ds_Minute * 60L) +
                     (fib->fib_Date.ds_Tick / TICKS_PER_SECOND) +
                     AMIGA_EPOCH_OFFSET;
+
+    /* amiport: debug-agent -- mirror mtime to atime/ctime; AmigaOS only tracks mtime */
+    buf->st_atime = buf->st_mtime;
+    buf->st_ctime = buf->st_mtime;
+
+    /* amiport: debug-agent -- standard block size and approximate block count */
+    buf->st_blksize = 512;
+    buf->st_blocks  = (buf->st_size + 511) / 512;
 
     FreeDosObject(DOS_FIB, fib);
     return 0;
