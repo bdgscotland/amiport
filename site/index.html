@@ -137,18 +137,39 @@
 
     </div>
 
-    <!-- Quick Install -->
-    <section class="group-frame" aria-labelledby="install-heading">
-        <div class="group-frame__title" id="install-heading" role="heading" aria-level="2">Quick Install</div>
+    <!-- amiport CLI -->
+    <section class="group-frame" aria-labelledby="cli-heading">
+        <div class="group-frame__title" id="cli-heading" role="heading" aria-level="2">amiport CLI</div>
         <div class="group-frame__body">
-            <p class="mb-sm">Download a .lha from <a href="packages.html">Packages</a>, transfer to your Amiga, and extract:</p>
+            <p class="mb-sm">The first package manager for classic AmigaOS. Install software directly on your Amiga:</p>
+            <div class="install-block">
+                <span class="install-block__prompt">1.SYS:&gt;</span>
+                <span class="install-block__cmd">amiport install grep</span>
+            </div>
+            <p class="mt-sm mb-sm">Downloads, verifies (SHA-256), and installs to C: automatically. 9 commands:</p>
+            <div class="install-block" style="font-size: 0.85em; line-height: 1.6">
+                <span class="install-block__cmd">amiport list</span> &mdash; browse all packages<br>
+                <span class="install-block__cmd">amiport search &lt;term&gt;</span> &mdash; find packages<br>
+                <span class="install-block__cmd">amiport install &lt;name&gt;</span> &mdash; download &amp; install<br>
+                <span class="install-block__cmd">amiport upgrade</span> &mdash; update outdated packages<br>
+                <span class="install-block__cmd">amiport doctor</span> &mdash; check network connectivity
+            </div>
+            <p class="mt-sm mb-sm"><strong>Requirements:</strong> AmigaOS 3.0+, TCP/IP stack (Roadshow, Miami, or AmiTCP), C:lha</p>
+            <p class="text-muted mt-sm">
+                <strong>Get started:</strong> Download <a href="packages.html?name=amiport">amiport.lha</a>, extract to C:, then use <code>amiport install</code> for everything else.
+            </p>
+        </div>
+    </section>
+
+    <!-- Manual Install -->
+    <section class="group-frame" aria-labelledby="install-heading">
+        <div class="group-frame__title" id="install-heading" role="heading" aria-level="2">Manual Install</div>
+        <div class="group-frame__body">
+            <p class="mb-sm">No network? Download .lha files from <a href="packages.html">Packages</a> and extract manually:</p>
             <div class="install-block">
                 <span class="install-block__prompt">1.SYS:&gt;</span>
                 <span class="install-block__cmd">lha x grep-1.68.lha SYS:</span>
             </div>
-            <p class="text-muted mt-sm">
-                Or use the built-in package manager: <code>amiport install grep</code>
-            </p>
         </div>
     </section>
 
