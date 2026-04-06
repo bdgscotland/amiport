@@ -103,7 +103,7 @@ AmigaOS predates POSIX. There is no `stat()`, no `opendir()`, no `getopt()`, no 
 
 The first package manager for classic 68k AmigaOS. `amiport install jq` downloads, verifies (SHA-256), and installs packages from the amiport repository — one command, on the Amiga itself.
 
-![amiport installing jq on FS-UAE A4000](ports/amiport/screenshots/amiget-fsemu-install.png)
+![amiport running on Coffin R65 — list, search, doctor, and Vim](ports/amiport/screenshots/amiport-coffin-r65.png)
 
 9 commands: `list`, `search`, `info`, `install`, `upgrade`, `remove`, `installed`, `doctor`, `help`. Written in C89 from scratch (not a port). 42KB binary. Requires a TCP/IP stack (Roadshow, Miami, or AmiTCP).
 

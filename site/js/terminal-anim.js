@@ -13,7 +13,7 @@
     if (!container) return;
 
     var lines = [
-        { type: 'cmd',    prompt: '1.SYS:> ', text: 'amiget install grep' },
+        { type: 'cmd',    prompt: '1.SYS:> ', text: 'amiport install grep' },
         { type: 'output', text: 'Downloading grep-1.68.lha... 45KB/45KB' },
         { type: 'output', text: 'Installed grep 1.68 to C:' },
         { type: 'cmd',    prompt: '1.SYS:> ', text: 'grep -i "hello" README' },

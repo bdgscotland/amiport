@@ -50,9 +50,9 @@
     <!-- Hero: Terminal Window (compact) -->
     <div class="mui-window">
         <div class="mui-window__title">AmigaShell</div>
-        <div class="mui-window__body terminal-anim" role="img" aria-label="Terminal showing amiget installing grep on AmigaOS">
+        <div class="mui-window__body terminal-anim" role="img" aria-label="Terminal showing amiport installing grep on AmigaOS">
             <noscript>
-                <div><span class="shell-prompt">1.SYS:&gt; </span><span class="shell-cmd">amiget install grep</span></div>
+                <div><span class="shell-prompt">1.SYS:&gt; </span><span class="shell-cmd">amiport install grep</span></div>
                 <div class="shell-output">Downloading grep-1.68.lha... 45KB/45KB</div>
                 <div class="shell-output">Installed grep 1.68 to C:</div>
                 <div><span class="shell-prompt">1.SYS:&gt; </span><span class="shell-cmd">grep -i "hello" README</span></div>
@@ -147,7 +147,7 @@
                 <span class="install-block__cmd">lha x grep-1.68.lha SYS:</span>
             </div>
             <p class="text-muted mt-sm">
-                <strong>Coming soon:</strong> <code>amiget install grep</code> &mdash; a CLI package manager for AmigaOS.
+                Or use the built-in package manager: <code>amiport install grep</code>
             </p>
         </div>
     </section>
@@ -207,7 +207,7 @@
     </span>
 </footer>
 
-<script src="js/terminal-anim.js"></script>
+<script src="js/terminal-anim.js?v=20260326a"></script>
 <script src="js/activity.js?v=20260325d"></script>
 <script>
 // Boot sequence: skip on repeat visits
