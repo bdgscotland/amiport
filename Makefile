@@ -9,7 +9,7 @@
 #   clean            Remove build artifacts
 #   fetch-ndk        Download AmigaOS NDK 3.2 R4
 
-.PHONY: setup setup-toolchain setup-debug-tools build-shim build-emu build-console build-net build test test-shim test-emu test-console test-net test-ports package clean fetch-ndk help doctor smoke-test compare list-ports build-ports install-emu setup-emu emu publish check-aminet build-uaequit build-keyinject test-fsemu check-docs check-agents check-test-coverage check-fix-propagation check-port-metadata check-arexx scrape-adcd
+.PHONY: setup setup-toolchain setup-debug-tools build-shim build-emu build-console build-net build-http build test test-shim test-emu test-console test-net test-ports package clean fetch-ndk help doctor smoke-test compare list-ports build-ports install-emu setup-emu emu publish check-aminet build-uaequit build-keyinject test-fsemu check-docs check-agents check-test-coverage check-fix-propagation check-port-metadata check-arexx scrape-adcd
 
 help:
 	@echo "amiport — AI-powered Amiga porting toolkit"
@@ -22,6 +22,7 @@ help:
 	@echo "  build-emu        Cross-compile the POSIX emulation library (Tier 2)"
 	@echo "  build-console    Cross-compile the console shim library (ncurses)"
 	@echo "  build-net        Cross-compile the BSD socket shim library"
+	@echo "  build-http       Cross-compile the HTTP/1.0 client library"
 	@echo "  build            Build a port (TARGET=examples/wc)"
 	@echo "  test             Test a build via vamos (TARGET=examples/wc)"
 	@echo "  test-shim        Run POSIX shim library tests via vamos"
@@ -80,6 +81,9 @@ build-console:
 
 build-net:
 	$(MAKE) -C lib/bsdsocket-shim
+
+build-http: build-net
+	$(MAKE) -C lib/http-shim
 
 build:
 ifndef TARGET
@@ -234,6 +238,13 @@ emu-highspec: install-emu  ## Launch FS-UAE with high-spec profile (A4000/68040/
 		exit 1; \
 	fi
 	fs-uae toolchain/configs/amiport-highspec.fs-uae
+
+emu-vampire: install-emu  ## Launch FS-UAE matching Vampire V2 500+ (68020/128MB/bsdsocket)
+	@if ! command -v fs-uae >/dev/null 2>&1; then \
+		echo "FS-UAE not found. Install with: brew install fs-uae"; \
+		exit 1; \
+	fi
+	fs-uae toolchain/configs/vampire-v2.fs-uae
 
 scrape-adcd:
 	python3 scripts/scrape-adcd.py all --output docs/references/adcd/

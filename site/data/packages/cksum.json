@@ -8,6 +8,7 @@
     "license": "BSD-3-Clause",
     "size": 22577,
     "sha256": "2d8b9d32fea7c0351d8fe0875a7a21d5692cdc7cee6e4ecea20b2dba55ba2340",
+    "machine_sha256": "19db5cb51fb4349893b64f89385bd9f6f54c5cf356a699be483003bc544ca069",
     "download": "/packages/cksum-1.0.lha",
     "requires": [],
     "aminet": "",

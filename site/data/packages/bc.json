@@ -7,6 +7,7 @@
     "license": "GPL-3.0",
     "size": 325556,
     "sha256": "80ca723d96c2fa8ae559d513527040a08a902e843a3c0edca4c90bb5de32d211",
+    "machine_sha256": "2400d58d3a20ca48f1bf49eb067524ece825231e1f098133477977c135c23570",
     "download": "/packages/bc-1.07.1.lha",
     "requires": [],
     "aminet": "",

@@ -60,25 +60,34 @@ Version format: `upstream[-portrev]` — port revision is shown when > 1 (e.g., 
 | [look](ports/look/) | 1.27-2 | Display lines starting with a string | CLI | OpenBSD look v1.27 (BSD 3-Clause) | Built & tested (36/36 FS-UAE) | Not submitted |
 | [tty](ports/tty/) | 1.14 | Print name of terminal | CLI | OpenBSD tty v1.14 (BSD 3-Clause) | Built & tested (11/11 FS-UAE) | Not submitted |
 | [tetris](ports/tetris/) | 1.35 | Terminal tetris game (first for AmigaOS!) | Console UI | OpenBSD tetris v1.35 (BSD 3-Clause) | Built & tested (18/18 FS-UAE) | Not submitted |
+| [vim](ports/vim/) | 9.1 | Vi IMproved text editor | Console UI | Vim 9.1 (Vim License) | Built & tested | Submitted 2026-03-27 |
+| [python3](ports/python3/) | 3.11.12 | CPython interpreter | Scripting | CPython 3.11.12 (PSF License) | In progress | Not submitted |
 
 ## Aminet Publication Tracking
 
 | Port | Submitted | Aminet URL | Last Checked |
 |------|-----------|-----------|-------------|
-| cal | 2026-03-20 | [util/cli/cal-1.0](https://aminet.net/package/util/cli/cal-1.0) | 2026-03-22 — Live, 72 downloads, uploaded as 1.0 (now 1.32 locally) |
-| cut | 2026-03-20 | [util/cli/cut-1.0](https://aminet.net/package/util/cli/cut-1.0) | 2026-03-22 — Live, 60 downloads, uploaded as 1.0 (now 1.28 locally) |
-| diff | 2026-03-22 | pending moderation | 2026-03-22 |
-| grep | 2026-03-22 | [util/cli/grep-1.68](https://aminet.net/package/util/cli/grep-1.68) | 2026-03-22 — Live, 6 downloads |
-| sed | 2026-03-22 | [util/cli/sed-1.47](https://aminet.net/package/util/cli/sed-1.47) | 2026-03-22 — Live, 4 downloads |
-| lua | 2026-03-22 | pending moderation | 2026-03-22 — dev/lang category |
-| head | 2026-03-22 | [util/cli/head-1.24](https://aminet.net/package/util/cli/head-1.24) | 2026-03-22 — Live |
+| cal | 2026-03-20 | [util/cli/cal-1.0](https://aminet.net/package/util/cli/cal-1.0) | 2026-04-05 — Live, 176 downloads, uploaded as 1.0 (now 1.32 locally) |
+| cut | 2026-03-20 | [util/cli/cut-1.0](https://aminet.net/package/util/cli/cut-1.0) | 2026-04-05 — Live, 157 downloads, uploaded as 1.0 (now 1.28 locally) |
+| diff | 2026-03-25 | [util/cli/diff-1.95](https://aminet.net/package/util/cli/diff-1.95) | 2026-04-05 — Live, 155 downloads |
+| grep | 2026-03-22 | [util/cli/grep-1.68](https://aminet.net/package/util/cli/grep-1.68) | 2026-04-05 — Live, 286 downloads |
+| sed | 2026-03-22 | [util/cli/sed-1.47](https://aminet.net/package/util/cli/sed-1.47) | 2026-04-05 — Live, 260 downloads |
+| lua | 2026-03-25 | [dev/lang/lua-5.4.7](https://aminet.net/package/dev/lang/lua-5.4.7) | 2026-04-05 — Live, 249 downloads |
+| head | 2026-03-22 | [util/cli/head-1.24](https://aminet.net/package/util/cli/head-1.24) | 2026-04-05 — Live, 274 downloads |
 | tail | — | — | — |
-| tee | 2026-03-22 | [util/cli/tee-1.15](https://aminet.net/package/util/cli/tee-1.15) | 2026-03-22 — Live |
+| tee | 2026-03-22 | [util/cli/tee-1.15](https://aminet.net/package/util/cli/tee-1.15) | 2026-04-05 — Live, 239 downloads |
 | wc | — | — | — |
 | sort | — | — | — |
-| yes | 2026-03-22 | [util/cli/yes-1.9](https://aminet.net/package/util/cli/yes-1.9) | 2026-03-22 — Live |
-| jq | 2026-03-23 | pending moderation | 2026-03-23 |
-| bc | 2026-03-23 | pending moderation | 2026-03-23 |
+| yes | 2026-03-22 | [util/cli/yes-1.9](https://aminet.net/package/util/cli/yes-1.9) | 2026-04-05 — Live, 234 downloads |
+| jq | 2026-03-25 | [util/cli/jq-1.7.1](https://aminet.net/package/util/cli/jq-1.7.1) | 2026-04-05 — Live, 218 downloads |
+| bc | 2026-03-25 | [util/cli/bc-1.07.1](https://aminet.net/package/util/cli/bc-1.07.1) | 2026-04-05 — Live, 228 downloads |
+| vim | 2026-03-27 | [text/edit/vim-9.1](https://aminet.net/package/text/edit/vim-9.1) | 2026-04-05 — Live, 402 downloads |
+
+## Original Software
+
+| Port | Version | Description | Category | Author | Status |
+|------|---------|-------------|----------|--------|--------|
+| [amiget](ports/amiget/) | 1.0 | Package manager for AmigaOS 3.x | Network | Duncan Bowring | Built & tested |
 
 Run `make check-aminet` to verify publication status.
 

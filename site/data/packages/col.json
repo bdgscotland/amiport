@@ -8,6 +8,7 @@
     "license": "BSD-3-Clause",
     "size": 24632,
     "sha256": "286873c1d90f87bbf5ac5d433fea0a0a3a3402fa24e90b4eec8ca3f286c566bc",
+    "machine_sha256": "7245361ebc82f875f4537641c3ad0d8c5baa1cf541565333150f1ba0ee17cc67",
     "download": "/packages/col-1.20.lha",
     "requires": [],
     "aminet": "",

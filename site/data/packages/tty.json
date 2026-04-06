@@ -8,6 +8,7 @@
     "license": "BSD",
     "size": 24703,
     "sha256": "4491112773eed24c29630608efe2f0f69d8d8823e68d03409ca5d4e8d9273068",
+    "machine_sha256": "01f9ee29c669d3cc5fa01f56906614aa6df2ce1e08744733542d2f49769b6d5c",
     "download": "/packages/tty-1.14.lha",
     "requires": [],
     "aminet": "",

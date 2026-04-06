@@ -8,6 +8,7 @@
     "license": "BSD",
     "size": 38997,
     "sha256": "f10df890a21128ec2d35c9619bb5f0d71e9c6c3d42ecfdbcd0293350f6c13b92",
+    "machine_sha256": "33eaa3fd4e7a939afcd6481cff01c33e678623438c99643b3b4a83c6ac77128b",
     "download": "/packages/column-1.27-2.lha",
     "requires": [],
     "aminet": "",

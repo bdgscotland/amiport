@@ -7,6 +7,7 @@
     "license": "BSD 3-Clause",
     "size": 16473,
     "sha256": "4165661a508a41f96aecde27674607dff7688923c2507b8d5e3fd8721cfb52c1",
+    "machine_sha256": "838a89cd01f779f0fae5a8f28601a8f52019d59a08024b9ae3671be88d474c04",
     "download": "/packages/comm-1.11.lha",
     "requires": [],
     "aminet": "",

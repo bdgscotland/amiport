@@ -8,6 +8,7 @@
     "license": "BSD-3-Clause",
     "size": 19191,
     "sha256": "d9444e1a28982900b003a93647799eaa18ffb7c1857789a3d8436d5ead5e1d1a",
+    "machine_sha256": "a55c1270a9d13c642016a590e0c6cb7963e898f746a2506b298151ce8a8e7a94",
     "download": "/packages/basename-1.14.lha",
     "requires": [],
     "aminet": "",

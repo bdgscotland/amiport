@@ -8,6 +8,7 @@
     "license": "Public Domain",
     "size": 106501,
     "sha256": "c081417f2f4830e5ec056440a047defacc620511291d56e92a933e8774429cf5",
+    "machine_sha256": "4026b7aa7a345c5fe457979109a5862f14cfc0969152260bb7131fa415914522",
     "download": "/packages/mg-3.7.lha",
     "requires": [],
     "aminet": "",

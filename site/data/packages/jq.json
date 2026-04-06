@@ -7,6 +7,7 @@
     "license": "MIT + Oniguruma BSD",
     "size": 221027,
     "sha256": "f481658e3a20a740017769c7e34422a3880f6cb897adbee423a3ff09d70c707d",
+    "machine_sha256": "70eccbb8369628250ff74429d446d36e23f581893b5d6b1c16233db12cd12a8a",
     "download": "/packages/jq-1.7.1-2.lha",
     "requires": [],
     "aminet": "",

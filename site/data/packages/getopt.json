@@ -8,6 +8,7 @@
     "license": "Public Domain",
     "size": 16808,
     "sha256": "fe68416be4439ccd098e666cd4307cdda45c4ee154e7ba2ac5357288f674f82f",
+    "machine_sha256": "969dcebdce91848010520b852313059b7b12d2a6a3a168a2c8d86107ee4db726",
     "download": "/packages/getopt-1.10.lha",
     "requires": [],
     "aminet": "",

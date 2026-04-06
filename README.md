@@ -3,7 +3,7 @@
 </p>
 
 [![CI](https://github.com/bdgscotland/amiport/actions/workflows/ci.yml/badge.svg)](https://github.com/bdgscotland/amiport/actions/workflows/ci.yml)
-[![Ports](https://img.shields.io/badge/ports-60-8B6914)](https://amiport.platesteel.net/packages.html)
+[![Ports](https://img.shields.io/badge/ports-61-8B6914)](https://amiport.platesteel.net/packages.html)
 [![POSIX shim](https://img.shields.io/badge/POSIX_shim-150+_functions-554433)](docs/posix-tiers.md)
 [![Aminet](https://img.shields.io/badge/Aminet-7_live-8B6914)](https://aminet.net)
 [![amiport.platesteel.net](https://img.shields.io/badge/amiport-60_packages-554433)](https://amiport.platesteel.net)
@@ -12,7 +12,7 @@
 
 amiport ports POSIX/Linux C programs to AmigaOS 3.x. It provides POSIX compatibility libraries, a cross-compilation toolchain, and an AI-powered pipeline that takes a C source file from analysis through to a tested, [Aminet](https://aminet.net)-ready binary.
 
-**60 ports shipped. 1,384 test cases. 7 live on Aminet.**
+**61 programs shipped. 1,419 test cases. 7 live on Aminet. First package manager for classic AmigaOS.**
 
 ![End-to-end port of OpenBSD tee to AmigaOS 3.x](docs/media/teeport-demo.gif)
 
@@ -93,6 +93,20 @@ AmigaOS predates POSIX. There is no `stat()`, no `opendir()`, no `getopt()`, no 
 | [tetris](ports/tetris/) | 1.35 | OpenBSD | Built & tested |
 | [vim](ports/vim/) | 9.1 | Vim | Built & tested |
 
+### Network
+
+| Port | Version | Source | Status |
+|------|---------|--------|--------|
+| [amiget](ports/amiget/) | 1.0 | Original | Built & tested |
+
+### amiget — Package Manager for AmigaOS
+
+The first package manager for classic 68k AmigaOS. `amiget install jq` downloads, verifies (SHA-256), and installs packages from the amiport repository — one command, on the Amiga itself.
+
+![amiget installing jq on FS-UAE A4000](ports/amiget/screenshots/amiget-fsemu-install.png)
+
+9 commands: `list`, `search`, `info`, `install`, `upgrade`, `remove`, `installed`, `doctor`, `help`. Written in C89 from scratch (not a port). 42KB binary. Requires a TCP/IP stack (Roadshow, Miami, or AmiTCP).
+
 Version format: `upstream[-portrev]` — port revision shown when > 1 (e.g., `1.68-2` = upstream 1.68, second port revision).
 
 Pre-built Amiga binaries are included in each port directory. See [PORTS.md](PORTS.md) for the full catalog with test counts, shim coverage, and Aminet tracking.
@@ -100,6 +114,8 @@ Pre-built Amiga binaries are included in each port directory. See [PORTS.md](POR
 ## For Amiga Users
 
 Download pre-built binaries from [amiport.platesteel.net](https://amiport.platesteel.net) or directly from [Aminet](https://aminet.net). Each `.lha` archive includes the binary and documentation — extract to `C:` or any directory in your path.
+
+**amiget package manager:** Install `amiget` and then use `amiget install <name>` to download and install packages directly on your Amiga. Requires a TCP/IP stack (Roadshow, Miami, or AmiTCP).
 
 The website has a [dedicated page for classic Amiga browsers](https://amiport.platesteel.net/amiga.html) (IBrowse, AWeb) — HTML 3.2, under 30KB, 640x480.
 

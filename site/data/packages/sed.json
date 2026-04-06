@@ -7,6 +7,7 @@
     "license": "BSD 3-Clause",
     "size": 34815,
     "sha256": "1ea2aa37db141b1039b0f22f71eb80d961d5fbf0ae5e75ffea29513f393b72be",
+    "machine_sha256": "0f3686168d34e269c1c02020957048671c188cf16a3b45cc9a56b28ecf70d3d6",
     "download": "/packages/sed-1.47-3.lha",
     "requires": [],
     "aminet": "",

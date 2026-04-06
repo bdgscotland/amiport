@@ -1,0 +1,25 @@
+{
+    "name": "amiget",
+    "version": "1.0",
+    "revision": 1,
+    "description": "Package manager for AmigaOS 3.x",
+    "category": "util/misc",
+    "source": "Original code by Duncan Bowring",
+    "license": "MIT",
+    "size": 43832,
+    "sha256": "",
+    "machine_sha256": "",
+    "download": "/packages/amiget-1.0.lha",
+    "requires": [
+        "bsdsocket.library"
+    ],
+    "aminet": "",
+    "stack": 65536,
+    "status": "testing",
+    "readme": "Short:        Package manager for AmigaOS 3.x\nType:         util/misc\nArchitecture: m68k-amigaos >= 3.0\nUploader:     duncan (at) bowring (dot) us\nAuthor:       Duncan Bowring\nVersion:      1.0\n\namiget - Package manager for classic AmigaOS 3.x\n\nThe first package manager for classic 68k AmigaOS. Downloads,\nverifies (SHA-256), and installs packages from amiport.platesteel.net.\n\nRequirements:\n  - AmigaOS 3.0 or later (68020+)\n  - TCP/IP stack (Roadshow, Miami, or AmiTCP)\n  - C:lha\n\nCommands:\n  amiget list            Show available packages\n  amiget search <term>   Search by name/description\n  amiget info <name>     Package details\n  amiget install <name>  Download + verify + install\n  amiget upgrade [name]  Upgrade outdated packages\n  amiget remove <name>   Uninstall\n  amiget installed       Show installed packages\n  amiget doctor          Check network connectivity\n  amiget help            Usage\n\nConfiguration: S:amiget.conf\nDatabase: S:amiget.db",
+    "published_at": "2026-04-05T22:00:00Z",
+    "porting_notes": "Original code, not a port. Written in C89 for bebbo-gcc. Uses lib/http-shim (HTTP/1.0 client), lib/bsdsocket-shim (BSD socket API), and lib/posix-shim. SHA-256 from Brad Conte's public domain crypto-algorithms. JSON parser scoped to amiport manifest schema. All static buffers, no dynamic allocation for I/O.",
+    "test_count": 8,
+    "test_pass": 8,
+    "known_limitations": "No HTTPS (plain HTTP/1.0 only). No proxy support. Maximum 128 packages in manifest. No self-update (download manually). No multi-file packages. Dependency checking is warn-only."
+}

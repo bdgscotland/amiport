@@ -8,6 +8,7 @@
     "license": "BSD-3-Clause",
     "size": 2399,
     "sha256": "7aa47c65a839f249528102720a9da1cbcee7c6a3e1b4451a242b1de0d0307e09",
+    "machine_sha256": "020f1edb8c0675082c245cb6b892cd09b7f605bd64eef99aa902dc1beeb938de",
     "download": "/packages/false-1.1.lha",
     "requires": [],
     "aminet": "",

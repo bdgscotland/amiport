@@ -8,6 +8,7 @@
     "license": "BSD-3-Clause",
     "size": 32325,
     "sha256": "21ba9ec06504a0747508f365e1c0ee37da6fcd0735c636208b129c35f3563401",
+    "machine_sha256": "099bd863b9050d2f19c17fca8309a91c6770946efdd1536f4a33fd90e670cfe8",
     "download": "/packages/jot-1.56.lha",
     "requires": [],
     "aminet": "",

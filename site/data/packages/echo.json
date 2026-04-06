@@ -8,6 +8,7 @@
     "license": "BSD-3-Clause",
     "size": 13219,
     "sha256": "3e9debee98d91a3951f9b62d179410e78056814810e3fd621bd27a6e864b3dc7",
+    "machine_sha256": "14c5f786d454fb33c7f27292c4ef75280e8a83a7d0567461427b50fda07c2863",
     "download": "/packages/echo-1.12.lha",
     "requires": [],
     "aminet": "",

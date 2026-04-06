@@ -8,6 +8,7 @@
     "license": "BSD-3-Clause",
     "size": 89186,
     "sha256": "79b9dc065ef65092c7a14f61643a97053fb5e22ff9fe9c707d78fcd07f6aeba5",
+    "machine_sha256": "98c3928c264956026e9118b4f8171bfa6f9c4fa8304239a5537cd503ae750884",
     "download": "/packages/tetris-1.35.lha",
     "requires": [],
     "aminet": "",

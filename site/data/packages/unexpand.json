@@ -8,6 +8,7 @@
     "license": "BSD-3-Clause",
     "size": 19701,
     "sha256": "1911e63ad2c6283dcf96f3cd0acb2870eb244a919670712a2e947877e975bbdf",
+    "machine_sha256": "0dc2a2e28a950bf7778e3c15e539d3afcc6a01300965b08748b9eede06705b04",
     "download": "/packages/unexpand-1.13.lha",
     "requires": [],
     "aminet": "",

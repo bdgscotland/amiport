@@ -8,6 +8,7 @@
     "license": "BSD",
     "size": 44057,
     "sha256": "b5b528f6dadbc9fccdf914bd0dffb36725e2cad48ccfcf6da4f2a72f9d76a8a1",
+    "machine_sha256": "7302b65c2bcc9e41187700d12e04f7e9366dbe34dde86a998244abd883853de5",
     "download": "/packages/expr-1.28-2.lha",
     "requires": [],
     "aminet": "",

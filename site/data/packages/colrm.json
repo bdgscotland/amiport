@@ -8,6 +8,7 @@
     "license": "BSD-3-Clause",
     "size": 21377,
     "sha256": "3540117b100c0aab7e8a5df3fa7300adebb1ada423e01b40ecfeace99bfc059a",
+    "machine_sha256": "0a2fd96a7b583994492cd1dc828572c5ed044fee35c623378ce24912ff8b6219",
     "download": "/packages/colrm-1.14.lha",
     "requires": [],
     "aminet": "",

@@ -8,6 +8,7 @@
     "license": "BSD",
     "size": 43445,
     "sha256": "2ed3d00447e152a22bfb2f1bd6ba64d101eb566b7ed4d1c46f31dbe7abf85443",
+    "machine_sha256": "b6a819bc9812815a4c6f1dbdf1f7ddfa6c22da7386483991f0fa122a604fd7d0",
     "download": "/packages/nl-1.8-2.lha",
     "requires": [],
     "aminet": "",

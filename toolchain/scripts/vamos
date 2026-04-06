@@ -11,13 +11,14 @@
 # See crash-patterns.md #7 for details.
 
 # Parse arguments:
-#   -C <arg>  -- strip the flag and its value (color mode, not needed)
+#   -C <arg>  -- pass through to vamos (CPU type selection, e.g. -C 68020)
 #   -s <val>  -- extract as stack size in KB, strip from program args
 #   --        -- end-of-options separator, rest is program + program args
 #   everything else passes through as program args
 
 prog_args=()
 stack_val=""
+cpu_val=""
 skip_next=""   # set to "C" or "s" to indicate which flag's value to consume
 past_sep=0
 
@@ -29,7 +30,7 @@ for arg in "$@"; do
   if [ -n "$skip_next" ]; then
     case "$skip_next" in
       s) stack_val="$arg" ;;
-      # -C value is discarded
+      C) cpu_val="$arg" ;;
     esac
     skip_next=""
     continue
@@ -48,4 +49,10 @@ stack_arg="${stack_val:-128}"
 # RAM: use VAMOS_MEM env var if set, otherwise default 1024KB
 mem_arg="${VAMOS_MEM:-1024}"
 
-/Users/duncan/.pyenv/shims/vamos -s "$stack_arg" -m "$mem_arg" -- "${prog_args[@]}"
+# CPU: pass through to vamos if specified (e.g., 68020 for Category 4+ ports)
+cpu_args=""
+if [ -n "$cpu_val" ]; then
+  cpu_args="-C $cpu_val"
+fi
+
+/Users/duncan/.pyenv/shims/vamos -s "$stack_arg" -m "$mem_arg" $cpu_args -- "${prog_args[@]}"

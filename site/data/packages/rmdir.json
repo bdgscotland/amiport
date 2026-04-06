@@ -8,6 +8,7 @@
     "license": "BSD-3-Clause",
     "size": 19478,
     "sha256": "d531775c10b0eb92e6ab7a5049fd4b586be38060870a230c299c98083dcb0b82",
+    "machine_sha256": "0a66692b808f2ac010be9f9f6cd6a47736103dbdb3ab154415559d9a6808dee5",
     "download": "/packages/rmdir-1.15.lha",
     "requires": [],
     "aminet": "",

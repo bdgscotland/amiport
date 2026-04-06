@@ -8,6 +8,7 @@
     "license": "BSD",
     "size": 45901,
     "sha256": "f3726f1bb609d2d05c544f8cd9f31eb4e573c849c9d6053c979a89ea960783fc",
+    "machine_sha256": "5e00d9d08bbaa88387465a54b4a648feb85d6cd4bee47b4d495980c7ee82bd38",
     "download": "/packages/tr-1.22-2.lha",
     "requires": [],
     "aminet": "",

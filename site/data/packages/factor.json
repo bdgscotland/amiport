@@ -8,6 +8,7 @@
     "license": "BSD-3-Clause",
     "size": 43002,
     "sha256": "c480c13a44956a39747bc62f5b792aa8d0e7be68ad2177d05ce3aa4e60e28cf6",
+    "machine_sha256": "60136016333574c5dfbc27a05824b30f62ddae9aec73f32627891b4c777801fe",
     "download": "/packages/factor-1.30.lha",
     "requires": [],
     "aminet": "",

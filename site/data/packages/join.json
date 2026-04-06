@@ -8,6 +8,7 @@
     "license": "BSD",
     "size": 45390,
     "sha256": "fbdfb9899cde6fe470e8d059ec3d9a9aedc6382cd46f1bb5613949a678bb331c",
+    "machine_sha256": "81177e1752b63fc3d0afc05c9e1d836d5e239a7fd4610ef136249b599d0af7bb",
     "download": "/packages/join-1.34-2.lha",
     "requires": [],
     "aminet": "",

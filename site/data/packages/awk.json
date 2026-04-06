@@ -7,6 +7,7 @@
     "license": "MIT-like",
     "size": 298451,
     "sha256": "65cea866b6fc03f562a3ce1641e24328cb469b5fc438a19912c7c84b1084ab9c",
+    "machine_sha256": "7dfe8c51c08ed73cbcd61141640d1ba56ee2ee18a7b4faf570b0396523eadb79",
     "download": "/packages/awk-2024.12.25.lha",
     "requires": [],
     "aminet": "",

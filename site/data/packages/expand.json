@@ -7,6 +7,7 @@
     "license": "BSD 3-Clause",
     "size": 20905,
     "sha256": "018a4169e3c543b3189acc9b5b13477a9b68f7161682cd35f1e5c605925802c2",
+    "machine_sha256": "614eb293621384c6525dff43e595bf3691863f00f0c00fc0394e826ff9e75a48",
     "download": "/packages/expand-1.15.lha",
     "requires": [],
     "aminet": "",

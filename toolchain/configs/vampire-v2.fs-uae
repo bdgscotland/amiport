@@ -1,0 +1,60 @@
+# FS-UAE configuration: Coffin R65 on emulated Vampire V2 500+
+#
+# Boots the Coffin R65 32GB CF card image directly. This is a
+# pre-configured AmigaOS 3.x distribution for Vampire accelerators
+# with Workbench, utilities, and Vampire-specific software.
+#
+# Real hardware: Amiga 2000 + Vampire V2 500+ (68080 FPGA)
+# Emulated as: A4000/68040 (closest FS-UAE approximation)
+#
+# Usage:
+#   make emu-vampire
+
+amiga_model = A4000
+
+# Kickstart 3.1 ROM (A4000 version for 68040)
+kickstart_file = /Users/duncan/Documents/FS-UAE/Kickstarts/kick3.1-a4000.rom
+
+# --- Coffin R65 CF card image (RDB, 4 partitions) ---
+# DH0: 300MB (system/boot)
+# DH3: 300MB
+# DH2: 5GB
+# DH1: 23GB
+hard_drive_0 = /Users/duncan/Downloads/coffin_r65_32GB.img
+
+# Mount amiport build output as WORK:
+hard_drive_1 = $CONFIG/../../build/amiga
+hard_drive_1_label = WORK
+
+# --- Memory: match Vampire V2 500+ ---
+chip_memory = 2048
+# fast_memory caps at 64MB on A4000 model. Use raw UAE Zorro III
+# option to get 128MB, matching the Vampire's actual configuration.
+uae_z3mem_size = 128
+
+# --- Networking: built-in bsdsocket.library ---
+# Maps to host TCP/IP, equivalent to Roadshow on real hardware.
+bsdsocket_library = 1
+
+# --- Input ---
+joystick_port_1_mode = nothing
+keyboard_input_grab = 1
+raw_input = 0
+
+# --- RTG: Picasso96 graphics card (uaegfx) ---
+# Enables high-res Workbench (1024x768, 1280x1024, etc.)
+# Coffin R65 includes P96 drivers — should auto-detect uaegfx.
+graphics_card = uaegfx
+graphics_card_memory = 16384
+
+# --- Display ---
+window_width = 1024
+window_height = 768
+fullscreen = 0
+
+# --- Audio: Paula (built-in Amiga audio) ---
+# No AHI sound card emulation — just native Paula.
+uae_sound_output = exact
+
+# --- Performance ---
+jit_compiler = 0

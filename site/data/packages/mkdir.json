@@ -8,6 +8,7 @@
     "license": "BSD-3-Clause",
     "size": 19323,
     "sha256": "8cc643945a48d0daf99995accc9df12225ef9b4e3b45be61e24b18ea195c3a4e",
+    "machine_sha256": "ac039ff21375dfa7edd5739fc4314a4a5c5d55103ea5c6476c9cedd00a797630",
     "download": "/packages/mkdir-1.31.lha",
     "requires": [],
     "aminet": "",

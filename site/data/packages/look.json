@@ -8,6 +8,7 @@
     "license": "BSD",
     "size": 39068,
     "sha256": "5fce129ff443b8beb3e841731d5d15fa92f99ef139e1d1da5e7d18af4f85f0c6",
+    "machine_sha256": "35b4cb9ca0d22dbb6bd28c9eaed6c407a6b2da1a923b40390b7aea19d64911a1",
     "download": "/packages/look-1.27-2.lha",
     "requires": [],
     "aminet": "",

@@ -37,6 +37,11 @@ joystick_port_1_mode = nothing
 # processes with 256KB stacks, which exhaust the A1200's 2MB Chip RAM
 fast_memory = 8192
 
+# Built-in bsdsocket.library — maps Amiga socket calls to host TCP/IP.
+# Required for Category 4 (network) ports like amiget. No Roadshow/Miami
+# needed inside the emulator — FS-UAE provides bsdsocket.library directly.
+bsdsocket_library = 1
+
 # Window settings
 window_width = 720
 window_height = 568

@@ -8,6 +8,7 @@
     "license": "BSD-3-Clause",
     "size": 16882,
     "sha256": "a61ff879383501d030f1d7bcf402e59359eaea74e002002e4b19748a9a2f54ed",
+    "machine_sha256": "f35e4335889c123fc77d9cd3b419b7d1a41bfc8febf2f4c761aea7a50c72792d",
     "download": "/packages/sleep-1.29.lha",
     "requires": [],
     "aminet": "",

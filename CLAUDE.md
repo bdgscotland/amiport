@@ -25,6 +25,7 @@ The porting pipeline has 5 stages, each backed by a Claude skill:
 - `lib/console-shim/` — Minimal ncurses + termcap API mapped to Amiga console.device ANSI escapes (ADR-009). Includes termcap (tgetent/tgetstr/tgoto/tparm) for programs like less, and curses (initscr/getch/addch) for ncurses programs.
 - `lib/posix-shim/include/amiport/termios.h` — Minimal termios shim mapping tcgetattr/tcsetattr to AmigaOS SetMode() for raw/cooked console mode. Used by terminal programs (less, nano, vim).
 - `lib/bsdsocket-shim/` — BSD socket API via bsdsocket.library with auto lifecycle (ADR-010)
+- `lib/http-shim/` — Reusable HTTP/1.0 GET client library on bsdsocket-shim. Used by amiget. Handles redirects, Content-Length validation, progress callbacks, 30s socket timeout.
 - `lib/oniguruma/` — Oniguruma 6.9.9 regex engine (ASCII-only build, 156 KB). Perl-compatible regex with named captures. Used by jq for test/match/sub/gsub. Unicode data tables replaced with stubs to save 312 KB.
 - `site/` — Website source for amiport.platesteel.net
   - `site/css/style.css` — MUI warm gray design system (see DESIGN.md)

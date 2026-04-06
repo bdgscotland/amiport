@@ -8,6 +8,7 @@
     "license": "BSD",
     "size": 31474,
     "sha256": "454ba3c4f0d51cee404a6c742bcd63b5125e0b0abc3c7f51dc674329abcf0d2e",
+    "machine_sha256": "ac2b26108890bfa41784ef60c06fcbbbbdc67e9147d1dbaada9b0328d6a9f643",
     "download": "/packages/ln-1.25.lha",
     "requires": [],
     "aminet": "",

@@ -173,7 +173,7 @@ int amiport_accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen)
     if (ensure_init() != 0) return -1;
 
 #ifdef __AMIGA__
-    fd = accept(sockfd, addr, (LONG *)(void *)addrlen);
+    fd = accept(sockfd, addr, addrlen);
 #else
     (void)sockfd; (void)addr; (void)addrlen;
     fd = -1;
@@ -251,8 +251,7 @@ int amiport_recvfrom(int sockfd, void *buf, int len, int flags,
     if (ensure_init() != 0) return -1;
 
 #ifdef __AMIGA__
-    return recvfrom(sockfd, (UBYTE *)buf, len, flags,
-                    src, (LONG *)(void *)addrlen);
+    return recvfrom(sockfd, (UBYTE *)buf, len, flags, src, addrlen);
 #else
     (void)sockfd; (void)buf; (void)len; (void)flags;
     (void)src; (void)addrlen;
@@ -284,7 +283,7 @@ int amiport_getsockopt(int sockfd, int level, int optname,
     if (ensure_init() != 0) return -1;
 
 #ifdef __AMIGA__
-    return getsockopt(sockfd, level, optname, optval, (LONG *)(void *)optlen);
+    return getsockopt(sockfd, level, optname, optval, optlen);
 #else
     (void)sockfd; (void)level; (void)optname;
     (void)optval; (void)optlen;

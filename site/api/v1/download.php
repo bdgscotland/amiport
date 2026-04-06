@@ -3,10 +3,16 @@
  * Download endpoint — serve LHA file + increment counter
  *
  * GET /api/v1/download.php?name=grep
+ * GET /api/v1/download.php?name=grep&format=machine
  *
  * Loads all package metadata via glob (no user input in file paths),
  * matches the requested name, then serves the corresponding LHA file.
  * Increments a per-package download counter using flock().
+ *
+ * format=machine — serves <name>-<version>-machine.lha, which contains
+ * only C/<name> (binary in a C/ directory). Used by the amiget package
+ * manager so extracted files land in SYS:C/ on the target Amiga.
+ * Returns 404 (JSON) if the machine-format LHA does not exist.
  */
 
 // Validate name parameter
@@ -18,6 +24,18 @@ if (!isset($_GET['name'])) {
 }
 
 $requestedName = (string) $_GET['name'];
+
+// Validate format parameter — only "machine" is a valid non-default value
+$format = '';
+if (isset($_GET['format'])) {
+    $format = (string) $_GET['format'];
+    if ($format !== 'machine') {
+        http_response_code(400);
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode(['error' => 'Invalid format parameter']);
+        exit;
+    }
+}
 
 if (!preg_match('/^[a-z0-9_-]+$/', $requestedName)) {
     http_response_code(404);
@@ -84,7 +102,16 @@ if (!preg_match('/^[0-9][0-9a-z._-]*$/', $version)) {
 // Construct LHA path from trusted metadata (include revision if > 1)
 $revision = (int) ($found['revision'] ?? 1);
 $pkgSuffix = ($revision > 1) ? ($version . '-' . $revision) : $version;
-$lhaFile = $pkgDir . '/' . $pkgName . '-' . $pkgSuffix . '.lha';
+
+if ($format === 'machine') {
+    // Machine-format LHA: <name>-<version>-machine.lha (no revision suffix)
+    // Contains only C/<name> so amiget can extract to SYS:C/<name>
+    $lhaBasename = $pkgName . '-' . $version . '-machine.lha';
+    $lhaFile = $pkgDir . '/' . $lhaBasename;
+} else {
+    $lhaBasename = $pkgName . '-' . $pkgSuffix . '.lha';
+    $lhaFile = $pkgDir . '/' . $lhaBasename;
+}
 
 // Resolve to real path and verify it's within the packages directory
 $realPath = realpath($lhaFile);
@@ -93,7 +120,11 @@ $realPkgDir = realpath($pkgDir);
 if ($realPath === false || $realPkgDir === false || strpos($realPath, $realPkgDir) !== 0) {
     http_response_code(404);
     header('Content-Type: application/json; charset=utf-8');
-    echo json_encode(['error' => 'Package file not found']);
+    if ($format === 'machine') {
+        echo json_encode(['error' => 'Machine-format package not available']);
+    } else {
+        echo json_encode(['error' => 'Package file not found']);
+    }
     exit;
 }
 
@@ -118,7 +149,7 @@ try {
 // Serve the LHA file
 $fileSize = filesize($realPath);
 header('Content-Type: application/octet-stream');
-header('Content-Disposition: attachment; filename="' . $pkgName . '-' . $pkgSuffix . '.lha"');
+header('Content-Disposition: attachment; filename="' . $lhaBasename . '"');
 if ($fileSize !== false) {
     header('Content-Length: ' . $fileSize);
 }

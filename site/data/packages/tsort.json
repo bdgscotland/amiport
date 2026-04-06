@@ -8,6 +8,7 @@
     "license": "BSD",
     "size": 49670,
     "sha256": "5d89749a8e96b7eeab3ca008d79746f7f3960228dfa7c0258aa52ec74c973a1f",
+    "machine_sha256": "016357b980459ae1b0cda4fcf38597fedd87d7d79d9147c80ad8188003e484ec",
     "download": "/packages/tsort-1.38-2.lha",
     "requires": [],
     "aminet": "",

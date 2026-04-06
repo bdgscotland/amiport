@@ -7,6 +7,7 @@
     "license": "ISC",
     "size": 19143,
     "sha256": "4669bb6fc821ab56f4843ecbe6122c1ae943dad1aa99aeeef7b1eccdb8ffe5a3",
+    "machine_sha256": "293d0ca2ca0012b49e446f96274d7a6bc7174ada63f7950a7e73815db4a33a6a",
     "download": "/packages/dirname-1.17.lha",
     "requires": [],
     "aminet": "",

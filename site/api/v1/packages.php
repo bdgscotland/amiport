@@ -32,9 +32,9 @@ function sanitize_package(array $raw): array
 {
     $pkg = [];
     $stringFields = ['name', 'version', 'description', 'category', 'source',
-                     'license', 'download', 'aminet', 'sha256', 'readme', 'status',
-                     'published_at', 'porting_notes', 'known_limitations',
-                     'added_at', 'publish_date'];
+                     'license', 'download', 'aminet', 'sha256', 'machine_sha256',
+                     'readme', 'status', 'published_at', 'porting_notes',
+                     'known_limitations', 'added_at', 'publish_date'];
     foreach ($stringFields as $field) {
         if (isset($raw[$field]) && is_string($raw[$field])) {
             $pkg[$field] = $raw[$field];

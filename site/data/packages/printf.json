@@ -8,6 +8,7 @@
     "license": "BSD-3-Clause",
     "size": 28167,
     "sha256": "3ea1e87d2fd3b4525965bedb43d65027d2063f25eaece63d67a026b031144345",
+    "machine_sha256": "6b4d5fa41876c167d3ab120921cdd2c544d7997e6eccf215e4fecb38f160ad01",
     "download": "/packages/printf-1.28.lha",
     "requires": [],
     "aminet": "",

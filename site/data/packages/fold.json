@@ -8,6 +8,7 @@
     "license": "BSD",
     "size": 35747,
     "sha256": "a9f52034b042f185d80531d4c0ed7ae1e98753a7c5e6ef2473095fd046684155",
+    "machine_sha256": "",
     "download": "/packages/fold-1.18-2.lha",
     "requires": [],
     "aminet": "",

@@ -7,6 +7,7 @@
     "license": "MIT",
     "size": 806907,
     "sha256": "20bfbfce4263458aea2c615d30fdff722133afbfb51e4e749ef31c6322609612",
+    "machine_sha256": "8844190fd212199f129e0975ba18db580bee4eab3766bea0c874bd4d05ae8bda",
     "download": "/packages/lua-5.4.7.lha",
     "requires": [],
     "stack": 262144,

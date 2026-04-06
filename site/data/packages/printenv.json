@@ -8,6 +8,7 @@
     "license": "BSD-3-Clause",
     "size": 15899,
     "sha256": "75f44dc1805e8cb6de50e847437b6c17e6528597fa161b3aeb2ae8789cd0b288",
+    "machine_sha256": "7ebb50d808073e229114bd493d76b013cf8ffbe87ce2691458064156bfc470c9",
     "download": "/packages/printenv-1.8.lha",
     "requires": [],
     "aminet": "",

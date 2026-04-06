@@ -8,6 +8,7 @@
     "license": "Vim License (GPL-compatible, charityware)",
     "size": 1275844,
     "sha256": "5e5094179f023e042573bfd2927743ce84afeb9f7bb04bca379141f8a2bd7e8b",
+    "machine_sha256": "",
     "download": "/packages/vim-9.1.lha",
     "requires": [],
     "aminet": "",
