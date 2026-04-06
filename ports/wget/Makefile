@@ -1,8 +1,8 @@
 # Makefile for wget (amiport)
 TARGET      = wget
-include ../common.mk
 VERSION     = 1.20.3
-REVISION    = 1
+REVISION    = 2
+include ../common.mk
 DESCRIPTION = HTTP/HTTPS download utility
 AUTHOR      = Free Software Foundation
 CATEGORY    = 4
@@ -11,6 +11,7 @@ CATEGORY    = 4
 CFLAGS = -std=gnu99 -O2 -noixemul -m68020 -Wall \
          -I../../lib/posix-shim/include \
          -I../../lib/bsdsocket-shim/include \
+         -I../../lib/amissl-sdk/include \
          -Iported -Iported/src -Iported/lib \
          -DHAVE_CONFIG_H \
          -DSYSTEM_WGETRC=\"S:wgetrc\" \
@@ -19,6 +20,8 @@ CFLAGS = -std=gnu99 -O2 -noixemul -m68020 -Wall \
 
 LDFLAGS = -L../../lib/posix-shim -lamiport \
           -L../../lib/bsdsocket-shim -lamiport-net \
+          -L../../lib/amissl-sdk/lib -lamisslstubs -lamisslauto \
+          -Wl,--allow-multiple-definition \
           -lm
 
 AMINET_CAT = comm/tcp
@@ -54,6 +57,7 @@ SRC_SOURCES = \
 	ported/src/log.c \
 	ported/src/main.c \
 	ported/src/netrc.c \
+	ported/src/openssl.c \
 	ported/src/progress.c \
 	ported/src/ptimer.c \
 	ported/src/recur.c \
@@ -64,7 +68,8 @@ SRC_SOURCES = \
 	ported/src/utils.c \
 	ported/src/version.c \
 	ported/src/warc.c \
-	ported/src/amiga_stubs.c
+	ported/src/amiga_stubs.c \
+	ported/src/amiga_errno.c
 
 # Gnulib support library (subset needed by wget)
 LIB_SOURCES = \

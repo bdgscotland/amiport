@@ -4638,6 +4638,24 @@
       "hardware_verified": [
         "a1200_accel"
       ]
+    },
+    {
+      "id": "wget",
+      "name": "wget",
+      "version": "1.20.3",
+      "description": "HTTP/HTTPS download utility",
+      "amiport_category": "network",
+      "aminet_category": "comm/tcp",
+      "upstream_source": "https://ftp.gnu.org/gnu/wget/wget-1.20.3.tar.gz",
+      "upstream_license": "GPL-3.0-or-later",
+      "port_date": "2026-04-05",
+      "aminet_status": "pending",
+      "aminet_url": null,
+      "measured_binary_kb": 527,
+      "measured_stack_kb": 64,
+      "test_count": 68,
+      "test_pass_rate": 1.0,
+      "hardware_verified": []
     }
   ]
 }

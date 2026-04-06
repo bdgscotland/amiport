@@ -1,4 +1,4 @@
-/* config.h — AmigaOS 3.x configuration for GNU wget 1.20.3
+/* config.h -- AmigaOS 3.x configuration for GNU wget 1.20.3
  * amiport: Hand-crafted for bebbo-gcc (GCC 6.5.0b) + libnix (-noixemul)
  *
  * Phase 1: HTTP-only (no SSL)
@@ -42,7 +42,7 @@
 #define HAVE_USLEEP 1
 #define HAVE_UTIME 1
 #define HAVE_DRAND48 1
-/* #undef HAVE_RANDOM */       /* libnix missing — use rand() */
+/* #undef HAVE_RANDOM */       /* libnix missing -- use rand() */
 #define HAVE_VASPRINTF 1       /* gnulib provides */
 #define HAVE_ALLOCA_H 1        /* gnulib provides */
 #define HAVE_ALLOCA 1
@@ -63,7 +63,7 @@
 /* Signal support */
 /* #undef HAVE_SIGSETJMP */    /* No siglongjmp on AmigaOS */
 /* #undef HAVE_SIGBLOCK */     /* No sigblock on AmigaOS */
-/* #undef USE_SIGNAL_TIMEOUT */ /* No SIGALRM — use no-timeout stub */
+/* #undef USE_SIGNAL_TIMEOUT */ /* No SIGALRM -- use no-timeout stub */
 
 /* === Features ENABLED === */
 #define ENABLE_DEBUG 1
@@ -73,8 +73,8 @@
 /* #undef ENABLE_PARTIAL_WRITE */
 
 /* === Features DISABLED === */
-/* #undef ENABLE_NLS */         /* No gettext — English only */
-/* #undef ENABLE_IRI */         /* No IDN — ASCII URLs only */
+/* #undef ENABLE_NLS */         /* No gettext -- English only */
+/* #undef ENABLE_IRI */         /* No IDN -- ASCII URLs only */
 /* #undef ENABLE_IPV6 */        /* Use gethostbyname, not getaddrinfo */
 /* #undef ENABLE_XATTR */       /* No extended attributes */
 /* #undef USE_XATTR */
@@ -82,7 +82,7 @@
 
 /* === External libraries DISABLED === */
 /* #undef HAVE_LIBGNUTLS */     /* Using OpenSSL path, not GnuTLS */
-/* #undef HAVE_LIBZ */          /* No zlib — no gzip transfer encoding */
+/* #undef HAVE_LIBZ */          /* No zlib -- no gzip transfer encoding */
 /* #undef HAVE_LIBPSL */        /* No public suffix list */
 /* #undef HAVE_PSL_LATEST */
 /* #undef HAVE_LIBPCRE */       /* Use POSIX regex */
@@ -96,11 +96,13 @@
 /* #undef HAVE_NETTLE */        /* No nettle crypto */
 /* #undef HAVE_RAND_EGD */      /* No EGD entropy */
 
-/* === SSL/TLS — Phase 1: DISABLED, Phase 2: AmiSSL === */
-/* Uncomment for Phase 2 (HTTPS via AmiSSL 5.26):
+/* === SSL/TLS -- Phase 2: AmiSSL 5.26 (OpenSSL 3.6.1 API) === */
 #define HAVE_LIBSSL 1
-*/
-/* #undef HAVE_LIBSSL */        /* Phase 1: HTTP only */
+
+/* AmiSSL uses Amiga shared library model -- no static OpenSSL linking.
+ * openssl.c calls standard OpenSSL API (SSL_CTX_new, SSL_connect, etc.)
+ * which routes through AmiSSL's shared library stubs via inline-stubs.h.
+ * AmiSSL handles PRNG/entropy internally -- no /dev/urandom needed. */
 
 /* === Gnulib compatibility === */
 #define _GL_INLINE static inline

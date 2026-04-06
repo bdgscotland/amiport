@@ -69,7 +69,7 @@ Verdict: **MODERATE** (core HTTP/FTP) — **COMPLEX** (full feature set with Ami
 | Target | m68k-amigaos, 68020+ |
 | CFLAGS | `-std=gnu99 -O2 -noixemul -m68020 -Wall` |
 | Libraries | `-lamiport` (posix-shim), `-lamiport-net` (bsdsocket-shim) |
-| Binary size | 527KB (stripped) |
+| Binary size | 549KB (stripped) |
 
 ## Test Results
 
@@ -109,7 +109,7 @@ Verdict: **MODERATE** (core HTTP/FTP) — **COMPLEX** (full feature set with Ami
 | Phase | Description | Status | Dependencies | Notes |
 |-------|-------------|--------|-------------|-------|
 | 1 | HTTP + FTP downloads | **Shipped** | bsdsocket-shim | Core wget functionality, progress bar, resume, recursive, cookies |
-| 2 | HTTPS via AmiSSL | Planned | AmiSSL 5.26 SDK | Enable `HAVE_LIBSSL` in config.h, add AmiSSL init in ssl_init(), link `-lamisslauto`. openssl.c already in source tree. |
+| 2 | HTTPS via AmiSSL | **Shipped** | AmiSSL 5.26 | TLS 1.2/1.3 via AmiSSL shared library. Tested: Google HTTPS at 967 KB/s. |
 | 3 | gzip transfer encoding | Planned | static zlib | Enable `HAVE_LIBZ`, cross-compile zlib as `lib/zlib/`. Smaller downloads from modern servers. |
 | 4 | Aminet submission | Planned | Phase 1 sufficient | Upload wget-1.20.3.lha to comm/tcp. HTTP-only is already a major upgrade over the 2003 ixemul version. |
 

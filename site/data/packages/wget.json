@@ -1,14 +1,14 @@
 {
     "name": "wget",
     "version": "1.20.3",
-    "revision": 1,
+    "revision": 2,
     "description": "HTTP/HTTPS download utility",
     "category": "comm/tcp",
     "source": "GNU wget 1.20.3 (https://ftp.gnu.org/gnu/wget/wget-1.20.3.tar.gz)",
     "license": "GPL-3.0-or-later",
-    "size": 286623,
-    "sha256": "5ec947b0ca69e0f9bb428d169f8dc4799400148faadb20f355ac68baf3542fd2",
-    "download": "/packages/wget-1.20.3.lha",
+    "size": 2575671,
+    "sha256": "49a57068b1d293140d8912283a3fd15b109744c316a2e96b59a55cf3f318ac64",
+    "download": "/packages/wget-1.20.3-2.lha",
     "requires": ["bsdsocket.library"],
     "aminet": "",
     "stack": 65536,
@@ -21,7 +21,7 @@
     "known_limitations": "HTTPS not yet supported (Phase 2 via AmiSSL planned). No --background (-b) flag (use 'Run >NIL: wget URL' instead). No --use-askpass (use --password instead). No --timeout per-operation (TCP-level timeouts via select() still work). No gzip transfer encoding (zlib disabled — servers send uncompressed). No internationalized domain names (libidn2 disabled, ASCII URLs only). English only (NLS disabled). NTLM proxy auth disabled. Requires bsdsocket.library (Roadshow, AmiTCP, or Miami).",
     "roadmap": [
         {"phase": 1, "title": "HTTP + FTP downloads", "status": "shipped", "description": "Core wget: progress bar, resume, recursive, cookies, auth"},
-        {"phase": 2, "title": "HTTPS via AmiSSL", "status": "planned", "description": "Enable OpenSSL path with AmiSSL 5.26 shared library"},
+        {"phase": 2, "title": "HTTPS via AmiSSL", "status": "shipped", "description": "TLS 1.2/1.3 via AmiSSL 5.26. Tested with Google HTTPS at 967 KB/s."},
         {"phase": 3, "title": "gzip transfer encoding", "status": "planned", "description": "Cross-compile zlib, enable compressed HTTP transfers"},
         {"phase": 4, "title": "Aminet submission", "status": "planned", "description": "Upload to comm/tcp on Aminet"}
     ]

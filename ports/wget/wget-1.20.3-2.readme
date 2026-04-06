@@ -3,7 +3,7 @@ Type:         comm/tcp
 Architecture: m68k-amigaos >= 3.0; 68020+
 Uploader:     duncan@bowring.us
 Author:       Free Software Foundation (ported by Duncan Bowring)
-Version:      1.20.3
+Version:      1.20.3-2
 
 wget - HTTP/HTTPS download utility
 
