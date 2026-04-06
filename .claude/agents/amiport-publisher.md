@@ -105,22 +105,48 @@ Never publish without the user saying yes.
 }
 ```
 
-## LHA Creation
+## LHA Creation — TWO Archives Required
 
-Use Docker with real lha (not macOS lhasa which is extract-only):
+Every publish creates TWO LHA archives:
+
+### 1. Full LHA (Aminet-style) — `make package`
+Contains binary, readme, PORT.md, source (original/ + ported/). Used for Aminet uploads
+and direct website downloads. Built via the port's Makefile:
 ```bash
-docker run --rm -v /path/to/amiport:/work ubuntu:22.04 bash -c "
-  apt-get update -qq && apt-get install -y -qq build-essential git autoconf automake
-  cd /tmp && git clone --depth 1 https://github.com/jca02266/lha.git
-  cd lha && autoreconf -vfi && ./configure && make -j4
+make -C ports/<name> package
+```
+Produces: `ports/<name>/<name>-<DISPLAY_VERSION>.lha`
+
+### 2. Machine LHA (binary-only) — for `amiport install`
+Contains ONLY `C/<name>` (stripped binary in a C/ directory). This is what the amiport CLI
+downloads when users run `amiport install <name>`. Must be small (~300KB for typical binaries).
+
+```bash
+docker run --rm -v /path/to/amiport:/work amigadev/crosstools:m68k-amigaos bash -c "
   mkdir -p /tmp/stage/C
-  cp /work/ports/<name>/<name> /tmp/stage/C/<name>
-  cp /work/ports/<name>/<name>.readme /tmp/stage/<name>.readme
-  # Use version-revision suffix when revision > 1
-  SUFFIX=<version>  # or <version>-<revision> if revision > 1
-  cd /tmp/stage && /tmp/lha/src/lha a /work/site/packages/<name>-$SUFFIX.lha C/<name> <name>.readme
+  m68k-amigaos-strip --strip-debug -o /tmp/stage/C/<name> /work/ports/<name>/<name>
+  cd /tmp/stage
+  lha a /work/ports/<name>/<name>-<VERSION>-machine.lha C/<name>
 "
 ```
+Note: machine LHA filename uses VERSION only (no revision suffix) — the download API
+uses `<name>-<version>-machine.lha` regardless of port revision.
+
+### Checksums for package JSON
+Both archives need SHA-256 checksums:
+- `sha256` — checksum of the full LHA
+- `machine_sha256` — checksum of the machine LHA
+
+### Deploy BOTH archives
+```bash
+rsync -avz -e ssh ports/<name>/<name>-<DISPLAY_VERSION>.lha \
+  amiport-deploy:amiport.platesteel.net/packages/
+rsync -avz -e ssh ports/<name>/<name>-<VERSION>-machine.lha \
+  amiport-deploy:amiport.platesteel.net/packages/
+```
+
+**GATE CHECK:** `amiport install <name>` will FAIL if the machine LHA is missing from the
+server. This is a hard requirement, not optional.
 
 ## Deployment — MANDATORY rsync
 
