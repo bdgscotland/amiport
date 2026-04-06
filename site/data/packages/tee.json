@@ -7,7 +7,7 @@
     "license": "BSD 3-Clause",
     "size": 17761,
     "sha256": "3ab7dee811616f80342a38efb7bf758db38ed23a1732a021603b30e66c0c9644",
-    "machine_sha256": "",
+    "machine_sha256": "16dc9a303ef4939a8bba23a13e2a541240e1240946aec946cb16b6ca785fce83",
     "download": "/packages/tee-1.15.lha",
     "requires": [],
     "stack": 32768,

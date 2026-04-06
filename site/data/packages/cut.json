@@ -7,7 +7,7 @@
     "license": "BSD 3-Clause",
     "size": 18285,
     "sha256": "73ceff80d2a40f583e31bdd43b306a9bd9034ccebc9d11a19fba50ef3183ba92",
-    "machine_sha256": "",
+    "machine_sha256": "a0b990bb7382a0a3f933066660cb7bff163309e10c8d18a9301c06ef7abc47c3",
     "download": "/packages/cut-1.28.lha",
     "requires": [],
     "aminet": "https://aminet.net/package/util/cli/cut-1.0",

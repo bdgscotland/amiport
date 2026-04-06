@@ -7,7 +7,7 @@
     "license": "BSD 3-Clause",
     "size": 22753,
     "sha256": "6e56860025cedf1e772a2c186d7210395a3e1d14b52ea4a6872de9d0b3c9dfb8",
-    "machine_sha256": "",
+    "machine_sha256": "704276e9ff87b14bd1c56ddd3c52560bf72d47bb79af0a75e99c120d1123d352",
     "download": "/packages/wc-1.32.lha",
     "requires": [],
     "stack": 32768,

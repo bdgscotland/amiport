@@ -8,7 +8,7 @@
     "license": "BSD 2-Clause",
     "size": 35837,
     "sha256": "6c11f5b4dd60de333e461c1b8bb64e7ecf7924e61b108e020812a6da0cdb69c9",
-    "machine_sha256": "",
+    "machine_sha256": "6087876c75ac337f6b164fc424ead1f801d52ef7f274ea5c62c57ceec074f775",
     "download": "/packages/grep-1.68.lha",
     "requires": [],
     "aminet": "https://aminet.net/package/util/cli/grep-1.68",

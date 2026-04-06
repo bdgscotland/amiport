@@ -7,7 +7,7 @@
     "license": "BSD 3-Clause",
     "size": 17844,
     "sha256": "2fe55db1b1db7ad136c13b0d76671b85266c3730c169bbbbbff2eaf4207e3539",
-    "machine_sha256": "",
+    "machine_sha256": "1ab188823d65fb70956b59007b133db3c0eccd05196e9218f57e23576f5d96ed",
     "download": "/packages/cal-1.32.lha",
     "requires": [],
     "aminet": "https://aminet.net/package/util/cli/cal-1.0",

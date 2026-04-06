@@ -7,7 +7,7 @@
     "license": "BSD 3-Clause",
     "size": 20589,
     "sha256": "22d96257d580c24688641a3635c3233de29db3c10e754dd6a6cfa6036d818f2e",
-    "machine_sha256": "",
+    "machine_sha256": "bc36eeb5862592c64437d6fe60e5a38391691718bc7733ed39e87393fb49cfc4",
     "download": "/packages/tail-1.24.lha",
     "requires": [],
     "stack": 32768,
