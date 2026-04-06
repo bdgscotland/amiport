@@ -97,13 +97,13 @@ AmigaOS predates POSIX. There is no `stat()`, no `opendir()`, no `getopt()`, no 
 
 | Port | Version | Source | Status |
 |------|---------|--------|--------|
-| [amiget](ports/amiget/) | 1.0 | Original | Built & tested |
+| [amiport](ports/amiport/) | 1.0 | Original | Built & tested |
 
-### amiget — Package Manager for AmigaOS
+### amiport — Package Manager for AmigaOS
 
-The first package manager for classic 68k AmigaOS. `amiget install jq` downloads, verifies (SHA-256), and installs packages from the amiport repository — one command, on the Amiga itself.
+The first package manager for classic 68k AmigaOS. `amiport install jq` downloads, verifies (SHA-256), and installs packages from the amiport repository — one command, on the Amiga itself.
 
-![amiget installing jq on FS-UAE A4000](ports/amiget/screenshots/amiget-fsemu-install.png)
+![amiport installing jq on FS-UAE A4000](ports/amiport/screenshots/amiget-fsemu-install.png)
 
 9 commands: `list`, `search`, `info`, `install`, `upgrade`, `remove`, `installed`, `doctor`, `help`. Written in C89 from scratch (not a port). 42KB binary. Requires a TCP/IP stack (Roadshow, Miami, or AmiTCP).
 
@@ -115,7 +115,7 @@ Pre-built Amiga binaries are included in each port directory. See [PORTS.md](POR
 
 Download pre-built binaries from [amiport.platesteel.net](https://amiport.platesteel.net) or directly from [Aminet](https://aminet.net). Each `.lha` archive includes the binary and documentation — extract to `C:` or any directory in your path.
 
-**amiget package manager:** Install `amiget` and then use `amiget install <name>` to download and install packages directly on your Amiga. Requires a TCP/IP stack (Roadshow, Miami, or AmiTCP).
+**amiport package manager:** Install `amiport` and then use `amiport install <name>` to download and install packages directly on your Amiga. Requires a TCP/IP stack (Roadshow, Miami, or AmiTCP).
 
 The website has a [dedicated page for classic Amiga browsers](https://amiport.platesteel.net/amiga.html) (IBrowse, AWeb) — HTML 3.2, under 30KB, 640x480.
 

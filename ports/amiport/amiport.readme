@@ -1,0 +1,45 @@
+Short:        Package manager for AmigaOS 3.x
+Type:         util/misc
+Architecture: m68k-amigaos >= 3.0
+Uploader:     duncan@bowring.us
+Author:       Duncan Bowring
+Version:      1.0
+
+amiport - Package manager for classic AmigaOS 3.x
+
+Written by Duncan Bowring. Original code (not a port).
+Project: https://github.com/bdgscotland/amiport
+
+The first package manager for classic 68k AmigaOS. Downloads,
+verifies, and installs software packages from the amiport
+repository at amiport.platesteel.net.
+
+Requirements:
+  - AmigaOS 3.0 or later
+  - TCP/IP stack (Roadshow, Miami, or AmiTCP)
+  - C:lha (for package extraction)
+
+Commands:
+  amiport list            Show all available packages
+  amiport search <term>   Search by name or description
+  amiport info <name>     Show package details
+  amiport install <name>  Download, verify, and install
+  amiport upgrade [name]  Upgrade outdated packages
+  amiport remove <name>   Uninstall a package
+  amiport installed       Show installed packages
+  amiport doctor          Check network connectivity
+  amiport help            Show usage
+
+Configuration:
+  S:amiport.conf          Optional config file (server URL, etc.)
+  S:amiport.db            Installed package tracking database
+
+Features:
+  - SHA-256 download verification
+  - Manifest caching for offline browsing
+  - ANSI color output on Amiga console
+  - Progress display during downloads
+  - Proper AmigaOS exit codes (0/5/10/20)
+
+Cross-compiled with m68k-amigaos-gcc for AmigaOS 3.x (68020+).
+Tested on Amiga 2000 + Vampire V2 with Roadshow.

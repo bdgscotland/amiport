@@ -3779,8 +3779,8 @@
   ],
   "ported": [
     {
-      "id": "amiget",
-      "name": "amiget",
+      "id": "amiport",
+      "name": "amiport",
       "version": "1.0",
       "description": "Package manager for AmigaOS 3.x",
       "amiport_category": "network",

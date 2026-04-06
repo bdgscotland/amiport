@@ -234,14 +234,14 @@ static int http_get_one(const char *host, int port, const char *path,
     /* DNS resolve */
     he = amiport_gethostbyname(host);
     if (!he) {
-        fprintf(stderr, "amiget: cannot resolve %s\n", host);
+        fprintf(stderr, "amiport: cannot resolve %s\n", host);
         return -1;
     }
 
     /* Create socket */
     sockfd = amiport_socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd < 0) {
-        fprintf(stderr, "amiget: socket() failed\n");
+        fprintf(stderr, "amiport: socket() failed\n");
         return -1;
     }
     http_active_sockfd = sockfd;
@@ -259,7 +259,7 @@ static int http_get_one(const char *host, int port, const char *path,
     memcpy(&sa.sin_addr, he->h_addr, he->h_length);
 
     if (amiport_connect(sockfd, (struct sockaddr *)&sa, sizeof(sa)) < 0) {
-        fprintf(stderr, "amiget: cannot connect to %s:%d\n", host, port);
+        fprintf(stderr, "amiport: cannot connect to %s:%d\n", host, port);
         amiport_closesocket(sockfd);
         http_active_sockfd = -1;
         return -1;
@@ -270,11 +270,11 @@ static int http_get_one(const char *host, int port, const char *path,
         "GET %s HTTP/1.0\r\n"
         "Host: %s\r\n"
         "Connection: close\r\n"
-        "User-Agent: amiget/1.0 (AmigaOS; 68k)\r\n"
+        "User-Agent: amiport/1.0 (AmigaOS; 68k)\r\n"
         "\r\n",
         path, host);
     if (reqlen < 0 || reqlen >= (int)sizeof(request)) {
-        fprintf(stderr, "amiget: request too large\n");
+        fprintf(stderr, "amiport: request too large\n");
         amiport_closesocket(sockfd);
         http_active_sockfd = -1;
         return -1;
@@ -282,7 +282,7 @@ static int http_get_one(const char *host, int port, const char *path,
 
     /* Send request */
     if (amiport_send(sockfd, request, reqlen, 0) != reqlen) {
-        fprintf(stderr, "amiget: send failed\n");
+        fprintf(stderr, "amiport: send failed\n");
         amiport_closesocket(sockfd);
         http_active_sockfd = -1;
         return -1;
@@ -311,7 +311,7 @@ static int http_get_one(const char *host, int port, const char *path,
     }
 
     if (hdr_end < 0) {
-        fprintf(stderr, "amiget: invalid HTTP response\n");
+        fprintf(stderr, "amiport: invalid HTTP response\n");
         amiport_closesocket(sockfd);
         http_active_sockfd = -1;
         return -1;
@@ -320,7 +320,7 @@ static int http_get_one(const char *host, int port, const char *path,
     /* Parse status */
     status = parse_status_line(recv_buf);
     if (status < 0) {
-        fprintf(stderr, "amiget: malformed HTTP status\n");
+        fprintf(stderr, "amiport: malformed HTTP status\n");
         amiport_closesocket(sockfd);
         http_active_sockfd = -1;
         return -1;
@@ -331,7 +331,7 @@ static int http_get_one(const char *host, int port, const char *path,
         if (find_header(recv_buf, hdr_end, "Location",
                         hdr_val, sizeof(hdr_val)) == 0) {
             if (strncmp(hdr_val, "https://", 8) == 0) {
-                fprintf(stderr, "amiget: HTTPS not supported - "
+                fprintf(stderr, "amiport: HTTPS not supported - "
                         "check server configuration\n");
                 amiport_closesocket(sockfd);
                 http_active_sockfd = -1;
@@ -363,7 +363,7 @@ static int http_get_one(const char *host, int port, const char *path,
     if (find_header(recv_buf, hdr_end, "Transfer-Encoding",
                     hdr_val, sizeof(hdr_val)) == 0) {
         if (strstr(hdr_val, "chunked")) {
-            fprintf(stderr, "amiget: chunked encoding not supported\n");
+            fprintf(stderr, "amiport: chunked encoding not supported\n");
             amiport_closesocket(sockfd);
             http_active_sockfd = -1;
             return -1;
@@ -380,7 +380,7 @@ static int http_get_one(const char *host, int port, const char *path,
     /* Open output file */
     fp = fopen(dest_path, "wb");
     if (!fp) {
-        fprintf(stderr, "amiget: cannot open %s for writing\n", dest_path);
+        fprintf(stderr, "amiport: cannot open %s for writing\n", dest_path);
         amiport_closesocket(sockfd);
         http_active_sockfd = -1;
         return -1;
@@ -391,7 +391,7 @@ static int http_get_one(const char *host, int port, const char *path,
     if (total_hdr > hdr_end) {
         int spill = total_hdr - hdr_end;
         if (fwrite(recv_buf + hdr_end, 1, spill, fp) != (size_t)spill) {
-            fprintf(stderr, "amiget: write error\n");
+            fprintf(stderr, "amiport: write error\n");
             fclose(fp);
             http_active_fp = NULL;
             amiport_closesocket(sockfd);
@@ -418,7 +418,7 @@ static int http_get_one(const char *host, int port, const char *path,
         if (n <= 0) break;
 
         if (fwrite(recv_buf, 1, n, fp) != (size_t)n) {
-            fprintf(stderr, "amiget: write error\n");
+            fprintf(stderr, "amiport: write error\n");
             fclose(fp);
             http_active_fp = NULL;
             amiport_closesocket(sockfd);
@@ -436,7 +436,7 @@ static int http_get_one(const char *host, int port, const char *path,
 
     /* Validate Content-Length if provided */
     if (content_length >= 0 && received != content_length) {
-        fprintf(stderr, "amiget: download incomplete "
+        fprintf(stderr, "amiport: download incomplete "
                 "(%ld of %ld bytes)\n", received, content_length);
         return -1;
     }
@@ -468,7 +468,7 @@ int amiport_http_get(const char *url, const char *dest_path,
 
     /* Copy URL for redirect chasing */
     if (strlen(url) >= sizeof(current_url)) {
-        fprintf(stderr, "amiget: URL too long\n");
+        fprintf(stderr, "amiport: URL too long\n");
         return -1;
     }
     strcpy(current_url, url);
@@ -476,7 +476,7 @@ int amiport_http_get(const char *url, const char *dest_path,
     while (redirects <= HTTP_MAX_REDIRECTS) {
         if (amiport_http_parse_url(current_url, host, sizeof(host),
                                     &port, path, sizeof(path)) != 0) {
-            fprintf(stderr, "amiget: invalid URL: %s\n", current_url);
+            fprintf(stderr, "amiport: invalid URL: %s\n", current_url);
             return -1;
         }
 
@@ -489,7 +489,7 @@ int amiport_http_get(const char *url, const char *dest_path,
 
         if (status == 301 || status == 302) {
             if (redirect_url[0] == '\0') {
-                fprintf(stderr, "amiget: redirect without Location\n");
+                fprintf(stderr, "amiport: redirect without Location\n");
                 return -1;
             }
             /* Handle relative redirects */
@@ -498,12 +498,12 @@ int amiport_http_get(const char *url, const char *dest_path,
                              "http://%s:%d%s",
                              host, port, redirect_url)
                         >= (int)sizeof(current_url)) {
-                    fprintf(stderr, "amiget: redirect URL too long\n");
+                    fprintf(stderr, "amiport: redirect URL too long\n");
                     return -1;
                 }
             } else {
                 if (strlen(redirect_url) >= sizeof(current_url)) {
-                    fprintf(stderr, "amiget: redirect URL too long\n");
+                    fprintf(stderr, "amiport: redirect URL too long\n");
                     return -1;
                 }
                 strcpy(current_url, redirect_url);
@@ -520,6 +520,6 @@ int amiport_http_get(const char *url, const char *dest_path,
         return (status == 200) ? 0 : -1;
     }
 
-    fprintf(stderr, "amiget: too many redirects\n");
+    fprintf(stderr, "amiport: too many redirects\n");
     return -1;
 }

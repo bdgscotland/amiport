@@ -87,7 +87,7 @@ Version format: `upstream[-portrev]` — port revision is shown when > 1 (e.g., 
 
 | Port | Version | Description | Category | Author | Status |
 |------|---------|-------------|----------|--------|--------|
-| [amiget](ports/amiget/) | 1.0 | Package manager for AmigaOS 3.x | Network | Duncan Bowring | Built & tested |
+| [amiport](ports/amiport/) | 1.0 | Package manager for AmigaOS 3.x | Network | Duncan Bowring | Built & tested |
 
 Run `make check-aminet` to verify publication status.
 
