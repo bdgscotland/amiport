@@ -1733,6 +1733,7 @@ a:focus-visible {
 /* --- Install Block --- */
 .install-block {
     background: var(--terminal-bg);
+    color: var(--terminal-output);
     padding: var(--sp-sm) var(--sp-md);
     font-family: var(--font-mono);
     font-size: var(--fs-sm);
