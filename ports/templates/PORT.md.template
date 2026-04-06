@@ -68,6 +68,16 @@
 
 <!-- Documented gaps with rationale. Not bugs — architectural constraints. -->
 
+## Roadmap
+
+<!-- Multi-phase ports: track what's shipped and what's planned.
+     Remove this section for single-phase ports with no future work planned. -->
+
+| Phase | Description | Status | Dependencies |
+|-------|-------------|--------|-------------|
+| 1 | <!-- e.g., Core functionality (HTTP) --> | <!-- shipped / in-progress / planned --> | <!-- e.g., bsdsocket-shim --> |
+| 2 | <!-- e.g., HTTPS support --> | <!-- planned --> | <!-- e.g., AmiSSL 5.26 SDK --> |
+
 ## Review
 
 <!-- /review-amiga score summary. -->

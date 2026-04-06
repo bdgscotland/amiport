@@ -1,0 +1,28 @@
+{
+    "name": "wget",
+    "version": "1.20.3",
+    "revision": 1,
+    "description": "HTTP/HTTPS download utility",
+    "category": "comm/tcp",
+    "source": "GNU wget 1.20.3 (https://ftp.gnu.org/gnu/wget/wget-1.20.3.tar.gz)",
+    "license": "GPL-3.0-or-later",
+    "size": 286623,
+    "sha256": "5ec947b0ca69e0f9bb428d169f8dc4799400148faadb20f355ac68baf3542fd2",
+    "download": "/packages/wget-1.20.3.lha",
+    "requires": ["bsdsocket.library"],
+    "aminet": "",
+    "stack": 65536,
+    "status": "stable",
+    "published_at": "2026-04-06T00:06:00Z",
+    "readme": "Short:        HTTP/HTTPS download utility\nType:         comm/tcp\nArchitecture: m68k-amigaos >= 3.0; 68020+\nUploader:     duncan (at) bowring (dot) us\nAuthor:       Free Software Foundation (ported by Duncan Bowring)\nVersion:      1.20.3\n\nwget - HTTP/HTTPS download utility\n\nGNU Wget is a non-interactive network retriever. It supports HTTP,\nFTP, recursive downloading, resume of interrupted transfers, cookies,\nauthentication, proxy support, and many other features.\n\nOriginal author: Free Software Foundation\nPorted by Duncan Bowring using amiport (AI-assisted porting toolkit).\nProject: https://github.com/bdgscotland/amiport\n\nCross-compiled with m68k-amigaos-gcc for AmigaOS 3.x (68020+).\nRequires bsdsocket.library (Roadshow, AmiTCP, or Miami).\n\nUsage:\n  wget http://example.com/file.lha\n  wget -O output.txt http://example.com/page.html\n  wget -c http://example.com/large-file.lha   (resume download)\n  wget -r -l 2 http://example.com/            (recursive, depth 2)\n  wget -q http://example.com/file.lha         (quiet mode)\n\nFeatures:\n  - HTTP and FTP downloads\n  - Recursive download with depth control\n  - Resume interrupted downloads (-c)\n  - Cookie support (--load-cookies, --save-cookies)\n  - HTTP authentication (--user, --password)\n  - Proxy support (http_proxy environment variable)\n  - Progress bar with ETA\n  - Timestamping (-N, only download if newer)\n  - Spider mode (--spider, check links only)\n  - Custom user-agent (--user-agent)\n  - Custom headers (--header)\n\nKnown limitations:\n  - HTTPS not yet supported (Phase 2 via AmiSSL planned)\n  - No --background (-b) flag (use \"Run >NIL: wget URL\")\n  - No --use-askpass (use --password instead)\n  - No --timeout per-operation (TCP-level timeouts still work)\n  - No gzip transfer encoding (servers send uncompressed)\n  - No internationalized domain names (ASCII URLs only)\n  - English only (NLS disabled)\n\nSystem requirements:\n  - AmigaOS 3.0 or later\n  - 68020 or higher CPU\n  - bsdsocket.library (Roadshow, AmiTCP, or Miami)\n  - 1MB free RAM recommended\n\nIncludes full source code (original POSIX and ported Amiga versions)\nand PORT.md documenting every transformation applied.",
+    "test_count": 68,
+    "test_pass": 68,
+    "porting_notes": "Phase 1: HTTP and FTP only (HTTPS via AmiSSL planned for Phase 2). Key transformations: BSD socket calls replaced with bsdsocket-shim; getopt_long replaced with amiport/getopt.h (libnix broken, crash-patterns #17); SIGALRM-based timeouts stubbed (same as Windows wget path); fork_to_background stubbed with AmigaDOS Run workaround; regex uses bundled gnulib engine. Critical memory fix: upstream cleanup() gated on DEBUG_MALLOC preprocessor — removed #ifdef guards so all 50+ xfree() calls run unconditionally on AmigaOS. 68/68 FS-UAE tests pass. First wget for AmigaOS without ixemul.library. Binary is 68020+ targeting for future AmiSSL integration.",
+    "known_limitations": "HTTPS not yet supported (Phase 2 via AmiSSL planned). No --background (-b) flag (use 'Run >NIL: wget URL' instead). No --use-askpass (use --password instead). No --timeout per-operation (TCP-level timeouts via select() still work). No gzip transfer encoding (zlib disabled — servers send uncompressed). No internationalized domain names (libidn2 disabled, ASCII URLs only). English only (NLS disabled). NTLM proxy auth disabled. Requires bsdsocket.library (Roadshow, AmiTCP, or Miami).",
+    "roadmap": [
+        {"phase": 1, "title": "HTTP + FTP downloads", "status": "shipped", "description": "Core wget: progress bar, resume, recursive, cookies, auth"},
+        {"phase": 2, "title": "HTTPS via AmiSSL", "status": "planned", "description": "Enable OpenSSL path with AmiSSL 5.26 shared library"},
+        {"phase": 3, "title": "gzip transfer encoding", "status": "planned", "description": "Cross-compile zlib, enable compressed HTTP transfers"},
+        {"phase": 4, "title": "Aminet submission", "status": "planned", "description": "Upload to comm/tcp on Aminet"}
+    ]
+}

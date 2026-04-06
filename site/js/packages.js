@@ -442,6 +442,61 @@
             detailRich.appendChild(limSection);
         }
 
+        // Roadmap (multi-phase ports)
+        var roadmap = pkg.roadmap || [];
+        if (roadmap.length > 0) {
+            var rmSection = document.createElement('div');
+            rmSection.className = 'pkg-detail__section';
+            var rmTitle = document.createElement('div');
+            rmTitle.className = 'pkg-detail__section-title';
+            rmTitle.textContent = 'Roadmap';
+            rmSection.appendChild(rmTitle);
+            var rmTable = document.createElement('table');
+            rmTable.className = 'pkg-detail__roadmap';
+            rmTable.style.width = '100%';
+            rmTable.style.fontSize = '13px';
+            rmTable.style.borderCollapse = 'collapse';
+            var rmHead = document.createElement('tr');
+            ['Phase', 'Description', 'Status'].forEach(function(h) {
+                var th = document.createElement('th');
+                th.textContent = h;
+                th.style.textAlign = 'left';
+                th.style.padding = '4px 8px';
+                th.style.borderBottom = '1px solid var(--bevel-dark, #666)';
+                th.style.color = 'var(--amber, #CC9933)';
+                rmHead.appendChild(th);
+            });
+            rmTable.appendChild(rmHead);
+            roadmap.forEach(function(phase) {
+                var tr = document.createElement('tr');
+                var tdPhase = document.createElement('td');
+                tdPhase.textContent = phase.phase;
+                tdPhase.style.padding = '3px 8px';
+                tr.appendChild(tdPhase);
+                var tdDesc = document.createElement('td');
+                tdDesc.textContent = phase.title + (phase.description ? ' — ' + phase.description : '');
+                tdDesc.style.padding = '3px 8px';
+                tr.appendChild(tdDesc);
+                var tdStatus = document.createElement('td');
+                tdStatus.style.padding = '3px 8px';
+                tdStatus.style.fontWeight = 'bold';
+                if (phase.status === 'shipped') {
+                    tdStatus.textContent = 'Shipped';
+                    tdStatus.style.color = 'var(--green, #44BB44)';
+                } else if (phase.status === 'in-progress') {
+                    tdStatus.textContent = 'In Progress';
+                    tdStatus.style.color = 'var(--amber, #CC9933)';
+                } else {
+                    tdStatus.textContent = 'Planned';
+                    tdStatus.style.color = 'var(--text-muted, #999)';
+                }
+                tr.appendChild(tdStatus);
+                rmTable.appendChild(tr);
+            });
+            rmSection.appendChild(rmTable);
+            detailRich.appendChild(rmSection);
+        }
+
         // Empty state
         if (!notes && testCount === 0 && !limitations) {
             var emptySection = document.createElement('div');

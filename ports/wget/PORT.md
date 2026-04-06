@@ -104,7 +104,14 @@ Verdict: **MODERATE** (core HTTP/FTP) — **COMPLEX** (full feature set with Ami
 - English only (NLS disabled).
 - NTLM proxy auth disabled.
 - WARC output: No compression, no UUID (uses timestamp-based IDs).
-- Phase 1: HTTP and FTP only. Phase 2 adds HTTPS via AmiSSL.
+## Roadmap
+
+| Phase | Description | Status | Dependencies | Notes |
+|-------|-------------|--------|-------------|-------|
+| 1 | HTTP + FTP downloads | **Shipped** | bsdsocket-shim | Core wget functionality, progress bar, resume, recursive, cookies |
+| 2 | HTTPS via AmiSSL | Planned | AmiSSL 5.26 SDK | Enable `HAVE_LIBSSL` in config.h, add AmiSSL init in ssl_init(), link `-lamisslauto`. openssl.c already in source tree. |
+| 3 | gzip transfer encoding | Planned | static zlib | Enable `HAVE_LIBZ`, cross-compile zlib as `lib/zlib/`. Smaller downloads from modern servers. |
+| 4 | Aminet submission | Planned | Phase 1 sufficient | Upload wget-1.20.3.lha to comm/tcp. HTTP-only is already a major upgrade over the 2003 ixemul version. |
 
 ## Memory Safety
 
