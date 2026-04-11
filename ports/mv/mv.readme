@@ -1,0 +1,32 @@
+Short:        Move or rename files
+Type:         util/cli
+Architecture: m68k-amigaos >= 3.0
+Uploader:     duncan@bowring.us
+Author:       Ken Smith, UC Berkeley (ported by Duncan Bowring)
+Version:      1.47
+
+mv - Move or rename files
+
+Original author: Ken Smith, UC Berkeley
+Source: OpenBSD mv v1.47
+
+Ported by Duncan Bowring using amiport (AI-assisted porting toolkit).
+Project: https://github.com/bdgscotland/amiport
+
+Cross-compiled with m68k-amigaos-gcc for AmigaOS 3.x (68000+).
+Tested in FS-UAE with AmigaOS 3.1.
+
+Usage:
+  mv [-fiv] source target
+  mv [-fiv] source ... directory
+
+Options:
+  -f   Force (do not prompt before overwriting)
+  -i   Interactive (prompt before overwriting)
+  -v   Verbose (show files as they are moved)
+
+Cross-volume moves supported for regular files.
+Directory cross-volume moves are not supported.
+
+Includes full source code (original OpenBSD and ported Amiga versions)
+and PORT.md documenting every transformation applied.

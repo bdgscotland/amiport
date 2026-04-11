@@ -163,8 +163,8 @@ findprog(char *prog, char *path, int progmode, int allmatches)
 	struct amiport_stat sbuf; /* amiport: using amiport_stat struct directly */
 	char *pathcpy;
 
-	/* Special case if prog contains '/' */
-	if (strchr(prog, '/')) {
+	/* amiport: Special case if prog contains '/' or ':' -- treat as direct path */
+	if (strchr(prog, '/') || strchr(prog, ':')) {
 		/* amiport: stat() and access() mapped via <amiport/sys/stat.h> and
 		 * <amiport/unistd.h> macros to amiport_stat() and amiport_access() */
 		if ((stat(prog, &sbuf) == 0) && S_ISREG(sbuf.st_mode) &&
@@ -181,17 +181,27 @@ findprog(char *prog, char *path, int progmode, int allmatches)
 		err(10, "strdup"); /* amiport: RETURN_ERROR */
 	pathcpy = path;
 
-	while ((p = strsep(&pathcpy, ":")) != NULL) {
+	/* amiport: AmigaDOS path separator is ';' (not ':' which is volume separator).
+	 * PATH entries are like "C:;SYS:Utilities;WORK:bin".
+	 * If path is a single entry like "C:" (no ';'), strsep returns the whole string.
+	 * Join with empty string when dir ends with ':' (volume), '/' otherwise. */
+	while ((p = strsep(&pathcpy, ";")) != NULL) {
 		if (*p == '\0')
-			p = ".";
+			continue; /* amiport: skip empty entries from ";;" */
 
 		len = strlen(p);
+		/* amiport: strip trailing '/' but NOT trailing ':' (volume name) */
 		while (len > 0 && p[len-1] == '/')
-			p[--len] = '\0';	/* strip trailing '/' */
+			p[--len] = '\0';
 
-		len = snprintf(filename, sizeof(filename), "%s/%s", p, prog);
+		/* amiport: if dir ends with ':' (volume), join directly; else use '/' */
+		if (len > 0 && p[len-1] == ':')
+			len = snprintf(filename, sizeof(filename), "%s%s", p, prog);
+		else
+			len = snprintf(filename, sizeof(filename), "%s/%s", p, prog);
+
 		if (len < 0 || len >= (int)sizeof(filename)) {
-			warnc(ENAMETOOLONG, "%s/%s", p, prog);
+			warnx("%s/%s: pathname too long", p, prog);
 			free(path);
 			return (0);
 		}

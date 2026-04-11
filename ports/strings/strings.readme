@@ -1,0 +1,24 @@
+Short:        Find printable strings in files
+Type:         util/cli
+Architecture: m68k-amigaos >= 3.0
+Uploader:     duncan@bowring.us
+Author:       amiport (ported by Duncan Bowring)
+Version:      1.0
+
+strings - Find printable strings in files
+
+Ported by Duncan Bowring using amiport (AI-assisted porting toolkit).
+Project: https://github.com/bdgscotland/amiport
+
+Cross-compiled with m68k-amigaos-gcc for AmigaOS 3.x (68000+).
+Tested in FS-UAE with AmigaOS 3.1.
+
+Usage:
+  strings [-a] [-n number] [-t format] [file ...]
+
+Options:
+  -a          Scan entire file (default behavior)
+  -n number   Minimum string length (default: 4)
+  -t format   Print offset (d=decimal, o=octal, x=hex)
+
+Includes full source code and PORT.md.

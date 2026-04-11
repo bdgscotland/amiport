@@ -1,19 +1,20 @@
-/* test-which-nopath.rexx -- Run WORK:which with PATH env var unset */
-/* Ensures PATH env var does not exist so which falls back to _PATH_DEFPATH="C:" */
-/* With the fixed semicolon separator, "C:" as PATH correctly finds C:Sort etc. */
-/* Usage: rx test-which-nopath.rexx [which-args...] */
+/* test-which-path.rexx -- Run WORK:which with PATH=C:;WORK: set */
+/* Sets the PATH environment variable so which can find commands in C: */
+/* and WORK:, then exits with which's RC. */
+/* PATH uses AmigaDOS semicolon separator: C:;WORK: */
+/* Usage: rx test-which-path.rexx [which-args...] */
 OPTIONS FAILAT 21
 PARSE ARG args
 args = STRIP(args)
 
-outfile = 'T:which_np_out.txt'
-rcfile  = 'T:which_np_rc.txt'
-script  = 'T:which_np_cmd.txt'
+outfile = 'T:which_path_out.txt'
+rcfile  = 'T:which_path_rc.txt'
+script  = 'T:which_path_cmd.txt'
 
-/* Remove PATH env var if it exists */
-ADDRESS COMMAND 'Delete >NIL: ENV:PATH'
+/* Set PATH env var: AmigaDOS semicolon-separated, volume-style entries */
+ADDRESS COMMAND 'SetEnv PATH C:;WORK:'
 
-/* Write execute script */
+/* Write execute script: runs which with args, captures stdout and RC */
 IF OPEN('sf', script, 'W') THEN DO
     CALL WRITELN('sf', 'FailAt 21')
     CALL WRITELN('sf', 'Stack 65536')
@@ -27,7 +28,10 @@ END
 
 ADDRESS COMMAND 'Execute' script
 
-/* Read return code */
+/* Remove the PATH env var we set -- do not pollute other tests */
+ADDRESS COMMAND 'Delete >NIL: ENV:PATH'
+
+/* Read which's return code */
 whichrc = 0
 IF OPEN('rf', rcfile, 'R') THEN DO
     rcline = READLN('rf')
@@ -35,7 +39,7 @@ IF OPEN('rf', rcfile, 'R') THEN DO
     IF DATATYPE(STRIP(rcline), 'W') THEN whichrc = STRIP(rcline)
 END
 
-/* Print which's stdout */
+/* Read which's stdout and print it to our stdout */
 IF OPEN('of', outfile, 'R') THEN DO
     DO WHILE ~EOF('of')
         line = READLN('of')
@@ -44,7 +48,7 @@ IF OPEN('of', outfile, 'R') THEN DO
     CALL CLOSE('of')
 END
 
-/* Clean up */
+/* Clean up temp files */
 ADDRESS COMMAND 'Delete >NIL:' outfile
 ADDRESS COMMAND 'Delete >NIL:' rcfile
 ADDRESS COMMAND 'Delete >NIL:' script

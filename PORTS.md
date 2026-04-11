@@ -88,6 +88,11 @@ Version format: `upstream[-portrev]` — port revision is shown when > 1 (e.g., 
 
 | Port | Version | Description | Category | Author | Status |
 |------|---------|-------------|----------|--------|--------|
+| [which](ports/which/) | 1.27 | Locate a program file in PATH | CLI | OpenBSD which v1.27 (ISC) | Built & tested (23/23 FS-UAE) | Not submitted |
+| [strings](ports/strings/) | 1.0 | Find printable strings in files | CLI | Custom implementation (Public Domain) | Built & tested (38/38 FS-UAE) | Not submitted |
+| [seq](ports/seq/) | 1.8 | Print sequences of numbers | CLI | OpenBSD seq v1.8 (ISC) | Built & tested (47/47 FS-UAE) | Not submitted |
+| [mv](ports/mv/) | 1.47 | Move or rename files | CLI | OpenBSD mv v1.47 (BSD 3-Clause) | Built & tested (20/20 FS-UAE) | Not submitted |
+| [cmp](ports/cmp/) | 1.19 | Compare two files byte by byte | CLI | OpenBSD cmp v1.19 (BSD 3-Clause) | Built & tested (30/30 FS-UAE) | Not submitted |
 | [amiport](ports/amiport/) | 1.0 | Package manager for AmigaOS 3.x | Network | Duncan Bowring | Built & tested |
 
 Run `make check-aminet` to verify publication status.

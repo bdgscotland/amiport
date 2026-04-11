@@ -1,0 +1,31 @@
+Short:        Compare two files byte by byte
+Type:         util/cli
+Architecture: m68k-amigaos >= 3.0
+Uploader:     duncan@bowring.us
+Author:       UC Berkeley (ported by Duncan Bowring)
+Version:      1.19
+
+cmp - Compare two files byte by byte
+
+Original author: UC Berkeley
+Source: OpenBSD cmp v1.19
+
+Ported by Duncan Bowring using amiport (AI-assisted porting toolkit).
+Project: https://github.com/bdgscotland/amiport
+
+Cross-compiled with m68k-amigaos-gcc for AmigaOS 3.x (68000+).
+Tested in FS-UAE with AmigaOS 3.1.
+
+Usage:
+  cmp [-l | -s] file1 file2 [skip1 [skip2]]
+
+Options:
+  -l   Print byte number and values of each difference
+  -s   Silent (only return exit status)
+
+Exit Status:
+  0    Files are identical
+  10   Files differ or an error occurred
+
+Includes full source code (original OpenBSD and ported Amiga versions)
+and PORT.md documenting every transformation applied.

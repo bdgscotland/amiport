@@ -1,0 +1,242 @@
+# test-fsemu-cases.txt -- cmp 1.19 (OpenBSD) FS-UAE test suite
+#
+# Exit codes on Amiga port (extern.h):
+#   RC=0  : files identical
+#   RC=10 : files differ (DIFF_EXIT=10) OR error (ERR_EXIT=10)
+#
+# stdout output: diffmsg() uses printf -> captured by harness
+# stderr output: eofmsg()/fatal()/fatalx()/usage() use warnx/fprintf(stderr)
+#   -> NOT captured; error-path tests use EXPECT_RC: only
+#
+# Stdin via "-" argument: use <WORK:file.txt redirect in CMD (AmigaDOS Execute
+#   parses < as stdin redirection; program receives "-" as arg and reads stdin)
+
+# ---------------------------------------------------------------------------
+# CATEGORY 1: Functional tests -- per-flag coverage
+# ---------------------------------------------------------------------------
+
+# Native: cmp test-cmp-same.txt test-cmp-same.txt; echo $?
+TEST: Identical files produce no output and RC=0
+CMD: WORK:cmp WORK:test-cmp-same.txt WORK:test-cmp-same.txt
+EXPECT_RC: 0
+
+# Native: cmp test-cmp-same.txt test-cmp-diff.txt
+# Output: "test-cmp-same.txt test-cmp-diff.txt differ: char 13, line 2"
+TEST: Different files print first difference byte and line to stdout
+CMD: WORK:cmp WORK:test-cmp-same.txt WORK:test-cmp-diff.txt
+EXPECT: WORK:test-cmp-same.txt WORK:test-cmp-diff.txt differ: char 13, line 2
+EXPECT_RC: 10
+
+# Native: cmp -s test-cmp-same.txt test-cmp-same.txt; echo $?
+TEST: -s flag identical files is silent with RC=0
+CMD: WORK:cmp -s WORK:test-cmp-same.txt WORK:test-cmp-same.txt
+EXPECT_RC: 0
+
+# Native: cmp -s test-cmp-same.txt test-cmp-diff.txt; echo $?
+TEST: -s flag different files is silent with RC=10
+CMD: WORK:cmp -s WORK:test-cmp-same.txt WORK:test-cmp-diff.txt
+EXPECT_RC: 10
+
+# Native: cmp -l test-cmp-same.txt test-cmp-diff.txt
+# Output: "    13 146 147"  (byte 13: 'f'=0146 vs 'g'=0147)
+TEST: -l flag lists all byte differences with octal values
+CMD: WORK:cmp -l WORK:test-cmp-same.txt WORK:test-cmp-diff.txt
+EXPECT:     13 146 147
+EXPECT_RC: 10
+
+# Native: cmp -l test-cmp-same.txt test-cmp-same.txt; echo $?
+TEST: -l flag on identical files produces no output with RC=0
+CMD: WORK:cmp -l WORK:test-cmp-same.txt WORK:test-cmp-same.txt
+EXPECT_RC: 0
+
+# ---------------------------------------------------------------------------
+# CATEGORY 2: Error path tests -- stderr output, verify RC only
+# ---------------------------------------------------------------------------
+
+# -l and -s together: "only one of -l and -s may be specified" (stderr)
+# Native: cmp -l -s test-cmp-same.txt test-cmp-diff.txt 2>&1; echo $?  -> RC=2 (Unix)
+# Amiga: ERR_EXIT=10
+TEST: -l and -s flags together exit with error RC=10
+CMD: WORK:cmp -l -s WORK:test-cmp-same.txt WORK:test-cmp-diff.txt
+EXPECT_RC: 10
+
+# File not found: error message to stderr, ERR_EXIT=10
+TEST: Missing file2 exits with RC=10
+CMD: WORK:cmp WORK:test-cmp-same.txt WORK:NONEXISTENT_XYZ_FILE.txt
+EXPECT_RC: 10
+
+# Missing file1:
+TEST: Missing file1 exits with RC=10
+CMD: WORK:cmp WORK:NONEXISTENT_XYZ_FILE.txt WORK:test-cmp-same.txt
+EXPECT_RC: 10
+
+# Too few args (only 1 arg): usage() to stderr, ERR_EXIT=10
+TEST: Single argument exits with usage error RC=10
+CMD: WORK:cmp WORK:test-cmp-same.txt
+EXPECT_RC: 10
+
+# Unknown flag: usage() to stderr, ERR_EXIT=10
+TEST: Unknown flag -Z exits with RC=10
+CMD: WORK:cmp -Z WORK:test-cmp-same.txt WORK:test-cmp-diff.txt
+EXPECT_RC: 10
+
+# ---------------------------------------------------------------------------
+# CATEGORY 3: Exit code tests
+# ---------------------------------------------------------------------------
+
+# RC=0 already covered above (identical files)
+# RC=10 already covered above (differ + error)
+
+# Two empty files: identical (both EOF immediately), RC=0
+# Native: cmp test-cmp-empty.txt test-cmp-empty.txt; echo $?
+TEST: Two empty files are identical RC=0
+CMD: WORK:cmp WORK:test-cmp-empty.txt WORK:test-cmp-empty.txt
+EXPECT_RC: 0
+
+# Empty vs non-empty: EOF on empty file -> RC=10 (eofmsg to stderr)
+# Native: cmp test-cmp-empty.txt test-cmp-same.txt; echo $? -> RC=1 -> Amiga RC=10
+TEST: Empty vs non-empty file exits RC=10 (EOF on empty file)
+CMD: WORK:cmp WORK:test-cmp-empty.txt WORK:test-cmp-same.txt
+EXPECT_RC: 10
+
+# ---------------------------------------------------------------------------
+# CATEGORY 4: Edge case tests
+# ---------------------------------------------------------------------------
+
+# EOF on shorter file: eofmsg() to stderr, DIFF_EXIT=10
+# Native: cmp test-cmp-same.txt test-cmp-short.txt; echo $? -> RC=1 -> Amiga RC=10
+TEST: Shorter file2 causes EOF exit RC=10
+CMD: WORK:cmp WORK:test-cmp-same.txt WORK:test-cmp-short.txt
+EXPECT_RC: 10
+
+# EOF on shorter file (reversed order)
+TEST: Shorter file1 causes EOF exit RC=10
+CMD: WORK:cmp WORK:test-cmp-short.txt WORK:test-cmp-same.txt
+EXPECT_RC: 10
+
+# Longer file (file2 has extra line): EOF on file1 first
+TEST: Longer file2 causes EOF exit RC=10
+CMD: WORK:cmp WORK:test-cmp-same.txt WORK:test-cmp-long.txt
+EXPECT_RC: 10
+
+# Binary files with known byte difference at position 4
+# Native: cmp test-cmp-binary1.dat test-cmp-binary2.dat
+# Output: "test-cmp-binary1.dat test-cmp-binary2.dat differ: char 4, line 1"
+TEST: Binary files first difference on line 1
+CMD: WORK:cmp WORK:test-cmp-binary1.dat WORK:test-cmp-binary2.dat
+EXPECT: WORK:test-cmp-binary1.dat WORK:test-cmp-binary2.dat differ: char 4, line 1
+EXPECT_RC: 10
+
+# Skip past EOF of file1 (skip 100 bytes, file has 30): eofmsg to stderr
+TEST: Skip offset past EOF of file1 exits RC=10
+CMD: WORK:cmp WORK:test-cmp-same.txt WORK:test-cmp-diff.txt 100 0
+EXPECT_RC: 10
+
+# Two stdin args is an error: "standard input may only be specified once" (stderr)
+# This needs an input file so the program doesn't hang on stdin
+# We use a dummy file redirect; the second "-" triggers the error before reading
+TEST: Specifying stdin twice exits with RC=10
+CMD: WORK:cmp - - <WORK:test-cmp-same.txt
+EXPECT_RC: 10
+
+# ---------------------------------------------------------------------------
+# CATEGORY 5: Amiga-specific tests -- WORK: volume path handling
+# ---------------------------------------------------------------------------
+
+# Both files specified via WORK: volume paths (normal Amiga usage)
+# Verify WORK: prefix is handled correctly for both arguments
+TEST: WORK volume paths work for both file arguments
+CMD: WORK:cmp WORK:test-cmp-same.txt WORK:test-cmp-same.txt
+EXPECT_RC: 0
+
+# Verify output filenames in diffmsg include the correct base name
+# (not the full WORK: path -- the program uses argv as passed)
+# Note: on Amiga, argv[0] will be "WORK:test-cmp-same.txt" etc.
+TEST: Diffmsg output uses passed filenames
+CMD: WORK:cmp WORK:test-cmp-same.txt WORK:test-cmp-diff.txt
+EXPECT_CONTAINS: differ: char 13, line 2
+EXPECT_RC: 10
+
+# ---------------------------------------------------------------------------
+# CATEGORY 6: Real-world and stress tests
+# ---------------------------------------------------------------------------
+
+# Real-world 1: Using cmp to verify a file is unchanged after processing
+# Compare a file against itself to confirm it's a no-op check
+# Native: cmp test-multiline.txt test-multiline.txt; echo $?
+TEST: Real-world file identity check on multiline file
+CMD: WORK:cmp WORK:test-multiline.txt WORK:test-multiline.txt
+EXPECT_RC: 0
+
+# Real-world 2: Skip to compare only the second half of two files that
+# differ only at the start. Skip past the difference to confirm match.
+# same.txt and diff.txt differ only at byte 13 ('f' vs 'g').
+# Skipping 14 bytes of each gets past the difference -- rest is identical.
+# After skip 14 14: same.txt[14:]="oo bar baz\n12345\n"
+#                   diff.txt[14:]="oo bar baz\n12345\n" -- IDENTICAL
+# Native: cmp test-cmp-same.txt test-cmp-diff.txt 14 14; echo $? -> RC=0
+TEST: Skip offsets can skip past a difference leaving identical tails
+CMD: WORK:cmp WORK:test-cmp-same.txt WORK:test-cmp-diff.txt 14 14
+EXPECT_RC: 0
+
+# Real-world 3: -l on files with multiple differences lists each byte
+# Native: cmp -l test-cmp-same.txt test-cmp-multidiff.txt
+# Output lines: "     1 150 110", "    13 146 106", "    17 142 102"
+TEST: -l flag lists all three byte differences from multidiff file
+CMD: WORK:cmp -l WORK:test-cmp-same.txt WORK:test-cmp-multidiff.txt
+EXPECT:      1 150 110
+EXPECT_LINE: 2,    13 146 106
+EXPECT_LINE: 3,    17 142 102
+EXPECT_RC: 10
+
+# Real-world 4: Using stdin via - to pipe a file into cmp
+# Simulates a pipeline where one file comes from a previous command.
+# Native: cmp - test-cmp-diff.txt < test-cmp-same.txt
+# Output: "stdin test-cmp-diff.txt differ: char 13, line 2"
+TEST: Stdin via - differs from file at correct position
+CMD: WORK:cmp - WORK:test-cmp-diff.txt <WORK:test-cmp-same.txt
+EXPECT: stdin WORK:test-cmp-diff.txt differ: char 13, line 2
+EXPECT_RC: 10
+
+# Real-world 5: -s flag returns clean exit codes for scripting
+# A script that wants to know if a backup matches the original
+# uses cmp -s and checks the return code without showing output.
+# Native: cmp -s test-cmp-same.txt test-cmp-same.txt && echo "same"
+TEST: -s flag enables clean scripting use of exit code on match
+CMD: WORK:cmp -s WORK:test-cmp-same.txt WORK:test-cmp-same.txt
+EXPECT_RC: 0
+
+# Stress 1: -l flag on binary files -- verify exact octal format
+# Native: cmp -l test-cmp-binary1.dat test-cmp-binary2.dat
+# Output: "     4   3  17"  (byte 4: 0x03=3 vs 0x0f=17 octal)
+TEST: -l on binary files shows correct octal byte values
+CMD: WORK:cmp -l WORK:test-cmp-binary1.dat WORK:test-cmp-binary2.dat
+EXPECT:      4   3  17
+EXPECT_RC: 10
+
+# Stress 2: Compare large file (test-longline.txt has >1024 char line)
+# Large file comparison exercises the mmap/regular code path
+# Native: cmp test-longline.txt test-longline.txt; echo $? -> RC=0
+TEST: Identical large file (1024+ char lines) comparison is correct
+CMD: WORK:cmp WORK:test-longline.txt WORK:test-longline.txt
+EXPECT_RC: 0
+
+# Stress 3: Skip offset brings comparison into the middle of a line
+# Skip 12 bytes on both, so comparison starts at byte 13 of each
+# same.txt[12:]="foo bar baz\n12345\n", diff.txt[12:]="goo bar baz\n12345\n"
+# Difference at char 1 of the comparison (which is the 13th byte overall)
+# Native: cmp test-cmp-same.txt test-cmp-diff.txt 12 12
+# Output: "test-cmp-same.txt test-cmp-diff.txt differ: char 1, line 1"
+TEST: Skip 12 bytes on both files reveals difference at char 1 line 1
+CMD: WORK:cmp WORK:test-cmp-same.txt WORK:test-cmp-diff.txt 12 12
+EXPECT: WORK:test-cmp-same.txt WORK:test-cmp-diff.txt differ: char 1, line 1
+EXPECT_RC: 10
+
+# Precision: Verify exact byte and line numbers in diffmsg output
+# The format is: "%s %s differ: char %ld, line %ld\n"
+# On Amiga, off_t is long (32-bit), format specifier is %ld.
+# Any regression in format (using %d vs %ld) would show here.
+TEST: Diffmsg byte and line numbers are exactly correct integers
+CMD: WORK:cmp WORK:test-cmp-binary1.dat WORK:test-cmp-binary2.dat
+EXPECT: WORK:test-cmp-binary1.dat WORK:test-cmp-binary2.dat differ: char 4, line 1
+EXPECT_RC: 10

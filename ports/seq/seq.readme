@@ -1,0 +1,29 @@
+Short:        Print sequences of numbers
+Type:         util/cli
+Architecture: m68k-amigaos >= 3.0
+Uploader:     duncan@bowring.us
+Author:       Todd C. Miller (ported by Duncan Bowring)
+Version:      1.8
+
+seq - Print sequences of numbers
+
+Original author: Todd C. Miller
+Source: OpenBSD seq v1.8
+
+Ported by Duncan Bowring using amiport (AI-assisted porting toolkit).
+Project: https://github.com/bdgscotland/amiport
+
+Cross-compiled with m68k-amigaos-gcc for AmigaOS 3.x (68000+).
+Tested in FS-UAE with AmigaOS 3.1.
+
+Usage:
+  seq [-w] [-f format] [-s string] [-t string] [first [incr]] last
+
+Options:
+  -w          Equalize widths with leading zeros
+  -f format   printf-style format for numbers
+  -s string   Separator (default: newline)
+  -t string   Terminator (default: newline)
+
+Includes full source code (original OpenBSD and ported Amiga versions)
+and PORT.md documenting every transformation applied.
