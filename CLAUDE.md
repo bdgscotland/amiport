@@ -6,19 +6,21 @@ amiport is an AI-powered toolkit for porting POSIX/Linux C software to the Commo
 
 ## Architecture
 
-The porting pipeline has 5 stages, each backed by a Claude skill:
+The porting pipeline has 4 stages, each backed by a Claude skill:
 
 1. **Analyze** (`/analyze-source`) — Scan source for portability issues
 2. **Transform** (`/transform-source`) — Replace POSIX calls with Amiga equivalents
 3. **Build** (`/build-amiga`) — Cross-compile with bebbo-gcc or VBCC
 4. **Test** (`/test-amiga`) — Run in vamos emulator, verify output
-5. **Orchestrate** (`/port-project`) — Run the full pipeline end-to-end
-6. **Parallel Batch** (`/batch-port-parallel`) — Dispatch N ports simultaneously in isolated worktrees
+
+**Orchestration modes:**
+- `/port-project` — Run the full pipeline end-to-end (single port)
+- `/batch-port-parallel` — Dispatch N ports simultaneously in isolated worktrees
 
 ## Codebase Map
 
 - `.claude/skills/` — Skill definitions for each pipeline stage
-- `.claude/agents/` — Agent definitions (source-analyzer, code-transformer, build-manager, test-runner, port-coordinator, dependency-auditor)
+- `.claude/agents/` — 20 agent definitions (see agent table below for full list)
 - `lib/posix-shim/` — Tier 1: Direct POSIX-to-AmigaOS wrappers (`amiport_*` functions)
 - `lib/posix-emu/` — Tier 2: Approximate POSIX emulation with documented caveats (`amiport_emu_*` functions)
 - `lib/posix-shim/include/amiport/compat.h` — Platform compatibility fixes for 68k quirks (alignment, byte order). Not a function library — a header with macros for issues that break correct C on 68k. See crash-patterns #15, #16.
@@ -27,6 +29,7 @@ The porting pipeline has 5 stages, each backed by a Claude skill:
 - `lib/bsdsocket-shim/` — BSD socket API via bsdsocket.library with auto lifecycle (ADR-010)
 - `lib/http-shim/` — Reusable HTTP/1.0 GET client library on bsdsocket-shim. Used by amiport CLI. Handles redirects, Content-Length validation, progress callbacks, 30s socket timeout.
 - `lib/oniguruma/` — Oniguruma 6.9.9 regex engine (ASCII-only build, 156 KB). Perl-compatible regex with named captures. Used by jq for test/match/sub/gsub. Unicode data tables replaced with stubs to save 312 KB.
+- `lib/amissl-sdk/` — AmiSSL SDK headers and stub libraries for optional HTTPS support (used by wget). See known-pitfalls re: libamisslauto.a hard dependency.
 - `site/` — Website source for amiport.platesteel.net
   - `site/css/style.css` — MUI warm gray design system (see DESIGN.md)
   - `site/index.html` — Landing page (hero terminal animation, featured packages, getting started, port request form)
@@ -87,22 +90,12 @@ The `/port-project` skill has GATE checks — it will not proceed to the next st
 
 ## Documentation Rules — IMPORTANT
 
-**When adding or changing any skill, agent, pipeline stage, library, or architectural decision:**
+**A change is not complete until all affected documentation is updated.** Full checklist with all 13 touchpoints is in `.claude/rules/documentation.md`. Key points:
 
-1. **CLAUDE.md** — Update the pipeline, agent table, and any affected sections
-2. **README.md** — Update the skills table, agents table, pipeline diagram, and make targets
-3. **docs/architecture.md** — Update the pipeline ASCII diagram and component tables
-4. **docs/porting-guide.md** — Update the step-by-step workflow
-5. **.claude/skills/port-project/SKILL.md** — Update pipeline stages if affected
-6. **docs/adr/** — Create a new ADR for architectural decisions; update README.md index
-7. **docs/pdr/** — Create a new PDR for product/scope decisions; update README.md index
-
-**When completing a port (`/port-project`) or publishing to Aminet:**
-
-8. **PORTS.md** — Add the port to the catalog table (name, version, description, category, source, status). Update Aminet tracking table after publishing.
-9. **README.md** — Add the port to the Ports summary table
-
-**Do not consider a change complete until all affected documentation is updated.** A new skill without README/architecture/porting-guide references is incomplete. An ADR without an index entry is lost. A port without a PORTS.md entry is invisible.
+- Skills/agents/libraries/ADRs: update CLAUDE.md, README.md, architecture.md, porting-guide.md, port-project skill
+- Completed ports: update PORTS.md, README.md ports table
+- Port updates (version/deps/tests): update catalog.json, site packages.json
+- Cross-cutting changes: audit ALL touchpoints upfront (see rule for full matrix)
 
 ## First-Time Setup — MANDATORY
 
@@ -217,7 +210,9 @@ All queries from this project are tagged with `source_project: "amiport"` for cr
 
 **Architecture & guides:** `docs/architecture.md`, `docs/porting-guide.md`, `docs/api-mapping.md`
 
-**ADRs:** `docs/adr/008` (tiers), `009` (console), `010` (bsdsocket), `011` (categories), `014` (FS-UAE testing), `015` (CI/quality), `016` (debug agent), `017` (hooks enforcement), `018` (ADCD knowledge base), `019` (agent persona matrix), `020` (git hooks validation), `021` (design system — MUI warm gray), `022` (C99 compiler support), `023` (automated interactive testing), `024` (visual verification), `025` (screen read trap — interactive cursor verification)
+**ADRs:** `docs/adr/008` (tiers), `009` (console), `010` (bsdsocket), `011` (categories), `014` (FS-UAE testing), `015` (CI/quality), `016` (debug agent), `017` (hooks enforcement), `018` (ADCD knowledge base), `019` (agent persona matrix), `020` (git hooks validation), `021` (design system — MUI warm gray), `022` (C99 compiler support), `023` (automated interactive testing), `024` (visual verification), `025` (screen read trap — interactive cursor verification), `026` (CPython port)
+
+**PDRs:** `docs/pdr/001` (target audience), `002` (MVP wc port), `003` (ports directory + Aminet), `004` (Aminet research first), `005` (committed binaries), `006` (FS-UAE mandatory for all categories), `007` (design system redesign), `008` (SDL2 AmigaOS3 vision), `009` (hardware expansion + SDL)
 
 **Shim references (in amiga-kb):** Use `amiga_search "bsd socket mapping"`, `amiga_search "newlib availability"` etc. ADCD FUNCTIONS.md and TYPES.md still local at `docs/references/adcd/`.
 
