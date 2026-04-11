@@ -68,6 +68,7 @@ Agents define **who** does the work — model selection, tool access, persona, a
 - **visual-test-expert**: Uses Sonnet for visual test authoring and debugging. Writes SCRAPE/SCREEN_READ/EXPECT_AT/EXPECT_TRAP_CURSOR test cases, debugs visual test failures, and maintains the consolehook trap handler and ScreenRead binary (ADR-024/025).
 - **amiport-publisher**: Uses Sonnet for test-gated publishing to amiport.platesteel.net. Validates vamos/FS-UAE tests pass before allowing downloads. Sets package status (stable/testing/hidden). Never publishes without explicit approval.
 - **port-worker**: Uses Sonnet for self-contained parallel batch porting. Runs stages 0-4 (research, analyze, transform, build, vamos test) in an isolated git worktree. Designed for dispatch by `/batch-port-parallel` — does all work directly without sub-agent dispatch.
+- **regression-checker**: Uses Sonnet to detect regressions after shim/library changes. Identifies ports linked against the changed library, rebuilds them, runs vamos smoke tests, and reports failures. Does not fix regressions — just reports them.
 
 ### Context-Loading Skills
 

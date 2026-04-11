@@ -166,13 +166,13 @@ See [posix-tiers.md](docs/posix-tiers.md) for the complete function classificati
 
 ## AI Pipeline
 
-The pipeline uses 19 specialized [Claude Code](https://claude.ai/claude-code) agents, each constrained to a specific role:
+The pipeline uses 20 specialized [Claude Code](https://claude.ai/claude-code) agents, each constrained to a specific role:
 
 ```
 analyze → transform → build → test → memory-check → perf-optimize → publish
 ```
 
-The source-analyzer scans for POSIX dependencies and classifies them by tier. The code-transformer systematically replaces POSIX calls with shim equivalents. The build-manager cross-compiles and iterates on errors. The test-runner validates in both vamos (fast, headless) and FS-UAE (real AmigaOS 3.1 with ARexx test harness). The memory-checker audits for leaks — mandatory on every port, because AmigaOS has no memory protection or garbage collector. The perf-optimizer applies 68k-specific static analysis.
+The source-analyzer scans for POSIX dependencies and classifies them by tier. The code-transformer systematically replaces POSIX calls with shim equivalents. The build-manager cross-compiles and iterates on errors. The test-runner validates in both vamos (fast, headless) and FS-UAE (real AmigaOS 3.1 with ARexx test harness). The memory-checker audits for leaks — mandatory on every port, because AmigaOS has no memory protection or garbage collector. The perf-optimizer applies 68k-specific static analysis. The regression-checker rebuilds all affected ports after shim library changes to catch breakage early.
 
 Safety hooks enforce discipline: upstream source is read-only, direct compiler calls are blocked, and the pipeline won't proceed past a failing stage.
 

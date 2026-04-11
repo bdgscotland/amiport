@@ -3,6 +3,13 @@
     "amiga-kb": {
       "command": "node",
       "args": ["/Users/duncan/Developer/amiga-kb/dist/cli.js", "serve"]
+    },
+    "github": {
+      "command": "gh",
+      "args": ["copilot", "mcp-server"],
+      "env": {
+        "GH_HOST": "github.com"
+      }
     }
   }
 }

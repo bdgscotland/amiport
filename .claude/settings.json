@@ -53,6 +53,11 @@
             "type": "command",
             "command": "bash scripts/hooks/enforce-adcd-lookup.sh",
             "statusMessage": "Checking ADCD requirements..."
+          },
+          {
+            "type": "command",
+            "command": "bash scripts/hooks/check-c89-comments.sh",
+            "statusMessage": "Checking C89 compliance..."
           }
         ]
       },
@@ -85,6 +90,17 @@
             "command": "bash scripts/hooks/capture-fsemu-learnings.sh",
             "timeout": 5,
             "statusMessage": "Checking for test learnings..."
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash scripts/hooks/auto-sync-catalog.sh",
+            "timeout": 5,
+            "statusMessage": "Syncing catalog..."
           }
         ]
       }

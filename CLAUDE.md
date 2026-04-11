@@ -83,6 +83,7 @@ The `/port-project` skill has GATE checks — it will not proceed to the next st
 | `amiport-publisher` | Publish ports to amiport.platesteel.net — test-gated, never automatic |
 | `catalog-engineer` | Catalog management — candidate enumeration, dry-run analysis, scoring, batch dispatch |
 | `port-worker` | **Draft mode only** — self-contained porting worker for quick-pass batch dispatch in worktrees. Use specialized agents via `/batch-port-parallel` for production quality. |
+| `regression-checker` | After shim/library changes — rebuild and test all affected ports to detect regressions |
 
 ## Documentation Rules — IMPORTANT
 
@@ -232,6 +233,8 @@ The project enforces structural safety via hooks in `.claude/settings.json`:
 - **`verify-before-stop.sh`** — Reminds Claude to verify work before stopping.
 - **`save-port-context.sh`** — On auto-compaction, injects active port names into context.
 - **`check-toolchain.sh`** — Warns if Docker, vamos, lha, or jq are missing at session start.
+- **`check-c89-comments.sh`** — Warns on C++ style `//` comments in C source files under `ports/` and `lib/`. bebbo-gcc with `-ansi` rejects them.
+- **`auto-sync-catalog.sh`** — Auto-copies `data/catalog.json` to `site/data/catalog.json` after edits, preventing catalog drift.
 
 ## Git Hooks
 
