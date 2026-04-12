@@ -176,17 +176,35 @@ In QA mode, flag any code that doesn't match DESIGN.md.
 
 **Shared Knowledge Base (amiga-kb via MCP):**
 
-General Amiga reference docs are in the shared amiga-kb knowledge base. Use MCP tools
-instead of reading local files:
+General Amiga reference docs are in the shared amiga-kb knowledge base (~44K vectors, ~2.6K graph nodes, ~3.5K edges). Use MCP tools instead of reading local files. All queries are tagged with `source_project: "amiport"` for cross-project analytics.
 
-- `amiga_search` — semantic search across all Amiga docs (replaces manual grep through ADCD)
-- `amiga_api_lookup` — function/struct lookup with graph traversal (replaces `/amiga-api-lookup` skill for simple lookups)
-- `amiga_pitfalls_for` — known pitfalls for an API or concept (replaces reading known-pitfalls.md)
-- `amiga_crash_diagnosis` — crash diagnosis from Guru codes (replaces `/crash-patterns` skill for diagnosis)
-- `amiga_report_gap` — report missing knowledge (feeds the learning compiler)
+Query tools (read-only):
+- `amiga_search` — hybrid vector+keyword search across all docs (RRF fusion)
+- `amiga_api_lookup` — function/struct lookup with graph traversal and pitfall warnings
+- `amiga_pitfalls_for` — known pitfalls for an API or concept
+- `amiga_crash_diagnosis` — crash diagnosis from Guru codes
+- `amiga_techniques_for` — demo/game techniques by topic, filterable by chipset (OCS/ECS/AGA)
+- `amiga_recipe_lookup` — buildable code recipe with dependency chain and technique links
+- `amiga_register_lookup` — custom chip register details + which techniques use it
+- `amiga_check_compatibility` — check register overlap and chipset compatibility between techniques
+- `amiga_port_briefing` — structured porting briefing from a project description (surfaces pitfalls, required libs, relevant docs)
+
+Hydration tools (write — route universal knowledge here):
+- `amiga_ingest_doc` — add/update a document (disk + vectors + graph)
+- `amiga_add_pitfall` — add pitfall with auto-edge extraction
+- `amiga_add_crash_pattern` — add crash pattern with graph links
+
+Project intelligence:
+- `amiga_add_plan` / `amiga_add_todo` / `amiga_update_status` — plan and track work across projects
+- `amiga_add_dependency` / `amiga_get_work` / `amiga_get_blockers` — dependency chains and outstanding work
+
+Intelligence (self-improvement):
+- `amiga_coverage` — coverage report, query analytics, gap detection
+- `amiga_suggest_links` — find orphan nodes, suggest missing graph edges
+- `amiga_report_gap` — report missing knowledge for future enrichment
+- `amiga_health` — health check all backing services
 
 The amiga-kb MCP server must be running (`docker compose up -d` in the amiga-kb repo).
-All queries from this project are tagged with `source_project: "amiport"` for cross-project analytics.
 
 **Critical (project-specific, consult during every port):**
 - `docs/posix-tiers.md` — Master POSIX tier classification (Tier 1/2/3 for every function)

@@ -3,13 +3,20 @@
 ## Shared Knowledge Base (amiga-kb)
 
 General Amiga reference docs (crash patterns, pitfalls, 68k hardware, libnix, ARexx,
-ADCD, console ANSI mapping, BSD socket mapping, newlib availability) live in the shared
-**amiga-kb** knowledge base, accessible via MCP tools:
+ADCD, console ANSI mapping, BSD socket mapping, newlib availability, demo techniques,
+custom chip registers, development tooling) live in the shared **amiga-kb** knowledge
+base (~44K vectors, ~2.6K graph nodes), accessible via MCP tools:
 
-- `amiga_search` — semantic vector search across all docs
-- `amiga_api_lookup` — function/struct lookup (graph + vectors)
+- `amiga_search` — hybrid vector+keyword search across all docs
+- `amiga_api_lookup` — function/struct lookup (graph + vectors + pitfall warnings)
 - `amiga_pitfalls_for` — pitfalls for an API or concept
 - `amiga_crash_diagnosis` — crash diagnosis from Guru codes
+- `amiga_techniques_for` — demo/game techniques by topic, filterable by chipset
+- `amiga_recipe_lookup` — buildable code recipe with dependency chain
+- `amiga_register_lookup` — custom chip register details + techniques that use it
+- `amiga_check_compatibility` — register overlap and chipset compatibility check
+- `amiga_port_briefing` — structured porting briefing (pitfalls, required libs, relevant docs)
+- `amiga_report_gap` — report missing knowledge for future enrichment
 
 The amiga-kb MCP server must be running (`docker compose up -d` in amiga-kb repo).
 
