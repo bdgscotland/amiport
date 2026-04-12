@@ -1,0 +1,23 @@
+{
+    "name": "pr",
+    "version": "1.46",
+    "revision": 1,
+    "description": "Print files for page display",
+    "category": "util/cli",
+    "source": "OpenBSD pr 1.46",
+    "license": "BSD",
+    "size": 83813,
+    "sha256": "7cb027e734a9e01df66a9ef58788aa0dd56f22e35f9e783344ed9b3fd21021cd",
+    "machine_sha256": "a386a706b08ff84e8d15f1a3842b0aa864097eb9bc72a69ee5580f4c513ca8ef",
+    "download": "/packages/pr-1.46.lha",
+    "requires": [],
+    "aminet": "",
+    "stack": 32768,
+    "status": "stable",
+    "test_count": 32,
+    "test_pass": 32,
+    "published_at": "2026-04-11T20:00:00Z",
+    "porting_notes": "Port of OpenBSD pr 1.46. Uses a custom egetopt() parser for pr's extended option syntax (+page, -column). Fixed two memory leaks: ferrout linked list (vasprintf'd error message nodes never freed) and indy index array (calloc'd column index). Both fixed in atexit cleanup handler. Signal handler uses _exit(10) for safest exit path on AmigaOS. amiport_stat() for file timestamps in page headers. 32/32 FS-UAE tests pass.",
+    "known_limitations": "Terminal width detection uses hardcoded 72-column default; use -w to override. Form feed (0x0C) renders as blank lines on AmigaOS console rather than page ejects. SIGINT handling approximate due to AmigaOS signal delivery differences from POSIX.",
+    "readme": "Short:        Print files for page display\nType:         util/cli\nArchitecture: m68k-amigaos >= 3.0\nUploader:     duncan (at) bowring (dot) us\nAuthor:       The Regents of the University of California (ported by Duncan Bowring)\nVersion:      1.46\n\npr - Print files for page display\n\nOriginal author: The Regents of the University of California\nPorted by Duncan Bowring using amiport (AI-assisted porting toolkit).\nProject: https://github.com/bdgscotland/amiport\n\nCross-compiled with m68k-amigaos-gcc for AmigaOS 3.x (68000+).\nTested in vamos emulator and FS-UAE.\n\nUsage:\n  pr [+page] [-column] [-adFfmprt] [-e [char] [gap]]\n     [-h header] [-i [char] [gap]] [-l lines]\n     [-n [char] [width]] [-o offset] [-s [char]]\n     [-w width] [file ...]\n\nPaginate and format text files for printing or display.\nSupports multi-column output, custom headers, page numbering,\nline numbering, and parallel file display.\n\nIncludes full source code (original POSIX and ported Amiga versions)\nand PORT.md documenting every transformation applied."
+}

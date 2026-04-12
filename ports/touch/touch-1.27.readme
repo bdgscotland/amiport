@@ -1,0 +1,34 @@
+Short:        Change file access and modification time
+Type:         util/cli
+Architecture: m68k-amigaos >= 3.0
+Uploader:     duncan@bowring.us
+Author:       The Regents of the University of California (ported by Duncan Bowring)
+Version:      1.27
+
+touch - Change file access and modification time
+
+Original author: The Regents of the University of California
+Ported by Duncan Bowring using amiport (AI-assisted porting toolkit).
+Project: https://github.com/bdgscotland/amiport
+
+Cross-compiled with m68k-amigaos-gcc for AmigaOS 3.x (68000+).
+Tested in vamos emulator and FS-UAE.
+
+Usage:
+  touch [-acm] [-d ccyy-mm-ddTHH:MM:SS[.frac][Z]] [-r file]
+        [-t [[cc]yy]mmddHHMM[.SS]] file ...
+
+Options:
+  -a      Change access time only (no effect on AmigaOS)
+  -c      Do not create the file if it does not exist
+  -d      Set time using ISO 8601 format
+  -f      Ignored (compatibility)
+  -m      Change modification time only
+  -r file Use the timestamp of the reference file
+  -t time Set time using [[CC]YY]MMDDhhmm[.SS] format
+
+Note: AmigaOS stores only modification time. The -a flag is
+accepted but has no effect since there is no access time field.
+
+Includes full source code (original POSIX and ported Amiga versions)
+and PORT.md documenting every transformation applied.

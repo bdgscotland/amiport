@@ -1,0 +1,23 @@
+{
+    "name": "rm",
+    "version": "1.45",
+    "revision": 1,
+    "description": "Remove directory entries",
+    "category": "util/cli",
+    "source": "OpenBSD rm 1.45",
+    "license": "BSD",
+    "size": 37595,
+    "sha256": "df0ce5c4c3c74a968d3ba960bacea4d657ba39fedba47cfffc434c140ee073c0",
+    "machine_sha256": "06367128f05cc9d56304d8eed141979a215bac8869e80d99513b448664bd2f95",
+    "download": "/packages/rm-1.45.lha",
+    "requires": [],
+    "aminet": "",
+    "stack": 16384,
+    "status": "stable",
+    "test_count": 18,
+    "test_pass": 17,
+    "published_at": "2026-04-11T20:00:00Z",
+    "porting_notes": "Port of OpenBSD rm 1.45. Uses amiport fts shim for recursive directory traversal (-R/-r flags). The -P secure overwrite flag is accepted but disabled since AmigaOS has no fstatfs() or fsync(). Interactive prompts (-i flag) work via stdin. rm_strmode() generates Unix-style permission strings from AmigaOS protection bits. 17/18 FS-UAE tests pass; 1 failure involves the -P flag interaction which is intentionally a no-op.",
+    "known_limitations": "-P (secure overwrite) disabled: accepted for compatibility but performs no data overwriting since AmigaOS has no fstatfs() or fsync(). Permission display approximate: Unix-style strings generated from AmigaOS protection bits. User/group names always show amiga/amiga since AmigaOS has no multi-user system.",
+    "readme": "Short:        Remove directory entries\nType:         util/cli\nArchitecture: m68k-amigaos >= 3.0\nUploader:     duncan (at) bowring (dot) us\nAuthor:       The Regents of the University of California (ported by Duncan Bowring)\nVersion:      1.45\n\nrm - Remove directory entries\n\nOriginal author: The Regents of the University of California\nPorted by Duncan Bowring using amiport (AI-assisted porting toolkit).\nProject: https://github.com/bdgscotland/amiport\n\nCross-compiled with m68k-amigaos-gcc for AmigaOS 3.x (68000+).\nTested in vamos emulator and FS-UAE.\n\nUsage:\n  rm [-dfiRrv] file ...\n\nOptions:\n  -d      Attempt to remove directories as well as files\n  -f      Force removal without prompting\n  -i      Prompt before each removal\n  -R/-r   Remove directories and their contents recursively\n  -v      Verbose: print files as they are removed\n\nNote: The -P (secure overwrite) flag is accepted but has no\neffect on AmigaOS. AmigaOS has no multi-user security model\nrequiring data sanitization before deletion.\n\nIncludes full source code (original POSIX and ported Amiga versions)\nand PORT.md documenting every transformation applied."
+}

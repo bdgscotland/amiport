@@ -1,0 +1,28 @@
+Short:        Display user's login name
+Type:         util/cli
+Architecture: m68k-amigaos >= 3.0
+Uploader:     duncan@bowring.us
+Author:       The Regents of the University of California (ported by Duncan Bowring)
+Version:      1.10
+
+logname - Display user's login name
+
+Original author: The Regents of the University of California
+Ported by Duncan Bowring using amiport (AI-assisted porting toolkit).
+Project: https://github.com/bdgscotland/amiport
+
+Cross-compiled with m68k-amigaos-gcc for AmigaOS 3.x (68000+).
+Tested in vamos emulator and FS-UAE.
+
+Usage:
+  logname
+
+Prints the login name of the current user. On AmigaOS, which is a
+single-user operating system with no login system, this always
+returns "amiga".
+
+This command accepts no arguments or options. Passing any argument
+will cause it to print a usage message and exit with an error.
+
+Includes full source code (original POSIX and ported Amiga versions)
+and PORT.md documenting every transformation applied.

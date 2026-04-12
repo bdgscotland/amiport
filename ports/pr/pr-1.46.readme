@@ -1,0 +1,28 @@
+Short:        Print files for page display
+Type:         util/cli
+Architecture: m68k-amigaos >= 3.0
+Uploader:     duncan@bowring.us
+Author:       The Regents of the University of California (ported by Duncan Bowring)
+Version:      1.46
+
+pr - Print files for page display
+
+Original author: The Regents of the University of California
+Ported by Duncan Bowring using amiport (AI-assisted porting toolkit).
+Project: https://github.com/bdgscotland/amiport
+
+Cross-compiled with m68k-amigaos-gcc for AmigaOS 3.x (68000+).
+Tested in vamos emulator and FS-UAE.
+
+Usage:
+  pr [+page] [-column] [-adFfmprt] [-e [char] [gap]]
+     [-h header] [-i [char] [gap]] [-l lines]
+     [-n [char] [width]] [-o offset] [-s [char]]
+     [-w width] [file ...]
+
+Paginate and format text files for printing or display.
+Supports multi-column output, custom headers, page numbering,
+line numbering, and parallel file display.
+
+Includes full source code (original POSIX and ported Amiga versions)
+and PORT.md documenting every transformation applied.

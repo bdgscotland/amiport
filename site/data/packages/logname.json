@@ -1,0 +1,23 @@
+{
+    "name": "logname",
+    "version": "1.10",
+    "revision": 1,
+    "description": "Display user's login name",
+    "category": "util/cli",
+    "source": "OpenBSD logname 1.10",
+    "license": "BSD",
+    "size": 26811,
+    "sha256": "e4b5c27c8afdac006458080627e832c4426db95112dfc976382928f65806dfff",
+    "machine_sha256": "029ac34b5e39d0959c6b3e2016185e0fd320b177716d8964aba076fc0610508d",
+    "download": "/packages/logname-1.10.lha",
+    "requires": [],
+    "aminet": "",
+    "stack": 4096,
+    "status": "stable",
+    "test_count": 13,
+    "test_pass": 13,
+    "published_at": "2026-04-11T20:00:00Z",
+    "porting_notes": "Minimal port of OpenBSD logname. Single source file, no complex dependencies. getlogin() shims to amiport_getlogin() which always returns \"amiga\" since AmigaOS has no multi-user login system. err/errx exit codes changed from 1 to 10 (RETURN_ERROR). atexit cleanup frees argv expansion. 13/13 FS-UAE tests pass.",
+    "known_limitations": "Always returns \"amiga\" -- AmigaOS has no multi-user login system. The LOGNAME environment variable is not consulted (matches POSIX spec).",
+    "readme": "Short:        Display user's login name\nType:         util/cli\nArchitecture: m68k-amigaos >= 3.0\nUploader:     duncan (at) bowring (dot) us\nAuthor:       The Regents of the University of California (ported by Duncan Bowring)\nVersion:      1.10\n\nlogname - Display user's login name\n\nOriginal author: The Regents of the University of California\nPorted by Duncan Bowring using amiport (AI-assisted porting toolkit).\nProject: https://github.com/bdgscotland/amiport\n\nCross-compiled with m68k-amigaos-gcc for AmigaOS 3.x (68000+).\nTested in vamos emulator and FS-UAE.\n\nUsage:\n  logname\n\nPrints the login name of the current user. On AmigaOS, which is a\nsingle-user operating system with no login system, this always\nreturns \"amiga\".\n\nThis command accepts no arguments or options. Passing any argument\nwill cause it to print a usage message and exit with an error.\n\nIncludes full source code (original POSIX and ported Amiga versions)\nand PORT.md documenting every transformation applied."
+}

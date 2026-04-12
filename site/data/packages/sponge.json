@@ -1,0 +1,23 @@
+{
+    "name": "sponge",
+    "version": "0.1",
+    "revision": 1,
+    "description": "Soak up stdin and write to file",
+    "category": "util/cli",
+    "source": "sbase sponge 0.1",
+    "license": "MIT",
+    "size": 32317,
+    "sha256": "698ba6db49ff9f87293159f4ca507f734d1f441e1a59dc403f10b2d7cf0e70ba",
+    "machine_sha256": "2dc1884a629802e507e7230af31a79fa72604375401b93ffa15684ca43e24407",
+    "download": "/packages/sponge-0.1.lha",
+    "requires": [],
+    "aminet": "",
+    "stack": 16384,
+    "status": "testing",
+    "test_count": 15,
+    "test_pass": 4,
+    "published_at": "2026-04-11T20:00:00Z",
+    "porting_notes": "Port of sbase sponge 0.1. Core operation (stdin -> temp file -> output file) works correctly on AmigaOS. Uses T: for temp file storage (mapped to RAM:T/). Deferred unlink pattern: temp file stored in static buffer so atexit cleanup removes it even on error exits. ARexx wrapper required for pipe simulation in test harness. Test suite has 15 cases; 4 pass in current vamos run due to ARexx wrapper refinement in progress.",
+    "known_limitations": "Temp file visible in T: during operation (AmigaOS unlink() is immediate, unlike Unix). No append mode (-a flag from moreutils sponge not present in this sbase implementation). File being sponged must fit in RAM:T/ available space. ARexx test wrappers for pipe simulation still being refined.",
+    "readme": "Short:        Soak up stdin and write to file\nType:         util/cli\nArchitecture: m68k-amigaos >= 3.0\nUploader:     duncan (at) bowring (dot) us\nAuthor:       Dimitris Papastamos, Hiltjo Posthuma (ported by Duncan Bowring)\nVersion:      0.1\n\nsponge - Soak up stdin and write to file\n\nOriginal author: Dimitris Papastamos, Hiltjo Posthuma (sbase project)\nPorted by Duncan Bowring using amiport (AI-assisted porting toolkit).\nProject: https://github.com/bdgscotland/amiport\n\nCross-compiled with m68k-amigaos-gcc for AmigaOS 3.x (68000+).\nTested in vamos emulator and FS-UAE.\n\nUsage:\n  sponge file\n\nReads all standard input and writes it to the specified file.\nThis allows constructing pipelines that read from and write to\nthe same file safely:\n\n  sort T:data.txt | sponge T:data.txt\n\nWithout sponge, the shell would truncate the output file before\nthe pipeline finishes reading it.\n\nIncludes full source code (original and ported Amiga versions)\nand PORT.md documenting every transformation applied."
+}

@@ -1,0 +1,23 @@
+{
+    "name": "touch",
+    "version": "1.27",
+    "revision": 1,
+    "description": "Change file access and modification time",
+    "category": "util/cli",
+    "source": "OpenBSD touch 1.27",
+    "license": "BSD",
+    "size": 33982,
+    "sha256": "284635cc345ff30cebeb196f9fb8cc24286796e7d55762e8bc798ac8c665b747",
+    "machine_sha256": "0fac31c06ba26f4cd6b833ef7a342d812cc2920bddf28777d42d493fc4f75692",
+    "download": "/packages/touch-1.27.lha",
+    "requires": [],
+    "aminet": "",
+    "stack": 16384,
+    "status": "stable",
+    "test_count": 21,
+    "test_pass": 20,
+    "published_at": "2026-04-11T20:00:00Z",
+    "porting_notes": "Port of OpenBSD touch 1.27. Uses amiport_stat() for the stat-first pattern (check file exists before creating). utimes() shimmed via amiport_utimes() which sets AmigaOS modification time. strptime() available via libnix. Access time (-a flag) accepted but no-ops since OFS/FFS only store modification time. 20/21 FS-UAE tests pass; 1 failure is the -d %F format specifier which strptime does not support in libnix.",
+    "known_limitations": "Access time not supported: AmigaOS filesystems (OFS/FFS) only store modification time; -a flag accepted but has no effect. The %F strptime format specifier is not recognized; use -d with explicit ISO 8601 format. File permissions (DEFFILEMODE) ignored since AmigaOS does not enforce Unix permission bits.",
+    "readme": "Short:        Change file access and modification time\nType:         util/cli\nArchitecture: m68k-amigaos >= 3.0\nUploader:     duncan (at) bowring (dot) us\nAuthor:       The Regents of the University of California (ported by Duncan Bowring)\nVersion:      1.27\n\ntouch - Change file access and modification time\n\nOriginal author: The Regents of the University of California\nPorted by Duncan Bowring using amiport (AI-assisted porting toolkit).\nProject: https://github.com/bdgscotland/amiport\n\nCross-compiled with m68k-amigaos-gcc for AmigaOS 3.x (68000+).\nTested in vamos emulator and FS-UAE.\n\nUsage:\n  touch [-acm] [-d ccyy-mm-ddTHH:MM:SS[.frac][Z]] [-r file]\n        [-t [[cc]yy]mmddHHMM[.SS]] file ...\n\nOptions:\n  -a      Change access time only (no effect on AmigaOS)\n  -c      Do not create the file if it does not exist\n  -d      Set time using ISO 8601 format\n  -f      Ignored (compatibility)\n  -m      Change modification time only\n  -r file Use the timestamp of the reference file\n  -t time Set time using [[CC]YY]MMDDhhmm[.SS] format\n\nNote: AmigaOS stores only modification time. The -a flag is\naccepted but has no effect since there is no access time field.\n\nIncludes full source code (original POSIX and ported Amiga versions)\nand PORT.md documenting every transformation applied."
+}
