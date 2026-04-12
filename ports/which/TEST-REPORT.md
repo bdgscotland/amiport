@@ -5,7 +5,7 @@
 | Field | Value |
 |-------|-------|
 | Port | which |
-| Date | 2026-04-11 17:21:43 |
+| Date | 2026-04-11 19:56:24 |
 | Duration | 36s |
 | Platform | FS-UAE 3.2.35 (A1200, Kickstart 3.1) |
 | Binary | `WORK:which` (37K) |

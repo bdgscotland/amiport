@@ -1,0 +1,23 @@
+{
+    "name": "strings",
+    "version": "1.0",
+    "revision": 1,
+    "description": "Find printable strings in files",
+    "category": "util/cli",
+    "source": "Custom implementation (Public Domain) v1.0",
+    "license": "Public Domain",
+    "size": 29482,
+    "sha256": "f00fb8904d04e54cd72141cf4080d41a987141c80f7a7d60cf88bd08c6ca1af0",
+    "machine_sha256": "b1c44485ec8409b6362a4fe0c15106ff2cc6066b3543bff74989e15b75db7cea",
+    "download": "/packages/strings-1.0.lha",
+    "requires": [],
+    "aminet": "",
+    "stack": 8192,
+    "status": "stable",
+    "test_count": 38,
+    "test_pass": 38,
+    "published_at": "2026-04-11T23:56:22Z",
+    "porting_notes": "Custom standalone implementation (not a GNU binutils port). Scans files byte-by-byte using fread() in buffered 4096-byte blocks (perf-optimizer applied: 3-5x speedup over fgetc on 68000). Supports -a (whole-file scan), -n (minimum length), and -t (offset format d/o/x). Offset printing uses %7ld/%7lo/%7lx with AmigaOS-correct LONG format. Memory-checker audit: CLEAN (no leaks on any exit path, single static buffer, no dynamic allocation). 38/38 FS-UAE tests pass covering all flags, edge cases, error paths, and real-world binary scanning.",
+    "known_limitations": "The -a flag is accepted but is a no-op (full-file scan is already the default behavior, as the ELF text-section-only mode from GNU binutils is not applicable on AmigaOS). No wide-character support (ASCII printable only, as expected on AmigaOS).",
+    "readme": "Short:        Find printable strings in files\nType:         util/cli\nArchitecture: m68k-amigaos >= 3.0\nUploader:     duncan (at) bowring (dot) us\nAuthor:       amiport (ported by Duncan Bowring)\nVersion:      1.0\n\nstrings - Find printable strings in files\n\nPorted by Duncan Bowring using amiport (AI-assisted porting toolkit).\nProject: https://github.com/bdgscotland/amiport\n\nCross-compiled with m68k-amigaos-gcc for AmigaOS 3.x (68000+).\nTested in FS-UAE with AmigaOS 3.1.\n\nUsage:\n  strings [-a] [-n number] [-t format] [file ...]\n\nOptions:\n  -a          Scan entire file (default behavior)\n  -n number   Minimum string length (default: 4)\n  -t format   Print offset (d=decimal, o=octal, x=hex)\n\nIncludes full source code and PORT.md."
+}

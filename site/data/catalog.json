@@ -4513,6 +4513,7 @@
             "community_value": 4,
             "community_value_reason": "Generate number sequences \u2014 useful for loop scripting.",
             "measured_binary_kb": 53,
+            "measured_stack_kb": 8,
             "test_count": 47,
             "test_pass_rate": 1.0
         },

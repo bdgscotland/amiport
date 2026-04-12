@@ -1,0 +1,23 @@
+{
+    "name": "seq",
+    "version": "1.8",
+    "revision": 1,
+    "description": "Print sequences of numbers",
+    "category": "util/cli",
+    "source": "OpenBSD seq v1.8",
+    "license": "ISC",
+    "size": 44591,
+    "sha256": "d1115a5dcf4584b2362863f9a7ab4679bdd34a94ff604a9e55507d4ce0cc72ae",
+    "machine_sha256": "82fefbc50f5aa6294e139874d1984033a2f32e619c9ec34ff58f4a2a8a3fb893",
+    "download": "/packages/seq-1.8.lha",
+    "requires": [],
+    "aminet": "",
+    "stack": 8192,
+    "status": "stable",
+    "published_at": "2026-04-11T20:00:00Z",
+    "readme": "Short:        Print sequences of numbers\nType:         util/cli\nArchitecture: m68k-amigaos >= 3.0\nUploader:     duncan (at) bowring (dot) us\nAuthor:       Todd C. Miller (ported by Duncan Bowring)\nVersion:      1.8\n\nseq - Print sequences of numbers\n\nOriginal author: Todd C. Miller\nSource: OpenBSD seq v1.8\n\nPorted by Duncan Bowring using amiport (AI-assisted porting toolkit).\nProject: https://github.com/bdgscotland/amiport\n\nCross-compiled with m68k-amigaos-gcc for AmigaOS 3.x (68000+).\nTested in FS-UAE with AmigaOS 3.1.\n\nUsage:\n  seq [-w] [-f format] [-s string] [-t string] [first [incr]] last\n\nOptions:\n  -w          Equalize widths with leading zeros\n  -f format   printf-style format for numbers\n  -s string   Separator (default: newline)\n  -t string   Terminator (default: newline)\n\nIncludes full source code (original OpenBSD and ported Amiga versions)\nand PORT.md documenting every transformation applied.",
+    "test_count": 47,
+    "test_pass": 47,
+    "porting_notes": "Requires libm (-lm) for math functions. Uses amiport_asprintf() for dynamic format string building. Stack cookie set to 8192 bytes (sufficient for printf/snprintf headroom). 47 tests cover all flags (-w, -f, -s, -t), integer and floating-point sequences, descending sequences, error paths (zero increment, wrong direction, invalid format specifiers), edge cases (first==last, unreachable endpoint), and real-world Amiga usage patterns. Memory-checker: CLEAN. Perf-optimizer: CLEAN.",
+    "known_limitations": "None."
+}

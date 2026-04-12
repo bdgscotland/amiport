@@ -1,0 +1,23 @@
+{
+    "name": "which",
+    "version": "1.27",
+    "revision": 1,
+    "description": "Locate a program file (OpenBSD)",
+    "category": "util/cli",
+    "source": "OpenBSD which v1.27",
+    "license": "ISC",
+    "size": 30537,
+    "sha256": "86bbabbee0e4abec7024f85ad0973deb66ee6520c11de4a29ea2f977d56f8972",
+    "machine_sha256": "583c86934af37a3e5da78e1becb16fe4b7cd46cfbd97a5d51b2098845e8c40bc",
+    "download": "/packages/which-1.27.lha",
+    "requires": [],
+    "aminet": "",
+    "stack": 16384,
+    "status": "stable",
+    "published_at": "2026-04-11T23:56:00Z",
+    "readme": "Short:        Locate a program file (OpenBSD)\nType:         util/cli\nArchitecture: m68k-amigaos >= 3.0\nUploader:     duncan (at) bowring (dot) us\nAuthor:       Todd C. Miller (ported by Duncan Bowring)\nVersion:      1.27\n\nwhich - Locate a program file in the user's path\n\nOriginal author: Todd C. Miller\nSource: OpenBSD which v1.27\n\nPorted by Duncan Bowring using amiport (AI-assisted porting toolkit).\nProject: https://github.com/bdgscotland/amiport\n\nCross-compiled with m68k-amigaos-gcc for AmigaOS 3.x (68000+).\nTested in FS-UAE with AmigaOS 3.1.\n\nUsage:\n  which [-a] name ...\n\nOptions:\n  -a   List all matches in PATH, not just the first\n\nPATH uses semicolon separator on AmigaOS: \"C:;WORK:;SYS:Utilities\"\nDefault PATH is C: if no PATH env var is set.\n\nIncludes full source code (original OpenBSD and ported Amiga versions)\nand PORT.md documenting every transformation applied.",
+    "test_count": 23,
+    "test_pass": 23,
+    "porting_notes": "Standard Tier 1 port. Single source file (165 LOC). AmigaDOS PATH handling: semicolon-separated instead of colon, volume-colon path format (C:which vs /usr/bin/which). setgid/setuid/geteuid/getegid stubbed as no-ops (single-user AmigaOS). AmigaDOS case-insensitive filesystem handled. 23 tests cover PATH search, -a flag, direct path lookup, missing commands, mixed found/not-found (RC 5), default PATH fallback, case-insensitive matching, and stress invocations.",
+    "known_limitations": "None."
+}

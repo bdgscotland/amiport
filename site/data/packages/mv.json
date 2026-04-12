@@ -1,0 +1,23 @@
+{
+    "name": "mv",
+    "version": "1.47",
+    "revision": 1,
+    "description": "Move or rename files",
+    "category": "util/cli",
+    "source": "OpenBSD mv v1.47",
+    "license": "BSD-3-Clause",
+    "size": 38374,
+    "sha256": "1b1623922e936785eace2bf50cfaa00a5156844923ff11d86acf69ccca1fbc32",
+    "machine_sha256": "5c7cb308939c074e3fa1f3383e4213e58e366541469a47c135f378449cd572d0",
+    "download": "/packages/mv-1.47.lha",
+    "requires": [],
+    "aminet": "",
+    "stack": 16384,
+    "status": "stable",
+    "test_count": 20,
+    "test_pass": 20,
+    "published_at": "2026-04-11T19:56:00Z",
+    "porting_notes": "Cross-volume move implemented via copy-and-delete fallback (rename() fails across volumes on AmigaOS). fchmod/fchown are no-op stubs (AmigaOS has no POSIX permission model). fastcopy_bp memory leak on error path fixed by memory-checker audit. Perf-optimizer: CLEAN. All 20 FS-UAE tests pass.",
+    "known_limitations": "Directory cross-volume moves are not supported (AmigaOS restriction). The -v flag shows files moved but AmigaDOS does not support POSIX-style verbose rename output for cross-volume operations.",
+    "readme": "Short:        Move or rename files\nType:         util/cli\nArchitecture: m68k-amigaos >= 3.0\nUploader:     duncan (at) bowring (dot) us\nAuthor:       Ken Smith, UC Berkeley (ported by Duncan Bowring)\nVersion:      1.47\n\nmv - Move or rename files\n\nOriginal author: Ken Smith, UC Berkeley\nSource: OpenBSD mv v1.47\n\nPorted by Duncan Bowring using amiport (AI-assisted porting toolkit).\nProject: https://github.com/bdgscotland/amiport\n\nCross-compiled with m68k-amigaos-gcc for AmigaOS 3.x (68000+).\nTested in FS-UAE with AmigaOS 3.1.\n\nUsage:\n  mv [-fiv] source target\n  mv [-fiv] source ... directory\n\nOptions:\n  -f   Force (do not prompt before overwriting)\n  -i   Interactive (prompt before overwriting)\n  -v   Verbose (show files as they are moved)\n\nCross-volume moves supported for regular files.\nDirectory cross-volume moves are not supported.\n\nIncludes full source code (original OpenBSD and ported Amiga versions)\nand PORT.md documenting every transformation applied.\n"
+}
