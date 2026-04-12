@@ -2,11 +2,11 @@
 
 ## Status
 
-Proposed
+Implemented — SDL2 for AmigaOS 3.x was ported in a separate repository. This PDR is retained as historical context for the feasibility analysis; the canonical implementation lives outside amiport. Update this status with the repo URL when confirmed.
 
 ## Date
 
-2026-03-27
+2026-03-27 (proposed) / 2026-04-12 (status update)
 
 ## Problem
 

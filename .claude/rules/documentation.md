@@ -49,6 +49,12 @@ A convention change (versioning, naming, coding standards, etc.) touches many fi
 
 **Method:** Before starting edits, use an Explore agent to find ALL references to the convention being changed. Edit from that list — don't rely on memory to enumerate touchpoints.
 
+## ADR/PDR Status Hygiene
+
+ADR and PDR `Status` fields capture intent at a point in time — they are NOT execution trackers. When the work a PDR describes ships (even in a separate repository), update the PDR's `Status` from `Proposed` to `Implemented`, `Superseded`, or `Abandoned`. A stale `Proposed` status misleads future reflection and planning sessions into recommending work that already exists.
+
+**When reading a PDR/ADR during reflection or planning:** do not trust the `Status` field alone. Cross-check with `git log`, the relevant external repo (if applicable), or ask the user directly before making recommendations based on it. Captured 2026-04-12 after a reflection recommended starting SDL2 work that had already shipped in a separate repo.
+
 ## Enforcement
 
 - A new skill without README/architecture/porting-guide references is **incomplete**.
@@ -57,4 +63,5 @@ A convention change (versioning, naming, coding standards, etc.) touches many fi
 - A Category 3+ port without `test-fsemu-visual-cases.txt` has **no visual verification**.
 - A cross-cutting change without a full audit of all touchpoints is **incomplete**.
 - A port update without catalog.json and packages.json changes is **invisible to users**.
+- An ADR/PDR whose work has shipped but still shows `Status: Proposed` is **misleading** — update it.
 - Do not ask the user if they want docs updated — just do it.
