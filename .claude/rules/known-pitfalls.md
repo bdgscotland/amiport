@@ -654,3 +654,37 @@ This allows HTTPS when AmiSSL is installed and gracefully degrades to HTTP-only 
 **Also affects:** The `SocketBase` global. `libamisslauto.a` defines its own `SocketBase` which conflicts with `libamiport-net.a`'s definition, requiring `-Wl,--allow-multiple-definition`. Manual opening avoids this conflict entirely.
 
 Discovered in the wget 1.20.3 port (2026-04-06) — Phase 2 binary with AmiSSL crashed on real A2000 hardware because AmiSSL was not installed. Had to revert to HTTP-only build for the real hardware.
+
+## libnix isprint() Treats 0x80-0xFF as Printable
+
+libnix's `isprint()` returns true for bytes 0x80-0xFF (extended ASCII / high bytes). On most Unix systems in the C locale, `isprint()` only matches 0x20-0x7E. Code that uses `isprint()` to filter binary data (like `strings`, hex dump, file type detection) will incorrectly include high bytes as "printable" on AmigaOS, producing garbage output mixed with real strings.
+
+**Fix:** Replace `isprint(ch)` with an explicit ASCII range check:
+```c
+/* amiport: explicit ASCII printable check -- libnix isprint() includes 0x80-0xFF */
+if ((ch >= 0x20 && ch <= 0x7E) || ch == '\t') {
+```
+
+This affects any port that filters binary data by printability. The code-transformer should flag `isprint()` usage in binary-scanning contexts.
+
+Discovered in the strings 1.0 port (2026-04-11) — binary scan output contained garbage characters from high bytes being treated as printable.
+
+## AmigaDOS PATH Separator Is Colon — Conflicts with Volume Names
+
+AmigaDOS uses `:` both as the volume name suffix (`C:`, `DH0:`, `WORK:`) and as the POSIX PATH separator (`/usr/bin:/usr/local/bin`). Code that uses `strsep(&path, ":")` to split PATH entries will break AmigaDOS volume names: `C:` becomes `C` (relative directory) + empty string.
+
+**Fix:** Use `;` (semicolon) as the PATH separator on AmigaOS:
+```c
+/* amiport: AmigaDOS PATH separator is ';' (not ':' which is volume separator) */
+while ((p = strsep(&pathcpy, ";")) != NULL) {
+    /* If dir ends with ':', join directly (volume name) */
+    if (len > 0 && p[len-1] == ':')
+        snprintf(filename, sizeof(filename), "%s%s", p, prog);
+    else
+        snprintf(filename, sizeof(filename), "%s/%s", p, prog);
+}
+```
+
+Also handle `:` in basename extraction — `strrchr(path, '/')` misses `T:file.txt` where the volume prefix should be stripped.
+
+Discovered in the which 1.27 port (2026-04-11) — default PATH "C:" was split into "C" + empty, and mv's basename extraction used `T:file.txt` as the entire filename when moving into a directory.
