@@ -1038,3 +1038,271 @@ These apply only to programs using terminal capabilities (less, nano, vim, htop)
 **Also:** Add `atexit(cleanup)` early in main() after `amiport_expand_argv()`.
 **Comment:** `/* amiport: removed DEBUG_MALLOC/TESTING guard -- AmigaOS has no process memory cleanup with -noixemul */`
 **Why:** GNU programs assume the OS reclaims process memory on exit. AmigaOS with -noixemul does not. Production builds with these guards leak ALL dynamic allocations permanently. Discovered in wget 1.20.3 where cleanup() had 70+ xfree() calls gated behind DEBUG_MALLOC.
+
+## 10. Complete Shim Function Reference
+
+All `amiport_*` function and type mappings provided by the posix-shim headers.
+The code-transformer applies these as `#define` macro substitutions when the
+corresponding `<amiport/*.h>` header is included.
+
+### `<amiport/unistd.h>` -- File I/O, Process, Filesystem
+
+```c
+/* File I/O (see also Section 3 File I/O for usage patterns) */
+open(path, flags)        -> amiport_open(path, flags)
+close(fd)                -> amiport_close(fd)
+read(fd, buf, n)         -> amiport_read(fd, buf, n)
+write(fd, buf, n)        -> amiport_write(fd, buf, n)
+lseek(fd, offset, whence) -> amiport_lseek(fd, offset, whence)
+
+/* File descriptor operations (no macro -- call directly) */
+dup(oldfd)               -> amiport_dup(oldfd)
+dup2(oldfd, newfd)       -> amiport_dup2(oldfd, newfd)
+
+/* Filesystem operations */
+unlink(path)             -> amiport_unlink(path)           /* no macro -- call directly */
+rename(old, new)         -> amiport_rename(old, new)       /* no macro -- call directly */
+access(path, mode)       -> amiport_access(path, mode)
+chmod(path, mode)        -> amiport_chmod(path, mode)
+realpath(path, resolved) -> amiport_realpath(path, resolved)
+symlink(target, linkpath) -> amiport_symlink(target, linkpath)  /* stub -- returns -1 */
+readlink(path, buf, n)   -> amiport_readlink(path, buf, n)      /* stub -- returns -1 */
+ftruncate(fd, len)       -> amiport_ftruncate(fd, len)
+fchmod(fd, mode)         -> amiport_fchmod(fd, mode)       /* stub -- returns 0 */
+fchown(fd, owner, group) -> amiport_fchown(fd, owner, group)  /* stub -- returns 0 */
+lchown(path, owner, group) -> amiport_lchown(path, owner, group)  /* stub -- returns 0 */
+utimensat(dirfd, path, times, flags) -> amiport_utimensat(dirfd, path, times, flags)
+futimens(fd, times)      -> amiport_futimens(fd, times)
+
+/* Process operations (no macro -- call directly) */
+getcwd(buf, size)        -> amiport_getcwd(buf, size)
+chdir(path)              -> amiport_chdir(path)
+getpid()                 -> amiport_getpid()
+isatty(fd)               -> amiport_isatty(fd)
+sleep(seconds)           -> amiport_sleep(seconds)
+
+/* Environment variables */
+setenv(name, value, overwrite) -> amiport_setenv(name, value, overwrite)
+unsetenv(name)           -> amiport_unsetenv(name)
+
+/* Locale stubs */
+setlocale(category, locale) -> amiport_setlocale(category, locale)
+localeconv()             -> amiport_localeconv()
+
+/* Time */
+timegm(tm)               -> amiport_timegm(tm)
+
+/* Terminal */
+ioctl(fd, request, arg)  -> amiport_ioctl(fd, request, arg)  /* no macro -- call directly */
+strtok_r(str, delim, saveptr) -> amiport_strtok_r(str, delim, saveptr)  /* no macro -- call directly */
+tmpfile()                -> amiport_tmpfile()                 /* no macro -- call directly */
+
+/* Types */
+struct winsize           -> struct amiport_winsize   /* via #define winsize amiport_winsize */
+struct lconv             -> struct amiport_lconv     /* via #define lconv amiport_lconv */
+struct timespec          -> struct amiport_timespec  /* defined in header */
+```
+
+### `<amiport/stdlib.h>` -- Exit, Environment
+
+```c
+exit(status)             -> amiport_exit(status)
+getenv(name)             -> amiport_getenv(name)    /* CRITICAL: returns malloc'd string, caller must free */
+```
+
+### `<amiport/stdio.h>` -- File Stream Operations
+
+```c
+fopen(path, mode)        -> amiport_fopen(path, mode)
+fdopen(fd, mode)         -> amiport_fdopen(fd, mode)
+fclose(fp)               -> amiport_fclose(fp)
+fileno(fp)               -> amiport_fileno(fp)
+```
+
+### `<amiport/stdio_ext.h>` -- Extended stdio (BSD/GNU)
+
+```c
+asprintf(strp, fmt, ...) -> amiport_asprintf(strp, fmt, ...)
+vasprintf(strp, fmt, ap) -> amiport_vasprintf(strp, fmt, ap)
+mkstemp(template)        -> amiport_mkstemp(template)
+pread(fd, buf, count, offset) -> amiport_pread(fd, buf, count, offset)
+pwrite(fd, buf, count, offset) -> amiport_pwrite(fd, buf, count, offset)
+getdelim(lineptr, n, delim, stream) -> amiport_getdelim(lineptr, n, delim, stream)
+getline(lineptr, n, stream) -> amiport_getline(lineptr, n, stream)
+fpurge(fp)               -> amiport_fpurge(fp)      /* stub -- no-op, returns 0 */
+```
+
+### `<amiport/string.h>` -- String Functions (BSD)
+
+```c
+strlcpy(dst, src, size)  -> amiport_strlcpy(dst, src, size)
+strlcat(dst, src, size)  -> amiport_strlcat(dst, src, size)
+reallocarray(ptr, n, size) -> amiport_reallocarray(ptr, n, size)
+recallocarray(ptr, old, new, size) -> amiport_recallocarray(ptr, old, new, size)
+strcasecmp(s1, s2)       -> amiport_strcasecmp(s1, s2)
+strncasecmp(s1, s2, n)   -> amiport_strncasecmp(s1, s2, n)
+strcasestr(haystack, needle) -> amiport_strcasestr(haystack, needle)
+explicit_bzero(s, n)     -> amiport_explicit_bzero(s, n)
+```
+
+### `<amiport/err.h>` -- Error Reporting (BSD)
+
+```c
+err(eval, fmt, ...)      -> amiport_err(eval, fmt, ...)
+errx(eval, fmt, ...)     -> amiport_errx(eval, fmt, ...)
+errc(eval, code, fmt, ...) -> amiport_errc(eval, code, fmt, ...)
+warn(fmt, ...)           -> amiport_warn(fmt, ...)
+warnc(code, fmt, ...)    -> amiport_warnc(code, fmt, ...)
+warnx(fmt, ...)          -> amiport_warnx(fmt, ...)
+strtonum(str, min, max, errstr) -> amiport_strtonum(str, min, max, errstr)
+```
+
+### `<amiport/signal.h>` -- Signal Handling
+
+```c
+signal(signum, handler)  -> amiport_signal(signum, handler)
+raise(signum)            -> amiport_raise(signum)
+sigaction(sig, act, oact) -> amiport_sigaction(sig, act, oact)
+sigemptyset(set)         -> amiport_sigemptyset(set)
+sigaddset(set, signo)    -> amiport_sigaddset(set, signo)
+sigprocmask(how, set, oset) -> amiport_sigprocmask(how, set, oset)
+nanosleep(req, rem)      -> amiport_nanosleep(req, rem)
+
+/* Types */
+sighandler_t             -> amiport_sighandler_t
+sigset_t                 -> amiport_sigset_t
+struct sigaction         -> struct amiport_sigaction
+```
+
+### `<amiport/dirent.h>` -- Directory Operations
+
+```c
+opendir(path)            -> amiport_opendir(path)
+readdir(dir)             -> amiport_readdir(dir)
+closedir(dir)            -> amiport_closedir(dir)
+mkdir(path, mode)        -> amiport_mkdir(path, mode)
+rmdir(path)              -> amiport_rmdir(path)
+
+/* Types */
+struct dirent            -> struct amiport_dirent
+```
+
+### `<amiport/sys/stat.h>` -- File Status
+
+```c
+stat(path, buf)          -> amiport_stat(path, buf)
+lstat(path, buf)         -> amiport_lstat(path, buf)   /* alias to amiport_stat -- no symlinks */
+fstat(fd, buf)           -> amiport_fstat(fd, buf)
+```
+
+### `<amiport/sys/time.h>` -- Time Functions
+
+```c
+gettimeofday(tv, tz)     -> amiport_gettimeofday(tv)   /* no macro -- call directly */
+time(tloc)               -> amiport_time(tloc)          /* no macro -- call directly */
+usleep(usec)             -> amiport_usleep(usec)        /* no macro -- call directly */
+strptime(s, fmt, tm)     -> amiport_strptime(s, fmt, tm)
+
+/* Types */
+struct timeval           -> struct amiport_timeval
+struct tm                -> struct amiport_tm   /* used by amiport_strptime */
+```
+
+### `<amiport/pwd.h>` -- User Database
+
+```c
+getpwuid(uid)            -> amiport_getpwuid(uid)
+getpwnam(name)           -> amiport_getpwnam(name)
+getuid()                 -> amiport_getuid()
+geteuid()                -> amiport_geteuid()
+setuid(uid)              -> amiport_setuid(uid)
+getlogin()               -> amiport_getlogin()
+user_from_uid(uid, noname) -> amiport_user_from_uid(uid, noname)
+
+/* Types */
+struct passwd            -> struct amiport_passwd
+```
+
+### `<amiport/grp.h>` -- Group Database
+
+```c
+getgrgid(gid)            -> amiport_getgrgid(gid)
+getgrnam(name)           -> amiport_getgrnam(name)
+getgid()                 -> amiport_getgid()
+getegid()                -> amiport_getegid()
+setgid(gid)              -> amiport_setgid(gid)
+getgroups(size, list)    -> amiport_getgroups(size, list)
+getgrouplist(user, basegid, groups, ngroups) -> amiport_getgrouplist(user, basegid, groups, ngroups)
+group_from_gid(gid, noname) -> amiport_group_from_gid(gid, noname)
+ttyname(fd)              -> amiport_ttyname(fd)
+
+/* Types */
+struct group             -> struct amiport_group
+```
+
+### `<amiport/utsname.h>` -- System Information
+
+```c
+uname(buf)               -> amiport_uname(buf)
+gethostname(name, len)   -> amiport_gethostname(name, len)
+sysconf(name)            -> amiport_sysconf(name)
+getrusage(who, usage)    -> amiport_getrusage(who, usage)
+setproctitle(fmt, ...)   -> amiport_setproctitle(fmt, ...)  /* no macro -- call directly, no-op */
+
+/* Types */
+struct utsname           -> struct amiport_utsname
+struct rusage            -> struct amiport_rusage
+```
+
+### `<amiport/getopt.h>` -- Option Parsing
+
+```c
+getopt(argc, argv, optstring) -> amiport_getopt(argc, argv, optstring)
+getopt_long(argc, argv, optstring, longopts, longindex) -> amiport_getopt_long(...)
+/* Globals: optarg, optind, opterr, optopt all remapped via macros */
+```
+
+### `<amiport/glob.h>` -- Pathname Pattern Matching
+
+```c
+glob(pattern, flags, errfunc, pglob) -> amiport_glob(pattern, flags, errfunc, pglob)
+globfree(pglob)          -> amiport_globfree(pglob)
+```
+
+### `<amiport/fnmatch.h>` -- Filename Matching
+
+```c
+fnmatch(pattern, string, flags) -> amiport_fnmatch(pattern, string, flags)
+```
+
+### `<amiport/scandir.h>` -- Directory Scanning
+
+```c
+scandir(dirname, namelist, filter, compar) -> amiport_scandir(dirname, namelist, filter, compar)
+alphasort(a, b)          -> amiport_alphasort(a, b)
+```
+
+### `<amiport/fts.h>` -- File Hierarchy Traversal
+
+```c
+fts_open(argv, options, compar) -> amiport_fts_open(argv, options, compar)
+fts_read(ftsp)           -> amiport_fts_read(ftsp)
+fts_close(ftsp)          -> amiport_fts_close(ftsp)
+fts_set(ftsp, f, instr)  -> amiport_fts_set(ftsp, f, instr)
+fts_children(ftsp, options) -> amiport_fts_children(ftsp, options)
+
+/* Types (internal struct names: _amiport_fts, _amiport_ftsent) */
+FTS                      -> AMIPORT_FTS      /* typedef of struct _amiport_fts */
+FTSENT                   -> AMIPORT_FTSENT   /* typedef of struct _amiport_ftsent */
+```
+
+### `<amiport/profile.h>` -- Performance Profiling
+
+```c
+/* Profiling API (no POSIX equivalent -- amiport-specific) */
+amiport_profile_init()       /* initialize timer.device for ReadEClock */
+amiport_profile_summary()    /* print profiling results to stdout */
+amiport_profile_record(name, ticks)  /* record a timing measurement */
+amiport_profile_eclock()     /* raw ReadEClock timestamp */
+/* Use AMIPORT_PROFILE_BEGIN(name) / AMIPORT_PROFILE_END(name) macros for scoped timing */
+```
