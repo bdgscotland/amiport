@@ -38,6 +38,7 @@ Four layers:
 
 1. **Pre-commit hook** (`.githooks/pre-commit`): Blocks commits where the two catalog files differ.
 2. **Pre-commit hook** (`check-port-metadata.sh` Check 8): Fails if a completed port (`ports/<name>/` with binary + test suite) is still in `candidates[]` instead of `ported[]`. Warns if a port directory exists but has no catalog entry at all.
+2b. **Pre-commit hook** (`check-port-metadata.sh` Check 8b): Fails if the same name appears more than once in `ported[]`, or if a name appears in BOTH `candidates[]` and `ported[]`. Prevents the duplicate-entry bug where multiple steps (manual script, batch skill, publisher agent) independently add the same port.
 3. **Pre-push hook** (`.githooks/pre-push`): Deploys `site/` to Dreamhost on every push via rsync. The live site always matches git.
 4. **Skills/agents**: batch-port-parallel, port-project, and amiport-publisher must all sync catalogs as part of their workflow.
 

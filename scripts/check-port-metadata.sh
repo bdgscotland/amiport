@@ -15,6 +15,7 @@ set -euo pipefail
 #   6. No stray build artifacts (.lha, gmon.out, *_native, *.map, *.o in ported/)
 #   7. README↔PORTS.md Aminet status consistency
 #   8. Catalog orphans: ports/ dirs that aren't in ported[] of catalog.json
+#   8b. Catalog duplicates: same name in ported[] twice, or in both candidates[] and ported[]
 #
 # Exit 0 if all ports pass, exit 1 if any fail.
 
@@ -391,6 +392,38 @@ sys.exit(1)
     done
     if [ "$catalog_orphans" -eq 0 ]; then
         echo "PASS  all ports have catalog.json ported[] entries"
+    fi
+    echo ""
+
+    # ----------------------------------------------------------
+    # Check 8b: Catalog duplicates — same name in ported[] more than once,
+    # or same name in BOTH candidates[] and ported[]
+    # ----------------------------------------------------------
+    echo "--- Catalog duplicate check ---"
+    catalog_dupes=$(CATALOG_FILE="$CATALOG_FILE" python3 -c '
+import json, sys, os
+cf = os.environ.get("CATALOG_FILE", "data/catalog.json")
+with open(cf) as f:
+    cat = json.load(f)
+dupes = 0
+ported_names = {}
+for p in cat.get("ported", []):
+    n = p["name"]
+    ported_names[n] = ported_names.get(n, 0) + 1
+for n, count in sorted(ported_names.items()):
+    if count > 1:
+        print("FAIL  %s: appears %d times in ported[]" % (n, count))
+        dupes += 1
+cand_names = set(c["name"] for c in cat.get("candidates", []))
+for n in sorted(cand_names & set(ported_names)):
+    print("FAIL  %s: in BOTH candidates[] and ported[]" % n)
+    dupes += 1
+if dupes == 0:
+    print("PASS  no duplicate catalog entries")
+' || true)
+    echo "$catalog_dupes"
+    if echo "$catalog_dupes" | grep -q '^FAIL'; then
+        failed=$((failed + 1))
     fi
     echo ""
 fi
