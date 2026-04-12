@@ -219,7 +219,8 @@ For each completed port:
 2. Set `measured_binary_kb`, `test_count`, `test_pass_rate`
 3. **Sync site catalog:** `cp data/catalog.json site/data/catalog.json` (MANDATORY — see `.claude/rules/catalog-sync.md`)
 4. Add row to `PORTS.md`
-5. Run `python3 scripts/catalog-score.py --score`
+5. **Add row to `README.md` ports table** (alphabetically sorted in the correct section: CLI, Scripting, Console UI, or Network)
+6. Run `python3 scripts/catalog-score.py --score`
 
 ### Phase 12b: Publish to amiport + Commit
 

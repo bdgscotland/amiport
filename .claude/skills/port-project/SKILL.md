@@ -250,6 +250,16 @@ Then package with: `make -C ports/<name> TARGET=<name> package`
 
 This creates `<name>-<version>.lha` containing the binary, readme, and PORT.md — ready for Aminet upload.
 
+### Stage 8: Documentation & Catalog
+
+1. Move candidate to `ported[]` in `data/catalog.json` with `measured_binary_kb`, `test_count`, `test_pass_rate`
+2. Sync: `cp data/catalog.json site/data/catalog.json`
+3. Add row to `PORTS.md` (name, version, description, category, source, test results, status)
+4. **Add row to `README.md` ports table** (alphabetically sorted in the correct category section)
+5. Run `python3 scripts/catalog-score.py --score`
+
+**Do NOT skip README.md.** This was missed in multiple batches. The documentation rule (`.claude/rules/documentation.md` #9) requires it.
+
 ## Complex Multi-File Ports
 
 For projects with 5+ source files, **orchestrate from the main session** by dispatching each specialized agent directly (source-analyzer, code-transformer, build-manager, etc.). The main session is the orchestrator — it has full context and can dispatch subagents.

@@ -21,6 +21,7 @@ This is a BLOCKING checklist. Do not `git add` or `git commit` until every box i
 - [ ] **Per-port package JSON updated** — site/data/packages/<name>.json has correct binary size, version, revision, `sha256`, AND `machine_sha256`.
 - [ ] **Machine LHA built and deployed** — `<name>-<version>-machine.lha` containing only `C/<name>` (stripped). Required for `amiport install`. Deploy to server packages/ dir.
 - [ ] **PORTS.md updated** — Version shows revision if >1 (e.g., "1.22-2").
+- [ ] **README.md updated** — Add row to ports table, alphabetically sorted in correct category section (CLI, Scripting, Console UI, Network).
 
 ### Then Commit
 
