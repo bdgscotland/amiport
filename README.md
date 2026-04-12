@@ -31,6 +31,7 @@ AmigaOS predates POSIX. There is no `stat()`, no `opendir()`, no `getopt()`, no 
 | [cal](ports/cal/) | 1.32 | OpenBSD | [Aminet](https://aminet.net/package/util/cli/cal-1.0) |
 | [cat](ports/cat/) | 1.34 | OpenBSD | Built & tested |
 | [cksum](ports/cksum/) | 1.0 | FreeBSD | Built & tested |
+| [cmp](ports/cmp/) | 1.19 | OpenBSD | Published on amiport |
 | [col](ports/col/) | 1.20 | OpenBSD | Built & tested |
 | [colrm](ports/colrm/) | 1.14 | OpenBSD | Built & tested |
 | [column](ports/column/) | 1.27-2 | OpenBSD | Built & tested |
@@ -53,6 +54,7 @@ AmigaOS predates POSIX. There is no `stat()`, no `opendir()`, no `getopt()`, no 
 | [ln](ports/ln/) | 1.25 | OpenBSD | Built & tested |
 | [look](ports/look/) | 1.27-2 | OpenBSD | Built & tested |
 | [mkdir](ports/mkdir/) | 1.31 | OpenBSD | Built & tested |
+| [mv](ports/mv/) | 1.47 | OpenBSD | Published on amiport |
 | [nl](ports/nl/) | 1.8-2 | OpenBSD | Built & tested |
 | [paste](ports/paste/) | 1.27 | OpenBSD | Built & tested |
 | [patch](ports/patch/) | 1.78 | OpenBSD | Built & tested |
@@ -62,8 +64,10 @@ AmigaOS predates POSIX. There is no `stat()`, no `opendir()`, no `getopt()`, no 
 | [rmdir](ports/rmdir/) | 1.15 | OpenBSD | Built & tested |
 | [rs](ports/rs/) | 1.30 | OpenBSD | Built & tested |
 | [sed](ports/sed/) | 1.47 | OpenBSD | [Aminet](https://aminet.net/package/util/cli/sed-1.47) |
+| [seq](ports/seq/) | 1.8 | OpenBSD | Published on amiport |
 | [sleep](ports/sleep/) | 1.29 | OpenBSD | Built & tested |
 | [sort](ports/sort/) | 1.0 | Plan 9 | Built & tested |
+| [strings](ports/strings/) | 1.0 | Custom | Published on amiport |
 | [tail](ports/tail/) | 1.24 | OpenBSD | Built & tested |
 | [tee](ports/tee/) | 1.15 | OpenBSD | [Aminet](https://aminet.net/package/util/cli/tee-1.15) |
 | [test](ports/test/) | 1.23 | OpenBSD | Built & tested |
@@ -74,6 +78,7 @@ AmigaOS predates POSIX. There is no `stat()`, no `opendir()`, no `getopt()`, no 
 | [unexpand](ports/unexpand/) | 1.13 | OpenBSD | Built & tested |
 | [uniq](ports/uniq/) | 1.33 | OpenBSD | Built & tested |
 | [wc](ports/wc/) | 1.32 | OpenBSD | Built & tested |
+| [which](ports/which/) | 1.27 | OpenBSD | Published on amiport |
 | [yes](ports/yes/) | 1.9 | OpenBSD | [Aminet](https://aminet.net/package/util/cli/yes-1.9) |
 
 ### Scripting Languages
