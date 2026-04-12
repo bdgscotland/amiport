@@ -1,0 +1,23 @@
+{
+    "name": "rs",
+    "version": "1.30",
+    "revision": 1,
+    "description": "Reshape a data array",
+    "category": "util/cli",
+    "source": "OpenBSD rs 1.30",
+    "license": "BSD-3-Clause",
+    "size": 40850,
+    "sha256": "33a051d4c68dbdadd4ecfe9dad5fea34397cffc79e74b6119bd4c5013c95b69a",
+    "machine_sha256": "c2472b1048101de0972f16b4849931e033b5e801c46e3626f6a0dc4ef78e8444",
+    "download": "/packages/rs-1.30.lha",
+    "requires": [],
+    "aminet": "",
+    "stack": 16384,
+    "status": "stable",
+    "published_at": "2026-04-11T22:45:00Z",
+    "test_count": 37,
+    "test_pass": 37,
+    "porting_notes": "Single-file port. mbsavis() (vis.h multibyte display width) stubbed as strlen() — no multibyte on AmigaOS. vis() escape processing stubbed to pass-through. getline via amiport/stdio_ext.h, reallocarray via amiport/string.h, strtonum via amiport/err.h. getopt replaced with amiport/getopt.h. ssize_t replaced with long, %zd with %ld. pledge() stubbed. Wildcard expansion via amiport_expand_argv() with atexit cleanup. Floating-point gutter proportion requires -lm.",
+    "known_limitations": "No multibyte/wide character support — mbsavis() returns byte count (strlen), not display width. No vis() escape processing — non-printable characters passed through unmodified. Both limitations have no practical impact on AmigaOS which has no locale/multibyte support.",
+    "readme": "Short:        Reshape a data array\nType:         util/cli\nArchitecture: m68k-amigaos >= 3.0\nUploader:     duncan (at) bowring (dot) us\nAuthor:       John Kunze, UC Berkeley (ported by Duncan Bowring)\nVersion:      1.30\n\nrs - Reshape a data array\n\nOriginal author: John Kunze, UC Berkeley\nPorted by Duncan Bowring using amiport (AI-assisted porting toolkit).\nProject: https://github.com/bdgscotland/amiport\n\nCross-compiled for AmigaOS 3.x (68000+).\nTested in vamos emulator and FS-UAE.\n\nUsage:\n  rs [options] [arguments]\n\nIncludes full source code (original POSIX and ported Amiga versions)\nand PORT.md documenting every transformation applied."
+}

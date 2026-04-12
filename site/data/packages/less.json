@@ -1,0 +1,23 @@
+{
+    "name": "less",
+    "version": "692",
+    "revision": 1,
+    "description": "GNU less pager for AmigaOS",
+    "category": "util/cli",
+    "source": "GNU less 692",
+    "license": "GPL-3.0 or Less License",
+    "size": 813142,
+    "sha256": "213da11e5d8f14b9dda9ebc58cf88058722b26a213394c2655f464e392afb6bd",
+    "machine_sha256": "7ce09d82e8503100b145c7034321a9733013eacc043c57666ffd532d6c0d8546",
+    "download": "/packages/less-692.lha",
+    "requires": [],
+    "aminet": "",
+    "stack": 65536,
+    "status": "stable",
+    "published_at": "2026-04-11T22:45:00Z",
+    "test_count": 24,
+    "test_pass": 24,
+    "porting_notes": "First Category 3 (console UI) port in amiport. Uses console-shim for termcap (tgetent/tgetstr/tgoto/tputs) and posix-shim for termios (tcgetattr/tcsetattr). /dev/tty keyboard input replaced with AmigaDOS star device (*). poll() disabled (HAVE_POLL=0) with blocking read fallback. Window size queried via CSI cursor position report. popen/pclose disabled (HAVE_POPEN=0). No locale/UTF-8 auto-detection. 2 HIGH and 2 MEDIUM perf findings applied: ansi pool elimination, 256-byte lookup table for char classification, DIVU avoidance, OUTBUF_SIZE 4096. 4 CRITICAL memory leaks fixed in quit() path.",
+    "known_limitations": "No follow mode (less +F) — poll() not available on AmigaOS. No pipe commands (|) — popen()/pclose() not in libnix. No locale/UTF-8 auto-detection — defaults to latin1. No window resize detection — size queried once at startup. No LESSOPEN/LESSCLOSE preprocessor.",
+    "readme": "Short:        GNU less 692 pager for AmigaOS\nType:         util/cli\nArchitecture: m68k-amigaos >= 3.0\nUploader:     duncan (at) bowring (dot) us\nAuthor:       Mark Nudelman (ported by Duncan Bowring)\nVersion:      692\n\nless - GNU less 692 pager for AmigaOS\n\nThe standard Unix pager. View files one screen at a time with\nforward/backward scrolling, regex search, line numbers, and more.\nFirst Category 3 (console UI) port in the amiport project.\n\nOriginal author: Mark Nudelman\nPorted by Duncan Bowring using amiport (AI-assisted porting toolkit).\nProject: https://github.com/bdgscotland/amiport\n\nCross-compiled with m68k-amigaos-gcc for AmigaOS 3.x (68000+).\nTested on FS-UAE with Workbench 3.1 (20/20 automated + interactive).\n\nUsage:\n  less [options] [file ...]\n\n  less README              View a file\n  less -N README           View with line numbers\n  less -s file.txt         Squeeze consecutive blank lines\n\nInteractive commands:\n  SPACE       Scroll forward one screen\n  b           Scroll backward one screen\n  /pattern    Search forward for pattern\n  n           Next search match\n  G           Go to end of file\n  g           Go to beginning\n  q           Quit\n\nFeatures:\n  - Forward and backward scrolling\n  - Regex search (Spencer V8 engine)\n  - Line numbers (-N)\n  - Squeeze blank lines (-s)\n  - Chop long lines (-S)\n  - Multiple file viewing\n  - Automatic window size detection\n\nKnown limitations:\n  - No follow mode (less +F) -- poll() not available\n  - No pipe commands (|) -- popen/pclose not in libnix\n  - No locale/UTF-8 auto-detection -- defaults to latin1\n  - Cursor hide/show not supported by console.device\n  - No LESSOPEN/LESSCLOSE preprocessor\n\nIncludes full source code (original POSIX and ported Amiga versions)\nand PORT.md documenting every transformation applied."
+}

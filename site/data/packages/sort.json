@@ -1,0 +1,23 @@
+{
+    "name": "sort",
+    "version": "1.0",
+    "revision": 1,
+    "description": "Sort lines of text files (Plan 9)",
+    "category": "util/cli",
+    "source": "Plan 9 from User Space (plan9port)",
+    "license": "Lucent Public License 1.02",
+    "size": 48704,
+    "sha256": "24a1224f74887cdde9cc151e47c3c895a417d441dd8f37081c5391364678ad0e",
+    "machine_sha256": "f1d35f64e2e63eabb867deede6e048d0346743ebe3a64f1a36db5cd59d7f798c",
+    "download": "/packages/sort-1.0.lha",
+    "requires": [],
+    "aminet": "",
+    "stack": 65536,
+    "status": "stable",
+    "published_at": "2026-04-11T22:45:00Z",
+    "test_count": 18,
+    "test_pass": 18,
+    "porting_notes": "Plan 9 port — entire Plan 9 API layer replaced (Biobuf I/O, notify/exits, fprint, Rune types). Biobuf replaced with FILE* stdio throughout. Plan 9 open/create with OREAD/OWRITE replaced with fopen(). amiport_open() + fdopen() incompatibility discovered and fixed (systemic issue: amiport fd table is separate namespace from libnix fd table). Bundled minimal UTF-8 codec (~60 lines) for chartorune/runetochar. Nline reduced from 500000 to 10000 for Amiga memory constraints. rsort4 stack arrays made static to prevent 3KB/frame stack overflow. Temp dir changed from /var/tmp to T:. 5 memory issues fixed: rsort4 stack overflow, args.linep leak, -c mode leak, unsafe realloc pattern, fd namespace bug.",
+    "known_limitations": "No locale support — sort uses byte-level comparison (C locale). No stable sort (-s flag not implemented). Nline=10000 max lines in memory before spilling to T: temp files (use -l N to increase). UTF-8 limited — bundled minimal codec handles 1-3 byte sequences only.",
+    "readme": "Short:        Sort lines of text files (Plan 9)\nType:         util/cli\nArchitecture: m68k-amigaos >= 3.0\nUploader:     duncan (at) bowring (dot) us\nAuthor:       Plan 9 / Lucent Technologies (ported by Duncan Bowring)\nVersion:      1.0\n\nsort -- Sort lines of text files (Plan 9)\n\nOriginal author: Plan 9 from User Space (Lucent Technologies)\nPorted by Duncan Bowring using amiport (AI-assisted porting toolkit).\nProject: https://github.com/bdgscotland/amiport\n\nCross-compiled with m68k-amigaos-gcc for AmigaOS 3.x (68000+).\nTested in vamos emulator and FS-UAE (18/18 tests passed).\n\nUsage:\n  sort [options] [file ...]\n\nOptions:\n  -r          Reverse sort order\n  -n          Numeric sort\n  -g          Floating-point numeric sort\n  -f          Case-insensitive sort (fold case)\n  -d          Dictionary order (alphanumeric and whitespace only)\n  -i          Ignore non-printable characters\n  -b          Skip leading blanks\n  -M          Month sort (JAN, FEB, etc.)\n  -u          Remove duplicate lines\n  -c          Check if input is sorted\n  -k m[,n]    Sort by key field m through n\n  -t char     Use char as field separator\n  -o file     Write output to file\n  -T dir      Use dir for temporary files (default: T:)\n\nExamples:\n  sort myfile.txt                   Sort alphabetically\n  sort -n numbers.txt               Sort numerically\n  sort -t, -k2,2 data.csv          Sort CSV by second column\n  sort -r -u names.txt              Unique names, reverse order\n  sort -o sorted.txt unsorted.txt   Sort to output file\n\nIncludes full source code (original POSIX and ported Amiga versions)\nand PORT.md documenting every transformation applied."
+}

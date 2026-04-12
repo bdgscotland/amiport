@@ -25,6 +25,7 @@
 | Publish to amiport site | `amiport-publisher` agent | Don't manually set package status or skip test gates |
 | Visual test authoring | `visual-test-expert` agent | Don't manually write SCRAPE/SCREEN_READ tests |
 | Regression detection | `regression-checker` agent | Don't manually rebuild all ports after shim changes |
+| Catalog management | `catalog-engineer` agent | Don't manually score candidates or plan batches |
 
 ## How to Dispatch
 
@@ -52,6 +53,7 @@ subagent_type: "visual-test-expert"    # Visual test authoring and debugging (AD
 subagent_type: "amiport-publisher"      # Test-gated publishing to amiport site
 subagent_type: "port-worker"            # Parallel batch: self-contained stages 0-4 in worktree
 subagent_type: "regression-checker"     # After shim/lib changes: rebuild + test affected ports
+subagent_type: "catalog-engineer"       # Catalog management: scoring, enumeration, batch planning
 ```
 
 ## Never Bypass a Running Agent

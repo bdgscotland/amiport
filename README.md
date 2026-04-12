@@ -108,6 +108,7 @@ AmigaOS predates POSIX. There is no `stat()`, no `opendir()`, no `getopt()`, no 
 | Port | Version | Source | Status |
 |------|---------|--------|--------|
 | [amiport](ports/amiport/) | 1.0 | Original | Built & tested |
+| [wget](ports/wget/) | 1.20.3-2 | GNU | Published on amiport |
 
 ### amiport — Package Manager for AmigaOS
 
@@ -182,7 +183,28 @@ The pipeline uses 20 specialized [Claude Code](https://claude.ai/claude-code) ag
 analyze → transform → build → test → memory-check → perf-optimize → publish
 ```
 
-The source-analyzer scans for POSIX dependencies and classifies them by tier. The code-transformer systematically replaces POSIX calls with shim equivalents. The build-manager cross-compiles and iterates on errors. The test-runner validates in both vamos (fast, headless) and FS-UAE (real AmigaOS 3.1 with ARexx test harness). The memory-checker audits for leaks — mandatory on every port, because AmigaOS has no memory protection or garbage collector. The perf-optimizer applies 68k-specific static analysis. The regression-checker rebuilds all affected ports after shim library changes to catch breakage early.
+| Agent | Role |
+|-------|------|
+| aminet-researcher | Check if a tool already exists on Aminet before porting |
+| source-analyzer | Scan for POSIX dependencies and classify by tier |
+| code-transformer | Systematically replace POSIX calls with shim equivalents |
+| build-manager | Cross-compile and iterate on build errors |
+| test-runner | Validate in vamos (fast, headless) and FS-UAE (real AmigaOS 3.1) |
+| test-designer | Design comprehensive FS-UAE test suites from source analysis |
+| memory-checker | Audit for leaks, double-free, allocation safety (mandatory) |
+| perf-optimizer | 68k-specific static analysis and optimization (mandatory) |
+| profiler | Empirical ReadEClock-based runtime measurement (optional) |
+| debug-agent | Autonomous Enforcer-based crash diagnosis and fix loop |
+| dependency-auditor | Audit external library dependencies before complex ports |
+| hardware-expert | Hardware architecture validation (CPU variants, chipset, address space) |
+| visual-test-expert | Visual test authoring and debugging (SCRAPE/SCREEN_READ) |
+| regression-checker | Rebuild all affected ports after shim library changes |
+| catalog-engineer | Catalog management, candidate scoring, batch dispatch |
+| site-manager | Website deployment, manifest generation, security scanning |
+| aminet-publisher | Aminet package preparation and publishing (curated, never automatic) |
+| amiport-publisher | Publish to amiport.platesteel.net (test-gated, never automatic) |
+| port-coordinator | **Deprecated** -- cannot dispatch subagents |
+| port-worker | Self-contained batch worker for parallel dispatch in worktrees |
 
 Safety hooks enforce discipline: upstream source is read-only, direct compiler calls are blocked, and the pipeline won't proceed past a failing stage.
 

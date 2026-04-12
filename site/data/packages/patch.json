@@ -1,0 +1,23 @@
+{
+    "name": "patch",
+    "version": "1.78",
+    "revision": 1,
+    "description": "Apply diff patches to source files",
+    "category": "util/cli",
+    "source": "OpenBSD usr.bin/patch v1.78",
+    "license": "ISC + BSD",
+    "size": 139224,
+    "sha256": "afaf8237acb40e566e83d9b4b033fcaa05c8d56e5898e89f06b376befc6531d6",
+    "machine_sha256": "635c5d8ba2e6e8d64b3d7be1d44d2c8186dfc130cf420c8facc9e8d3a0653410",
+    "download": "/packages/patch-1.78.lha",
+    "requires": [],
+    "aminet": "",
+    "stack": 65536,
+    "status": "stable",
+    "published_at": "2026-04-11T22:45:00Z",
+    "test_count": 42,
+    "test_pass": 42,
+    "porting_notes": "First 68k AmigaOS port of the Unix patch utility — no standalone patch existed on Aminet previously. Multi-file port (7 .c files). Uses posix-shim for all file I/O (stat, open, read, write, lseek, unlink, rename, mkdir, chdir, chmod). getopt replaced with amiport/getopt.h (libnix getopt_long is broken, crash-patterns #17). mmap/munmap via posix-emu with graceful plan_b fallback. fgetln() replaced with fgets() + static buffer. putc() output loop replaced with fwrite() in dump_line (2-3x speedup). Tab stop bug fix applied: % 7 to % 8 in pgetline. 2 memory leaks fixed (TMP name strings + ttyfd). Ed-format diffs required closing output handle before write_lines to avoid AmigaOS exclusive lock conflict.",
+    "known_limitations": "Path handling assumes Unix-style paths in diff headers. AmigaOS-native paths (DH0:foo/bar) in diff output may not strip correctly with -p. mmap in plan_a reads entire file into memory — files larger than available RAM fall through to plan_b gracefully. SIGHUP handler is a no-op — only SIGINT (Ctrl-C) works for interruption.",
+    "readme": "Short:        Apply diff patches to source files\nType:         util/cli\nArchitecture: m68k-amigaos >= 3.0\nUploader:     duncan (at) bowring (dot) us\nAuthor:       Larry Wall, OpenBSD contributors (ported by Duncan Bowring)\nVersion:      1.78\n\npatch - Apply diff patches to source files\n\nOriginal author: Larry Wall, OpenBSD contributors\nPorted by Duncan Bowring using amiport (AI-assisted porting toolkit).\nProject: https://github.com/bdgscotland/amiport\n\nCross-compiled with m68k-amigaos-gcc for AmigaOS 3.x (68020+).\nTested in FS-UAE with AmigaOS 3.1.\n\npatch takes a patch file containing a difference listing produced by\nthe diff program and applies those differences to one or more\noriginal files, producing patched versions.\n\nSupports unified, context, normal, and ed-style diffs.\n\nUsage:\n  patch [options] [origfile [patchfile]]\n  patch -p0 < changes.diff\n  patch -p1 -i update.patch\n  patch -R -p1 < revert.diff\n\nOptions:\n  -b        save original as .orig backup\n  -c        interpret patch as context diff\n  -d dir    change to directory before patching\n  -D sym    mark changes with #ifdef sym\n  -e        interpret patch as ed script\n  -f        force, skip interactive questions\n  -i file   read patch from file instead of stdin\n  -l        loose matching (ignore whitespace)\n  -n        interpret patch as normal diff\n  -N        ignore already applied patches\n  -o file   write output to file\n  -p num    strip num leading path components\n  -R        reverse the patch\n  -t        similar to -f\n  -u        interpret patch as unified diff\n  -V type   backup type (simple, numbered, existing)\n  -z suffix backup suffix (default .orig)\n\nFirst 68k AmigaOS port of the Unix patch utility. No previous\nstandalone patch existed on Aminet. Completes the diff+patch pair\n(diff already available as util/cli/diff-1.95).\n\nIncludes full source code (original POSIX and ported Amiga versions)\nand PORT.md documenting every transformation applied."
+}

@@ -1,0 +1,23 @@
+{
+    "name": "uniq",
+    "version": "1.33",
+    "revision": 1,
+    "description": "Filter/report repeated lines in files",
+    "category": "util/cli",
+    "source": "OpenBSD uniq 1.33",
+    "license": "BSD-3-Clause",
+    "size": 34561,
+    "sha256": "c2ab84afcd17ce21e4a16a4ae3fe7b05460fa9b8c8ef2411360e6be2c2b01338",
+    "machine_sha256": "ef08b65818d20f2d9674c02b8aa2d5ee81d16b950d9c3dc26567527e48491f6c",
+    "download": "/packages/uniq-1.33.lha",
+    "requires": [],
+    "aminet": "",
+    "stack": 32768,
+    "status": "stable",
+    "published_at": "2026-04-11T22:45:00Z",
+    "test_count": 29,
+    "test_pass": 29,
+    "porting_notes": "Single-file port (258 lines). MB_CUR_MAX multibyte path replaced entirely with single-byte isblank inline (crash-patterns #11 prevention). long long globals downgraded to long — eliminates 64-bit emulation overhead on 68k. obsolete() argv rewrite tracked in static array for atexit cleanup. Function pointer hoisted out of comparison loop (cmpfn). pledge() stubbed. getline via amiport/stdio_ext.h. __progname defined locally (weak symbol from libamiport.a did not survive linking — crash manifested as repeated 'H' characters + Guru before fix). 29/29 FS-UAE tests pass covering all flags, error paths, edge cases, and Amiga-specific paths.",
+    "known_limitations": "No multibyte/locale support — -f and -s flags skip bytes not multibyte characters. This matches POSIX behavior in the C locale and has no practical impact on AmigaOS.",
+    "readme": "Short:        Filter/report repeated lines in files\nType:         util/cli\nArchitecture: m68k-amigaos >= 3.0\nUploader:     duncan (at) bowring (dot) us\nAuthor:       OpenBSD Project (ported by Duncan Bowring)\nVersion:      1.33\n\nuniq -- Filter/report repeated lines in files\n\nOpenBSD uniq 1.33, ported to AmigaOS 3.x using the amiport toolkit.\nOriginal author: OpenBSD Project\nProject: https://github.com/bdgscotland/amiport\n\nCross-compiled with m68k-amigaos-gcc for AmigaOS 3.x (68000+).\nTested on FS-UAE (A1200, Kickstart 3.1) with 29/29 tests passing.\n\nUsage:\n  uniq [-ci] [-d | -u] [-f fields] [-s chars] [input_file [output_file]]\n\nFlags:\n  -c       Prefix lines with occurrence count\n  -d       Only print duplicate lines\n  -u       Only print unique lines (appear once)\n  -i       Case-insensitive comparison\n  -f num   Skip num fields before comparing\n  -s num   Skip num characters before comparing\n\nExamples:\n  uniq file.txt                   Filter adjacent duplicates\n  uniq -c file.txt                Count occurrences\n  uniq -d file.txt                Show only duplicates\n  uniq -u file.txt                Show only unique lines\n  uniq -i -d file.txt             Case-insensitive duplicates\n  uniq -f 1 file.txt              Skip first field\n  uniq file.txt output.txt        Write to output file\n\nNotes:\n  - No multibyte/locale support (AmigaOS is always C locale)\n  - Old-style +N/-N syntax supported for backward compatibility\n  - Stack cookie: 32KB. Exit codes: 0 (OK), 10 (ERROR).\n\nIncludes full source code (original POSIX and ported Amiga versions)\nand PORT.md documenting every transformation applied."
+}
