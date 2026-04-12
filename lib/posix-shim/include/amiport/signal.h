@@ -15,6 +15,9 @@
 #define AMIPORT_SIGTERM   15
 #define AMIPORT_SIGPIPE   13
 
+/* Atomic integer type for signal handlers (C89 standard) */
+typedef int sig_atomic_t;
+
 /* Signal handler type */
 typedef void (*amiport_sighandler_t)(int);
 

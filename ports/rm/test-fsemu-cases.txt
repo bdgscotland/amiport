@@ -1,0 +1,169 @@
+# test-fsemu-cases.txt -- rm 1.45 FS-UAE test suite
+# Category 1 (CLI tool) -- minimum 8 tests required
+#
+# Flags from source getopt("dfiPRrv"):
+#   -d  remove empty directories (dflag)
+#   -f  force: ignore nonexistent files, suppress prompts (fflag)
+#   -i  interactive prompt (stdin-dependent; skip in automated tests -- stdin not a tty)
+#   -P  secure overwrite (accepted but no-op on AmigaOS -- no fstatfs/fsync)
+#   -R  recursive removal using fts (rflag)
+#   -r  alias for -R (rflag)
+#   -v  verbose: print each removed path to stdout (vflag)
+#
+# Exit codes from source:
+#   RC=0   -- RETURN_OK: success
+#   RC=1   -- eval=1: error in rm_file/rm_tree (nonexistent file without -f,
+#              directory without -d flag, unlink/rmdir failure)
+#              NOTE: RC=1 is non-zero but below Amiga WARN threshold (>=5).
+#              The test harness supports EXPECT_RC: 1.
+#   RC=10  -- usage() -> exit(10): bad args, invalid flag, no args without -f
+#             err(10,...): fts_open failure, fts_read errno
+#
+# IMPORTANT: rm is a destructive filesystem operation. Functional tests use
+# ARexx wrapper scripts (test-rm-*.rexx) deployed to WORK:. Each wrapper:
+#   1. Creates test files/dirs in T: (Amiga temp volume = RAM:T/)
+#   2. Runs WORK:rm with specific arguments
+#   3. Verifies result via EXISTS() checks
+#   4. Prints "OK" or "FAIL: reason" to stdout
+#   5. Cleans up all temp files
+#
+# Error path tests use direct CMD: lines where the error fires before any
+# filesystem change. Error messages go to stderr (not captured by harness),
+# so only EXPECT_RC: assertions are used for those tests.
+#
+# Test count: 17 tests (minimum 8 for Category 1)
+
+# ===========================================================
+# ERROR PATH TESTS -- no setup required, error fires immediately
+# ===========================================================
+
+# Source: argc < 1 && fflag == 0 -> usage() -> exit(10)
+TEST: No arguments returns usage error RC 10
+CMD: WORK:rm
+EXPECT_RC: 10
+
+# Source: getopt default case -> usage() -> exit(10)
+TEST: Unknown flag -Z returns usage error RC 10
+CMD: WORK:rm -Z WORK:test-oneline.txt
+EXPECT_RC: 10
+
+# Source: rm_file: lstat(f) fails, !fflag -> warn(f); eval=1; continue
+# eval is returned from main() as RC. RC=1 for lstat failure without -f.
+TEST: Remove nonexistent file without -f returns RC 1
+CMD: WORK:rm T:rm_does_not_exist_001.txt
+EXPECT_RC: 1
+
+# Source: rm_file: S_ISDIR && !dflag -> warnx("%s: is a directory"); eval=1
+# RC=1 (not RC=10) for directory-without-d error path.
+TEST: Remove directory without -d flag returns RC 1
+CMD: WORK:rm T:
+EXPECT_RC: 1
+
+# ===========================================================
+# FUNCTIONAL TESTS -- via ARexx wrappers
+# ===========================================================
+
+# Source: rm_file: unlink(f) succeeds -> RC=0
+# Native: echo "content" > /tmp/rm_single.txt && rm /tmp/rm_single.txt; echo $? -> 0
+TEST: Remove single file succeeds and file no longer exists
+CMD: SYS:Rexxc/rx WORK:test-rm-single.rexx
+EXPECT: OK
+EXPECT_RC: 0
+
+# Source: rm_file loops over all argv entries, unlinking each
+# Native: touch a b && rm a b && ls a b -> RC=1 (both gone)
+TEST: Remove multiple files in one invocation
+CMD: SYS:Rexxc/rx WORK:test-rm-multi.rexx
+EXPECT: OK
+EXPECT_RC: 0
+
+# Source: rm_file: -f flag set, lstat fails with ENOENT -> skips error; RC=0
+# Native: rm -f /tmp/nonexistent && echo $? -> 0
+TEST: Remove nonexistent file with -f flag succeeds silently
+CMD: SYS:Rexxc/rx WORK:test-rm-force-nonexist.rexx
+EXPECT: OK
+EXPECT_RC: 0
+
+# Source: rm_file: -f flag, unlink succeeds -> RC=0 (same as without -f)
+TEST: Remove existing file with -f flag succeeds
+CMD: SYS:Rexxc/rx WORK:test-rm-force-existing.rexx
+EXPECT: OK
+EXPECT_RC: 0
+
+# Source: rm_file: S_ISDIR && dflag -> rmdir(f) -> RC=0
+# Native: mkdir /tmp/rmdir_test && rm -d /tmp/rmdir_test && echo $? -> 0
+TEST: Remove empty directory with -d flag succeeds
+CMD: SYS:Rexxc/rx WORK:test-rm-dir-d.rexx
+EXPECT: OK
+EXPECT_RC: 0
+
+# Source: rm_tree: fts_open + FTS_PHYSICAL walk; FTS_F -> unlink; FTS_DP -> rmdir
+# Native: mkdir -p /tmp/tree/sub && echo f > /tmp/tree/sub/f.txt && rm -R /tmp/tree && echo $? -> 0
+TEST: Remove directory tree with -R flag succeeds
+CMD: SYS:Rexxc/rx WORK:test-rm-recursive.rexx
+EXPECT: OK
+EXPECT_RC: 0
+
+# Source: rm_tree: lowercase -r is alias for -R (rflag = 1 for both)
+# Native: mkdir /tmp/lower && rm -r /tmp/lower && echo $? -> 0
+TEST: Lowercase -r flag is alias for -R recursive removal
+CMD: SYS:Rexxc/rx WORK:test-rm-recursive-lower.rexx
+EXPECT: OK
+EXPECT_RC: 0
+
+# Source: rm_file: vflag -> fprintf(stdout, "%s\n", f)
+# Output is the exact path argument passed on the command line.
+# Native: touch /tmp/v.txt && rm -v /tmp/v.txt -> "/tmp/v.txt"
+TEST: Verbose -v flag prints removed filename to stdout
+CMD: SYS:Rexxc/rx WORK:test-rm-verbose.rexx
+EXPECT: OK
+EXPECT_RC: 0
+
+# Source: rm_tree: vflag -> fprintf(stdout, "%s\n", p->fts_path) for each entry
+# Prints file path then dir path (post-order: files before their parent dir)
+TEST: Verbose -Rv prints each removed path including directory
+CMD: SYS:Rexxc/rx WORK:test-rm-verbose-recursive.rexx
+EXPECT: OK
+EXPECT_RC: 0
+
+# Source: rm_overwrite() is a no-op stub; unlink() still called; RC=0
+# Native: touch /tmp/pflag.txt && rm -P /tmp/pflag.txt && echo $? -> 0
+TEST: -P secure-overwrite flag accepted and file is still removed
+CMD: SYS:Rexxc/rx WORK:test-rm-pflag.rexx
+EXPECT: OK
+EXPECT_RC: 0
+
+# ===========================================================
+# NO-ARGS WITH -F -- special case: argc < 1 but fflag=1 -> skip usage
+# ===========================================================
+
+# Source: if (argc < 1 && fflag == 0) usage(); -- with -f, no-op is OK
+TEST: No file arguments with -f flag is silent success RC 0
+CMD: WORK:rm -f
+EXPECT_RC: 0
+
+# ===========================================================
+# REAL-WORLD AND STRESS TESTS
+# ===========================================================
+
+# Real-world: remove 20 files in a single invocation (typical bulk cleanup)
+# Stresses the argv loop in rm_file over a large set
+TEST: Remove 20 files in one invocation stress test
+CMD: SYS:Rexxc/rx WORK:test-rm-stress.rexx
+EXPECT: OK
+EXPECT_RC: 0
+
+# Stress: 10-level deep directory tree tests fts recursion depth
+# Verifies fts stack does not overflow on deeply nested structures
+TEST: Remove 10-level deep nested directory tree with -R
+CMD: SYS:Rexxc/rx WORK:test-rm-deep-tree.rexx
+EXPECT: OK
+EXPECT_RC: 0
+
+# Real-world: -fR idiom is used in cleanup scripts to remove a tree and
+# tolerate missing paths. Source: fflag=1 suppresses ENOENT in rm_tree
+# FTS_DNR/FTS_NS cases. Tests tree + nonexistent path in one invocation.
+TEST: Combined -fR flags remove tree and ignore nonexistent path
+CMD: SYS:Rexxc/rx WORK:test-rm-force-recursive.rexx
+EXPECT: OK
+EXPECT_RC: 0

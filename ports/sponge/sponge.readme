@@ -1,0 +1,30 @@
+Short:        Soak up stdin and write to file
+Type:         util/cli
+Architecture: m68k-amigaos >= 3.0
+Uploader:     duncan@bowring.us
+Author:       Dimitris Papastamos, Hiltjo Posthuma (ported by Duncan Bowring)
+Version:      0.1
+
+sponge - Soak up stdin and write to file
+
+Original author: Dimitris Papastamos, Hiltjo Posthuma (sbase project)
+Ported by Duncan Bowring using amiport (AI-assisted porting toolkit).
+Project: https://github.com/bdgscotland/amiport
+
+Cross-compiled with m68k-amigaos-gcc for AmigaOS 3.x (68000+).
+Tested in vamos emulator and FS-UAE.
+
+Usage:
+  sponge file
+
+Reads all standard input and writes it to the specified file.
+This allows constructing pipelines that read from and write to
+the same file safely:
+
+  sort T:data.txt | sponge T:data.txt
+
+Without sponge, the shell would truncate the output file before
+the pipeline finishes reading it.
+
+Includes full source code (original and ported Amiga versions)
+and PORT.md documenting every transformation applied.

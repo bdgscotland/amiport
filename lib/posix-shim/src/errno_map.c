@@ -41,10 +41,27 @@
 #ifdef __libnix__
 
 #ifdef errno
-/* Variant A: errno is #define errno (*__errno) — need weak __errno ptr */
+/* Variant A: errno is #define errno (*__errno)
+ *
+ * PROBLEM: libc.a defines __errno as a FUNCTION (int *__errno(void))
+ * returning __impure_ptr (newlib reent struct, _errno at offset 0).
+ * errno.h declares `extern int *__errno` (data pointer). Our weak
+ * data variable wins over libc.a's archive function at link time,
+ * causing amiport code and user code to use different errno storage.
+ *
+ * FIX: Keep the weak __errno data pointer (needed for errno.h macro),
+ * but in amiport_map_errno() ALSO write through __impure_ptr to
+ * hit the real libnix errno storage. Belt-and-suspenders approach:
+ * if either path reaches the caller, errno is visible. */
 static int __amiport_errno_fallback = 0;
 extern int * __errno;
 int * __attribute__((weak)) __errno = &__amiport_errno_fallback;
+
+/* Direct access to libnix's real errno storage.
+ * __impure_ptr is defined by libc.a startup; errno is at offset 0. */
+extern void *__impure_ptr;
+void * __attribute__((weak)) __impure_ptr = (void *)0;
+
 #else
 /* Variant B: errno is extern int errno — emit weak common definition */
 int __attribute__((weak)) errno;
@@ -122,7 +139,7 @@ int amiport_errno_from_ioerr(long ioerr)
 int amiport_map_errno(void)
 {
     LONG ioerr = IoErr();
-    errno = amiport_errno_from_ioerr(ioerr);
+    int val = amiport_errno_from_ioerr(ioerr);
     /*
      * amiport: if IoErr() returned 0 but we got here, the operation DID fail
      * (callers only call map_errno on failure paths). vamos often returns
@@ -130,7 +147,22 @@ int amiport_map_errno(void)
      * is the most common failure mode. Better than errno==0 (no error) which
      * is always wrong when the operation failed.
      */
-    if (errno == 0)
-        errno = ENOENT;
-    return errno;
+    if (val == 0)
+        val = ENOENT;
+
+    /* Write errno through the macro (hits our weak __errno pointer) */
+    errno = val;
+
+#ifdef __libnix__
+    /* Belt-and-suspenders: also write directly to libnix's real errno
+     * storage via __impure_ptr. Our weak __errno data variable may point
+     * to fallback storage instead of libnix's real errno (because libc.a
+     * defines __errno as a FUNCTION but errno.h declares it as a data
+     * pointer -- our weak data wins, hiding libc.a's function). Writing
+     * through __impure_ptr hits the real storage that calling code reads. */
+    if (__impure_ptr)
+        *((int *)__impure_ptr) = val;
+#endif
+
+    return val;
 }

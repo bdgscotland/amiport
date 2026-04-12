@@ -38,3 +38,4 @@
 - [port_amiget_perf.md](port_amiget_perf.md) - Performance findings for ports/amiget 1.0 — sha256_update byte loop, db_reload per-call, HTTP recv buffer, cmd_search lowercase copies reviewed 2026-04-05
 - [port_wget_perf.md](port_wget_perf.md) - Performance findings for ports/wget 1.20.3 — fflush per-write in download loop (HIGH), progress bar DIVU, memset waste reviewed 2026-04-05
 - [port_batch_which_strings_seq_mv_cmp_perf.md](port_batch_which_strings_seq_mv_cmp_perf.md) - Performance findings for ports/which 1.27, strings 1.0, seq 1.8, mv 1.47, cmp 1.19 — batch review 2026-04-11
+- [port_logname_touch_rm_pr_sponge_perf.md](port_logname_touch_rm_pr_sponge_perf.md) - Performance findings for ports/logname 1.10, touch 1.27, rm 1.45, pr 1.46, sponge 0.1 — batch review 2026-04-11

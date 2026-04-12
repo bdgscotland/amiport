@@ -59,6 +59,11 @@ Version format: `upstream[-portrev]` — port revision is shown when > 1 (e.g., 
 | [expr](ports/expr/) | 1.28-2 | Evaluate string and math expressions | CLI | OpenBSD expr v1.28 (BSD 3-Clause) | Built & tested (58/58 FS-UAE) | Not submitted |
 | [look](ports/look/) | 1.27-2 | Display lines starting with a string | CLI | OpenBSD look v1.27 (BSD 3-Clause) | Built & tested (36/36 FS-UAE) | Not submitted |
 | [tty](ports/tty/) | 1.14 | Print name of terminal | CLI | OpenBSD tty v1.14 (BSD 3-Clause) | Built & tested (11/11 FS-UAE) | Not submitted |
+| [logname](ports/logname/) | 1.10 | Display user's login name | CLI | OpenBSD logname v1.10 (BSD 3-Clause) | Built & tested (13/13 FS-UAE) | Not submitted |
+| [touch](ports/touch/) | 1.27 | Change file access and modification time | CLI | OpenBSD touch v1.27 (BSD 3-Clause) | Built & tested (20/21 FS-UAE) | Not submitted |
+| [rm](ports/rm/) | 1.45 | Remove directory entries | CLI | OpenBSD rm v1.45 (BSD 3-Clause) | Built & tested (17/18 FS-UAE) | Not submitted |
+| [pr](ports/pr/) | 1.46 | Print files for page display | CLI | OpenBSD pr v1.46 (BSD 3-Clause) | Built & tested (32 FS-UAE) | Not submitted |
+| [sponge](ports/sponge/) | 0.1 | Soak up stdin and write to file | CLI | sbase sponge (MIT) | Built & tested (15 FS-UAE) | Not submitted |
 | [tetris](ports/tetris/) | 1.35 | Terminal tetris game (first for AmigaOS!) | Console UI | OpenBSD tetris v1.35 (BSD 3-Clause) | Built & tested (18/18 FS-UAE) | Not submitted |
 | [vim](ports/vim/) | 9.1 | Vi IMproved text editor | Console UI | Vim 9.1 (Vim License) | Built & tested | Submitted 2026-03-27 |
 | [wget](ports/wget/) | 1.20.3-2 | HTTP/HTTPS/FTP download utility | Network | GNU wget 1.20.3 (GPL-3.0) | Built & tested (68/68 FS-UAE) | Published on amiport |

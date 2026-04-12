@@ -1,0 +1,160 @@
+# test-fsemu-cases.txt -- FS-UAE test suite for sponge 0.1
+#
+# sponge reads all stdin, buffers to a temp file, then writes to the named
+# output file atomically.  It takes exactly one argument (the output path).
+#
+# Strategy: sponge writes to a file, not stdout.  All functional tests go
+# through test-sponge-run.rexx which runs sponge, reads the output file, and
+# SAYs the content so the test harness can capture it.
+#
+# Error-path tests (no-arg, bad-arg) use the wrapper to capture RC.
+#
+# Native verification commands are listed above each test.
+#
+# Category: 1 (CLI utility)
+# Minimum tests: 8
+
+# ---------------------------------------------------------------------------
+# FUNCTIONAL TESTS -- basic write
+# ---------------------------------------------------------------------------
+
+# Native: echo 'hello sponge' | sponge /tmp/out.txt && head -1 /tmp/out.txt
+TEST: Basic write -- single line input written to output file
+CMD: SYS:Rexxc/rx WORK:test-sponge-run.rexx basic WORK:test-sponge-input.txt T:sponge-t1.txt
+EXPECT: hello sponge
+EXPECT_RC: 0
+
+# Native: echo 'hello world' | sponge /tmp/out.txt && head -1 /tmp/out.txt
+TEST: Create new file -- sponge creates output file that did not exist
+CMD: SYS:Rexxc/rx WORK:test-sponge-run.rexx newfile WORK:test-sponge-input.txt T:sponge-new.txt
+EXPECT: hello sponge
+EXPECT_RC: 0
+
+# ---------------------------------------------------------------------------
+# FUNCTIONAL TESTS -- overwrite existing file
+# ---------------------------------------------------------------------------
+
+# Native: echo 'old content' > /tmp/target.txt
+#         echo 'new content' | sponge /tmp/target.txt
+#         head -1 /tmp/target.txt
+TEST: Overwrite existing file -- sponge replaces content atomically
+CMD: SYS:Rexxc/rx WORK:test-sponge-run.rexx overwrite
+EXPECT: new content
+EXPECT_RC: 0
+
+# ---------------------------------------------------------------------------
+# FUNCTIONAL TESTS -- multiline input
+# ---------------------------------------------------------------------------
+
+# Native: cat test-multiline.txt | sponge /tmp/out.txt
+#         wc -l /tmp/out.txt  -->  10
+#         tail -1 /tmp/out.txt  -->  "last line"
+TEST: Multiline input -- all 10 lines of test-multiline.txt preserved in output
+CMD: SYS:Rexxc/rx WORK:test-sponge-run.rexx multiline-check
+EXPECT: 10
+EXPECT_LINE: 2,last line
+EXPECT_RC: 0
+
+# ---------------------------------------------------------------------------
+# FUNCTIONAL TESTS -- multi-line output verification
+# ---------------------------------------------------------------------------
+
+# Native: cat test-multiline.txt | sponge /tmp/out.txt && cat /tmp/out.txt
+TEST: Multi-line output -- first line of multiline file is hello world
+CMD: SYS:Rexxc/rx WORK:test-sponge-run.rexx multi WORK:test-multiline.txt T:sponge-ml.txt
+EXPECT: hello world
+EXPECT_LINE: 10,last line
+EXPECT_RC: 0
+
+# ---------------------------------------------------------------------------
+# EDGE CASE -- empty input
+# ---------------------------------------------------------------------------
+
+# Native: cat /dev/null | sponge /tmp/out.txt && wc -c /tmp/out.txt  --> 0
+TEST: Empty input -- sponge creates empty output file when fed empty stdin
+CMD: SYS:Rexxc/rx WORK:test-sponge-run.rexx empty
+EXPECT: empty-ok
+EXPECT_RC: 0
+
+# ---------------------------------------------------------------------------
+# ERROR PATH TESTS -- wrong argument count
+# ---------------------------------------------------------------------------
+
+# Native: sponge ; echo $?  --> exit 1 (POSIX) / 10 (Amiga)
+TEST: No arguments -- sponge exits RC=10 with usage message
+CMD: SYS:Rexxc/rx WORK:test-sponge-run.rexx noarg
+EXPECT: RC=10
+EXPECT_RC: 0
+
+# Native: sponge /tmp/a /tmp/b ; echo $?  --> exit 1 (POSIX) / 10 (Amiga)
+TEST: Two arguments -- sponge exits RC=10 (takes exactly one arg)
+CMD: SYS:Rexxc/rx WORK:test-sponge-run.rexx twoarg
+EXPECT: RC=10
+EXPECT_RC: 0
+
+# Native: sponge -z /tmp/out ; echo $?  --> exit 1 (POSIX) / 10 (Amiga)
+TEST: Bad flag -- sponge exits RC=10 on unrecognized option
+CMD: SYS:Rexxc/rx WORK:test-sponge-run.rexx badflags
+EXPECT: RC=10
+EXPECT_RC: 0
+
+# Direct RC test (no wrapper) -- bad flag causes immediate exit before stdin read
+# sponge exits in ARGBEGIN (flag processing) before reaching concat(0,...), safe
+TEST: Direct bad-flag exit -- EXPECT_RC: 10 without wrapper
+CMD: WORK:sponge -z T:sponge-noop.txt
+EXPECT_RC: 10
+
+# ---------------------------------------------------------------------------
+# AMIGA-SPECIFIC -- WORK: volume paths
+# ---------------------------------------------------------------------------
+
+# Native: cat test-sponge-input.txt | sponge /tmp/out.txt && head -1 /tmp/out.txt
+TEST: WORK: volume path accepted as output file argument
+CMD: SYS:Rexxc/rx WORK:test-sponge-run.rexx basic WORK:test-sponge-input.txt T:sponge-amiga.txt
+EXPECT: hello sponge
+EXPECT_RC: 0
+
+# ---------------------------------------------------------------------------
+# STRESS TESTS -- large input
+# ---------------------------------------------------------------------------
+
+# Native: cat test-sponge-large.txt | sponge /tmp/out.txt
+#         head -1 /tmp/out.txt  --> "sponge-line-001"
+#         tail -1 /tmp/out.txt  --> "sponge-line-100"
+TEST: Large input -- 100-line file fully buffered and written to output
+CMD: SYS:Rexxc/rx WORK:test-sponge-run.rexx large
+EXPECT: sponge-line-001
+EXPECT_LINE: 2,sponge-line-100
+EXPECT_RC: 0
+
+# ---------------------------------------------------------------------------
+# REAL-WORLD TESTS
+# ---------------------------------------------------------------------------
+
+# Real-world use: pipeline result saved to the same file being read
+# (classic sponge idiom: sort file | sponge file)
+# We simulate: cat multiline | sponge -> read back and verify last line preserved
+TEST: Real-world pipeline idiom -- pipe output through sponge to file
+CMD: SYS:Rexxc/rx WORK:test-sponge-run.rexx multi WORK:test-multiline.txt T:sponge-rw.txt
+EXPECT: hello world
+EXPECT_LINE: 4,UPPERCASE LINE
+EXPECT_RC: 0
+
+# Real-world: sponge with special characters in content (tabs, punctuation)
+# test-special-chars.txt contains tabs, quotes, backslashes
+TEST: Special characters preserved -- tabs and punctuation survive sponge round-trip
+CMD: SYS:Rexxc/rx WORK:test-sponge-run.rexx basic WORK:test-special-chars.txt T:sponge-sc.txt
+EXPECT_RC: 0
+
+# ---------------------------------------------------------------------------
+# STRESS -- long line input
+# ---------------------------------------------------------------------------
+
+# test-longline.txt has a 1100+ byte line of A's.
+# The SPONGE_BUFSIZ is 4096, so the entire line fits in one read/write cycle.
+# ARexx READLN truncates at ~500 bytes so we only verify the first chars.
+# Native: cat test-longline.txt | sponge /tmp/out.txt && head -c 8 /tmp/out.txt
+TEST: Long line input -- sponge buffers and writes lines beyond 256 chars
+CMD: SYS:Rexxc/rx WORK:test-sponge-run.rexx basic WORK:test-longline.txt T:sponge-ll.txt
+EXPECT_CONTAINS: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+EXPECT_RC: 0

@@ -34,11 +34,12 @@ This was discovered during a parallel batch port (2026-03-25) where 3 ports were
 
 ## Enforcement
 
-Three layers:
+Four layers:
 
 1. **Pre-commit hook** (`.githooks/pre-commit`): Blocks commits where the two catalog files differ.
-2. **Pre-push hook** (`.githooks/pre-push`): Deploys `site/` to Dreamhost on every push via rsync. The live site always matches git.
-3. **Skills/agents**: batch-port-parallel, port-project, and amiport-publisher must all sync catalogs as part of their workflow.
+2. **Pre-commit hook** (`check-port-metadata.sh` Check 8): Fails if a completed port (`ports/<name>/` with binary + test suite) is still in `candidates[]` instead of `ported[]`. Warns if a port directory exists but has no catalog entry at all.
+3. **Pre-push hook** (`.githooks/pre-push`): Deploys `site/` to Dreamhost on every push via rsync. The live site always matches git.
+4. **Skills/agents**: batch-port-parallel, port-project, and amiport-publisher must all sync catalogs as part of their workflow.
 
 ## Homepage Package Count
 

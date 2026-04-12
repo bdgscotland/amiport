@@ -1,0 +1,99 @@
+# test-fsemu-cases.txt -- logname 1.10 FS-UAE test suite
+# Category: 1 (CLI tool, no flags, no file I/O)
+# Minimum tests: 8
+#
+# logname prints the login name and exits 0.
+# On AmigaOS, amiport_getlogin() always returns "amiga".
+# Any argument (flag or positional) triggers usage() + exit(10).
+# Error messages go to stderr (not captured by harness).
+# All EXPECT_RC: 10 tests rely on exit code only -- stderr not captured.
+
+# --- Functional tests ---
+
+# Native: logname
+TEST: Normal execution prints login name
+CMD: WORK:logname
+EXPECT: amiga
+EXPECT_RC: 0
+
+# --- Error path tests: flags ---
+# Any unknown flag goes to default: case -> usage() -> exit(10)
+# Error message goes to stderr (not captured), stdout is empty.
+
+TEST: Unknown short flag exits with error
+CMD: WORK:logname -x
+EXPECT_RC: 10
+
+TEST: Unknown short flag -h exits with error (no --help support)
+CMD: WORK:logname -h
+EXPECT_RC: 10
+
+TEST: Unknown short flag -v exits with error
+CMD: WORK:logname -v
+EXPECT_RC: 10
+
+# --- Error path tests: positional arguments ---
+# getopt("") finishes with optind=1, then argc(2) != optind(1) -> usage()
+
+TEST: Single positional argument exits with error
+CMD: WORK:logname somearg
+EXPECT_RC: 10
+
+TEST: Multiple positional arguments exits with error
+CMD: WORK:logname foo bar baz
+EXPECT_RC: 10
+
+# --- Edge case: end-of-options marker ---
+# getopt("") sees "--", advances optind to 2, returns -1
+# Then argc(2) == optind(2), so no usage() is called
+# Amiga port prints "amiga" with RC=0 (differs from macOS behavior)
+
+# Native (OpenBSD): logname -- prints login name (argc==optind after --)
+TEST: Double-dash end-of-options prints login name
+CMD: WORK:logname --
+EXPECT: amiga
+EXPECT_RC: 0
+
+# --- Amiga-specific tests ---
+
+# Verify WORK: volume path resolution works
+TEST: Binary runs from WORK volume path
+CMD: WORK:logname
+EXPECT: amiga
+EXPECT_RC: 0
+
+# Verify output is exactly "amiga" with no trailing garbage
+TEST: Output is exactly the string amiga
+CMD: WORK:logname
+EXPECT: amiga
+EXPECT_RC: 0
+
+# --- Real-world tests ---
+
+# Simulate a script that captures logname output (common shell idiom)
+# On Amiga this always yields "amiga" -- verify the exact value
+# Native: logname
+TEST: Output is suitable for use as a username (no spaces, no newline garbage)
+CMD: WORK:logname
+EXPECT: amiga
+EXPECT_RC: 0
+
+# Verify idempotency: second invocation gives same result
+# Native: logname; logname (both print login name)
+TEST: Repeated invocation produces consistent output
+CMD: WORK:logname
+EXPECT: amiga
+EXPECT_RC: 0
+
+# --- Stress tests ---
+
+# logname is stateless and trivial; the only meaningful stress is
+# verifying error handling does not vary under repeated error conditions.
+
+TEST: Flag with value treated as two bad arguments exits with error
+CMD: WORK:logname -f value
+EXPECT_RC: 10
+
+TEST: Numeric argument is treated as positional, exits with error
+CMD: WORK:logname 42
+EXPECT_RC: 10

@@ -688,3 +688,15 @@ while ((p = strsep(&pathcpy, ";")) != NULL) {
 Also handle `:` in basename extraction — `strrchr(path, '/')` misses `T:file.txt` where the volume prefix should be stripped.
 
 Discovered in the which 1.27 port (2026-04-11) — default PATH "C:" was split into "C" + empty, and mv's basename extraction used `T:file.txt` as the entire filename when moving into a directory.
+
+## errno Set by amiport Shim Functions Is Invisible to Calling Code
+
+libc.a (newlib-based) defines `__errno` as a **function** (`int *__errno(void)`) returning `__impure_ptr` (the reent struct where `_errno` is the first field). But `errno.h` declares `extern int *__errno` as a data pointer. When libamiport.a provides a weak `int *__errno = &fallback` data variable, the linker prefers the **defined data symbol** over libc.a's **archive function** — our weak variable hides libc.a's function entirely. Result: `amiport_map_errno()` writes to `fallback`, but calling code reads from `__impure_ptr[0]` (the real errno). errno appears as 0 after every shim call.
+
+**Impact:** Any port that checks `errno` after an amiport shim function (utimensat, unlink, stat, open, etc.) sees `errno == 0` regardless of the actual error. This breaks error-recovery logic like `if (errno != ENOENT)` in touch and `if (fflag && errno == ENOENT)` in rm.
+
+**Fix (applied 2026-04-11):** `amiport_map_errno()` now writes through BOTH `errno` (the macro, hits our weak pointer) AND `__impure_ptr` directly (hits libnix's real storage). Belt-and-suspenders: if either path reaches the caller, errno is visible. The root cause (weak data vs archive function) is a linker behavior that cannot be fixed without changing the toolchain.
+
+**Detection:** If a port checks errno after a shim call and gets 0 when it should get ENOENT/EACCES/etc., this is the cause. Add `printf("errno=%d\n", errno)` immediately after the shim call — if it prints 0, the shim's errno write is invisible.
+
+Discovered in the touch 1.27 + rm 1.45 batch (2026-04-11) — touch failed to create new files because utimensat returned -1 with errno=0 (not ENOENT), skipping the file creation path.

@@ -1,0 +1,176 @@
+# test-fsemu-cases.txt -- touch 1.27 FS-UAE test suite
+# Category 1 (CLI tool) -- minimum 8 tests required
+#
+# Flags from source getopt("acd:fmr:t:"):
+#   -a  update access time only (no effect on AmigaOS -- atime not stored)
+#   -c  do not create file if nonexistent (creates if exists)
+#   -d  ISO 8601 date string [[YYYY-MM-DDThh:mm:ss[.frac][Z]]
+#   -f  silently ignored (BSD compatibility stub)
+#   -m  update modification time only
+#   -r  copy timestamp from reference file
+#   -t  numeric timestamp [[CC]YY]MMDDhhmm[.SS]
+#
+# Exit codes from source:
+#   RC=0  -- RETURN_OK: success (file created/updated)
+#   RC=10 -- RETURN_ERROR: usage() (no args, invalid flag), bad timestamp,
+#             nonexistent -r reference file, file open failure
+#
+# IMPORTANT: touch produces no stdout output. All operations are silent on
+# success; errors go to stderr (not captured by harness). All functional
+# tests use ARexx wrapper scripts that:
+#   1. Set up preconditions (create/delete temp files in T:)
+#   2. Run WORK:touch with specific arguments
+#   3. Verify results via ARexx EXISTS() checks
+#   4. Print "OK" or "FAIL: reason" to stdout
+#   5. Clean up all temp files
+#
+# Error path tests use direct CMD: lines (error fires before any filesystem
+# change; error messages go to stderr only -- use EXPECT_RC: only).
+#
+# Test count: 18 tests (minimum 8 for Category 1)
+
+# ===========================================================
+# ERROR PATH TESTS -- no setup required, error fires immediately
+# ===========================================================
+
+# Source: argc == 0 after getopt strip -> usage() -> exit(10)
+# Error message goes to stderr (not captured). RC=10 is the gate.
+TEST: No arguments prints usage and returns RC 10
+CMD: WORK:touch
+EXPECT_RC: 10
+
+# Source: getopt default case -> usage() -> exit(10)
+# Unknown flag -Z triggers usage error immediately.
+TEST: Unknown flag -Z returns usage error RC 10
+CMD: WORK:touch -Z T:touch_unused.txt
+EXPECT_RC: 10
+
+# Source: stime_arg1 -> goto terr -> errx(10, "out of range...")
+# Bad -t format (not digits): errx exits with RC=10 before any file ops.
+TEST: Invalid -t format returns RC 10
+CMD: WORK:touch -t BADFORMAT T:touch_unused2.txt
+EXPECT_RC: 10
+
+# Source: stime_file -> stat() fails -> err(10, fname)
+# Nonexistent reference file for -r causes immediate err(10).
+TEST: Nonexistent reference file for -r returns RC 10
+CMD: WORK:touch -r T:no_such_ref_xyz_001.txt T:touch_unused3.txt
+EXPECT_RC: 10
+
+# Source: stime_argd -> goto terr -> errx(10, "out of range...")
+# Bad -d format (not ISO 8601): errx exits with RC=10.
+TEST: Invalid -d format returns RC 10
+CMD: WORK:touch -d not-a-date T:touch_unused4.txt
+EXPECT_RC: 10
+
+# ===========================================================
+# FUNCTIONAL TESTS -- via ARexx wrappers
+# ===========================================================
+
+# Native: touch /tmp/newfile.txt && ls /tmp/newfile.txt -> exists, 0 bytes
+TEST: Create new file with touch (basic creation)
+CMD: SYS:Rexxc/rx WORK:test-touch-create.rexx
+EXPECT: OK
+EXPECT_RC: 0
+
+# Native: touch /tmp/existing.txt (already exists) -> RC=0, file unchanged
+TEST: Touch existing file updates it, returns RC 0
+CMD: SYS:Rexxc/rx WORK:test-touch-existing.rexx
+EXPECT: OK
+EXPECT_RC: 0
+
+# Native: touch -c /tmp/nosuchfile.txt -> RC=0, file NOT created
+TEST: -c flag does not create nonexistent file but returns RC 0
+CMD: SYS:Rexxc/rx WORK:test-touch-nocreate.rexx
+EXPECT: OK
+EXPECT_RC: 0
+
+# Native: touch -c /tmp/exists.txt -> RC=0, file still exists (updated)
+TEST: -c flag on existing file updates it, file remains, RC 0
+CMD: SYS:Rexxc/rx WORK:test-touch-nocreate-existing.rexx
+EXPECT: OK
+EXPECT_RC: 0
+
+# Native: touch -t 202401010000 /tmp/f.txt -> RC=0, file created
+TEST: -t numeric timestamp creates file with RC 0
+CMD: SYS:Rexxc/rx WORK:test-touch-timestamp.rexx
+EXPECT: OK
+EXPECT_RC: 0
+
+# Native: touch -d "2024-06-15T12:00:00" /tmp/f.txt -> RC=0, file created
+TEST: -d ISO 8601 date string creates file with RC 0
+CMD: SYS:Rexxc/rx WORK:test-touch-datestr.rexx
+EXPECT: OK
+EXPECT_RC: 0
+
+# Native: touch -r /tmp/ref.txt /tmp/dst.txt -> RC=0, dst created with ref's mtime
+TEST: -r reference file flag copies timestamp, RC 0
+CMD: SYS:Rexxc/rx WORK:test-touch-reffile.rexx
+EXPECT: OK
+EXPECT_RC: 0
+
+# Native: touch -m /tmp/f.txt -> RC=0, file created (mtime updated, atime omitted)
+TEST: -m flag updates mtime only, creates file, RC 0
+CMD: SYS:Rexxc/rx WORK:test-touch-mflag.rexx
+EXPECT: OK
+EXPECT_RC: 0
+
+# Native: touch -a /tmp/f.txt -> RC=0, file created (atime is no-op on AmigaOS)
+TEST: -a flag accepted on AmigaOS (no-op for atime), creates file, RC 0
+CMD: SYS:Rexxc/rx WORK:test-touch-aflag.rexx
+EXPECT: OK
+EXPECT_RC: 0
+
+# Native: touch -f /tmp/f.txt -> RC=0 (BSD compat, -f ignored)
+TEST: -f flag silently ignored, creates file, RC 0
+CMD: SYS:Rexxc/rx WORK:test-touch-fflag.rexx
+EXPECT: OK
+EXPECT_RC: 0
+
+# Native: touch /tmp/a.txt /tmp/b.txt /tmp/c.txt -> all three created, RC=0
+TEST: Multiple files created in single invocation, RC 0
+CMD: SYS:Rexxc/rx WORK:test-touch-multifile.rexx
+EXPECT: OK
+EXPECT_RC: 0
+
+# Native: touch -m -t 202309150830 /tmp/f.txt -> RC=0 (combined flags)
+TEST: Combined -m -t flags create file with specific mtime, RC 0
+CMD: SYS:Rexxc/rx WORK:test-touch-combined.rexx
+EXPECT: OK
+EXPECT_RC: 0
+
+# ===========================================================
+# AMIGA-SPECIFIC TESTS
+# ===========================================================
+
+# AmigaOS uses volume:path notation (T:, WORK:, DH0:).
+# Verifies touch handles AmigaDOS T: volume prefix correctly.
+TEST: Touch file on T: AmigaDOS volume notation works, RC 0
+CMD: SYS:Rexxc/rx WORK:test-touch-workpath.rexx
+EXPECT: OK
+EXPECT_RC: 0
+
+# ===========================================================
+# REAL-WORLD AND STRESS TESTS
+# ===========================================================
+
+# Real-world: Makefile/build-system pattern -- create sentinel/lock files
+# to track build steps. Simulates typical scripting use of touch.
+TEST: Real-world build sentinel file pattern creates all markers
+CMD: SYS:Rexxc/rx WORK:test-touch-realworld.rexx
+EXPECT: OK
+EXPECT_RC: 0
+
+# Stress: touch 20 files in one invocation -- tests argv handling,
+# argument list processing, and fd allocation under load.
+TEST: Stress create 20 files in single invocation
+CMD: SYS:Rexxc/rx WORK:test-touch-stress.rexx
+EXPECT: OK
+EXPECT_RC: 0
+
+# Precision: -r copies timestamp to new file -- tests amiport_stat()
+# and amiport_utimensat() round-trip accuracy. Combined with -t override.
+TEST: Combined -r reference with -t override creates file correctly
+CMD: SYS:Rexxc/rx WORK:test-touch-reftimestamp.rexx
+EXPECT: OK
+EXPECT_RC: 0

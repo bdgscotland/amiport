@@ -52,24 +52,29 @@ AmigaOS predates POSIX. There is no `stat()`, no `opendir()`, no `getopt()`, no 
 | [jot](ports/jot/) | 1.56 | OpenBSD | Built & tested |
 | [jq](ports/jq/) | 1.7.1-2 | jqlang | Submitted to Aminet |
 | [ln](ports/ln/) | 1.25 | OpenBSD | Built & tested |
+| [logname](ports/logname/) | 1.10 | OpenBSD | Built & tested |
 | [look](ports/look/) | 1.27-2 | OpenBSD | Built & tested |
 | [mkdir](ports/mkdir/) | 1.31 | OpenBSD | Built & tested |
 | [mv](ports/mv/) | 1.47 | OpenBSD | Published on amiport |
 | [nl](ports/nl/) | 1.8-2 | OpenBSD | Built & tested |
 | [paste](ports/paste/) | 1.27 | OpenBSD | Built & tested |
 | [patch](ports/patch/) | 1.78 | OpenBSD | Built & tested |
+| [pr](ports/pr/) | 1.46 | OpenBSD | Built & tested |
 | [printenv](ports/printenv/) | 1.8 | OpenBSD | Built & tested |
 | [printf](ports/printf/) | 1.28 | OpenBSD | Built & tested |
 | [rev](ports/rev/) | 1.16 | OpenBSD | Built & tested |
+| [rm](ports/rm/) | 1.45 | OpenBSD | Built & tested |
 | [rmdir](ports/rmdir/) | 1.15 | OpenBSD | Built & tested |
 | [rs](ports/rs/) | 1.30 | OpenBSD | Built & tested |
 | [sed](ports/sed/) | 1.47 | OpenBSD | [Aminet](https://aminet.net/package/util/cli/sed-1.47) |
 | [seq](ports/seq/) | 1.8 | OpenBSD | Published on amiport |
 | [sleep](ports/sleep/) | 1.29 | OpenBSD | Built & tested |
 | [sort](ports/sort/) | 1.0 | Plan 9 | Built & tested |
+| [sponge](ports/sponge/) | 0.1 | sbase | Built & tested |
 | [strings](ports/strings/) | 1.0 | Custom | Published on amiport |
 | [tail](ports/tail/) | 1.24 | OpenBSD | Built & tested |
 | [tee](ports/tee/) | 1.15 | OpenBSD | [Aminet](https://aminet.net/package/util/cli/tee-1.15) |
+| [touch](ports/touch/) | 1.27 | OpenBSD | Built & tested |
 | [test](ports/test/) | 1.23 | OpenBSD | Built & tested |
 | [tr](ports/tr/) | 1.22-2 | OpenBSD | Built & tested |
 | [true](ports/true/) | 1.1 | OpenBSD | Built & tested |

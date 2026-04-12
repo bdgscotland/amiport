@@ -14,6 +14,7 @@ set -euo pipefail
 #   5. TEST-REPORT.md quality (if present)
 #   6. No stray build artifacts (.lha, gmon.out, *_native, *.map, *.o in ported/)
 #   7. README↔PORTS.md Aminet status consistency
+#   8. Catalog orphans: ports/ dirs that aren't in ported[] of catalog.json
 #
 # Exit 0 if all ports pass, exit 1 if any fail.
 
@@ -335,6 +336,64 @@ for dir in "$PORTS_DIR"/*/; do
     [ "$port_warned" -gt 0 ] && [ "$port_failed" -eq 0 ] && warned=$((warned + 1))
     echo ""
 done
+
+# ----------------------------------------------------------
+# Check 8: Catalog orphans — ports/ dirs missing from ported[] in catalog.json
+# ----------------------------------------------------------
+CATALOG_FILE="${CATALOG_FILE:-data/catalog.json}"
+if [ -f "$CATALOG_FILE" ]; then
+    echo "--- Catalog orphan check ---"
+    catalog_orphans=0
+    for dir in "$PORTS_DIR"/*/; do
+        name=$(basename "$dir")
+        [ ! -f "$dir/Makefile" ] && continue
+        [ "$name" = "templates" ] || [ "$name" = "common-test-data" ] && continue
+
+        # Check if name appears in ported[] array
+        in_ported=$(python3 -c "
+import json, sys
+with open('$CATALOG_FILE') as f:
+    cat = json.load(f)
+for p in cat.get('ported', []):
+    if p['name'] == '$name':
+        sys.exit(0)
+sys.exit(1)
+" 2>/dev/null && echo "yes" || echo "no")
+
+        if [ "$in_ported" = "no" ]; then
+            # Also check if it's in candidates (stale entry)
+            in_candidates=$(python3 -c "
+import json, sys
+with open('$CATALOG_FILE') as f:
+    cat = json.load(f)
+for c in cat.get('candidates', []):
+    if c['name'] == '$name':
+        sys.exit(0)
+sys.exit(1)
+" 2>/dev/null && echo "yes" || echo "no")
+
+            # If there's a compiled binary AND test suite, this is a completed port — hard fail
+            # Otherwise it's WIP — just warn
+            if [ -f "$dir/$name" ] && [ -f "$dir/test-fsemu-cases.txt" ]; then
+                if [ "$in_candidates" = "yes" ]; then
+                    echo "FAIL  $name: catalog — completed port still in candidates[] (should be in ported[])"
+                    failed=$((failed + 1))
+                else
+                    echo "WARN  $name: catalog — completed port missing from catalog.json entirely"
+                    warned=$((warned + 1))
+                fi
+            else
+                echo "WARN  $name: catalog — port directory exists without binary (WIP?) and no catalog entry"
+                warned=$((warned + 1))
+            fi
+            catalog_orphans=$((catalog_orphans + 1))
+        fi
+    done
+    if [ "$catalog_orphans" -eq 0 ]; then
+        echo "PASS  all ports have catalog.json ported[] entries"
+    fi
+    echo ""
+fi
 
 echo "Checked $checked ports: $((checked - failed - warned)) clean, $warned warnings, $failed failed"
 

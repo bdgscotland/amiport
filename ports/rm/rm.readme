@@ -1,0 +1,32 @@
+Short:        Remove directory entries
+Type:         util/cli
+Architecture: m68k-amigaos >= 3.0
+Uploader:     duncan@bowring.us
+Author:       The Regents of the University of California (ported by Duncan Bowring)
+Version:      1.45
+
+rm - Remove directory entries
+
+Original author: The Regents of the University of California
+Ported by Duncan Bowring using amiport (AI-assisted porting toolkit).
+Project: https://github.com/bdgscotland/amiport
+
+Cross-compiled with m68k-amigaos-gcc for AmigaOS 3.x (68000+).
+Tested in vamos emulator and FS-UAE.
+
+Usage:
+  rm [-dfiRrv] file ...
+
+Options:
+  -d      Attempt to remove directories as well as files
+  -f      Force removal without prompting
+  -i      Prompt before each removal
+  -R/-r   Remove directories and their contents recursively
+  -v      Verbose: print files as they are removed
+
+Note: The -P (secure overwrite) flag is accepted but has no
+effect on AmigaOS. AmigaOS has no multi-user security model
+requiring data sanitization before deletion.
+
+Includes full source code (original POSIX and ported Amiga versions)
+and PORT.md documenting every transformation applied.
