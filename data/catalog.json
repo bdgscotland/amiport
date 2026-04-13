@@ -3102,6 +3102,23 @@
   ],
   "ported": [
     {
+      "id": "amigit",
+      "name": "amigit",
+      "description": "Local-only git client for AmigaOS 3.x",
+      "amiport_category": "cli",
+      "aminet_category": "dev/misc",
+      "upstream": {
+        "source": "amiport-native (built on libgit2 1.8.5)",
+        "version": "0.1",
+        "license": "GPL-2.0 (libgit2) + MIT (amiport code)"
+      },
+      "status": "ported",
+      "measured_binary_kb": 1060,
+      "test_count": 81,
+      "test_pass_rate": 1.0,
+      "ported_date": "2026-04-13"
+    },
+    {
       "id": "amiport",
       "name": "amiport",
       "version": "1.0",
@@ -3118,6 +3135,26 @@
       "test_count": 8,
       "test_pass_rate": 1.0,
       "hardware_verified": []
+    },
+    {
+      "id": "awk-plan9",
+      "name": "awk",
+      "description": "Pattern scanning and processing language",
+      "amiport_category": "scripting",
+      "aminet_category": "dev/lang",
+      "upstream": {
+        "source": "plan9",
+        "version": "latest",
+        "license": "Lucent-1.02",
+        "url": "https://github.com/9fans/plan9port/tree/master/src/cmd/awk",
+        "files": 10,
+        "lines_of_code": 4596
+      },
+      "status": "ported",
+      "measured_binary_kb": 169,
+      "test_count": 134,
+      "test_pass_rate": 1.0,
+      "ported_date": "2026-03-25"
     },
     {
       "name": "basename",
@@ -3200,6 +3237,60 @@
       "test_count": 37,
       "test_pass_rate": 1.0,
       "hardware_verified": []
+    },
+    {
+      "id": "cmp",
+      "name": "cmp",
+      "description": "Compare two files byte by byte",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream": {
+        "source": "openbsd",
+        "version": "1.19",
+        "license": "BSD-3-Clause",
+        "url": "https://cvsweb.openbsd.org/src/usr.bin/cmp/",
+        "files": 4,
+        "lines_of_code": 475
+      },
+      "status": "published",
+      "analysis_status": "complete",
+      "publishable": true,
+      "notes": "Multi-file (cmp.c + regular.c + special.c + misc.c); uses open/fstat/mmap (all implemented); pure file comparison",
+      "readiness": {
+        "score": 0.951,
+        "tier": "ready"
+      },
+      "hardware_fit": {
+        "stock_a1200": "fits",
+        "a1200_accel": "fits",
+        "a4000_030": "fits"
+      },
+      "analysis": {
+        "analyzed_date": "2026-03-25",
+        "analyzer_version": "1.0",
+        "shim_library_version": "1.0",
+        "posix_tier_mix": {
+          "tier1": 5,
+          "tier2": 1,
+          "tier3": 0
+        },
+        "missing_shims": [],
+        "blocking_shims": [],
+        "blocker_workaround": null,
+        "dependencies": [],
+        "source_complexity": 0.95,
+        "estimated_stack_kb": 16,
+        "estimated_binary_kb": 18,
+        "estimated_data_kb": 2
+      },
+      "aminet_status": "missing",
+      "aminet_notes": "No standalone Aminet package found. File comparison tool. Not in standard Amiga tools.",
+      "community_value": 4,
+      "community_value_reason": "Byte-level file comparison \u2014 AmigaDOS has no equivalent.",
+      "measured_binary_kb": 39,
+      "test_count": 30,
+      "test_pass_rate": 1.0,
+      "measured_stack_kb": 16
     },
     {
       "id": "col",
@@ -3337,6 +3428,26 @@
       "status": "published",
       "measured_stack_kb": 8,
       "id": "echo"
+    },
+    {
+      "id": "expand",
+      "name": "expand",
+      "description": "Convert tabs to spaces",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream": {
+        "source": "openbsd",
+        "version": "latest",
+        "license": "BSD-3-Clause",
+        "url": "https://cvsweb.openbsd.org/src/usr.bin/expand/",
+        "files": 1,
+        "lines_of_code": 160
+      },
+      "status": "ported",
+      "measured_binary_kb": 36,
+      "test_count": 29,
+      "test_pass_rate": 1.0,
+      "ported_date": "2026-03-25"
     },
     {
       "name": "expr",
@@ -3541,6 +3652,24 @@
       "id": "ln"
     },
     {
+      "id": "logname",
+      "name": "logname",
+      "description": "Display user's login name",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream": {
+        "source": "openbsd",
+        "version": "1.10",
+        "license": "BSD-3-Clause"
+      },
+      "status": "published",
+      "measured_binary_kb": 34,
+      "test_count": 13,
+      "test_pass_rate": 1.0,
+      "ported_date": "2026-04-11",
+      "measured_stack_kb": 4
+    },
+    {
       "name": "look",
       "version": "1.27",
       "category": 1,
@@ -3604,6 +3733,60 @@
       "id": "mkdir"
     },
     {
+      "id": "mv",
+      "name": "mv",
+      "description": "Move or rename files",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream": {
+        "source": "openbsd",
+        "version": "1.47",
+        "license": "BSD-3-Clause",
+        "url": "https://cvsweb.openbsd.org/src/bin/mv/",
+        "files": 1,
+        "lines_of_code": 394
+      },
+      "status": "published",
+      "analysis_status": "complete",
+      "publishable": true,
+      "notes": "Move/rename files. Calls cpmain/rmmain directly for cross-device (no fork). fchmod/fchown are trivial no-op stubs. Feasible.",
+      "readiness": {
+        "score": 0.968,
+        "tier": "ready"
+      },
+      "hardware_fit": {
+        "stock_a1200": "fits",
+        "a1200_accel": "fits",
+        "a4000_030": "fits"
+      },
+      "analysis": {
+        "analyzed_date": "2026-03-25",
+        "analyzer_version": "1.0",
+        "shim_library_version": "1.0",
+        "posix_tier_mix": {
+          "tier1": 17,
+          "tier2": 0,
+          "tier3": 2
+        },
+        "missing_shims": [],
+        "blocking_shims": [],
+        "blocker_workaround": "fchmod/fchown can be no-op stubs \u2014 AmigaOS has limited permission model. Uses cpmain/rmmain directly (no fork).",
+        "dependencies": [],
+        "source_complexity": 0.96,
+        "estimated_stack_kb": 16,
+        "estimated_binary_kb": 29,
+        "estimated_data_kb": 2
+      },
+      "aminet_status": "exists",
+      "aminet_notes": "GNU coreutils 5.2.1-9 (m68k, 2010). Note: version is from 2005, 20+ years old but functional.",
+      "community_value": 3,
+      "community_value_reason": "Move files \u2014 AmigaDOS RENAME exists and works for most cases.",
+      "measured_binary_kb": 39,
+      "test_count": 20,
+      "test_pass_rate": 1.0,
+      "measured_stack_kb": 16
+    },
+    {
       "name": "nl",
       "version": "1.8",
       "category": 1,
@@ -3648,6 +3831,24 @@
       ]
     },
     {
+      "id": "pr",
+      "name": "pr",
+      "description": "Print files for page display",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream": {
+        "source": "openbsd",
+        "version": "1.46",
+        "license": "BSD-3-Clause"
+      },
+      "status": "published",
+      "measured_binary_kb": 58,
+      "test_count": 32,
+      "test_pass_rate": 1.0,
+      "ported_date": "2026-04-11",
+      "measured_stack_kb": 32
+    },
+    {
       "name": "printenv",
       "version": "1.8",
       "description": "Print environment variables",
@@ -3687,6 +3888,24 @@
       "test_count": 24,
       "test_pass_rate": 1.0,
       "status": "ported"
+    },
+    {
+      "id": "rm",
+      "name": "rm",
+      "description": "Remove directory entries",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream": {
+        "source": "openbsd",
+        "version": "1.45",
+        "license": "BSD-3-Clause"
+      },
+      "status": "published",
+      "measured_binary_kb": 44,
+      "test_count": 18,
+      "test_pass_rate": 0.9444,
+      "ported_date": "2026-04-11",
+      "measured_stack_kb": 16
     },
     {
       "name": "rmdir",
@@ -3732,6 +3951,60 @@
       ]
     },
     {
+      "id": "seq",
+      "name": "seq",
+      "description": "Print sequences of numbers",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream": {
+        "source": "openbsd",
+        "version": "1.8",
+        "license": "ISC",
+        "url": "https://cvsweb.openbsd.org/src/usr.bin/jot/",
+        "files": 1,
+        "lines_of_code": 400
+      },
+      "status": "published",
+      "analysis_status": "complete",
+      "publishable": true,
+      "notes": "OpenBSD has standalone seq (separate from jot); uses getopt_long/asprintf/localeconv; pure math + formatting",
+      "readiness": {
+        "score": 0.994,
+        "tier": "ready"
+      },
+      "hardware_fit": {
+        "stock_a1200": "fits",
+        "a1200_accel": "fits",
+        "a4000_030": "fits"
+      },
+      "analysis": {
+        "analyzed_date": "2026-03-25",
+        "analyzer_version": "1.0",
+        "shim_library_version": "1.0",
+        "posix_tier_mix": {
+          "tier1": 4,
+          "tier2": 0,
+          "tier3": 0
+        },
+        "missing_shims": [],
+        "blocking_shims": [],
+        "blocker_workaround": "localeconv can return stub struct with '.' as decimal point",
+        "dependencies": [],
+        "source_complexity": 0.96,
+        "estimated_stack_kb": 8,
+        "estimated_binary_kb": 16,
+        "estimated_data_kb": 1
+      },
+      "aminet_status": "missing",
+      "aminet_notes": "No Aminet package found. GNU utility for generating number sequences. Not in standard Amiga tools.",
+      "community_value": 4,
+      "community_value_reason": "Generate number sequences \u2014 useful for loop scripting.",
+      "measured_binary_kb": 53,
+      "measured_stack_kb": 8,
+      "test_count": 47,
+      "test_pass_rate": 1.0
+    },
+    {
       "name": "sleep",
       "version": "1.29",
       "description": "Suspend execution for an interval",
@@ -3761,6 +4034,77 @@
       "hardware_verified": [
         "a1200_accel"
       ]
+    },
+    {
+      "id": "sponge",
+      "name": "sponge",
+      "description": "Soak up stdin and write to file",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream": {
+        "source": "sbase",
+        "version": "0.1",
+        "license": "MIT"
+      },
+      "status": "ported",
+      "measured_binary_kb": 33,
+      "test_count": 15,
+      "test_pass_rate": 1.0,
+      "ported_date": "2026-04-11"
+    },
+    {
+      "id": "strings",
+      "name": "strings",
+      "description": "Find printable strings in files",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream": {
+        "source": "openbsd",
+        "version": "1.0",
+        "license": "BSD-3-Clause",
+        "url": "https://cvsweb.openbsd.org/src/usr.bin/strings/",
+        "files": 1,
+        "lines_of_code": 200
+      },
+      "status": "published",
+      "analysis_status": "complete",
+      "publishable": true,
+      "notes": "NOT a standalone OpenBSD utility \u2014 strings is from binutils/ELF toolchain. Need alternative source (FreeBSD or sbase). Analysis deferred.",
+      "readiness": {
+        "score": 0.995,
+        "tier": "ready"
+      },
+      "hardware_fit": {
+        "stock_a1200": "fits",
+        "a1200_accel": "fits",
+        "a4000_030": "fits"
+      },
+      "analysis": {
+        "analyzed_date": "2026-03-25",
+        "analyzer_version": "1.0",
+        "shim_library_version": "1.0",
+        "posix_tier_mix": {
+          "tier1": 3,
+          "tier2": 0,
+          "tier3": 0
+        },
+        "missing_shims": [],
+        "blocking_shims": [],
+        "blocker_workaround": null,
+        "dependencies": [],
+        "source_complexity": 0.97,
+        "estimated_stack_kb": 8,
+        "estimated_binary_kb": 14,
+        "estimated_data_kb": 1
+      },
+      "aminet_status": "missing",
+      "aminet_notes": "No standalone Aminet package found. Binary analysis tool. Not in standard Amiga distribution.",
+      "community_value": 4,
+      "community_value_reason": "Find printable strings in binaries \u2014 useful for developers.",
+      "measured_binary_kb": 37,
+      "test_count": 38,
+      "test_pass_rate": 1.0,
+      "measured_stack_kb": 8
     },
     {
       "id": "tail",
@@ -3830,6 +4174,24 @@
       "test_count": 18,
       "test_pass_rate": 1.0,
       "hardware_verified": []
+    },
+    {
+      "id": "touch",
+      "name": "touch",
+      "description": "Change file access and modification time",
+      "amiport_category": "cli",
+      "aminet_category": "util/cli",
+      "upstream": {
+        "source": "openbsd",
+        "version": "1.27",
+        "license": "BSD-3-Clause"
+      },
+      "status": "published",
+      "measured_binary_kb": 41,
+      "test_count": 21,
+      "test_pass_rate": 0.9524,
+      "ported_date": "2026-04-11",
+      "measured_stack_kb": 16
     },
     {
       "name": "tr",
@@ -3963,26 +4325,6 @@
       ]
     },
     {
-      "id": "yes",
-      "name": "yes",
-      "version": "1.9",
-      "description": "Repeatedly output a string",
-      "amiport_category": "cli",
-      "aminet_category": "util/cli",
-      "upstream_source": "openbsd",
-      "upstream_license": "BSD-3-Clause",
-      "port_date": "2026-03-20",
-      "aminet_status": "submitted",
-      "aminet_url": "https://aminet.net/package/util/cli/yes-1.9",
-      "measured_binary_kb": null,
-      "measured_stack_kb": null,
-      "test_count": null,
-      "test_pass_rate": 1.0,
-      "hardware_verified": [
-        "a1200_accel"
-      ]
-    },
-    {
       "id": "wget",
       "name": "wget",
       "version": "1.20.3",
@@ -4055,349 +4397,24 @@
       "measured_stack_kb": 16
     },
     {
-      "id": "strings",
-      "name": "strings",
-      "description": "Find printable strings in files",
+      "id": "yes",
+      "name": "yes",
+      "version": "1.9",
+      "description": "Repeatedly output a string",
       "amiport_category": "cli",
       "aminet_category": "util/cli",
-      "upstream": {
-        "source": "openbsd",
-        "version": "1.0",
-        "license": "BSD-3-Clause",
-        "url": "https://cvsweb.openbsd.org/src/usr.bin/strings/",
-        "files": 1,
-        "lines_of_code": 200
-      },
-      "status": "published",
-      "analysis_status": "complete",
-      "publishable": true,
-      "notes": "NOT a standalone OpenBSD utility \u2014 strings is from binutils/ELF toolchain. Need alternative source (FreeBSD or sbase). Analysis deferred.",
-      "readiness": {
-        "score": 0.995,
-        "tier": "ready"
-      },
-      "hardware_fit": {
-        "stock_a1200": "fits",
-        "a1200_accel": "fits",
-        "a4000_030": "fits"
-      },
-      "analysis": {
-        "analyzed_date": "2026-03-25",
-        "analyzer_version": "1.0",
-        "shim_library_version": "1.0",
-        "posix_tier_mix": {
-          "tier1": 3,
-          "tier2": 0,
-          "tier3": 0
-        },
-        "missing_shims": [],
-        "blocking_shims": [],
-        "blocker_workaround": null,
-        "dependencies": [],
-        "source_complexity": 0.97,
-        "estimated_stack_kb": 8,
-        "estimated_binary_kb": 14,
-        "estimated_data_kb": 1
-      },
-      "aminet_status": "missing",
-      "aminet_notes": "No standalone Aminet package found. Binary analysis tool. Not in standard Amiga distribution.",
-      "community_value": 4,
-      "community_value_reason": "Find printable strings in binaries \u2014 useful for developers.",
-      "measured_binary_kb": 37,
-      "test_count": 38,
+      "upstream_source": "openbsd",
+      "upstream_license": "BSD-3-Clause",
+      "port_date": "2026-03-20",
+      "aminet_status": "submitted",
+      "aminet_url": "https://aminet.net/package/util/cli/yes-1.9",
+      "measured_binary_kb": null,
+      "measured_stack_kb": null,
+      "test_count": null,
       "test_pass_rate": 1.0,
-      "measured_stack_kb": 8
-    },
-    {
-      "id": "seq",
-      "name": "seq",
-      "description": "Print sequences of numbers",
-      "amiport_category": "cli",
-      "aminet_category": "util/cli",
-      "upstream": {
-        "source": "openbsd",
-        "version": "1.8",
-        "license": "ISC",
-        "url": "https://cvsweb.openbsd.org/src/usr.bin/jot/",
-        "files": 1,
-        "lines_of_code": 400
-      },
-      "status": "published",
-      "analysis_status": "complete",
-      "publishable": true,
-      "notes": "OpenBSD has standalone seq (separate from jot); uses getopt_long/asprintf/localeconv; pure math + formatting",
-      "readiness": {
-        "score": 0.994,
-        "tier": "ready"
-      },
-      "hardware_fit": {
-        "stock_a1200": "fits",
-        "a1200_accel": "fits",
-        "a4000_030": "fits"
-      },
-      "analysis": {
-        "analyzed_date": "2026-03-25",
-        "analyzer_version": "1.0",
-        "shim_library_version": "1.0",
-        "posix_tier_mix": {
-          "tier1": 4,
-          "tier2": 0,
-          "tier3": 0
-        },
-        "missing_shims": [],
-        "blocking_shims": [],
-        "blocker_workaround": "localeconv can return stub struct with '.' as decimal point",
-        "dependencies": [],
-        "source_complexity": 0.96,
-        "estimated_stack_kb": 8,
-        "estimated_binary_kb": 16,
-        "estimated_data_kb": 1
-      },
-      "aminet_status": "missing",
-      "aminet_notes": "No Aminet package found. GNU utility for generating number sequences. Not in standard Amiga tools.",
-      "community_value": 4,
-      "community_value_reason": "Generate number sequences \u2014 useful for loop scripting.",
-      "measured_binary_kb": 53,
-      "measured_stack_kb": 8,
-      "test_count": 47,
-      "test_pass_rate": 1.0
-    },
-    {
-      "id": "mv",
-      "name": "mv",
-      "description": "Move or rename files",
-      "amiport_category": "cli",
-      "aminet_category": "util/cli",
-      "upstream": {
-        "source": "openbsd",
-        "version": "1.47",
-        "license": "BSD-3-Clause",
-        "url": "https://cvsweb.openbsd.org/src/bin/mv/",
-        "files": 1,
-        "lines_of_code": 394
-      },
-      "status": "published",
-      "analysis_status": "complete",
-      "publishable": true,
-      "notes": "Move/rename files. Calls cpmain/rmmain directly for cross-device (no fork). fchmod/fchown are trivial no-op stubs. Feasible.",
-      "readiness": {
-        "score": 0.968,
-        "tier": "ready"
-      },
-      "hardware_fit": {
-        "stock_a1200": "fits",
-        "a1200_accel": "fits",
-        "a4000_030": "fits"
-      },
-      "analysis": {
-        "analyzed_date": "2026-03-25",
-        "analyzer_version": "1.0",
-        "shim_library_version": "1.0",
-        "posix_tier_mix": {
-          "tier1": 17,
-          "tier2": 0,
-          "tier3": 2
-        },
-        "missing_shims": [],
-        "blocking_shims": [],
-        "blocker_workaround": "fchmod/fchown can be no-op stubs \u2014 AmigaOS has limited permission model. Uses cpmain/rmmain directly (no fork).",
-        "dependencies": [],
-        "source_complexity": 0.96,
-        "estimated_stack_kb": 16,
-        "estimated_binary_kb": 29,
-        "estimated_data_kb": 2
-      },
-      "aminet_status": "exists",
-      "aminet_notes": "GNU coreutils 5.2.1-9 (m68k, 2010). Note: version is from 2005, 20+ years old but functional.",
-      "community_value": 3,
-      "community_value_reason": "Move files \u2014 AmigaDOS RENAME exists and works for most cases.",
-      "measured_binary_kb": 39,
-      "test_count": 20,
-      "test_pass_rate": 1.0,
-      "measured_stack_kb": 16
-    },
-    {
-      "id": "cmp",
-      "name": "cmp",
-      "description": "Compare two files byte by byte",
-      "amiport_category": "cli",
-      "aminet_category": "util/cli",
-      "upstream": {
-        "source": "openbsd",
-        "version": "1.19",
-        "license": "BSD-3-Clause",
-        "url": "https://cvsweb.openbsd.org/src/usr.bin/cmp/",
-        "files": 4,
-        "lines_of_code": 475
-      },
-      "status": "published",
-      "analysis_status": "complete",
-      "publishable": true,
-      "notes": "Multi-file (cmp.c + regular.c + special.c + misc.c); uses open/fstat/mmap (all implemented); pure file comparison",
-      "readiness": {
-        "score": 0.951,
-        "tier": "ready"
-      },
-      "hardware_fit": {
-        "stock_a1200": "fits",
-        "a1200_accel": "fits",
-        "a4000_030": "fits"
-      },
-      "analysis": {
-        "analyzed_date": "2026-03-25",
-        "analyzer_version": "1.0",
-        "shim_library_version": "1.0",
-        "posix_tier_mix": {
-          "tier1": 5,
-          "tier2": 1,
-          "tier3": 0
-        },
-        "missing_shims": [],
-        "blocking_shims": [],
-        "blocker_workaround": null,
-        "dependencies": [],
-        "source_complexity": 0.95,
-        "estimated_stack_kb": 16,
-        "estimated_binary_kb": 18,
-        "estimated_data_kb": 2
-      },
-      "aminet_status": "missing",
-      "aminet_notes": "No standalone Aminet package found. File comparison tool. Not in standard Amiga tools.",
-      "community_value": 4,
-      "community_value_reason": "Byte-level file comparison \u2014 AmigaDOS has no equivalent.",
-      "measured_binary_kb": 39,
-      "test_count": 30,
-      "test_pass_rate": 1.0,
-      "measured_stack_kb": 16
-    },
-    {
-      "id": "expand",
-      "name": "expand",
-      "description": "Convert tabs to spaces",
-      "amiport_category": "cli",
-      "aminet_category": "util/cli",
-      "upstream": {
-        "source": "openbsd",
-        "version": "latest",
-        "license": "BSD-3-Clause",
-        "url": "https://cvsweb.openbsd.org/src/usr.bin/expand/",
-        "files": 1,
-        "lines_of_code": 160
-      },
-      "status": "ported",
-      "measured_binary_kb": 36,
-      "test_count": 29,
-      "test_pass_rate": 1.0,
-      "ported_date": "2026-03-25"
-    },
-    {
-      "id": "awk-plan9",
-      "name": "awk",
-      "description": "Pattern scanning and processing language",
-      "amiport_category": "scripting",
-      "aminet_category": "dev/lang",
-      "upstream": {
-        "source": "plan9",
-        "version": "latest",
-        "license": "Lucent-1.02",
-        "url": "https://github.com/9fans/plan9port/tree/master/src/cmd/awk",
-        "files": 10,
-        "lines_of_code": 4596
-      },
-      "status": "ported",
-      "measured_binary_kb": 169,
-      "test_count": 134,
-      "test_pass_rate": 1.0,
-      "ported_date": "2026-03-25"
-    },
-    {
-      "id": "logname",
-      "name": "logname",
-      "description": "Display user's login name",
-      "amiport_category": "cli",
-      "aminet_category": "util/cli",
-      "upstream": {
-        "source": "openbsd",
-        "version": "1.10",
-        "license": "BSD-3-Clause"
-      },
-      "status": "published",
-      "measured_binary_kb": 34,
-      "test_count": 13,
-      "test_pass_rate": 1.0,
-      "ported_date": "2026-04-11",
-      "measured_stack_kb": 4
-    },
-    {
-      "id": "touch",
-      "name": "touch",
-      "description": "Change file access and modification time",
-      "amiport_category": "cli",
-      "aminet_category": "util/cli",
-      "upstream": {
-        "source": "openbsd",
-        "version": "1.27",
-        "license": "BSD-3-Clause"
-      },
-      "status": "published",
-      "measured_binary_kb": 41,
-      "test_count": 21,
-      "test_pass_rate": 0.9524,
-      "ported_date": "2026-04-11",
-      "measured_stack_kb": 16
-    },
-    {
-      "id": "rm",
-      "name": "rm",
-      "description": "Remove directory entries",
-      "amiport_category": "cli",
-      "aminet_category": "util/cli",
-      "upstream": {
-        "source": "openbsd",
-        "version": "1.45",
-        "license": "BSD-3-Clause"
-      },
-      "status": "published",
-      "measured_binary_kb": 44,
-      "test_count": 18,
-      "test_pass_rate": 0.9444,
-      "ported_date": "2026-04-11",
-      "measured_stack_kb": 16
-    },
-    {
-      "id": "pr",
-      "name": "pr",
-      "description": "Print files for page display",
-      "amiport_category": "cli",
-      "aminet_category": "util/cli",
-      "upstream": {
-        "source": "openbsd",
-        "version": "1.46",
-        "license": "BSD-3-Clause"
-      },
-      "status": "published",
-      "measured_binary_kb": 58,
-      "test_count": 32,
-      "test_pass_rate": 1.0,
-      "ported_date": "2026-04-11",
-      "measured_stack_kb": 32
-    },
-    {
-      "id": "sponge",
-      "name": "sponge",
-      "description": "Soak up stdin and write to file",
-      "amiport_category": "cli",
-      "aminet_category": "util/cli",
-      "upstream": {
-        "source": "sbase",
-        "version": "0.1",
-        "license": "MIT"
-      },
-      "status": "ported",
-      "measured_binary_kb": 33,
-      "test_count": 15,
-      "test_pass_rate": 1.0,
-      "ported_date": "2026-04-11"
+      "hardware_verified": [
+        "a1200_accel"
+      ]
     }
   ]
 }

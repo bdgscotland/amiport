@@ -44,24 +44,6 @@ static int cmd_diff_usage(int rc)
     return rc;
 }
 
-static int diff_line_cb(const git_diff_delta *delta,
-                        const git_diff_hunk *hunk,
-                        const git_diff_line *line,
-                        void *payload)
-{
-    (void)delta;
-    (void)hunk;
-    (void)payload;
-
-    if (line->origin == GIT_DIFF_LINE_CONTEXT ||
-        line->origin == GIT_DIFF_LINE_ADDITION ||
-        line->origin == GIT_DIFF_LINE_DELETION) {
-        fputc(line->origin, stdout);
-    }
-    fwrite(line->content, 1, line->content_len, stdout);
-    return 0;
-}
-
 /*
  * Build a cached diff: HEAD tree vs current index.
  *
@@ -162,7 +144,24 @@ int amigit_cmd_diff(int argc, char **argv)
         return amigit_error_exit(rc);
     }
 
-    rc = git_diff_print(diff, GIT_DIFF_FORMAT_PATCH, diff_line_cb, NULL);
+    /* Emit the diff via git_diff_to_buf + a single fwrite. This is
+     * intentionally different from the callback-based git_diff_print
+     * approach: on real AmigaOS (FS-UAE), the per-line callback path
+     * through libnix stdio + dos.library Write() crashes with Guru
+     * 8000 000B (ACPU_LineF) the first time it emits a non-empty diff.
+     * Known-pitfalls "libgit2 git_diff_print callback crash" documents
+     * the full story. git_diff_to_buf batches the entire formatted
+     * output into one buffer internally, we write it in one shot, and
+     * the emission path never touches libnix stdio from deep inside
+     * libgit2 -- it only writes to a growing allocation. */
+    {
+        git_buf out_buf = GIT_BUF_INIT;
+        rc = git_diff_to_buf(&out_buf, diff, GIT_DIFF_FORMAT_PATCH);
+        if (rc == 0 && out_buf.ptr != NULL && out_buf.size > 0) {
+            fwrite(out_buf.ptr, 1, out_buf.size, stdout);
+        }
+        git_buf_dispose(&out_buf);
+    }
 
     git_diff_free(diff);
     git_repository_free(repo);

@@ -15,8 +15,9 @@ TARGET      = amigit
 include ../common.mk
 VERSION     = 0.1
 REVISION    = 1
-DESCRIPTION = Local git for AmigaOS via libgit2
-AUTHOR      = amiport
+DESCRIPTION = Local-only git client for AmigaOS 3.x
+AUTHOR      = Duncan Bowring (amiport, on libgit2)
+AMINET_CAT  = dev/misc
 
 # Port category: 1 (CLI). No color, no paging, no interactive input.
 # See PDR-010a for the category rationale.
@@ -35,6 +36,11 @@ OBJECTS = ported/amigit.o \
           ported/cmd_log.o \
           ported/cmd_show.o \
           ported/cmd_diff.o \
+          ported/cmd_add.o \
+          ported/cmd_commit.o \
+          ported/cmd_checkout.o \
+          ported/cmd_branch.o \
+          ported/cmd_tag.o \
           ported/amigit_libgit2_stubs.o
 
 # Override SOURCES so common.mk's default single-file rule is bypassed.
@@ -94,6 +100,39 @@ test: $(TARGET)
 compare: $(TARGET)
 	@echo "amigit has no upstream to compare against (see ports/amigit/PORT.md)"
 	@true
+
+# amigit has no upstream source, so override the shared `package` target
+# from ../common.mk to skip the `original/` copy (which would otherwise
+# refuse to copy the README-only stub the block-original-edits hook
+# forbids populating). Structure matches common.mk's package target byte
+# for byte except the cp -r original/ line is dropped.
+package: $(TARGET)
+	@test -s $(TARGET).readme || (echo "ERROR: $(TARGET).readme missing or empty" && exit 1)
+	@rm -rf .pkg && mkdir -p .pkg
+	$(STRIP) --strip-debug -o .pkg/$(TARGET) $(TARGET)
+	@cp $(TARGET).readme .pkg/
+	@cp PORT.md .pkg/
+	@if [ -f TEST-REPORT.md ]; then cp TEST-REPORT.md .pkg/; fi
+	@cp -r ported/ .pkg/ported/
+	@if [ -f TEST-REPORT.md ]; then \
+		$(LHA_CMD) a ../$(TARGET)-$(PKG_SUFFIX).lha $(TARGET) $(TARGET).readme PORT.md TEST-REPORT.md ported/; \
+	else \
+		$(LHA_CMD) a ../$(TARGET)-$(PKG_SUFFIX).lha $(TARGET) $(TARGET).readme PORT.md ported/; \
+	fi
+	@rm -rf .pkg
+	@cp $(TARGET).readme $(TARGET)-$(PKG_SUFFIX).readme
+	@echo "Package ready:"
+	@echo "  $(TARGET)-$(PKG_SUFFIX).lha     — upload to amiport.platesteel.net"
+	@echo "  $(TARGET)-$(PKG_SUFFIX).readme  — upload alongside the .lha"
+
+# Machine LHA: stripped binary only, no source/docs, for `amiport install`.
+# Installs amigit into C:amigit (AmigaOS convention).
+package-machine: $(TARGET)
+	@rm -rf .pkg-machine && mkdir -p .pkg-machine/C
+	$(STRIP) --strip-debug -o .pkg-machine/C/$(TARGET) $(TARGET)
+	docker run --rm -v $(shell cd ../.. && pwd):/work -w /work/ports/$(TARGET)/.pkg-machine amigadev/crosstools:m68k-amigaos lha a ../$(TARGET)-$(PKG_SUFFIX)-machine.lha C/$(TARGET)
+	@rm -rf .pkg-machine
+	@echo "Machine package: $(TARGET)-$(PKG_SUFFIX)-machine.lha"
 
 clean:
 	rm -f ported/*.o $(TARGET) $(TARGET).map

@@ -101,5 +101,10 @@ int amigit_cmd_status(int argc, char **argv);
 int amigit_cmd_log(int argc, char **argv);
 int amigit_cmd_show(int argc, char **argv);
 int amigit_cmd_diff(int argc, char **argv);
+int amigit_cmd_add(int argc, char **argv);
+int amigit_cmd_commit(int argc, char **argv);
+int amigit_cmd_checkout(int argc, char **argv);
+int amigit_cmd_branch(int argc, char **argv);
+int amigit_cmd_tag(int argc, char **argv);
 
 #endif /* AMIGIT_H */

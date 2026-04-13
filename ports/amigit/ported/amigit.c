@@ -100,19 +100,29 @@ static const char *verstag = "$VER: amigit 0.1 (13.04.2026)";
  */
 
 static const amigit_command dispatch_table[] = {
-    { "version", amigit_cmd_version,
+    { "version",  amigit_cmd_version,
       "Print amigit and libgit2 version strings" },
-    { "init",    amigit_cmd_init,
+    { "init",     amigit_cmd_init,
       "Create an empty git repository" },
-    { "status",  amigit_cmd_status,
+    { "status",   amigit_cmd_status,
       "Show worktree and index status" },
-    { "log",     amigit_cmd_log,
+    { "log",      amigit_cmd_log,
       "Walk commit history from HEAD" },
-    { "show",    amigit_cmd_show,
+    { "show",     amigit_cmd_show,
       "Show a commit with its diff" },
-    { "diff",    amigit_cmd_diff,
+    { "diff",     amigit_cmd_diff,
       "Show index vs worktree diff (or --cached for HEAD vs index)" },
-    { NULL,      NULL,                NULL }
+    { "add",      amigit_cmd_add,
+      "Stage files into the index" },
+    { "commit",   amigit_cmd_commit,
+      "Record a commit from the staged index" },
+    { "checkout", amigit_cmd_checkout,
+      "Switch HEAD to a branch, tag, or commit" },
+    { "branch",   amigit_cmd_branch,
+      "List, create, or delete local branches" },
+    { "tag",      amigit_cmd_tag,
+      "List or create lightweight tags" },
+    { NULL,       NULL,              NULL }
 };
 
 /* ========================================================================

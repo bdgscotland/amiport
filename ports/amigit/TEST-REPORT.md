@@ -5,17 +5,17 @@
 | Field | Value |
 |-------|-------|
 | Port | amigit |
-| Date | 2026-04-13 15:56:27 |
-| Duration | 65s |
+| Date | 2026-04-13 18:01:16 |
+| Duration | 131s |
 | Platform | FS-UAE 3.2.35 (A1200, Kickstart 3.1) |
 | Binary | `WORK:amigit` (1.0M) |
 | Test method | ARexx harness → TAP output |
-| Result | **PASS** — 44/44 passed |
+| Result | **PASS** — 81/81 passed |
 
 ## Test Results
 
 ```
-1..44
+1..81
 ok 1 - version prints amigit version on first line
 ok 2 - version prints libgit2 version on second line
 ok 3 - version prints shim availability on third line
@@ -60,7 +60,44 @@ ok 41 - amigit starts cleanly without volume requester popups
 ok 42 - init stress repo 1 of 2
 ok 43 - init stress repo 2 of 2
 ok 44 - repeated reinit of fixture (safety check)
-# passed: 44 failed: 0 total: 44
+ok 45 - init creates T:amigit-c3 fixture for Phase 3c
+ok 46 - add --help prints usage and exits 0
+ok 47 - add unknown flag exits RETURN_ERROR
+ok 48 - add with no path argument exits RETURN_ERROR
+ok 49 - add nonexistent file in c3 repo exits RETURN_ERROR
+ok 50 - add hello.txt in c3 repo stages the file and exits 0
+ok 51 - commit --help prints usage and exits 0
+ok 52 - commit unknown flag exits RETURN_ERROR
+ok 53 - commit without -m exits RETURN_ERROR (missing message)
+ok 54 - commit outside repo exits RETURN_ERROR
+ok 55 - commit with nothing staged exits RETURN_ERROR (empty repo, no index)
+ok 56 - commit -m after add creates first commit and exits 0
+ok 57 - second commit with no new staged changes exits RETURN_ERROR
+ok 58 - branch --help prints usage and exits 0
+ok 59 - branch unknown flag exits RETURN_ERROR
+ok 60 - branch -d without name argument exits RETURN_ERROR
+ok 61 - branch outside repo exits RETURN_ERROR
+ok 62 - branch foo creates new branch at HEAD and exits 0
+ok 63 - branch -l after branch foo shows foo in list
+ok 64 - checkout --help prints usage and exits 0
+ok 65 - checkout unknown flag exits RETURN_ERROR
+ok 66 - checkout nonexistent ref exits RETURN_ERROR
+ok 67 - checkout foo switches to foo branch and exits 0
+ok 68 - branch -d foo while on foo exits RETURN_ERROR (cannot delete HEAD)
+ok 69 - checkout master switches back to master and exits 0
+ok 70 - branch -d foo after checkout master exits 0
+ok 71 - branch -d foo again exits RETURN_ERROR (branch no longer exists)
+ok 72 - tag --help prints usage and exits 0
+ok 73 - tag unknown flag exits RETURN_ERROR
+ok 74 - tag v0.1 in repo with unborn HEAD exits RETURN_ERROR
+ok 75 - tag v0.1 creates lightweight tag at HEAD and exits 0
+ok 76 - tag -l after tag v0.1 shows v0.1
+ok 77 - tag v0.1 again exits RETURN_ERROR (duplicate tag name)
+ok 78 - add second file world.txt stages it and exits 0
+ok 79 - diff --cached after staging world.txt shows new file additions
+ok 80 - commit second commit with parent exits 0 and shows message
+ok 81 - log after two commits shows most recent commit on first line
+# passed: 81 failed: 0 total: 81
 ```
 
 ### Breakdown
@@ -111,6 +148,43 @@ ok 44 - repeated reinit of fixture (safety check)
 | 42 | init stress repo 1 of 2 | PASS | |
 | 43 | init stress repo 2 of 2 | PASS | |
 | 44 | repeated reinit of fixture (safety check) | PASS | |
+| 45 | init creates T:amigit-c3 fixture for Phase 3c | PASS | |
+| 46 | add --help prints usage and exits 0 | PASS | |
+| 47 | add unknown flag exits RETURN_ERROR | PASS | |
+| 48 | add with no path argument exits RETURN_ERROR | PASS | |
+| 49 | add nonexistent file in c3 repo exits RETURN_ERROR | PASS | |
+| 50 | add hello.txt in c3 repo stages the file and exits 0 | PASS | |
+| 51 | commit --help prints usage and exits 0 | PASS | |
+| 52 | commit unknown flag exits RETURN_ERROR | PASS | |
+| 53 | commit without -m exits RETURN_ERROR (missing message) | PASS | |
+| 54 | commit outside repo exits RETURN_ERROR | PASS | |
+| 55 | commit with nothing staged exits RETURN_ERROR (empty repo, no index) | PASS | |
+| 56 | commit -m after add creates first commit and exits 0 | PASS | |
+| 57 | second commit with no new staged changes exits RETURN_ERROR | PASS | |
+| 58 | branch --help prints usage and exits 0 | PASS | |
+| 59 | branch unknown flag exits RETURN_ERROR | PASS | |
+| 60 | branch -d without name argument exits RETURN_ERROR | PASS | |
+| 61 | branch outside repo exits RETURN_ERROR | PASS | |
+| 62 | branch foo creates new branch at HEAD and exits 0 | PASS | |
+| 63 | branch -l after branch foo shows foo in list | PASS | |
+| 64 | checkout --help prints usage and exits 0 | PASS | |
+| 65 | checkout unknown flag exits RETURN_ERROR | PASS | |
+| 66 | checkout nonexistent ref exits RETURN_ERROR | PASS | |
+| 67 | checkout foo switches to foo branch and exits 0 | PASS | |
+| 68 | branch -d foo while on foo exits RETURN_ERROR (cannot delete HEAD) | PASS | |
+| 69 | checkout master switches back to master and exits 0 | PASS | |
+| 70 | branch -d foo after checkout master exits 0 | PASS | |
+| 71 | branch -d foo again exits RETURN_ERROR (branch no longer exists) | PASS | |
+| 72 | tag --help prints usage and exits 0 | PASS | |
+| 73 | tag unknown flag exits RETURN_ERROR | PASS | |
+| 74 | tag v0.1 in repo with unborn HEAD exits RETURN_ERROR | PASS | |
+| 75 | tag v0.1 creates lightweight tag at HEAD and exits 0 | PASS | |
+| 76 | tag -l after tag v0.1 shows v0.1 | PASS | |
+| 77 | tag v0.1 again exits RETURN_ERROR (duplicate tag name) | PASS | |
+| 78 | add second file world.txt stages it and exits 0 | PASS | |
+| 79 | diff --cached after staging world.txt shows new file additions | PASS | |
+| 80 | commit second commit with parent exits 0 and shows message | PASS | |
+| 81 | log after two commits shows most recent commit on first line | PASS | |
 
 ## Environment
 
@@ -431,6 +505,295 @@ TEST: repeated reinit of fixture (safety check)
 CMD: WORK:amigit init T:amigit-test
 EXPECT: Reinitialized existing git repository in T:amigit-test
 EXPECT_RC: 0
+
+# ======================================================================
+# Phase 3c -- add, commit, checkout, branch, tag
+# ======================================================================
+#
+# Fixture: T:amigit-c3/ is created by the first test below and used by
+# all subsequent Phase 3c in-repo tests.  It starts empty; after the
+# add + commit tests it has one commit on master with hello.txt staged
+# and committed.
+#
+# Wrapper scripts used:
+#   test-amigit-inrepo.rexx       -- CD into repo, run amigit, capture RC+stdout
+#   test-amigit-inrepo-setup.rexx -- CD into repo, Echo a file, run amigit
+#     Usage: rx WORK:test-amigit-inrepo-setup.rexx <repo> <filename> <subcmd> [args]
+#     Creates <filename> with content "Hello, Amiga!" then runs amigit.
+#
+# Test ordering matters for the stateful tests (marked with [ordered]):
+#   init c3 -> add hello.txt -> commit "first commit"
+#   -> branch foo -> branch -l -> checkout foo
+#   -> branch -d foo (error: on HEAD) -> checkout master -> branch -d foo
+#   -> tag v0.1 -> tag -l -> tag v0.1 again (error: duplicate)
+#
+# Exit codes:
+#   0  success
+#   10 any error (not a repo, bad args, missing file, nothing to commit, etc.)
+
+# ======================================================================
+# Phase 3c fixture: create the c3 repo
+# ======================================================================
+
+# [ordered-1] This creates the T:amigit-c3 fixture used by all Phase 3c
+# in-repo tests.  The path format is consistent with Phase 3b: plain
+# AmigaDOS volume syntax.  The inrepo wrappers apply the X:/foo rewrite.
+TEST: init creates T:amigit-c3 fixture for Phase 3c
+CMD: WORK:amigit init T:amigit-c3
+EXPECT: Initialized empty git repository in T:amigit-c3
+EXPECT_RC: 0
+
+# ======================================================================
+# add command -- flag parsing (no repo access required)
+# ======================================================================
+
+TEST: add --help prints usage and exits 0
+CMD: WORK:amigit add --help
+EXPECT_CONTAINS: amigit add
+EXPECT_RC: 0
+
+TEST: add unknown flag exits RETURN_ERROR
+CMD: WORK:amigit add --force
+EXPECT_RC: 10
+
+TEST: add with no path argument exits RETURN_ERROR
+CMD: WORK:amigit add
+EXPECT_RC: 10
+
+# ======================================================================
+# add command -- error paths in c3 repo (wrapper required)
+# ======================================================================
+
+# Attempting to add a file that does not exist in the working tree.
+# libgit2 git_index_add_bypath returns GIT_ENOTFOUND -> RC 10.
+TEST: add nonexistent file in c3 repo exits RETURN_ERROR
+CMD: SYS:Rexxc/rx WORK:test-amigit-inrepo.rexx T:amigit-c3 add nosuchfile.txt
+EXPECT_RC: 10
+
+# ======================================================================
+# add command -- happy path [ordered-2]
+# ======================================================================
+
+# The setup wrapper creates hello.txt in the working tree before running
+# amigit add.  add produces no stdout on success.
+TEST: add hello.txt in c3 repo stages the file and exits 0
+CMD: SYS:Rexxc/rx WORK:test-amigit-inrepo-setup.rexx T:amigit-c3 hello.txt add hello.txt
+EXPECT_RC: 0
+
+# ======================================================================
+# commit command -- flag parsing (no repo access required)
+# ======================================================================
+
+TEST: commit --help prints usage and exits 0
+CMD: WORK:amigit commit --help
+EXPECT_CONTAINS: amigit commit
+EXPECT_RC: 0
+
+TEST: commit unknown flag exits RETURN_ERROR
+CMD: WORK:amigit commit --amend
+EXPECT_RC: 10
+
+TEST: commit without -m exits RETURN_ERROR (missing message)
+CMD: WORK:amigit commit
+EXPECT_RC: 10
+
+TEST: commit outside repo exits RETURN_ERROR
+CMD: WORK:amigit commit -m test
+EXPECT_RC: 10
+
+# ======================================================================
+# commit command -- error paths in c3 repo (wrapper required)
+# ======================================================================
+
+# Fresh c3 repo: hello.txt was staged in the add test above.  Re-using
+# the same c3 repo but testing with a different fixture that has nothing
+# staged.  Use the Phase 3b empty fixture T:amigit-test for this.
+TEST: commit with nothing staged exits RETURN_ERROR (empty repo, no index)
+CMD: SYS:Rexxc/rx WORK:test-amigit-inrepo.rexx T:amigit-test commit -m first
+EXPECT_RC: 10
+
+# ======================================================================
+# commit command -- happy path [ordered-3]
+# ======================================================================
+
+# hello.txt was staged in [ordered-2].  This commit creates the first
+# commit on master in T:amigit-c3.  Output is "[<7-sha>] initial".
+# The SHA is non-deterministic so we match on the message substring only.
+# IMPORTANT: the commit message must be a single word with no spaces --
+# AmigaDOS splits arguments on whitespace, so "first commit" would
+# become two argv entries and the second would be rejected as unexpected.
+TEST: commit -m after add creates first commit and exits 0
+CMD: SYS:Rexxc/rx WORK:test-amigit-inrepo.rexx T:amigit-c3 commit -m initial
+EXPECT_CONTAINS: initial
+EXPECT_RC: 0
+
+# After the first commit, committing again with nothing new staged must
+# fail with "nothing to commit".
+TEST: second commit with no new staged changes exits RETURN_ERROR
+CMD: SYS:Rexxc/rx WORK:test-amigit-inrepo.rexx T:amigit-c3 commit -m again
+EXPECT_RC: 10
+
+# ======================================================================
+# branch command -- flag parsing (no repo access required)
+# ======================================================================
+
+TEST: branch --help prints usage and exits 0
+CMD: WORK:amigit branch --help
+EXPECT_CONTAINS: amigit branch
+EXPECT_RC: 0
+
+TEST: branch unknown flag exits RETURN_ERROR
+CMD: WORK:amigit branch --remote
+EXPECT_RC: 10
+
+TEST: branch -d without name argument exits RETURN_ERROR
+CMD: WORK:amigit branch -d
+EXPECT_RC: 10
+
+TEST: branch outside repo exits RETURN_ERROR
+CMD: WORK:amigit branch
+EXPECT_RC: 10
+
+# ======================================================================
+# branch command -- in c3 repo (wrapper required) [ordered-4]
+# ======================================================================
+
+# Create a new branch named foo.  amigit branch <name> produces no stdout.
+TEST: branch foo creates new branch at HEAD and exits 0
+CMD: SYS:Rexxc/rx WORK:test-amigit-inrepo.rexx T:amigit-c3 branch foo
+EXPECT_RC: 0
+
+# After creating foo, -l should list two branches: "* master" and "  foo".
+# Branch listing order is not guaranteed -- verify foo appears somewhere.
+TEST: branch -l after branch foo shows foo in list
+CMD: SYS:Rexxc/rx WORK:test-amigit-inrepo.rexx T:amigit-c3 branch -l
+EXPECT_CONTAINS: foo
+EXPECT_RC: 0
+
+# ======================================================================
+# checkout command -- flag parsing (no repo access required)
+# ======================================================================
+
+TEST: checkout --help prints usage and exits 0
+CMD: WORK:amigit checkout --help
+EXPECT_CONTAINS: amigit checkout
+EXPECT_RC: 0
+
+TEST: checkout unknown flag exits RETURN_ERROR
+CMD: WORK:amigit checkout --detach
+EXPECT_RC: 10
+
+# ======================================================================
+# checkout command -- in c3 repo (wrapper required) [ordered-5]
+# ======================================================================
+
+# checkout a ref that does not exist.  git_revparse_single fails with
+# GIT_ENOTFOUND -> RC 10.
+TEST: checkout nonexistent ref exits RETURN_ERROR
+CMD: SYS:Rexxc/rx WORK:test-amigit-inrepo.rexx T:amigit-c3 checkout doesnotexist
+EXPECT_RC: 10
+
+# checkout foo (the branch we created in [ordered-4]).  Output must be
+# "Switched to 'foo'" -- this is deterministic.
+TEST: checkout foo switches to foo branch and exits 0
+CMD: SYS:Rexxc/rx WORK:test-amigit-inrepo.rexx T:amigit-c3 checkout foo
+EXPECT: Switched to 'foo'
+EXPECT_RC: 0
+
+# ======================================================================
+# branch -d -- delete-HEAD error and successful delete [ordered-6]
+# ======================================================================
+
+# HEAD is now on foo (from [ordered-5]).  Deleting foo must fail.
+TEST: branch -d foo while on foo exits RETURN_ERROR (cannot delete HEAD)
+CMD: SYS:Rexxc/rx WORK:test-amigit-inrepo.rexx T:amigit-c3 branch -d foo
+EXPECT_RC: 10
+
+# Switch back to master so foo can be deleted.
+TEST: checkout master switches back to master and exits 0
+CMD: SYS:Rexxc/rx WORK:test-amigit-inrepo.rexx T:amigit-c3 checkout master
+EXPECT: Switched to 'master'
+EXPECT_RC: 0
+
+# Now delete foo successfully.  amigit branch -d produces no stdout.
+TEST: branch -d foo after checkout master exits 0
+CMD: SYS:Rexxc/rx WORK:test-amigit-inrepo.rexx T:amigit-c3 branch -d foo
+EXPECT_RC: 0
+
+# Deleting the same branch again should fail (GIT_ENOTFOUND -> RC 10).
+TEST: branch -d foo again exits RETURN_ERROR (branch no longer exists)
+CMD: SYS:Rexxc/rx WORK:test-amigit-inrepo.rexx T:amigit-c3 branch -d foo
+EXPECT_RC: 10
+
+# ======================================================================
+# tag command -- flag parsing (no repo access required)
+# ======================================================================
+
+TEST: tag --help prints usage and exits 0
+CMD: WORK:amigit tag --help
+EXPECT_CONTAINS: amigit tag
+EXPECT_RC: 0
+
+TEST: tag unknown flag exits RETURN_ERROR
+CMD: WORK:amigit tag --annotate
+EXPECT_RC: 10
+
+# ======================================================================
+# tag command -- in c3 repo (wrapper required) [ordered-7]
+# ======================================================================
+
+# Empty Phase 3b fixture: unborn HEAD.  Creating a tag at HEAD should
+# fail (git_revparse_single("HEAD") -> GIT_ENOTFOUND -> RC 10).
+TEST: tag v0.1 in repo with unborn HEAD exits RETURN_ERROR
+CMD: SYS:Rexxc/rx WORK:test-amigit-inrepo.rexx T:amigit-test tag v0.1
+EXPECT_RC: 10
+
+# Create lightweight tag v0.1 at HEAD.  No stdout on success.
+TEST: tag v0.1 creates lightweight tag at HEAD and exits 0
+CMD: SYS:Rexxc/rx WORK:test-amigit-inrepo.rexx T:amigit-c3 tag v0.1
+EXPECT_RC: 0
+
+# tag -l should now list v0.1.
+TEST: tag -l after tag v0.1 shows v0.1
+CMD: SYS:Rexxc/rx WORK:test-amigit-inrepo.rexx T:amigit-c3 tag -l
+EXPECT: v0.1
+EXPECT_RC: 0
+
+# Creating the same tag again must fail (GIT_EEXISTS -> RC 10).
+TEST: tag v0.1 again exits RETURN_ERROR (duplicate tag name)
+CMD: SYS:Rexxc/rx WORK:test-amigit-inrepo.rexx T:amigit-c3 tag v0.1
+EXPECT_RC: 10
+
+# ======================================================================
+# Stress / real-world: second commit via add + commit workflow
+# ======================================================================
+
+# [ordered-8] Create a second file world.txt, stage it via add, then
+# commit.  This exercises the "subsequent commit with parent" path in
+# cmd_commit.c -- the initial commit path was covered in [ordered-3].
+# The setup wrapper creates world.txt in the working tree then runs add.
+TEST: add second file world.txt stages it and exits 0
+CMD: SYS:Rexxc/rx WORK:test-amigit-inrepo-setup.rexx T:amigit-c3 world.txt add world.txt
+EXPECT_RC: 0
+
+# [ordered-8b] diff --cached after staging world.txt shows a non-empty
+# patch with "+" lines.  This exercises the Phase 3b diff command in a
+# real add-then-inspect workflow (Phase 3c integration scenario).
+TEST: diff --cached after staging world.txt shows new file additions
+CMD: SYS:Rexxc/rx WORK:test-amigit-inrepo.rexx T:amigit-c3 diff --cached
+EXPECT_CONTAINS: +
+EXPECT_RC: 0
+
+TEST: commit second commit with parent exits 0 and shows message
+CMD: SYS:Rexxc/rx WORK:test-amigit-inrepo.rexx T:amigit-c3 commit -m worldadd
+EXPECT_CONTAINS: worldadd
+EXPECT_RC: 0
+
+# log after two commits should show the most recent commit first.
+TEST: log after two commits shows most recent commit on first line
+CMD: SYS:Rexxc/rx WORK:test-amigit-inrepo.rexx T:amigit-c3 log
+EXPECT_CONTAINS: worldadd
+EXPECT_RC: 0
 ```
 
 ## Emulator Log
@@ -445,9 +808,9 @@ Written by the ARexx harness when all tests complete:
 
 ```
 TESTS_COMPLETE
-passed=44
+passed=81
 failed=0
-total=44
+total=81
 ```
 
 ---

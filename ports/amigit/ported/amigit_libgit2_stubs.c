@@ -179,3 +179,55 @@ void git_failalloc_free(void *ptr)
 
 int git_socket_stream__connect_timeout = 0;
 int git_socket_stream__timeout = 0;
+
+/* ========================================================================
+ * Single-precision soft-float overrides
+ * ========================================================================
+ *
+ * lib/libgit2/src/libgit2/patch_generate.c line 261 computes a progress
+ * fraction using single-precision float:
+ *
+ *   float progress = patch->diff ?
+ *       ((float)patch->delta_index / patch->diff->deltas.length) : 1.0f;
+ *
+ * This is the ONLY single-precision float division in the entire libgit2
+ * build. It references two soft-float support routines:
+ *
+ *   - __divsf3       (single-precision float division)
+ *   - __floatunsisf  (unsigned int -> single-precision float)
+ *
+ * libnix's versions of these route through ROM mathieeesingbas.library,
+ * which is broken on FS-UAE (Guru 8000000B -- same crash pattern as the
+ * libSDL2 SDL_CreateRenderer dpi_scale crash documented in crash-patterns
+ * #2 and known-pitfalls "FS-UAE ROM mathieeesingbas.library is broken").
+ *
+ * The progress value is computed BEFORE the (output->file_cb == NULL)
+ * check in patch_generated_invoke_file_callback. amigit never sets a
+ * file callback (we use git_diff_to_buf which doesn't expose one), so
+ * the computed progress value is always discarded. We only need these
+ * stubs to not crash -- the return value is irrelevant.
+ *
+ * Defining both symbols here gives the linker a strong definition that
+ * satisfies patch_generate.o's undefined refs BEFORE libnix's archive
+ * gets consulted, so the broken ROM path is never reached.
+ *
+ * The parameters have to match the GCC ABI (float-by-value, returns
+ * float-in-d0) but the GCC 68k calling convention passes floats in d0/d1
+ * as raw bit patterns, so this is a trivial no-op that returns zero.
+ */
+
+float __divsf3(float a, float b);
+float __floatunsisf(unsigned int x);
+
+float __divsf3(float a, float b)
+{
+    (void)a;
+    (void)b;
+    return 0.0f;
+}
+
+float __floatunsisf(unsigned int x)
+{
+    (void)x;
+    return 0.0f;
+}

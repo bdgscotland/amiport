@@ -49,29 +49,6 @@ static int cmd_show_usage(int rc)
     return rc;
 }
 
-/*
- * Diff line printer: forwards every line from git_diff_print to stdout,
- * honoring the origin byte so that context lines don't get a '+' or '-'.
- * Content is not NUL-terminated per libgit2 docs, so we write with fwrite.
- */
-static int show_diff_line_cb(const git_diff_delta *delta,
-                             const git_diff_hunk *hunk,
-                             const git_diff_line *line,
-                             void *payload)
-{
-    (void)delta;
-    (void)hunk;
-    (void)payload;
-
-    if (line->origin == GIT_DIFF_LINE_CONTEXT ||
-        line->origin == GIT_DIFF_LINE_ADDITION ||
-        line->origin == GIT_DIFF_LINE_DELETION) {
-        fputc(line->origin, stdout);
-    }
-    fwrite(line->content, 1, line->content_len, stdout);
-    return 0;
-}
-
 int amigit_cmd_show(int argc, char **argv)
 {
     git_repository *repo = NULL;
@@ -199,9 +176,19 @@ int amigit_cmd_show(int argc, char **argv)
         return amigit_error_exit(rc);
     }
 
-    rc = git_diff_print(diff, GIT_DIFF_FORMAT_PATCH, show_diff_line_cb, NULL);
-    /* Non-zero rc from print_cb would have propagated, but our cb always
-     * returns 0; this rc is the libgit2 internal status. */
+    /* Emit the diff via git_diff_to_buf + a single fwrite. The older
+     * callback-based git_diff_print path crashes on real AmigaOS
+     * (Guru 8000 000B) the first time it emits content -- see the
+     * sibling comment in cmd_diff.c and known-pitfalls
+     * "libgit2 git_diff_print callback crash" for the full story. */
+    {
+        git_buf out_buf = GIT_BUF_INIT;
+        rc = git_diff_to_buf(&out_buf, diff, GIT_DIFF_FORMAT_PATCH);
+        if (rc == 0 && out_buf.ptr != NULL && out_buf.size > 0) {
+            fwrite(out_buf.ptr, 1, out_buf.size, stdout);
+        }
+        git_buf_dispose(&out_buf);
+    }
 
     git_diff_free(diff);
     if (old_tree != NULL) git_tree_free(old_tree);

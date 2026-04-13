@@ -1,36 +1,79 @@
-# amigit 0.1 (Phase 3b: read-side commands)
+# Port: amigit
+
+## Overview
+
+| Field | Value |
+|-------|-------|
+| Program | amigit |
+| Version | 0.1 |
+| Source | amiport-native (hand-written on libgit2 1.8.5) |
+| Category | 1 -- CLI tool |
+| License | GPL-2.0 (libgit2) + MIT (amiport code) |
+| Original Author | Duncan Bowring (amiport project) |
+| Port Date | 2026-04-13 |
 
 ## Status
 
-**Phase 3b: read-side commands complete.** PDR-010 Phase 3 is split
-into three sub-phases (see `docs/pdr/010a-amigit-cli-spec.md` "Phased
-build"):
+**v1 complete (2026-04-13).** All 10 PDR-010a v1 commands shipping.
+81/81 FS-UAE functional tests passing. memory-checker CLEAN,
+perf-optimizer CLEAN.
 
-- **Phase 3a (shipped):** scaffold + `version` + `init`.
-  Proved libgit2.a links into a user binary, `git_libgit2_init` runs
-  outside the unit-test harness, and the Makefile + force-include
-  pattern from `tests/libgit2/` ports cleanly to `ports/amigit/`.
-- **Phase 3b (this commit):** read-side commands -- `status`, `log`,
-  `show`, `diff`. Full 44-test FS-UAE test suite green. Discovered
-  and worked around two libgit2 AmigaOS path-handling bugs (see
-  "Path handling" below). Added `amigit_resolve_repo_path()` helper
-  as the single choke point for path normalization, and patched
-  `amiport_realpath` in the shim to handle POSIX `"."`.
-- **Phase 3c (final):** write-side commands -- `add`, `commit`,
-  `checkout`, `branch`, `tag`. Completes v1 CLI surface. Produces
-  PORT.md final writeup, amigit.readme, LHA package, PORTS.md entry,
-  mandatory memory-checker + perf-optimizer runs.
+Phase breakdown (per PDR-010a "Phased build"):
+
+- **Phase 3a** -- scaffold + `version` + `init`. Proved libgit2.a links
+  into a user binary, `git_libgit2_init` runs outside the unit-test
+  harness, and the Makefile + force-include pattern from
+  `tests/libgit2/` ports cleanly to `ports/amigit/`. Commit `e4d0466`.
+- **Phase 3b** -- read-side commands: `status`, `log`, `show`, `diff`.
+  44/44 FS-UAE tests. Discovered and worked around two libgit2
+  AmigaOS path-handling bugs (see "Path handling" below). Added
+  `amigit_resolve_repo_path()` as the single choke point for path
+  normalization, and patched `amiport_realpath` in the shim to
+  handle POSIX `"."`. Commit `d2ca06f`.
+- **Phase 3c (this release)** -- write-side commands: `add`, `commit`,
+  `checkout`, `branch`, `tag`. Completes v1 CLI surface. Discovered
+  and worked around a critical FS-UAE soft-float crash in libgit2's
+  patch-generation path (see "The __divsf3 crash" below).
 
 ## Upstream source
 
 **None.** amigit is an amiport-native CLI written from scratch on top
 of `lib/libgit2/libgit2.a`. Real git is structurally infeasible on
 68k AmigaOS 3.x because its command dispatch is built on
-`fork()`/`execvp()` with 53 call sites in `run-command.c` alone -- see
-PDR-010 for the full analysis and the reason libgit2 is the chosen
-path. The `original/` directory exists in the port-directory-hygiene
-rule but is empty for amigit. Every source file in `ported/` is
-hand-written.
+`fork()`/`execvp()` with 53 call sites in `run-command.c` alone --
+see `docs/pdr/010-amigit-on-libgit2.md` for the full analysis and
+the reason libgit2 is the chosen path.
+
+The `original/` directory exists to satisfy the port-directory
+hygiene rule, but contains only a README explaining the absence.
+Every source file in `ported/` is hand-written.
+
+## Commands (v1 surface)
+
+All 10 v1 commands per PDR-010a. Each has `--help` / `-h`, and every
+flag is exercised in the FS-UAE test suite.
+
+| Command | Purpose | libgit2 API |
+|---|---|---|
+| `amigit version` | Print amigit + libgit2 versions | `git_libgit2_version` |
+| `amigit init [--bare] [path]` | Create an empty repo | `git_repository_init` |
+| `amigit status [-s]` | Porcelain v1 status | `git_status_foreach_ext` |
+| `amigit log [-n N] [--oneline]` | Walk HEAD history | `git_revwalk_*` + `git_commit_summary` |
+| `amigit show <ref>` | Commit + diff | `git_revparse_single` + `git_diff_tree_to_tree` |
+| `amigit diff [--cached]` | Unified diff | `git_diff_index_to_workdir` / `_tree_to_index` |
+| `amigit add <path>...` | Stage files | `git_index_add_bypath` + `git_index_write` |
+| `amigit commit -m <msg>` | Record commit | `git_commit_create_v` |
+| `amigit checkout <ref>` | Switch HEAD | `git_checkout_tree` + `git_repository_set_head` |
+| `amigit branch [-l\|-d] [name]` | List/create/delete | `git_branch_*` |
+| `amigit tag [-l] [name]` | List/create tag | `git_tag_create_lightweight` |
+
+`amigit version` prints:
+
+```
+amigit 0.1 (built 2026-04-13)
+libgit2 1.8.5
+amiport posix-shim available
+```
 
 ## Architecture
 
@@ -44,20 +87,26 @@ ports/amigit/ported/
                                 amigit_resolve_repo_path()
   amigit_libgit2_stubs.c     -- link-time stubs (strnlen, difftime,
                                 select, git_remote_*, git_clone__*,
-                                git_failalloc_*, git_socket_stream__*)
+                                git_failalloc_*, git_socket_stream__*,
+                                __divsf3, __floatunsisf)
   cmd_version.c              -- `amigit version`
   cmd_init.c                 -- `amigit init [--bare] [path]`
   cmd_status.c               -- `amigit status [-s|--short]`
   cmd_log.c                  -- `amigit log [-n N] [--oneline]`
   cmd_show.c                 -- `amigit show <ref>`
   cmd_diff.c                 -- `amigit diff [--cached|--staged]`
+  cmd_add.c                  -- `amigit add <path>...`
+  cmd_commit.c               -- `amigit commit -m <msg>`
+  cmd_checkout.c             -- `amigit checkout <ref>`
+  cmd_branch.c               -- `amigit branch [-l|-d] [name]`
+  cmd_tag.c                  -- `amigit tag [-l] [name]`
 ```
 
 Each subcommand lives in its own translation unit. New commands are
 added by:
 
 1. Create `ported/cmd_<name>.c` with `int amigit_cmd_<name>(int argc, char **argv)`.
-2. Add `extern` declaration to `ported/amigit.h`.
+2. Add extern declaration to `ported/amigit.h`.
 3. Add entry to `dispatch_table[]` in `ported/amigit.c`.
 4. Add `ported/cmd_<name>.o` to `OBJECTS` in `Makefile`.
 
@@ -83,8 +132,6 @@ directory.
   `realpath`, etc.) matches the built libgit2.a. Without this, libgit2
   symbols bind against mismatched type declarations at link time.
   Same pattern as `tests/libgit2/Makefile`.
-- `-Wno-unused-parameter -Wno-unused-function` -- libgit2 headers and
-  the stub file generate these; they're not actionable.
 
 ### Link chain
 
@@ -105,20 +152,23 @@ Order matters:
 
 ### Binary size
 
-Phase 3b: 1,071,256 bytes (1.02 MB). Compare:
-- Phase 3a: 1,057,516 bytes (2 commands)
-- `tests/libgit2/test_libgit2`: 1,105,944 bytes (1.05 MB, all APIs)
+| Build | Bytes | Notes |
+|---|---|---|
+| Phase 3a (version + init) | 1,057,516 | 2 commands |
+| Phase 3b (+ status/log/show/diff) | 1,071,256 | 6 commands |
+| Phase 3c (+ add/commit/checkout/branch/tag) | 1,085,544 | 10 commands (v1 complete) |
 
-The Phase 3b delta (~13.4 KB for 4 new commands) is modest because
-`status`, `log`, `show`, and `diff` pull in revwalk, diff, and status
-machinery that libgit2's init code already transitively referenced
-via its internal wiring. Each additional command TU adds only the
-argparse + the thin libgit2 dispatch.
+The Phase 3c delta (~14 KB) is modest because libgit2's diff /
+status / index / branch / tag / revwalk machinery was already
+transitively pulled in by Phase 3b's `status` and `log` commands.
+Each additional Phase 3c command TU adds only the argparse, the
+thin libgit2 dispatch, and its per-command cleanup.
 
 ## Path handling
 
-AmigaOS AmigaDOS paths and libgit2's POSIX-centric path logic have
-two incompatibilities that required workarounds:
+AmigaDOS paths and libgit2's POSIX-centric path logic have two
+incompatibilities that required workarounds (both discovered in
+Phase 3b, documented in `.claude/rules/known-pitfalls.md`):
 
 1. **Volume-rooted paths are not recognized as rooted.**
    `git_fs_path_root("T:amigit-test")` returns -1 because
@@ -149,38 +199,107 @@ two incompatibilities that required workarounds:
    libnix. After `amigit init T:amigit-test` creates a repo, the
    directory is accessible to libgit2 via `"T:/amigit-test"` but
    AmigaDOS `CD T:amigit-test` returns "object not found". The
-   FS-UAE test harness wrapper `test-amigit-inrepo.rexx` applies
-   the same `"X:foo"` -> `"X:/foo"` rewrite before `CD`, keeping
-   the storage path convention consistent between amigit and the
-   test harness.
+   FS-UAE test harness wrappers (`test-amigit-inrepo.rexx` and
+   `test-amigit-inrepo-setup.rexx`) apply the same `"X:foo"` ->
+   `"X:/foo"` rewrite before `CD`, keeping the storage-path
+   convention consistent between amigit and the test harness.
 
 `amigit_resolve_repo_path()` is the single choke point for path
 normalization. Every command that hands a user-supplied path to
-libgit2 open/init funnels it through this helper:
+libgit2 open/init funnels it through this helper.
+
+## The __divsf3 crash (Phase 3c critical fix)
+
+**The most dangerous bug this release.** libgit2's `patch_generate.c`
+line 261 computes:
 
 ```c
-char resolved[256];
-if (amigit_resolve_repo_path(in_path, resolved, sizeof(resolved))
-        != RETURN_OK) {
-    /* handle error */
-}
-rc = git_repository_open_ext(&repo, resolved, ..., NULL);
+float progress = patch->diff ?
+    ((float)patch->delta_index / patch->diff->deltas.length) : 1.0f;
 ```
 
-`amigit init` uses the helper on the user-supplied path. The other
-read-side commands (`status`, `log`, `show`, `diff`) pass `"."` and
-rely on the helper's CWD-resolution path.
+This is the **only** single-precision float operation anywhere in
+libgit2's compiled archive. And critically, the `progress` value is
+computed **before** the `output->file_cb == NULL` check -- so it runs
+even when the caller (e.g. `git_diff_to_buf`) has no progress
+callback and throws the value away.
+
+On AmigaOS with bebbo-gcc `-noixemul -m68000 -lm`, this pulls
+`__divsf3` and `__floatunsisf` from libnix, both of which route
+through ROM `mathieeesingbas.library`. On FS-UAE that ROM library
+crashes with Guru Meditation `8000 000B` (ACPU_LineF) -- the same
+crash documented in crash-patterns #2 for SDL_CreateRenderer's
+`dpi_scale` float division. **Vamos does not exhibit the crash**
+because vamos intercepts math-library calls through host math, so
+the failure is entirely FS-UAE-specific and invisible to the vamos
+smoke-test pipeline.
+
+**Symptom:** `amigit diff --cached` on a repo with a real staged file
+crashes with Guru `8000 000B` on FS-UAE A1200/68020, while all tests
+that use `git_status_foreach_ext`, `git_diff_tree_to_index`,
+`git_diff_index_to_workdir`, `git_revwalk`, or `git_commit_lookup`
+pass cleanly. The sole differentiator: the crashing code path is
+the only one that calls `git_patch_generate`'s internal callback
+invoker.
+
+**Diagnosis path (bisection):**
+1. Initial 8-test isolation suite confirmed `diff --cached` was the
+   unique failing command with the known add-commit-add-diff
+   sequence.
+2. Rebuilding `lib/libgit2/xdiff/*.c` at `-O0` did not fix the crash
+   (eliminates codegen bug theory).
+3. Rebuilding `lib/zlib/` fully at `-O0` did not fix the crash
+   (eliminates zlib -O1 hotpath theory).
+4. Switching `cmd_diff.c` and `cmd_show.c` from `git_diff_print` +
+   per-line callback to `git_diff_to_buf` + single `fwrite` did not
+   fix the crash (eliminates callback mechanism theory).
+5. Adding intermediate tests (log on committed content, status on
+   committed repo, status with staged changes) all passed -- proved
+   the crash is NOT in object reading, blob inflate, tree walking,
+   or zlib, but specifically in the diff-formatting code path.
+6. `m68k-amigaos-nm lib/libgit2/src/libgit2/patch_generate.o` showed
+   exactly two undefined soft-float symbols: `__divsf3` and
+   `__floatunsisf`. These are the only ones.
+7. amiga-kb crash-pattern #2 matched immediately on Guru 8000000B:
+   libnix single-precision soft-float routes through ROM
+   mathieeesingbas.library which crashes on FS-UAE.
+
+**Fix:** override both symbols in `ported/amigit_libgit2_stubs.c`
+with stubs that return `0.0f`. The linker resolves the stubs file
+before libnix, so our definitions win. The progress value is
+discarded by the NULL file_cb check immediately after, so
+correctness is irrelevant -- only not-crashing matters.
+
+```c
+/* In ported/amigit_libgit2_stubs.c */
+float __divsf3(float a, float b) { (void)a; (void)b; return 0.0f; }
+float __floatunsisf(unsigned int x) { (void)x; return 0.0f; }
+```
+
+Verified via `nm` after override: symbols resolve to the amigit
+binary's own addresses (not libnix's archive addresses). Full
+81-test amigit FS-UAE suite goes from "crash on test 79
+(`diff --cached`)" to 81/81 passing.
+
+**Generalizes to any libgit2 consumer.** The only libgit2 TU that
+references these symbols is `src/libgit2/patch_generate.o`, so a
+consumer that never calls any `git_diff_print` / `git_diff_to_buf` /
+`git_patch_*` API may not need the override. But any consumer that
+does MUST provide it or crash. The pitfall is filed in amiga-kb and
+also appended to `.claude/rules/known-pitfalls.md`.
 
 ## Testing
 
-### Phase 3b FS-UAE test suite
+### Full FS-UAE test suite (81 tests)
 
-`ports/amigit/test-fsemu-cases.txt` -- 44 TEST blocks covering all 6
-commands shipped so far. Run with:
+`ports/amigit/test-fsemu-cases.txt` -- 81 TEST blocks covering all
+11 commands (10 v1 commands + `version`). Run with:
 
 ```
 make test-fsemu TARGET=ports/amigit
 ```
+
+**Result: 81/81 passing on FS-UAE.** No weakened assertions.
 
 Coverage breakdown:
 
@@ -190,74 +309,128 @@ Coverage breakdown:
 | top-level dispatch | 2 | 2 | 2 | 6 |
 | `init` | 4 | 3 | 1 | 8 |
 | `status` | 2 | 3 | 2 | 7 |
-| `log` | 1 | 2 | 3 | 6 |
+| `log` | 2 | 2 | 3 | 7 |
 | `show` | 0 | 2 | 3 | 5 |
-| `diff` | 3 | 2 | 2 | 7 |
+| `diff` | 4 | 2 | 2 | 8 |
+| `add` | 1 | 2 | 2 | 5 |
+| `commit` | 2 | 2 | 3 | 7 |
+| `checkout` | 2 | 2 | 1 | 5 |
+| `branch` | 4 | 3 | 2 | 9 |
+| `tag` | 3 | 2 | 2 | 7 |
 | Amiga-specific | 2 | 0 | 0 | 2 |
 | Stress/real-world | 4 | 0 | 0 | 4 |
 
-**Result: 44/44 passing on FS-UAE.** No weakened EXPECT assertions.
+The Phase 3c "full workflow" scenario (tests 45-81) creates a
+second repo fixture `T:amigit-c3`, stages hello.txt, commits,
+creates branch foo, checks out foo, switches back to master,
+deletes foo, creates tag v0.1, then stages world.txt, runs
+`diff --cached`, commits again, and walks the log. This exercises
+every v1 command end-to-end in a single session.
 
-Phase 3b has no `add`/`commit` so "happy path" for `log`, `show`, and
-`diff` is limited to empty-repo behavior (log exits 0 with no output
-on unborn HEAD; diff exits 0 with no deltas; show HEAD exits 10 on
-unborn HEAD). Commit-content happy paths are deferred to Phase 3c.
+### Test harness wrappers
 
-### Test harness wrapper
+Two ARexx wrappers sit in `ports/amigit/`:
 
-For commands that open the repo at `"."` (status/log/show/diff), the
-test harness cannot CD between TEST blocks. `test-amigit-inrepo.rexx`
-wraps each such test: it builds an AmigaDOS Execute script that `CD`s
-into the target repo and then runs `WORK:amigit <subcmd>`, reading
-the captured output back into ARexx via `OPEN`/`READLN` so the
-test-runner sees the expected stdout. The wrapper applies the same
-`"X:foo"` -> `"X:/foo"` rewrite as cmd_init.c so AmigaDOS's CD finds
-the same directory libnix created.
+- `test-amigit-inrepo.rexx` -- CDs into a repo directory, runs
+  `WORK:amigit <subcmd>`, captures stdout + RC. Used by every
+  test that needs a CWD inside the repo.
+- `test-amigit-inrepo-setup.rexx` -- same as inrepo.rexx plus a
+  pre-step that creates a file via `Echo` before running amigit.
+  Used by `add` / `commit` tests that need a file in the working
+  tree before staging.
 
-Tests that only parse flags (`--help`, unknown flags, no-arg errors)
-do NOT need the wrapper -- they short-circuit before the repo open
-call and run directly via `WORK:amigit <subcmd> --help`. This halves
-the FS-UAE process churn compared to routing everything through the
-wrapper (which hung at ~24 tests due to resource exhaustion).
+Both wrappers apply the `"X:foo"` -> `"X:/foo"` rewrite before CD
+so AmigaDOS and libnix agree on the same directory.
 
-### `amigit version` canonical output
+Flag-parsing tests (`--help`, unknown flags, no-arg errors) do NOT
+use the wrapper -- they short-circuit before the repo open call
+and run directly via `WORK:amigit <subcmd> --help`. This halves
+the FS-UAE process churn compared to routing everything through
+the wrapper (which hung at ~24 tests due to resource exhaustion).
 
-```
-amigit 0.1 (built 2026-04-13)
-libgit2 1.8.5
-amiport posix-shim available
-```
+### Vamos regression
 
-Confirms libgit2 statically linked and the version reporting path
-(`git_libgit2_version`) works from a user binary context.
+The libgit2 Stage 5 test suite (`tests/libgit2/test_libgit2`)
+continues to pass 79/79 on vamos after the amigit changes. Both
+`lib/libgit2/libgit2.a` and `lib/zlib/libz.a` are unchanged by
+this release -- all Phase 3c fixes live in `ports/amigit/`.
 
-## Known limitations (Phase 3b)
+## Memory audit (memory-checker CLEAN)
 
-- **6 of 10 commands implemented.** `version`, `init`, `status`,
-  `log`, `show`, `diff`. Phase 3c adds `add`, `commit`, `checkout`,
-  `branch`, `tag`.
-- **No commit-content happy-path tests for log/show/diff.** Requires
-  `add`+`commit` which land in Phase 3c. The Phase 3b test suite
-  exercises flag parsing, error paths, and empty-repo behavior for
-  these commands, but cannot yet verify "log shows commit SHAs" or
-  "show HEAD prints diff content".
-- **Path normalization is amigit-side, not libgit2-side.** The
-  `X:foo` -> `X:/foo` rewrite is applied by `amigit_resolve_repo_path`
-  in amigit itself rather than patched into libgit2. This keeps
-  `lib/libgit2/` upstream source frozen. Any future port that
-  consumes `libgit2.a` with volume-rooted paths must apply the same
-  rewrite or reference this helper.
-- **No memory-checker / perf-optimizer yet.** ~600 lines of code in
-  Phase 3b still under the "defer to 3c" rule -- the final v1 will
-  run both agents before release.
-- **No Aminet readme, no LHA package.** Deferred to Phase 3c final.
-- **No catalog or site entries.** Deferred to Phase 3c final.
+All 13 translation units were audited for libgit2 handle leaks and
+double-frees. **Verdict: CLEAN.** Key findings:
+
+- Every `git_*_free()` / `git_buf_dispose()` fires on both success
+  and error paths, including the N-deep unwinding in `cmd_commit.c`
+  (repo -> idx -> tree -> author -> committer -> head_ref -> parent).
+- Pointer-stealing patterns (`commit = (git_commit *)obj; obj = NULL;`
+  in `cmd_show.c`) are safe: the original handle is explicitly
+  NULLed after the cast, so no double-free on error paths.
+- `git_libgit2_init` / `git_libgit2_shutdown` refcount is balanced:
+  one init in `main`, one shutdown via `atexit`. The atexit-failure
+  fallback path manually shuts down to keep the refcount balanced.
+- The soft-float stubs in `amigit_libgit2_stubs.c` take float args,
+  return `0.0f`, do nothing -- no memory concerns.
+
+## Performance review (perf-optimizer CLEAN)
+
+All 13 TUs audited for 68k performance hazards. **Verdict: no
+HIGH/CRITICAL findings.** Marginal optimizations noted as future
+revision candidates (not applied in v1):
+
+- `cmd_log.c:139` could use `fputs` + `putchar` instead of `printf`
+  in the revwalk loop (~30-50% cycles/commit), but the overall path
+  is I/O-bound so the gain is small.
+- `cmd_show.c` `strlen(msg)` could be cached (saves ~400 cycles).
+- `is_help_flag` is duplicated across 11 TUs (~500 bytes of binary).
+  Consolidating to `amigit.h` as a non-static would save binary size
+  and help the 68020 I-cache.
+- **All 13 TUs are SAFE for `-O1` promotion.** No struct-by-value
+  returns > 8 bytes (crash-patterns #16), no recursive functions,
+  no float division in amigit's own code. The Makefile could switch
+  from `-O0` to `-O1` across the port for a free marginal win,
+  pending a fresh FS-UAE run to confirm no regressions. Deferred to
+  a future revision to avoid re-triggering the fix/retest cycle.
+
+## Known limitations (v1)
+
+- **No network commands.** `clone`, `fetch`, `push`, `pull`,
+  `remote` require bsdsocket + libssh2 / http-shim -- a Phase 4
+  milestone with its own PDR.
+- **No merge/rebase/cherry-pick/revert/stash.** libgit2 supports
+  these but the test matrix grows quickly and the UX questions are
+  nontrivial. Candidates for v1.1.
+- **No interactive flows.** `rebase -i`, `add -i`, `commit --amend`
+  with editor invocation are out of scope -- amiport has no portable
+  $EDITOR story on AmigaOS, so all editing is non-interactive via
+  `-m` flags.
+- **No submodules, worktrees, reflog, bisect, blame, grep, archive,
+  describe, notes, gc, fsck, prune, pack-objects.** v1.1+ candidates.
+- **Single-word commit messages only.** AmigaDOS splits command-line
+  arguments on whitespace and Execute scripts do not preserve quotes,
+  so `amigit commit -m "first commit"` becomes two argv entries and
+  the second ("commit") is rejected as "unexpected argument".
+  Workaround: use single words (`first`, `firstcommit`, `first-commit`)
+  or commit via a modern git elsewhere and copy the `.git` directory.
+- **No color output, no pager integration.** Category 1 CLI per
+  PDR-010a. Users can pipe through AmigaDOS `More` for paging.
+- **amigit-side path normalization, not libgit2-side.** The
+  `X:foo` -> `X:/foo` rewrite is applied in amigit itself rather
+  than patched into libgit2. This keeps `lib/libgit2/` upstream
+  source frozen. Any future libgit2-consumer port that uses
+  volume-rooted paths must apply the same rewrite or reference
+  `amigit_resolve_repo_path()`.
+- **Empty initial commits rejected.** `amigit commit -m foo` in a
+  brand-new repo with zero staged files fails with RC=10 and the
+  message "nothing to commit". Upstream git rejects this too unless
+  `--allow-empty` is passed; amigit v1 does not expose that flag.
 
 ## Shim dependencies
 
 Beyond the standard `-lamiport` link, amigit pulls in:
+
 - `amiport_getopt_long` (used by future command option parsing; not
-  yet called in Phase 3a but headers are pre-wired)
+  yet called but headers are pre-wired)
 - File I/O via libnix native (libgit2 uses libnix for open/read/write)
 - `pr_WindowPtr` direct manipulation via `proto/exec.h` + `proto/dos.h`
   (not a shim call, but uses AmigaOS types from dos/dosextens.h)
@@ -270,15 +443,17 @@ libnix and the pruned libgit2 build:
 | `strnlen` | POSIX.1-2008, missing from libnix |
 | `difftime` | C89 standard, missing from libnix |
 | `select` | `posix.c` p_poll() path; not called at runtime |
-| `git_remote_*` | `remote.c` excluded from libgit2 build; branch/submodule/repository objects reference the symbols |
+| `git_remote_*` | `remote.c` excluded from libgit2 build |
 | `git_clone__submodule` | `clone.c` excluded; submodule.c references it |
-| `git_failalloc_*` | `failalloc.c` not in `allocators/` dir; alloc.o table has function pointers |
-| `git_socket_stream__connect_timeout`, `git_socket_stream__timeout` | extern ints in `settings.c`, defined in excluded transports |
+| `git_failalloc_*` | `failalloc.c` not in `allocators/` dir |
+| `git_socket_stream__connect_timeout/timeout` | excluded transports |
+| `__divsf3` | FS-UAE ROM mathieeesingbas crash workaround |
+| `__floatunsisf` | FS-UAE ROM mathieeesingbas crash workaround |
 
 This file is a near-verbatim copy of the stub block in
-`tests/libgit2/test_libgit2.c`. When libgit2's pruning configuration
-changes in Phase 4 (e.g. adding network transports), both files
-will need updating.
+`tests/libgit2/test_libgit2.c`, plus the Phase 3c soft-float
+overrides. When libgit2's pruning configuration changes in Phase 4
+(e.g. adding network transports), both files will need updating.
 
 ## References
 
@@ -290,3 +465,9 @@ will need updating.
   - `lib/libgit2/PERF-REPORT.md`
 - Test pattern reference: `tests/libgit2/test_libgit2.c`,
   `tests/libgit2/PLAN.md`, `tests/libgit2/Makefile`
+- Known pitfalls discovered in this port (added to
+  `.claude/rules/known-pitfalls.md` and amiga-kb):
+  - "libgit2 Treats AmigaDOS Volume Paths as Relative"
+  - "amiport_realpath Must Handle POSIX '.'"
+  - "libgit2 patch_generate Triggers FS-UAE mathieeesingbas Crash"
+  - "cmd_commit Must Reject Empty Initial Commits Explicitly"

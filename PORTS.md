@@ -6,6 +6,7 @@ Version format: `upstream[-portrev]` — port revision is shown when > 1 (e.g., 
 
 | Port | Version | Description | Category | Original | Status | Aminet |
 |------|---------|-------------|----------|----------|--------|--------|
+| [amigit](ports/amigit/) | 0.1 | Local-only git client for AmigaOS 3.x | CLI | amiport-native (hand-written on libgit2 1.8.5) | Built & tested (81/81 FS-UAE) | Not submitted |
 | [cal](ports/cal/) | 1.32 | Unix-style calendar display | CLI | OpenBSD cal v1.32 (BSD 3-Clause) | Built & tested | Submitted 2026-03-20 |
 | [cut](ports/cut/) | 1.28 | Extract fields/columns from text | CLI | OpenBSD cut v1.28 (BSD 3-Clause) | Built & tested | Submitted 2026-03-20 |
 | [diff](ports/diff/) | 1.95 | File comparison utility | CLI | OpenBSD diff v1.95 (ISC + BSD 3-Clause) | Built & tested | Submitted 2026-03-22 |

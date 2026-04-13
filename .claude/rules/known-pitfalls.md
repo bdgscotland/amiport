@@ -771,3 +771,35 @@ AmigaDOS `Lock(".", SHARED_LOCK)` returns NULL — `"."` is not a valid AmigaDOS
 **Fix (applied 2026-04-13):** `amiport_realpath` in `lib/posix-shim/src/file_io.c` now special-cases `"."` / `""` / NULL and resolves them via `pr_CurrentDir` + `NameFromLock()` instead of `Lock()`. The current directory lock is borrowed from the process structure (not owned), so the function skips the `UnLock()` call for that path.
 
 This is a POSIX compliance improvement — any future port using `realpath(".")` semantics now gets the expected behavior. Discovered in PDR-010 Phase 3b while debugging amigit's `git_repository_open_ext(".", ...)` from inside the CWD of a repository.
+
+## libgit2 patch_generate Triggers FS-UAE mathieeesingbas Crash -- Override __divsf3
+
+libgit2 1.8.5's `src/libgit2/patch_generate.c` line 261 computes `float progress = patch->diff ? ((float)patch->delta_index / patch->diff->deltas.length) : 1.0f;` inside `patch_generated_invoke_file_callback`. This is the **only** single-precision float operation anywhere in libgit2's compiled archive, and the progress value is computed BEFORE the `output->file_cb == NULL` check -- so it runs even when the caller has no progress callback.
+
+On AmigaOS with bebbo-gcc `-noixemul -m68000 -lm`, this pulls `__divsf3` and `__floatunsisf` from libnix, both of which route through ROM `mathieeesingbas.library`. On FS-UAE that ROM library crashes with Guru Meditation `8000 000B` (ACPU_LineF) -- the same crash documented in crash-patterns #2 for SDL_CreateRenderer dpi_scale. **Vamos does NOT exhibit the crash** because vamos intercepts math library calls through host math -- so the failure is entirely FS-UAE specific and invisible to the vamos smoke-test pipeline.
+
+Symptom: reproducibly triggered by `git_diff_to_buf(&buf, diff, GIT_DIFF_FORMAT_PATCH)` or `git_diff_print(diff, GIT_DIFF_FORMAT_PATCH, cb, NULL)` when the diff contains at least one non-empty delta. Tests that call `git_status_foreach_ext`, `git_diff_tree_to_index`, `git_diff_index_to_workdir`, `git_revwalk`, or `git_commit_lookup` pass cleanly -- none of them reach `patch_generated_invoke_file_callback`.
+
+Discovered in amigit 0.1 Phase 3c (2026-04-13). Diagnosis path: bisection showed `diff --cached` was the unique failing command. `nm` on `patch_generate.o` revealed exactly two unresolved soft-float symbols (`__divsf3`, `__floatunsisf`). Those are the only ones libgit2 references.
+
+**Fix:** provide stub overrides in a consumer TU that appears before `-lamiport`/libnix in the link line. The return values are discarded, so the stubs can return `0.0f`:
+
+```c
+/* In a TU compiled into the port binary, BEFORE libnix in link order */
+float __divsf3(float a, float b) { (void)a; (void)b; return 0.0f; }
+float __floatunsisf(unsigned int x) { (void)x; return 0.0f; }
+```
+
+Verified via `nm`: after override, the symbols resolve to the consumer's addresses (not libnix's archive addresses). amigit's 81-test FS-UAE suite goes from "crash on test 79 (`diff --cached`)" to 81/81 passing.
+
+**Applies to any amiport port that links libgit2.a and calls any `git_patch_*` or `git_diff_*_to_buf` / `git_diff_print` API.** Ports that only use status/log/revwalk/index/tree APIs do not need the override. amigit's `ports/amigit/ported/amigit_libgit2_stubs.c` provides the canonical implementation -- future libgit2-consumer ports should copy the `__divsf3` / `__floatunsisf` section verbatim.
+
+## cmd_commit Must Reject Empty Initial Commits Explicitly
+
+libgit2's `git_index_write_tree` succeeds on a completely empty index, returning the OID of the empty tree. This lets `git_commit_create_v` produce an empty initial commit -- equivalent to `git commit --allow-empty-message --allow-empty` on the command line. Plain `git commit` (without `--allow-empty`) rejects this.
+
+In the amigit port (Phase 3c), the initial `cmd_commit.c` implementation relied solely on the `git_index_write_tree` return code to detect "nothing to commit", so `amigit commit -m foo` in a brand-new repo with zero staged files succeeded silently -- creating an empty-tree commit and pointing HEAD at it. This cascaded: subsequent tests in the same suite that assumed the repo had "unborn HEAD" (e.g. `tag v0.1 in empty repo should fail with unborn HEAD`) then saw a born HEAD and produced the wrong exit code.
+
+**Fix:** explicitly check `git_index_entrycount(idx) == 0` before attempting `git_index_write_tree`. If the index is empty, reject with "nothing to commit" and exit 10. Applied in `ports/amigit/ported/cmd_commit.c` before the tree-write step.
+
+This generalizes: any port that wraps `git_commit_create*` must add an explicit empty-index guard or match upstream git's `--allow-empty` semantics deliberately. libgit2 does not provide this guard by default.
