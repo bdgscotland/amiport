@@ -803,3 +803,17 @@ In the amigit port (Phase 3c), the initial `cmd_commit.c` implementation relied 
 **Fix:** explicitly check `git_index_entrycount(idx) == 0` before attempting `git_index_write_tree`. If the index is empty, reject with "nothing to commit" and exit 10. Applied in `ports/amigit/ported/cmd_commit.c` before the tree-write step.
 
 This generalizes: any port that wraps `git_commit_create*` must add an explicit empty-index guard or match upstream git's `--allow-empty` semantics deliberately. libgit2 does not provide this guard by default.
+
+## Debug-Agent Must Query amiga-kb FIRST Before Speculative Crash Fixes
+
+When investigating any Guru Meditation crash, the debug-agent MUST invoke `amiga_crash_diagnosis` with the exact Guru code as step 1 -- BEFORE proposing speculative fixes like "probably stack overflow, let's raise `__stack`" or "probably codegen, let's drop optimization to -O0".
+
+Discovered in amigit Phase 3c (2026-04-13). A Guru `8000 000B` in libgit2's `git_diff_to_buf` was misdiagnosed across two iterations: first blaming `xdl_recs_cmp` at -O1 (based on a corrupt return-address PC), then raising `__stack` which caused a different fragmentation hang. The correct diagnosis -- single-precision soft-float through ROM `mathieeesingbas.library` crashing, matching documented crash-pattern #2 -- took three minutes once `amiga_crash_diagnosis` was queried. Speculation cost hours and left two half-reverted speculative changes in the working tree.
+
+**Rule:** For ANY Guru Meditation or Software Failure alert, the debug workflow is:
+1. Capture the Guru code (e.g. `8000 000B`).
+2. Call `amiga_crash_diagnosis` with the code and a one-line symptom description.
+3. If the KB returns a confident match, apply the documented fix and verify.
+4. Only pursue speculative theories (stack overflow, codegen, alignment, etc.) AFTER the KB returns no confident match.
+
+**Corollary:** odd-address PCs in 68k crash reports are almost always stack-corruption symptoms, NOT the actual crash site. A `nm` lookup on an odd PC will find the nearest-symbol-below and report it confidently -- but that's a lie. 68k instructions are word-aligned (even addresses only); any PC ending in an odd byte is evidence that the return-address slot on the stack was smashed. Don't try to map odd PCs to symbols unless you first prove the PC is even.
