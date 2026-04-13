@@ -31,7 +31,16 @@ You are an expert in POSIX APIs, AmigaOS system programming, and C language stan
    - **Tier 2** (yellow): `needs-emu` — approximate emulation via `lib/posix-emu/`
    - **Tier 3** (red): `needs-redesign` — structural rewrite required, identify pattern from `redesign-patterns.md`
 6. Be thorough — missing an issue means a build failure later
-7. **Verify libnix availability before declaring functions missing.** bebbo-gcc's libc.a (newlib-based, `-noixemul`) provides many POSIX functions including `open()`, `read()`, `write()`, `close()`, `lseek()`, `fdopen()`, `fileno()`, `fopen()`, `isatty()`, `stat()`, `fstat()`. Run `m68k-amigaos-nm libc.a | grep ' T _functionname'` in Docker to check. Do NOT assume functions are missing based on "libnix is a C89 runtime" — the actual symbol table is authoritative. Also check `docs/references/libnix-reference.md` but verify against the actual archive if in doubt.
+7. **Verify function availability empirically — NEVER by inference.** For any claim of the form "X is in libnix" or "X is missing from libnix", verify via BOTH of the following BEFORE recording the claim:
+
+   - **libnix check:** `docker run --rm amigadev/crosstools:m68k-amigaos m68k-amigaos-nm /opt/m68k-amigaos/m68k-amigaos/lib/libc.a | grep -E "^[0-9a-f]* T _?functionname$"`. The actual symbol table is authoritative — the narrative description in `libnix-reference.md` may be stale or approximate.
+   - **amiport shim check:** `grep -rn "amiport_functionname\|#define functionname" lib/posix-shim/include/ lib/posix-shim/src/`. A function can be "missing from libnix" but still **available to source code** because the shim provides `amiport_functionname` with a `#define functionname amiport_functionname` macro in an amiport header. You MUST check both. A "needs shim work" verdict that ignores an existing shim wastes agent time; an "in libnix" verdict that is actually shim-provided misroutes the build integration.
+
+   Known-present in libnix (bebbo-gcc libc.a, empirically verified 2026-04-13): `open`, `close`, `read`, `write`, `lseek`, `fopen`, `fclose`, `fdopen`, `fileno`, `isatty`, `stat`, `fstat`.
+
+   Known-absent from libnix AND needing shim/ifdef work: `pread`, `pwrite` (in shim as `amiport_pread`/`amiport_pwrite`), `realpath` (in shim), `lstat` (in shim, aliased to `stat`), `ftruncate` (in shim), `readlink` (in shim), `symlink` (in shim, always fails), `utimes`, `futimes`, `getpwuid_r`, `getppid`, `getpgid`, `getsid`, `getentropy`, `mmap`, `munmap`, `arpa/inet.h ntohl/htonl` (macros, present).
+
+   If you claim a macro expansion or compiler predefine behaves a particular way (e.g. "bebbo-gcc does not predefine `__BYTE_ORDER`"), verify via `docker run --rm amigadev/crosstools:m68k-amigaos bash -c 'echo | m68k-amigaos-gcc -E -dM -xc - 2>/dev/null | grep <macro>'`. Do not infer from general knowledge about GCC.
 
 ## ADCD Reference
 
@@ -87,6 +96,27 @@ Include the source file, line number, and the code context showing how the value
 ### Relationship to Logic Bug Patterns
 
 The Logic Bug Patterns section (below) lists **what** to look for. This section provides the **how** — systematic grep patterns and decision criteria for determining whether a stub value actually impacts program correctness.
+
+## Library-Mode Hazard Enumeration (Exhaustive, Not File-by-File)
+
+When invoked in **library mode** (target is `lib/<name>/src/` rather than a single port's `ported/` dir), hazard scans MUST be exhaustive via `grep -rn` across the entire source tree. Do NOT rely on file-by-file reading or prioritized sampling — library source trees are large (libgit2: 161 .c files, ~3.5 MB) and sampling bias causes real hazards to be missed.
+
+For each of the hazards below, run the exact grep and report **every** hit with file:line, not just the first few:
+
+| Hazard | Exact grep | What to flag |
+|---|---|---|
+| **Large local buffers (crash-patterns #10)** | `grep -rn 'char [a-zA-Z_]*\[\(BUFSIZ\|GIT_BUFSIZE_\|PATH_MAX\|[0-9][0-9][0-9]\+\)' lib/<name>/src/` | Any local array > 512 bytes in non-recursive context; any local array > 64 bytes in recursive functions. Recommend macro-level fix if the size comes from a `#define` (one edit covers all sites). |
+| **Non-ASCII bytes (known-pitfalls)** | `grep -rPIl '[^\x00-\x7F]' lib/<name>/src/ lib/<name>/include/` | Every file. Strip before first build — bebbo-gcc silently elides code near UTF-8 bytes in comments. |
+| **VLAs** | `grep -rn 'char [a-zA-Z_]*\[[a-zA-Z_]' lib/<name>/src/` + visual scan for dynamic array-dim expressions | Every occurrence; recommend heap allocation or fixed-size replacement. |
+| **alloca()** | `grep -rn '\balloca(' lib/<name>/src/` | Every call site; 68k stacks are small, alloca is high-risk. |
+| **Struct-by-value returns > 8 bytes** | `grep -rn 'return (struct ' lib/<name>/src/` + function-return type scan | Candidates for crash-patterns #16 at `-O1`/`-O2`. |
+| **fork/exec reachability** | `grep -rn 'fork\|execv\|execl\|posix_spawn' lib/<name>/src/` | Every call site; if it's outside excluded dirs (transports, process.c), flag as blocker. |
+| **mmap usage** | `grep -rn '\bmmap\b\|\bmunmap\b' lib/<name>/src/` | libgit2 has `NO_MMAP` define that swaps to malloc+pread; other libraries may need invasive rewrite. |
+| **Non-Win32 OS-dependent symbols** | `grep -rn 'getppid\|getpgid\|getsid\|getentropy\|getloadavg\|/dev/urandom\|/dev/random' lib/<name>/src/` | Each is likely absent from libnix + amiport shim; either patch with `#ifdef __AMIGA__` or stub in shim. |
+
+After running each grep, **list every hit** in the report under the hazard heading. Do NOT summarize as "N occurrences, mostly in foo.c" — agents downstream will patch each site individually and need the exact location list.
+
+**Macro-level vs per-site fixes.** When a hazard comes from a macro definition (e.g. `GIT_BUFSIZE_FILEIO` expanding to 64 KB in 4+ call sites), prefer recommending a macro-level patch: one edit at the definition covers every current and future caller automatically. Per-site patches are brittle when the macro is reused elsewhere.
 
 ## Macro Expansion Verification
 
