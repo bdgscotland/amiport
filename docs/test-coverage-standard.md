@@ -17,6 +17,30 @@ CMD: WORK:grep -i HELLO WORK:test-input.txt
 EXPECT: hello world
 ```
 
+### 1a. Positional Argument Matrix (per command)
+
+**Every command must be tested across its full positional-argument matrix, not just its flag matrix.** A flag-complete test suite that omits positional variations is still incomplete. This is the "100% of args" rule, complementary to the "100% of flags" rule in section 1.
+
+For each command (or for each subcommand of a dispatching binary like `amigit <subcmd>`), enumerate and test:
+
+1. **Zero positional args** — if the command has any default behavior (e.g., `init` defaults to CWD, `log` walks from HEAD, `ls` lists CWD, `cat` reads stdin), the zero-arg form MUST be tested. Not from the FS-UAE default directory — from a realistic CWD established via an Execute-script wrapper (see "Testing CWD-dependent commands" below).
+2. **Exactly one positional arg** — the explicit form (e.g., `init <path>`, `log <ref>`, `grep <pattern>`).
+3. **Multiple positional args** — if the command accepts variadic input (e.g., `add file1 file2 file3`, `cat a b c`, `diff file1 file2`).
+4. **Nonexistent / invalid positional arg** — what happens when the target doesn't exist, is the wrong type, or is malformed.
+5. **Zero args combined with flags** — flag + default behavior (e.g., `init --bare` from a CWD, not `init --bare <path>`; `log -n 5` with HEAD default).
+6. **Relative vs absolute paths** — when a command accepts paths, test both absolute (`WORK:foo`) and relative-to-CWD (`foo` after `CD`) forms. These hit different libnix/libgit2 code paths and can fail independently.
+
+Omitting zero-arg or relative-path forms is the single most common blind spot in amiport test design: if every test uses an explicit `T:path-here`, the "user runs the tool in their own project directory" case never gets exercised, and CWD-resolution bugs (NameFromLock quirks, libgit2 `.`-handling, libnix `getcwd()` behavior) ship undetected. This was the root-cause gap behind the amigit 0.1 CWD-init regression (2026-04-13): 81/81 tests green, but `amigit init` from a user CWD had never been invoked.
+
+#### Testing CWD-dependent commands
+
+**For any command whose default behavior depends on the current directory, the test suite MUST include at least one invocation run from inside a real CWD via an Execute-script wrapper.** The ARexx `ADDRESS COMMAND` path cannot persist `CD` across calls — each `CMD:` line starts a fresh shell context. The only reliable pattern is an ARexx wrapper that writes a small Execute script containing `CD <path>` + `<program> [args]` + `$RC` capture, then `Execute`s it. Reference implementations:
+
+- `ports/amigit/test-amigit-inrepo.rexx` — runs a subcommand inside a pre-built repo fixture
+- `ports/amigit/test-amigit-cwd-init.rexx` — runs `amigit init` (no args) from a freshly created CWD
+
+The test-designer MUST add a "Positional Argument Matrix" subsection to its coverage report listing every command and, for each cell of the matrix above, whether the cell is covered, deferred (with reason), or not applicable.
+
 ### 2. Error Path Tests
 
 Every error condition the program can report must be tested:
@@ -198,6 +222,7 @@ When creating tests for a ported tool, use these sources:
 3. **Error messages** — grep the source for `err(`, `errx(`, `warn(`, `fprintf(stderr` — each error message is an error path that should be tested
 4. **Exit codes** — grep for `exit(` and `return` in `main()` — each distinct exit code needs a test
 5. **Known pitfalls** — check `docs/references/crash-patterns.md` for crash patterns that apply to this tool
+6. **Positional argument matrix** — for every command (or subcommand), enumerate the cells in section 1a (zero args, one arg, multiple args, invalid arg, zero-args-plus-flag, relative-path-from-CWD) BEFORE writing test cases, then verify each cell is covered. This is mandatory. Extract positional-arg handling from the source by grepping for `argc`, `argv[N]`, and looking at optional vs required arg flows in each command's dispatch.
 
 ## Enforcement
 
@@ -207,4 +232,6 @@ The `port-project` skill MUST verify test coverage before completing Stage 5:
 - Check for error path tests (tests with EXPECT_RC: 10 or EXPECT_RC: 5)
 - Reject ports with fewer than the minimum test count for their category
 - For Category 3+: verify `test-fsemu-visual-cases.txt` exists with >= 3 SCRAPE tests
+- **Require a Positional Argument Matrix section in the test-designer's coverage report**. If the matrix is missing or has uncovered cells without a documented deferral reason, Stage 5 is not complete.
+- **For any command that accepts zero positional args with default CWD behavior, require at least one test that runs the command inside a CWD via an Execute-script wrapper** (grep `test-fsemu-cases.txt` for `CD ` inside Execute scripts, or look for a `test-*-cwd-*.rexx` / `test-*-inrepo*.rexx` helper).
 - Verify no SCRAPE tests are in `test-fsemu-cases.txt` (they must be in the visual file)

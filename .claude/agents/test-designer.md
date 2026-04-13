@@ -156,9 +156,24 @@ For programs where column alignment matters (expand, comm, cut, paste), **always
 Follow `docs/test-coverage-standard.md` "Deriving Test Cases" section:
 
 1. **Flags:** Grep for `getopt`, option parsing, or flag variables → one test per flag
-2. **Exit codes:** Grep for `exit(`, `_exit(`, `err(`, `errx(` → one test per distinct exit code
-3. **Error messages:** Grep for `fprintf(stderr`, `warn(`, `warnx(` → one test per error path
-4. **Edge cases:** Check `docs/references/crash-patterns.md` for applicable Amiga-specific issues
+2. **Positional argument matrix (MANDATORY — see standard section 1a):** For every command or subcommand, enumerate the positional-arg cells BEFORE writing test cases: zero args (defaults to CWD/stdin/HEAD?), exactly one arg, multiple args, invalid/nonexistent arg, zero args + flag, relative path vs absolute path. Derive by reading each command's argv handling (`argc` checks, `argv[N]` dereferences, default-value assignments). Every cell must be either covered or have a documented deferral reason in the coverage report. Omitting this step is how amigit 0.1 shipped with 81 green tests and a broken `amigit init` from a user CWD.
+3. **Exit codes:** Grep for `exit(`, `_exit(`, `err(`, `errx(` → one test per distinct exit code
+4. **Error messages:** Grep for `fprintf(stderr`, `warn(`, `warnx(` → one test per error path
+5. **Edge cases:** Check `docs/references/crash-patterns.md` for applicable Amiga-specific issues
+
+### CWD-dependent commands — MANDATORY wrapper pattern
+
+**Any command whose default (zero-positional-arg) behavior depends on the current directory — `init`, `status`, `log`, `ls`, `pwd`, any tool that walks or creates in CWD — MUST have at least one test that runs it from inside a real CWD.** The ARexx harness cannot persist `CD` across `ADDRESS COMMAND` calls; each `CMD:` line starts fresh. The only reliable pattern is an ARexx wrapper that:
+
+1. Optionally creates a fresh fixture directory
+2. Writes a small Execute script containing `CD <path>` + `WORK:<program> <args>` + `Echo $RC` capture
+3. Runs the Execute script via `ADDRESS COMMAND 'Execute ...'`
+4. Reads the captured output and return code back
+5. `SAY`s the output lines and `EXIT cmdrc`
+
+Reference implementations: `ports/amigit/test-amigit-inrepo.rexx` (runs subcommand in pre-built repo), `ports/amigit/test-amigit-cwd-init.rexx` (runs `amigit init` in a freshly-created empty dir). Copy the shape — do not invent a new mechanism.
+
+The `SYS:Rexxc/rx WORK:test-<name>-cwd-*.rexx ...` invocation goes into `test-fsemu-cases.txt` as a regular `CMD:` line with `EXPECT_RC:` on the wrapper's exit code. The harness already routes the wrapper's `SAY` output through the test-harness capture, so `EXPECT:`/`EXPECT_CONTAINS:` assertions work on the wrapped program's stdout.
 
 ## Required Test Categories
 
@@ -166,7 +181,8 @@ Follow `docs/test-coverage-standard.md` "Deriving Test Cases" section:
 
 Every test suite MUST include all six categories:
 
-1. **Functional tests** — at least one per documented flag/option
+1. **Functional tests** — at least one per documented flag/option, AND one per cell of the positional-argument matrix (see standard section 1a). Flag coverage without arg-matrix coverage is incomplete.
+1a. **Positional argument matrix tests** — for every command with default CWD/stdin/HEAD behavior, at least one zero-arg invocation run from inside a realistic CWD via the Execute-script wrapper pattern documented above. Without this, CWD-resolution bugs ship undetected.
 2. **Error path tests** — at least one test with `EXPECT_RC: 10` (bad args, missing file)
 3. **Exit code tests** — at least one each of `EXPECT_RC: 0` and `EXPECT_RC: 10`; include `EXPECT_RC: 5` if the program has a warning exit (like grep no-match or diff files-differ)
 4. **Edge case tests** — empty file, long lines, binary file detection (where applicable)
@@ -462,6 +478,8 @@ After generating test-fsemu-cases.txt (and test-fsemu-visual-cases.txt for Categ
 12. **Multi-line output tests use EXPECT_LINE:** to verify at least one non-first line
 13. **No EXPECT_CONTAINS: where EXPECT: would work** — exact match is always preferred for deterministic output
 14. **NEVER weaken assertions to pass** — if a test fails, the CODE is wrong, not the test. Do not replace EXPECT: with EXPECT_CONTAINS: to hide output differences. See `.claude/rules/never-weaken-tests.md`.
+15. **Positional argument matrix covered for every command** (section 1a of the coverage standard). A completeness check that ignores the arg matrix is incomplete.
+16. **Every command with default-CWD behavior has at least one in-CWD test** via an Execute-script wrapper (grep the port dir for `test-*-cwd-*.rexx` or `test-*-inrepo*.rexx`, or look for `CD ` inside Execute scripts written by a wrapper).
 
 ## Coverage Report
 
@@ -479,6 +497,19 @@ Print to stdout at the end:
     Input files created: <count>
     Shared data referenced: <count>
     VERDICT: PASS / FAIL (reason)
+
+    === Positional Argument Matrix ===
+    (One block per command / subcommand)
+    <command-name>:
+      zero args                 : [COVERED by test "<name>" | DEFERRED: <reason> | N/A]
+      one arg (explicit)        : [COVERED | DEFERRED | N/A]
+      multiple args             : [COVERED | DEFERRED | N/A]
+      invalid arg               : [COVERED | DEFERRED | N/A]
+      zero args + flag          : [COVERED | DEFERRED | N/A]
+      relative path from CWD    : [COVERED | DEFERRED | N/A]
+    MATRIX VERDICT: COMPLETE / INCOMPLETE (which cells and why)
+
+**If MATRIX VERDICT is INCOMPLETE for any command with default-CWD behavior, the overall VERDICT is FAIL regardless of flag/error coverage.** The port-project skill will block Stage 5 completion.
 
 ## Reference Documents
 
