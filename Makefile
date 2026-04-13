@@ -9,7 +9,7 @@
 #   clean            Remove build artifacts
 #   fetch-ndk        Download AmigaOS NDK 3.2 R4
 
-.PHONY: setup setup-toolchain setup-debug-tools build-shim build-emu build-console build-net build-http build-zlib build test test-shim test-emu test-console test-net test-zlib test-ports package clean fetch-ndk help doctor smoke-test compare list-ports build-ports install-emu setup-emu emu publish check-aminet build-uaequit build-keyinject test-fsemu check-docs check-agents check-test-coverage check-fix-propagation check-port-metadata check-arexx scrape-adcd
+.PHONY: setup setup-toolchain setup-debug-tools build-shim build-emu build-console build-net build-http build-zlib build-libgit2 build test test-shim test-emu test-console test-net test-zlib test-libgit2 test-ports package clean fetch-ndk help doctor smoke-test compare list-ports build-ports install-emu setup-emu emu publish check-aminet build-uaequit build-keyinject test-fsemu check-docs check-agents check-test-coverage check-fix-propagation check-port-metadata check-arexx scrape-adcd
 
 help:
 	@echo "amiport — AI-powered Amiga porting toolkit"
@@ -24,6 +24,7 @@ help:
 	@echo "  build-net        Cross-compile the BSD socket shim library"
 	@echo "  build-http       Cross-compile the HTTP/1.0 client library"
 	@echo "  build-zlib       Cross-compile the zlib compression library"
+	@echo "  build-libgit2    Cross-compile the libgit2 embedded git library"
 	@echo "  build            Build a port (TARGET=examples/wc)"
 	@echo "  test             Test a build via vamos (TARGET=examples/wc)"
 	@echo "  test-shim        Run POSIX shim library tests via vamos"
@@ -31,6 +32,7 @@ help:
 	@echo "  test-console     Run console shim tests via vamos"
 	@echo "  test-net         Run BSD socket shim tests via vamos"
 	@echo "  test-zlib        Run zlib tests via vamos"
+	@echo "  test-libgit2     Run libgit2 tests via vamos (vamos-limited, 79/79)"
 	@echo "  package          Create LHA archive (TARGET=examples/wc)"
 	@echo "  fetch-ndk        Download AmigaOS NDK 3.2 R4"
 	@echo "  clean            Remove build artifacts"
@@ -90,6 +92,9 @@ build-http: build-net
 build-zlib:
 	$(MAKE) -C lib/zlib
 
+build-libgit2: build-zlib build-shim
+	$(MAKE) -C lib/libgit2
+
 build:
 ifndef TARGET
 	$(error TARGET is required. Usage: make build TARGET=examples/wc)
@@ -116,6 +121,9 @@ test-net: build-net
 
 test-zlib: build-zlib
 	$(MAKE) -C tests/zlib
+
+test-libgit2: build-libgit2
+	$(MAKE) -C tests/libgit2
 
 package:
 ifndef TARGET
