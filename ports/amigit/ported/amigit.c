@@ -28,6 +28,62 @@
 
 #include "amigit.h"
 
+/* ========================================================================
+ * amigit_resolve_repo_path -- AmigaDOS path -> libgit2-friendly form
+ * ========================================================================
+ *
+ * Two transformations (see amigit.h for rationale):
+ *   1. "." / NULL / empty  -> NameFromLock(pr_CurrentDir)
+ *   2. "X:foo"             -> "X:/foo" (so libgit2 sees it as rooted)
+ *
+ * This is the single choke point for path normalization. Every
+ * command that hands a user-supplied path to libgit2 open/init
+ * should funnel it through here first.
+ */
+int amigit_resolve_repo_path(const char *in, char *out, size_t outsize)
+{
+    char tmp[256];
+    const char *src = in;
+
+    if (outsize < 4) {
+        return RETURN_ERROR;
+    }
+
+    /* Step 1: resolve "." / NULL / "" to an absolute CWD path. */
+    if (src == NULL || src[0] == '\0' ||
+        (src[0] == '.' && src[1] == '\0')) {
+        struct Process *me = (struct Process *)FindTask(NULL);
+        BPTR cwd_lock = me->pr_CurrentDir;
+        if (cwd_lock == 0 ||
+            !NameFromLock(cwd_lock, (STRPTR)tmp, sizeof(tmp) - 1)) {
+            return RETURN_ERROR;
+        }
+        src = tmp;
+    }
+
+    /* Step 2: rewrite "X:foo" -> "X:/foo" if needed. */
+    if (src[0] != '\0' && src[1] == ':' && src[2] != '\0' &&
+        src[2] != '/') {
+        size_t slen = strlen(src);
+        if (slen + 2 > outsize) {
+            return RETURN_ERROR;
+        }
+        out[0] = src[0];
+        out[1] = ':';
+        out[2] = '/';
+        /* Copy from src[2] through trailing NUL (slen - 2 + 1 bytes). */
+        memcpy(&out[3], &src[2], slen - 1);
+        return RETURN_OK;
+    }
+
+    /* No rewrite needed -- straight copy. */
+    if (strlen(src) + 1 > outsize) {
+        return RETURN_ERROR;
+    }
+    strcpy(out, src);
+    return RETURN_OK;
+}
+
 /* Real AmigaOS honors this; vamos uses -s from the command line.
  * 256 KB matches lib/libgit2 tree/pack walk worst case. */
 long __stack = 262144;
@@ -48,6 +104,14 @@ static const amigit_command dispatch_table[] = {
       "Print amigit and libgit2 version strings" },
     { "init",    amigit_cmd_init,
       "Create an empty git repository" },
+    { "status",  amigit_cmd_status,
+      "Show worktree and index status" },
+    { "log",     amigit_cmd_log,
+      "Walk commit history from HEAD" },
+    { "show",    amigit_cmd_show,
+      "Show a commit with its diff" },
+    { "diff",    amigit_cmd_diff,
+      "Show index vs worktree diff (or --cached for HEAD vs index)" },
     { NULL,      NULL,                NULL }
 };
 
@@ -55,29 +119,30 @@ static const amigit_command dispatch_table[] = {
  * amigit_usage -- central help output
  * ======================================================================== */
 
-int amigit_usage(const char *cmd_name)
+int amigit_usage(const char *cmd_name, int rc)
 {
+    FILE *out = (rc == RETURN_OK) ? stdout : stderr;
     const amigit_command *cmd;
 
     if (cmd_name == NULL) {
-        fprintf(stderr, "usage: amigit <command> [args]\n\n");
-        fprintf(stderr, "amiport-native git client built on libgit2.\n");
-        fprintf(stderr, "Local repositories only; no network commands.\n\n");
-        fprintf(stderr, "Commands:\n");
+        fprintf(out, "usage: amigit <command> [args]\n\n");
+        fprintf(out, "amiport-native git client built on libgit2.\n");
+        fprintf(out, "Local repositories only; no network commands.\n\n");
+        fprintf(out, "Commands:\n");
         for (cmd = dispatch_table; cmd->name != NULL; cmd++) {
-            fprintf(stderr, "  %-10s  %s\n", cmd->name, cmd->summary);
+            fprintf(out, "  %-10s  %s\n", cmd->name, cmd->summary);
         }
-        fprintf(stderr, "\nSee: amigit <command> --help for per-command usage.\n");
-        return RETURN_ERROR;
+        fprintf(out, "\nSee: amigit <command> --help for per-command usage.\n");
+        return rc;
     }
 
     /* Per-command usage: each command handles its own --help/-h by
      * printing its usage and returning RETURN_OK. This branch is only
      * reached if the dispatcher itself wants to emit a usage hint for
-     * a known but misused command (no current callers). */
-    fprintf(stderr, "usage: amigit %s ...\n", cmd_name);
-    fprintf(stderr, "Run 'amigit %s --help' for details.\n", cmd_name);
-    return RETURN_ERROR;
+     * a known but misused command. */
+    fprintf(out, "usage: amigit %s ...\n", cmd_name);
+    fprintf(out, "Run 'amigit %s --help' for details.\n", cmd_name);
+    return rc;
 }
 
 /* ========================================================================
@@ -144,17 +209,14 @@ int main(int argc, char **argv)
 
     if (argc < 2) {
         me->pr_WindowPtr = saved_win;
-        return amigit_usage(NULL);
+        return amigit_usage(NULL, RETURN_ERROR);
     }
 
-    /* Top-level --help / -h */
+    /* Top-level --help / -h: success context, print to stdout. */
     if (strcmp(argv[1], "--help") == 0 ||
         strcmp(argv[1], "-h") == 0) {
         me->pr_WindowPtr = saved_win;
-        /* usage returns RETURN_ERROR but for explicit --help we
-         * want RETURN_OK so Amiga scripts treat it as success. */
-        (void)amigit_usage(NULL);
-        return RETURN_OK;
+        return amigit_usage(NULL, RETURN_OK);
     }
 
     /* Initialize libgit2 before any git_* call. The test suite
@@ -185,7 +247,7 @@ int main(int argc, char **argv)
 
     /* Unknown command */
     fprintf(stderr, "amigit: unknown command '%s'\n", argv[1]);
-    (void)amigit_usage(NULL);
+    (void)amigit_usage(NULL, RETURN_ERROR);
     me->pr_WindowPtr = saved_win;
     return RETURN_ERROR;
 }

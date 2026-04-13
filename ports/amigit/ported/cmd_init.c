@@ -20,7 +20,7 @@
 #include <string.h>
 #include "git2.h"
 #include "git2/sys/errors.h"   /* git_error_clear() */
-#include <dos/dos.h>
+#include <dos/dos.h>            /* RETURN_OK / RETURN_ERROR */
 
 #include "amigit.h"
 
@@ -69,24 +69,35 @@ int amigit_cmd_init(int argc, char **argv)
         path = argv[i];
     }
 
-    /* Detect "already a repo" before calling init, so we can print
-     * the "Reinitialized" vs "Initialized" message correctly.
-     * git_repository_open_ext with NO_SEARCH is the cheap check. */
-    existed_before = 0;
+    /* Normalize the path via amigit_resolve_repo_path -- this resolves
+     * "." to the absolute CWD path and rewrites "X:foo" to "X:/foo",
+     * working around libgit2's AmigaOS path-handling quirks (see the
+     * helper's documentation in amigit.h). */
     {
-        git_repository *probe = NULL;
-        int probe_rc = git_repository_open_ext(
-            &probe, path, GIT_REPOSITORY_OPEN_NO_SEARCH, NULL);
-        if (probe_rc == 0) {
-            existed_before = 1;
-            git_repository_free(probe);
+        char resolved[256];
+        if (amigit_resolve_repo_path(path, resolved, sizeof(resolved))
+                != RETURN_OK) {
+            fprintf(stderr,
+                    "amigit: init: cannot resolve path '%s'\n", path);
+            return RETURN_ERROR;
         }
-        /* Clear any libgit2 error from the probe -- a failed open is
-         * expected when the directory is not yet a repo. */
-        git_error_clear();
-    }
 
-    rc = git_repository_init(&repo, path, is_bare);
+        /* Probe for "already a repo" using the resolved path so the
+         * "Reinitialized" message fires correctly on repeat calls. */
+        existed_before = 0;
+        {
+            git_repository *probe = NULL;
+            int probe_rc = git_repository_open_ext(
+                &probe, resolved, GIT_REPOSITORY_OPEN_NO_SEARCH, NULL);
+            if (probe_rc == 0) {
+                existed_before = 1;
+                git_repository_free(probe);
+            }
+            git_error_clear();
+        }
+
+        rc = git_repository_init(&repo, resolved, is_bare);
+    }
     if (rc != 0) {
         return amigit_error_exit(rc);
     }

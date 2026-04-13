@@ -31,6 +31,10 @@ CATEGORY    = 1
 OBJECTS = ported/amigit.o \
           ported/cmd_init.o \
           ported/cmd_version.o \
+          ported/cmd_status.o \
+          ported/cmd_log.o \
+          ported/cmd_show.o \
+          ported/cmd_diff.o \
           ported/amigit_libgit2_stubs.o
 
 # Override SOURCES so common.mk's default single-file rule is bypassed.

@@ -751,3 +751,23 @@ libgit2's `git_commit_create_v` and related commit-creation APIs normalize the m
 ## libgit2 git_libgit2_init/shutdown Refcount Must Be Strictly Balanced
 
 `git_libgit2_init()` and `git_libgit2_shutdown()` maintain an internal refcount. Extra init calls must be matched by extra shutdowns — partial init state is not detected or warned. Leaving the refcount unbalanced leaves libgit2 in a half-shut-down state where subsequent repository operations may behave unpredictably. Tests that deliberately double-init (to exercise the refcount) must also double-shutdown before the test binary exits. This applies even with `GIT_THREADS=0`. Discovered in PDR-010 Phase 2 Stage 5 test design (2026-04-13).
+
+## libgit2 Treats AmigaDOS Volume Paths as Relative — Rewrite "X:foo" to "X:/foo"
+
+libgit2's `git_fs_path_root("T:amigit-test")` returns -1 because `path[2]='a'` is not `/`. That makes libgit2 treat AmigaDOS volume-rooted paths as relative, which then breaks `git_repository_init` and `git_repository_open_ext` in subtle ways — the `dirname()` of a single-component path like "T:foo" returns `"."`, and libgit2's MKPATH walk eventually runs `p_mkdir("./.")` which fails with `failed to make directory './.': No such file or directory`.
+
+Calling `git_repository_init(&repo, "T:/amigit-test", 0)` (slash inserted after the colon) works, because `git_fs_path_root` returns 2 (rooted at offset of `/`) and the mkdir walk terminates cleanly at the volume boundary. AmigaDOS accepts `T:/foo` in `Lock()`/`CreateDir()` as a synonym for `T:foo`.
+
+**Fix:** Any port that hands an AmigaDOS volume path to libgit2 must rewrite `"X:foo"` to `"X:/foo"` first. The amigit port implements this via `amigit_resolve_repo_path()` in `ports/amigit/ported/amigit.c` — the single choke point for path normalization before every `git_repository_open_ext` / `git_repository_init` call.
+
+**Important caveat:** `T:foo` and `T:/foo` are NOT the same path under libnix. After libgit2 creates a repo at `"T:/amigit-test"` via the rewrite, AmigaDOS `CD T:amigit-test` returns "object not found" — the directories the two forms point to diverge. Any test harness that needs to CD into an amigit-created repo must apply the same rewrite. `ports/amigit/test-amigit-inrepo.rexx` demonstrates the pattern in ARexx.
+
+Discovered in PDR-010 Phase 3b (amigit read-side commands, 2026-04-13). This is upstream libgit2 behavior — not an amiport bug — so the fix lives in the consumer, not in `lib/libgit2/`.
+
+## amiport_realpath Must Handle POSIX "." / "" (current directory)
+
+AmigaDOS `Lock(".", SHARED_LOCK)` returns NULL — `"."` is not a valid AmigaDOS path. This broke libgit2's `git_fs_path_prettify(".", ...)` which calls `p_realpath(".", buf)` → `amiport_realpath(".", buf)` → old code called `Lock(".")` and failed with ENOENT. Symptom: libgit2 init or open with `path="."` fails with `failed to resolve path '.'`.
+
+**Fix (applied 2026-04-13):** `amiport_realpath` in `lib/posix-shim/src/file_io.c` now special-cases `"."` / `""` / NULL and resolves them via `pr_CurrentDir` + `NameFromLock()` instead of `Lock()`. The current directory lock is borrowed from the process structure (not owned), so the function skips the `UnLock()` call for that path.
+
+This is a POSIX compliance improvement — any future port using `realpath(".")` semantics now gets the expected behavior. Discovered in PDR-010 Phase 3b while debugging amigit's `git_repository_open_ext(".", ...)` from inside the CWD of a repository.

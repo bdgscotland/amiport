@@ -1,19 +1,25 @@
-# amigit 0.1 (Phase 3a proof-of-life)
+# amigit 0.1 (Phase 3b: read-side commands)
 
 ## Status
 
-**Phase 3a: proof-of-life.** PDR-010 Phase 3 is split into three
-sub-phases (see `docs/pdr/010a-amigit-cli-spec.md` "Phased build"):
+**Phase 3b: read-side commands complete.** PDR-010 Phase 3 is split
+into three sub-phases (see `docs/pdr/010a-amigit-cli-spec.md` "Phased
+build"):
 
-- **Phase 3a (this commit):** scaffold + `version` + `init`.
-  Proves libgit2.a links into a user binary, `git_libgit2_init` runs
+- **Phase 3a (shipped):** scaffold + `version` + `init`.
+  Proved libgit2.a links into a user binary, `git_libgit2_init` runs
   outside the unit-test harness, and the Makefile + force-include
   pattern from `tests/libgit2/` ports cleanly to `ports/amigit/`.
-- **Phase 3b (next session):** read-side commands -- `status`, `log`,
-  `show`, `diff`. Needs full FS-UAE test suite.
+- **Phase 3b (this commit):** read-side commands -- `status`, `log`,
+  `show`, `diff`. Full 44-test FS-UAE test suite green. Discovered
+  and worked around two libgit2 AmigaOS path-handling bugs (see
+  "Path handling" below). Added `amigit_resolve_repo_path()` helper
+  as the single choke point for path normalization, and patched
+  `amiport_realpath` in the shim to handle POSIX `"."`.
 - **Phase 3c (final):** write-side commands -- `add`, `commit`,
   `checkout`, `branch`, `tag`. Completes v1 CLI surface. Produces
-  PORT.md final writeup, amigit.readme, LHA package, PORTS.md entry.
+  PORT.md final writeup, amigit.readme, LHA package, PORTS.md entry,
+  mandatory memory-checker + perf-optimizer runs.
 
 ## Upstream source
 
@@ -31,14 +37,20 @@ hand-written.
 ```
 ports/amigit/ported/
   amigit.h                   -- shared types, dispatch signature,
-                                error-exit declarations
+                                error-exit declarations, path resolver
+                                prototype
   amigit.c                   -- main() + dispatcher + usage +
-                                error mapping + libgit2 lifecycle
+                                error mapping + libgit2 lifecycle +
+                                amigit_resolve_repo_path()
   amigit_libgit2_stubs.c     -- link-time stubs (strnlen, difftime,
                                 select, git_remote_*, git_clone__*,
                                 git_failalloc_*, git_socket_stream__*)
   cmd_version.c              -- `amigit version`
   cmd_init.c                 -- `amigit init [--bare] [path]`
+  cmd_status.c               -- `amigit status [-s|--short]`
+  cmd_log.c                  -- `amigit log [-n N] [--oneline]`
+  cmd_show.c                 -- `amigit show <ref>`
+  cmd_diff.c                 -- `amigit diff [--cached|--staged]`
 ```
 
 Each subcommand lives in its own translation unit. New commands are
@@ -93,36 +105,120 @@ Order matters:
 
 ### Binary size
 
-1,057,516 bytes (1.01 MB). Compare:
-- `tests/libgit2/test_libgit2` = 1,105,944 bytes (1.05 MB)
+Phase 3b: 1,071,256 bytes (1.02 MB). Compare:
+- Phase 3a: 1,057,516 bytes (2 commands)
+- `tests/libgit2/test_libgit2`: 1,105,944 bytes (1.05 MB, all APIs)
 
-amigit is ~48 KB smaller because it links only the libgit2 objects
-actually referenced by its two commands (version + init), whereas the
-test binary pulls in hash, diff, status, refs, branches, tags, and
-revwalk from the archive.
+The Phase 3b delta (~13.4 KB for 4 new commands) is modest because
+`status`, `log`, `show`, and `diff` pull in revwalk, diff, and status
+machinery that libgit2's init code already transitively referenced
+via its internal wiring. Each additional command TU adds only the
+argparse + the thin libgit2 dispatch.
+
+## Path handling
+
+AmigaOS AmigaDOS paths and libgit2's POSIX-centric path logic have
+two incompatibilities that required workarounds:
+
+1. **Volume-rooted paths are not recognized as rooted.**
+   `git_fs_path_root("T:amigit-test")` returns -1 because
+   `path[2]='a'` is not `/`. libgit2 then treats the path as
+   relative, takes `dirname()` of a single-component path (which
+   returns `"."`), and ends up running `p_mkdir("./.")`. Mkdir fails
+   with "failed to make directory './.': No such file or directory".
+
+   **Fix:** `amigit_resolve_repo_path()` rewrites `"X:foo"` to
+   `"X:/foo"`. With the slash at offset 2, `git_fs_path_root` returns
+   2 (rooted), and libgit2's mkdir walk terminates cleanly on the
+   volume boundary.
+
+2. **`Lock(".")` fails on AmigaOS.** libgit2's
+   `git_fs_path_prettify()` calls `p_realpath(path, buf)` which maps
+   to `amiport_realpath()`. The old implementation called
+   `Lock(path, SHARED_LOCK)` -- AmigaOS does not accept `"."` as a
+   valid path, so `Lock(".")` returns NULL and realpath fails.
+
+   **Fix:** `lib/posix-shim/src/file_io.c` -- `amiport_realpath()`
+   now special-cases `"."` / `""` / NULL and uses
+   `pr_CurrentDir` + `NameFromLock()` instead of `Lock()`. This is
+   a pure shim improvement that also benefits any future port using
+   POSIX `realpath(".")` semantics.
+
+3. **libnix/AmigaDOS divergence on `"T:foo"` vs `"T:/foo"`.**
+   Important subtlety: these two forms are NOT equivalent under
+   libnix. After `amigit init T:amigit-test` creates a repo, the
+   directory is accessible to libgit2 via `"T:/amigit-test"` but
+   AmigaDOS `CD T:amigit-test` returns "object not found". The
+   FS-UAE test harness wrapper `test-amigit-inrepo.rexx` applies
+   the same `"X:foo"` -> `"X:/foo"` rewrite before `CD`, keeping
+   the storage path convention consistent between amigit and the
+   test harness.
+
+`amigit_resolve_repo_path()` is the single choke point for path
+normalization. Every command that hands a user-supplied path to
+libgit2 open/init funnels it through this helper:
+
+```c
+char resolved[256];
+if (amigit_resolve_repo_path(in_path, resolved, sizeof(resolved))
+        != RETURN_OK) {
+    /* handle error */
+}
+rc = git_repository_open_ext(&repo, resolved, ..., NULL);
+```
+
+`amigit init` uses the helper on the user-supplied path. The other
+read-side commands (`status`, `log`, `show`, `diff`) pass `"."` and
+rely on the helper's CWD-resolution path.
 
 ## Testing
 
-### Phase 3a smoke tests on vamos
+### Phase 3b FS-UAE test suite
 
-Invocation: `VAMOS_MEM=4096 toolchain/scripts/vamos -s 256 ports/amigit/amigit <args>`
+`ports/amigit/test-fsemu-cases.txt` -- 44 TEST blocks covering all 6
+commands shipped so far. Run with:
 
-| # | Command | Expected | Result |
-|---|---|---|---|
-| 1 | `version` | 3 lines to stdout, exit 0 | **PASS** |
-| 2 | (no args) | usage to stderr, exit 10 | **PASS** |
-| 3 | `--help` | usage to stderr, exit 0 | **PASS** |
-| 4 | `nosuchverb` | error + usage, exit 10 | **PASS** |
-| 5 | `init --help` | init usage to stdout, exit 0 | **PASS** |
-| 6 | `init T:amigit-pre/repo` (parent exists) | "Initialized empty git repository in T:amigit-pre/repo", exit 0 | **PASS** |
-| 7 | `init T:amigit-smoke` (no parent) | should work, but vamos FileManager hits the same path-translation gap already documented in tests/libgit2/ for new top-level paths under T: | BLOCKED on vamos (works on real AmigaOS) |
-| 8 | `init` reinit | should print "Reinitialized" | BLOCKED on vamos (path-mgr state loss between invocations) |
+```
+make test-fsemu TARGET=ports/amigit
+```
 
-6 of 8 test-designer cases pass. The 2 blocked ones are the same
-class of vamos `FileManager.create_dir` limitation that already
-required `-DAMIPORT_VAMOS_LIMITED` in `tests/libgit2/Makefile`. Real
-AmigaOS and FS-UAE do not have this limitation -- Phase 3b will add a
-full FS-UAE test suite that exercises all init variants.
+Coverage breakdown:
+
+| Command | Happy path | Flag parsing | Error paths | Total |
+|---|---|---|---|---|
+| `version` | 3 | 0 | 1 | 4 |
+| top-level dispatch | 2 | 2 | 2 | 6 |
+| `init` | 4 | 3 | 1 | 8 |
+| `status` | 2 | 3 | 2 | 7 |
+| `log` | 1 | 2 | 3 | 6 |
+| `show` | 0 | 2 | 3 | 5 |
+| `diff` | 3 | 2 | 2 | 7 |
+| Amiga-specific | 2 | 0 | 0 | 2 |
+| Stress/real-world | 4 | 0 | 0 | 4 |
+
+**Result: 44/44 passing on FS-UAE.** No weakened EXPECT assertions.
+
+Phase 3b has no `add`/`commit` so "happy path" for `log`, `show`, and
+`diff` is limited to empty-repo behavior (log exits 0 with no output
+on unborn HEAD; diff exits 0 with no deltas; show HEAD exits 10 on
+unborn HEAD). Commit-content happy paths are deferred to Phase 3c.
+
+### Test harness wrapper
+
+For commands that open the repo at `"."` (status/log/show/diff), the
+test harness cannot CD between TEST blocks. `test-amigit-inrepo.rexx`
+wraps each such test: it builds an AmigaDOS Execute script that `CD`s
+into the target repo and then runs `WORK:amigit <subcmd>`, reading
+the captured output back into ARexx via `OPEN`/`READLN` so the
+test-runner sees the expected stdout. The wrapper applies the same
+`"X:foo"` -> `"X:/foo"` rewrite as cmd_init.c so AmigaDOS's CD finds
+the same directory libnix created.
+
+Tests that only parse flags (`--help`, unknown flags, no-arg errors)
+do NOT need the wrapper -- they short-circuit before the repo open
+call and run directly via `WORK:amigit <subcmd> --help`. This halves
+the FS-UAE process churn compared to routing everything through the
+wrapper (which hung at ~24 tests due to resource exhaustion).
 
 ### `amigit version` canonical output
 
@@ -135,23 +231,25 @@ amiport posix-shim available
 Confirms libgit2 statically linked and the version reporting path
 (`git_libgit2_version`) works from a user binary context.
 
-## Known limitations (Phase 3a)
+## Known limitations (Phase 3b)
 
-- **Only 2 commands.** `version` and `init`. Phases 3b and 3c add the
-  remaining 8.
-- **vamos top-level-path init blocked.** First-time init of a path
-  like `T:new-repo` fails under vamos because vamos's path_mgr does
-  not know about the path until it's been enumerated. Workaround for
-  testing: pre-create the parent directory via raw dos.library
-  `CreateDir` (the tests/libgit2 test binary uses this pattern).
-  Real AmigaOS and FS-UAE are unaffected.
-- **vamos reinit blocked.** Second `init` call on an existing path
-  fails under vamos for the same reason plus readdir state loss
-  between invocations. Real AmigaOS is unaffected.
-- **No memory-checker / perf-optimizer yet.** 200 lines of code in
-  Phase 3a doesn't warrant the full agent pipeline yet; they'll run
-  on Phase 3c once the full v1 command set is in place and there's
-  enough code to audit meaningfully.
+- **6 of 10 commands implemented.** `version`, `init`, `status`,
+  `log`, `show`, `diff`. Phase 3c adds `add`, `commit`, `checkout`,
+  `branch`, `tag`.
+- **No commit-content happy-path tests for log/show/diff.** Requires
+  `add`+`commit` which land in Phase 3c. The Phase 3b test suite
+  exercises flag parsing, error paths, and empty-repo behavior for
+  these commands, but cannot yet verify "log shows commit SHAs" or
+  "show HEAD prints diff content".
+- **Path normalization is amigit-side, not libgit2-side.** The
+  `X:foo` -> `X:/foo` rewrite is applied by `amigit_resolve_repo_path`
+  in amigit itself rather than patched into libgit2. This keeps
+  `lib/libgit2/` upstream source frozen. Any future port that
+  consumes `libgit2.a` with volume-rooted paths must apply the same
+  rewrite or reference this helper.
+- **No memory-checker / perf-optimizer yet.** ~600 lines of code in
+  Phase 3b still under the "defer to 3c" rule -- the final v1 will
+  run both agents before release.
 - **No Aminet readme, no LHA package.** Deferred to Phase 3c final.
 - **No catalog or site entries.** Deferred to Phase 3c final.
 

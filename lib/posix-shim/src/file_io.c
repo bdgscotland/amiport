@@ -327,6 +327,7 @@ int amiport_chmod(const char *path, unsigned int mode)
 char *amiport_realpath(const char *path, char *resolved)
 {
     BPTR lock;
+    BOOL  lock_owned;
     char *buf;
     BOOL ok;
 
@@ -346,15 +347,35 @@ char *amiport_realpath(const char *path, char *resolved)
         }
     }
 
-    lock = Lock((CONST_STRPTR)path, SHARED_LOCK);
-    if (!lock) {
-        amiport_map_errno();
-        if (!resolved) free(buf);
-        return NULL;
+    /* amiport: handle POSIX "." / "" (current directory) specially.
+     * AmigaDOS Lock(".") returns NULL -- "." is not a valid AmigaDOS
+     * path. Resolve to the current directory via pr_CurrentDir instead
+     * of calling Lock(). This makes POSIX-style realpath(".") work for
+     * ports like amigit (libgit2) that rely on it. */
+    if (path[0] == '\0' ||
+        (path[0] == '.' && path[1] == '\0')) {
+        struct Process *me = (struct Process *)FindTask(NULL);
+        lock = me->pr_CurrentDir;
+        if (lock == 0) {
+            errno = ENOENT;
+            if (!resolved) free(buf);
+            return NULL;
+        }
+        lock_owned = FALSE;   /* do not UnLock pr_CurrentDir */
+    } else {
+        lock = Lock((CONST_STRPTR)path, SHARED_LOCK);
+        if (!lock) {
+            amiport_map_errno();
+            if (!resolved) free(buf);
+            return NULL;
+        }
+        lock_owned = TRUE;
     }
 
     ok = NameFromLock(lock, (STRPTR)buf, 255);
-    UnLock(lock);
+    if (lock_owned) {
+        UnLock(lock);
+    }
 
     if (!ok) {
         amiport_map_errno();
