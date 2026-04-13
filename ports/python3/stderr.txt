@@ -1,0 +1,9 @@
+23:11:06.404     libmgr:WARNING:  can't expunge: '@(00001d78):'dos.library'(11)' with open count 1
+23:11:06.404     libmgr:WARNING:  can't expunge: '@(0040fcf0):'locale.library'(14)' with open count 1
+23:11:06.404     libmgr:WARNING:  can't expunge: '@(0040fe3c):'mathieeedoubbas.library'(23)' with open count 1
+23:11:06.404     libmgr:WARNING:  can't expunge: '@(0040ff68):'mathieeedoubtrans.library'(25)' with open count 1
+23:11:06.404     libmgr:WARNING:  can't expunge: '@(00410090):'mathieeesingbas.library'(23)' with open count 1
+23:11:06.404     libmgr:WARNING:  can't expunge: '@(00410308):'utility.library'(15)' with open count 1
+23:11:06.404     libmgr:WARNING:  shutdown: can't expunge 6 vamos libs/devs!
+23:11:06.404  mem_alloc:WARNING:  orphan: [@0018a4 +000c4c 0024f0]
+23:11:06.404  mem_alloc:WARNING:  orphan: [@40fbec +026a00 4365ec]

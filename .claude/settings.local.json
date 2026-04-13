@@ -26,7 +26,9 @@
       "Bash(/tmp/patch_audit_summary.txt:*)",
       "Read(//tmp/**)",
       "Skill(review-amiga)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(mkdir -p /Users/duncan/Developer/amiport/ports/amigit/.claude/agent-memory)",
+      "Bash(cat)"
     ]
   }
 }
