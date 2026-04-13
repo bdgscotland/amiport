@@ -113,7 +113,8 @@ skips.
 ### Stage 5: Implement tests + test-runner agent (MANDATORY)
 
 Implement the test-designer's plan as `tests/<name>/test_<name>.c` and
-`tests/<name>/Makefile`. Then dispatch `test-runner` to run via vamos.
+`tests/<name>/Makefile`. Then dispatch `test-runner` to run via vamos
+(for memory-only libs) or FS-UAE (for filesystem-heavy libs — see below).
 
 **Required Makefile elements for library tests:**
 - `VAMOS_STACK = 256` (or more) — vamos default 8 KB is insufficient for
@@ -122,6 +123,27 @@ Implement the test-designer's plan as `tests/<name>/test_<name>.c` and
   this (vamos ignores it, hence the `-s` flag).
 - `-I../shim` to pick up `test_framework.h`
 - `-L../../lib/<name> -l<name>` for linking
+- **Replicate the library's own force-include flag**, if any. Example:
+  `lib/libgit2/Makefile` uses `-include src/util/amigaos_compat.h`, so
+  `tests/libgit2/Makefile` must also pass `-include
+  ../../lib/libgit2/src/util/amigaos_compat.h` even though the test TU
+  doesn't directly call the retargeted functions — the macro namespace
+  must match for the libgit2 symbols to bind correctly at link time.
+  This is easy to miss when copying the zlib test Makefile as a
+  template (zlib has no force-include).
+
+**Choosing vamos vs FS-UAE:**
+- **Memory-only libraries** (zlib, oniguruma, mbedTLS computation paths):
+  vamos is fine. `test-runner` agent, `make -C tests/<name> run`.
+- **Filesystem-heavy libraries** (libgit2, and any future library that
+  creates/opens many files or directories at init or during tests):
+  vamos's hardcoded `max_locks=1024` ceiling
+  (`amitools/vamos/lib/DosLibrary.py:99`, no CLI override) will be
+  exhausted before `main()` even runs. These must use FS-UAE with a
+  library-mode test harness. See known-pitfalls "vamos Has a Hardcoded
+  1024-Lock Ceiling".
+- **When in doubt:** design the test suite for vamos first, try it,
+  fall back to FS-UAE if vamos hits the lock ceiling.
 
 **GATE:** Do not proceed to Stage 6 until all tests pass.
 

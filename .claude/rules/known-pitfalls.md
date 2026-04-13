@@ -700,3 +700,54 @@ libc.a (newlib-based) defines `__errno` as a **function** (`int *__errno(void)`)
 **Detection:** If a port checks errno after a shim call and gets 0 when it should get ENOENT/EACCES/etc., this is the cause. Add `printf("errno=%d\n", errno)` immediately after the shim call — if it prints 0, the shim's errno write is invisible.
 
 Discovered in the touch 1.27 + rm 1.45 batch (2026-04-11) — touch failed to create new files because utimensat returned -1 with errno=0 (not ENOENT), skipping the file creation path.
+
+## libnix Is Missing strnlen and difftime
+
+bebbo-gcc libnix does not provide `strnlen` (POSIX.1-2008) or `difftime` (C89 standard). These surface as `undefined reference` link errors when porting libraries that assume either function is available — libgit2 uses `strnlen` in `index.c`, `alloc.c`, `midx.c`, and `difftime` in `rand.c`.
+
+**Fix:** Provide in-file stubs in the test binary or port:
+```c
+size_t strnlen(const char *s, size_t n) {
+    const char *p = s;
+    while (n-- > 0 && *p != '\0') { p++; }
+    return (size_t)(p - s);
+}
+
+double difftime(time_t t1, time_t t0) {
+    return (double)(t1 - t0);
+}
+```
+
+**Long term:** Add both to `lib/posix-shim/` via `/extend-shim` so every port gets them for free. Discovered in PDR-010 Phase 2 Stage 5 (libgit2 tests, 2026-04-13).
+
+## libgit2 khash Requires -lm Even Without Explicit Floating-Point
+
+libgit2's khash hash-map implementation (used by `oidmap`, `strmap`, `idxmap`, `offmap`) performs load-factor calculations with `double` arithmetic. This pulls in the soft-float routines `__muldf3`, `__adddf3`, `__divdf3`, `__subdf3`, `__divsf3`, `__gedf2` which live in libm on bebbo-gcc (68000 has no FPU, so all double math is software-emulated via libm).
+
+**Fix:** Add `-lm` to LDFLAGS for any binary that links `libgit2.a`, even if the binary itself has no explicit floating-point code. The reference is `tests/libgit2/Makefile` (LDFLAGS line). Discovered in PDR-010 Phase 2 Stage 5 (2026-04-13).
+
+## select() Is Not in libnix — posix.c Needs a Stub
+
+The `select()` syscall is referenced from `lib/libgit2/src/util/posix.c` inside `p_poll()` when `GIT_IO_SELECT` is defined (which it is for our build, since `poll()` is also absent). libnix does not implement `select()`, so the symbol is unresolved at final link even though networking is stripped out of the library build.
+
+**Fix (interim):** Provide a stub in the consuming binary that returns `-1` with `errno = ENOSYS`. Because all libgit2 network transports are disabled, the stub is never actually called at runtime — it exists solely to resolve the link.
+
+**Long term:** Add `select()` to `lib/posix-shim/` (either as a true implementation wrapping `WaitSelect()` via bsdsocket-shim, or as a documented stub in `amiport/unistd.h`). Discovered in PDR-010 Phase 2 Stage 5 (2026-04-13).
+
+## vamos Has a Hardcoded 1024-Lock Ceiling — Filesystem-Heavy Tests Must Use FS-UAE
+
+`amitools/vamos/lib/dos/LockManager.py:44` instantiates the DOS lock slot table with `max_locks=1024`. The single caller at `amitools/vamos/lib/DosLibrary.py:99` constructs it without an override, and vamos exposes no CLI flag or config hook to raise the cap. When the 1024 slots are exhausted, vamos logs `lock:  ERROR:  no more lock slots! max=1024`, subsequent `FileManager` operations receive invalid locks, and `path_mgr.ami_to_sys_path()` returns None — leading to `TypeError: mkdir: path should be string, bytes or os.PathLike, not NoneType` from amitools.
+
+**Impact:** Filesystem-heavy libraries (libgit2 and any future library that creates/opens many files or directories at startup) cannot run their unit test suites under vamos. The libgit2 test binary crashes at `main()`'s first `CreateDir` even though the binary builds cleanly, because libgit2 static constructors + libnix init consume the slot budget before user code runs.
+
+**Fix:** For filesystem-heavy library tests, use FS-UAE instead of vamos. A library-mode test-fsemu harness (modeled on `scripts/test-fsemu.sh`) is the right path when Stage 5 of the library pipeline needs real AmigaOS filesystem semantics. Memory-only library tests (zlib, oniguruma) remain vamos-compatible.
+
+**Workaround (development only):** Edit `amitools/vamos/lib/DosLibrary.py:99` locally to pass `max_locks=65536`. Fragile across amitools upgrades; not a committed fix. Discovered in PDR-010 Phase 2 Stage 5 (libgit2 tests, 2026-04-13).
+
+## git_commit_create_v Appends \n to Commit Messages
+
+libgit2's `git_commit_create_v` and related commit-creation APIs normalize the message by appending `\n` if one is not already present. Any `ASSERT_STR_EQ` on `git_commit_message()` must include the trailing newline in the expected value, or the assertion will fail even though the commit is correct. This is documented upstream but easy to miss when writing round-trip tests. Discovered while writing libgit2 Stage 5 tests (2026-04-13).
+
+## libgit2 git_libgit2_init/shutdown Refcount Must Be Strictly Balanced
+
+`git_libgit2_init()` and `git_libgit2_shutdown()` maintain an internal refcount. Extra init calls must be matched by extra shutdowns — partial init state is not detected or warned. Leaving the refcount unbalanced leaves libgit2 in a half-shut-down state where subsequent repository operations may behave unpredictably. Tests that deliberately double-init (to exercise the refcount) must also double-shutdown before the test binary exits. This applies even with `GIT_THREADS=0`. Discovered in PDR-010 Phase 2 Stage 5 test design (2026-04-13).
