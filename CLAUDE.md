@@ -61,6 +61,8 @@ The porting pipeline has 4 stages, each backed by a Claude skill:
 
 The `/port-project` skill has GATE checks — it will not proceed to the next stage until the current stage's agent has returned successfully.
 
+**Library ports (`lib/<name>/`) use the same pipeline discipline as port ports.** There is no separate `/port-library` skill — apply the stages manually per `.claude/rules/library-pipeline.md`. Mandatory: KB query → source-analyzer → build → test-designer (library mode) → test-runner → memory-checker → perf-optimizer → docs. Do NOT `make -C lib/<name>` before source-analyzer has returned.
+
 **Post-port quality skills:**
 - `/extend-shim <function-name>` — Add a missing POSIX function to the shim library
 - `/review-amiga <path>` — Amiga-specific code review (stack safety, BPTR handling, conventions)
@@ -80,7 +82,7 @@ The `/port-project` skill has GATE checks — it will not proceed to the next st
 | `perf-optimizer` | **Mandatory** Stage 6c — 68k static analysis and optimization recommendations |
 | `profiler` | Optional Stage 6d — empirical ReadEClock-based runtime measurement. Validates perf-optimizer findings |
 | `hardware-expert` | Hardware architecture validation — on-demand consultant + proactive doc auditor. Dispatch when agents need hardware facts (address space, CPU variants, chipset capabilities). |
-| `test-designer` | Designs comprehensive FS-UAE test suites by analyzing source code, flags, exit codes, and error paths |
+| `test-designer` | Two modes: **port mode** — designs FS-UAE test suites (`test-fsemu-cases.txt`); **library mode** — designs C unit test plans for `lib/<name>/` using `tests/shim/test_framework.h`. Both enforce the test-coverage-standard. |
 | `aminet-publisher` | Publishing — curated, never automatic |
 | `site-manager` | Website operations — deployment, manifest generation, security scanning, testing |
 | `visual-test-expert` | Visual test authoring and debugging — SCRAPE/SCREEN_READ/EXPECT_TRAP_CURSOR (ADR-024/025) |
