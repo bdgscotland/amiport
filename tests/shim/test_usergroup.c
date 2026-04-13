@@ -92,6 +92,69 @@ TEST(getpwnam_returns_amiga)
     ASSERT_STR_EQ(pw->pw_name, "amiga");
 }
 
+TEST(getpwuid_r_fills_caller_buf)
+{
+    struct amiport_passwd pw;
+    struct amiport_passwd *result;
+    char buf[128];
+    int rc;
+
+    /* Zero-init so we can verify every field was written */
+    memset(&pw, 0, sizeof(pw));
+    result = (struct amiport_passwd *)0xdeadbeefUL;
+
+    rc = amiport_getpwuid_r(0, &pw, buf, sizeof(buf), &result);
+    ASSERT_EQ(rc, 0);
+    ASSERT_NOT_NULL(result);
+    /* *result must point at the caller's struct, not at static storage */
+    ASSERT_EQ(result, &pw);
+
+    ASSERT_STR_EQ(pw.pw_name, "amiga");
+    ASSERT_STR_EQ(pw.pw_passwd, "*");
+    ASSERT_EQ(pw.pw_uid, 0);
+    ASSERT_EQ(pw.pw_gid, 0);
+    ASSERT_STR_EQ(pw.pw_dir, "SYS:");
+    ASSERT_STR_EQ(pw.pw_shell, "C:Shell");
+
+    /* String fields must point INTO the caller's buffer (not at the
+     * internal static strings), so the POSIX thread-safety contract is
+     * preserved for callers that reuse the buffer. */
+    ASSERT(pw.pw_name  >= buf && pw.pw_name  < buf + sizeof(buf));
+    ASSERT(pw.pw_shell >= buf && pw.pw_shell < buf + sizeof(buf));
+}
+
+TEST(getpwuid_r_range_too_small)
+{
+    struct amiport_passwd pw;
+    struct amiport_passwd *result;
+    char tiny[8];
+    int rc;
+
+    rc = amiport_getpwuid_r(0, &pw, tiny, sizeof(tiny), &result);
+    /* ERANGE == 34 per POSIX errno.h. Caller can retry with a
+     * larger buffer. *result must be NULL on failure. */
+    ASSERT_EQ(rc, 34);
+    ASSERT_NULL(result);
+}
+
+TEST(getpwuid_r_null_args_rejected)
+{
+    struct amiport_passwd pw;
+    struct amiport_passwd *result;
+    char buf[128];
+    int rc;
+
+    rc = amiport_getpwuid_r(0, NULL, buf, sizeof(buf), &result);
+    ASSERT_EQ(rc, 22);  /* EINVAL */
+    ASSERT_NULL(result);
+
+    /* Note: passing NULL for the result pointer would crash -- POSIX
+     * allows that, this is caller error not a shim concern. Skip. */
+    rc = amiport_getpwuid_r(0, &pw, NULL, 128, &result);
+    ASSERT_EQ(rc, 34);  /* ERANGE -- null buf treated as zero-sized */
+    ASSERT_NULL(result);
+}
+
 /* ========== Group Database ========== */
 
 TEST(getgrgid_returns_amiga)
@@ -669,6 +732,9 @@ int main(void)
     RUN_TEST(getpwuid_returns_amiga);
     RUN_TEST(getpwuid_any_uid);
     RUN_TEST(getpwnam_returns_amiga);
+    RUN_TEST(getpwuid_r_fills_caller_buf);
+    RUN_TEST(getpwuid_r_range_too_small);
+    RUN_TEST(getpwuid_r_null_args_rejected);
 
     /* Group database */
     RUN_TEST(getgrgid_returns_amiga);

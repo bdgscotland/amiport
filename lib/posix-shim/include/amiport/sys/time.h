@@ -30,6 +30,49 @@ LONG amiport_time(LONG *tloc);
 int amiport_usleep(ULONG usec);
 
 /*
+ * amiport_utimes -- set file access and modification times by path
+ *
+ * POSIX takes a struct timeval times[2]: times[0]=atime, times[1]=mtime.
+ * AmigaOS filesystems have no distinct atime concept (SetFileDate only
+ * sets the single modification timestamp), so only times[1] is honored.
+ *
+ * If times_ptr is NULL, the current DateStamp is used (POSIX requires
+ * current time when times==NULL).
+ *
+ * AmigaOS file time resolution is 1 second on SFS/PFS3, 2 seconds on
+ * FFS (even-second alignment). Sub-second precision is discarded.
+ *
+ * Maps to: dos.library/SetFileDate (ADCD autodocs-3.5).
+ *
+ * times_ptr is typed void* so callers can pass the libnix/BSD
+ * struct timeval array directly -- its layout (long tv_sec, long
+ * tv_usec) is identical to struct amiport_timeval on 68k.
+ *
+ * Returns 0 on success, -1 on failure (errno set via
+ * amiport_map_errno).
+ */
+int amiport_utimes(const char *path, const void *times_ptr);
+
+/*
+ * amiport_futimes -- set file times by file descriptor
+ *
+ * POSIX takes (fd, times[2]). Delegates to amiport_futimens, which
+ * recovers the path from the fd's BPTR via NameFromFH() and calls
+ * SetFileDate(). Only works for fds in the amiport fd table
+ * (amiport_open). Passing a libnix fd (open()/fopen()) returns -1
+ * with errno=EBADF, which is POSIX-correct for an invalid
+ * descriptor -- libnix fds are a separate namespace from amiport's.
+ *
+ * If times_ptr is NULL, the current DateStamp is used.
+ *
+ * Maps to: dos.library/SetFileDate via amiport_futimens (ADCD
+ * autodocs-3.5). See file_io.c for the NameFromFH implementation.
+ *
+ * Returns 0 on success, -1 on failure (errno set).
+ */
+int amiport_futimes(int fd, const void *times_ptr);
+
+/*
  * amiport_tm — broken-down time structure (mirrors POSIX struct tm).
  *
  * All fields follow the same conventions as POSIX struct tm:
@@ -68,6 +111,8 @@ char *amiport_strptime(const char *s, const char *format,
 /* Convenience macros */
 #ifndef AMIPORT_NO_TIME_MACROS
 #define strptime(s, f, t)  amiport_strptime(s, f, t)
+#define utimes(p, t)       amiport_utimes((p), (const void *)(t))
+#define futimes(f, t)      amiport_futimes((f), (const void *)(t))
 #endif
 
 #endif /* AMIPORT_SYS_TIME_H */

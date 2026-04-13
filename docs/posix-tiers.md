@@ -88,6 +88,7 @@ One wrapper per function. Semantics match POSIX for all common use cases. The tr
 |`setgid()`      |`amiport_setgid()`      |No-op, returns 0                 |                                                                 |
 |`getpwuid()`    |`amiport_getpwuid()`    |Static "amiga" user struct       |pw_name="amiga", pw_uid=0, pw_dir="SYS:", pw_shell="C:Shell"    |
 |`getpwnam()`    |`amiport_getpwnam()`    |Static "amiga" user struct       |Always returns same user regardless of name                      |
+|`getpwuid_r()`  |`amiport_getpwuid_r()`  |Thread-safe getpwuid (copies into caller buf)|POSIX thread-safety is moot on single-threaded AmigaOS; exists for GNU/libgit2 code that calls the _r variant. Returns ERANGE if buflen < 64. |
 |`getgrgid()`    |`amiport_getgrgid()`    |Static "amiga" group struct      |gr_name="amiga", gr_gid=0                                       |
 |`getgrnam()`    |`amiport_getgrnam()`    |Static "amiga" group struct      |                                                                 |
 |`getlogin()`    |`amiport_getlogin()`    |Returns "amiga"                  |                                                                 |
@@ -117,6 +118,8 @@ One wrapper per function. Semantics match POSIX for all common use cases. The tr
 |`strtonum()`    |`amiport_strtonum()`    |Safe strtoll + range check       |Header-only in `amiport/err.h`                                   |
 |`utimensat()`   |`amiport_utimensat()`   |`SetFileDate()` (V36+)           |Only mtime stored; 20ms precision; dirfd ignored                 |
 |`futimens()`    |`amiport_futimens()`    |`NameFromFH()` + `SetFileDate()` |Recovers path from fd, then calls utimensat                      |
+|`utimes()`      |`amiport_utimes()`      |Delegates to `amiport_utimensat()`|BSD-style (struct timeval) wrapper; tv_usec -> tv_nsec = usec*1000|
+|`futimes()`     |`amiport_futimes()`     |Delegates to `amiport_futimens()` |BSD-style wrapper; only works on amiport fds (libnix fds -> EBADF)|
 |`ioctl(TIOCGWINSZ)`|`amiport_ioctl()`    |CSI Window Status Request        |Queries console.device; only TIOCGWINSZ supported; 80x24 fallback|
 
 |`fts_open()`      |`amiport_fts_open()`    |`opendir()`+`readdir()` recursive|Stack-based walk with opendir probe for dir detection            |

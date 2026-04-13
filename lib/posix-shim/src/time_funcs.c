@@ -62,6 +62,72 @@ int amiport_usleep(ULONG usec)
 }
 
 /*
+ * amiport_utimes / amiport_futimes -- thin wrappers over the existing
+ * amiport_utimensat / amiport_futimens functions in file_io.c.
+ *
+ * The utimensat/futimens pair already handles the interesting work:
+ * Unix-to-DateStamp conversion, fd-to-path recovery via NameFromFH,
+ * dos.library SetFileDate() call, and errno mapping. These wrappers
+ * just widen the interface to BSD-style struct timeval (microsecond
+ * resolution) and delegate.
+ *
+ * Conversion: struct timeval -> struct timespec is tv_nsec =
+ * tv_usec * 1000 (and tv_sec stays the same).
+ */
+#include <amiport/unistd.h>  /* for amiport_utimensat, amiport_futimens */
+#include <time.h>            /* struct timespec */
+
+/*
+ * Helper: build a struct timespec[2] from a struct amiport_timeval[2]
+ * (layout-compatible with BSD struct timeval on 68k).
+ */
+static void timeval_to_timespec(const struct amiport_timeval *tv,
+                                struct timespec *ts)
+{
+    ts[0].tv_sec  = tv[0].tv_sec;
+    ts[0].tv_nsec = tv[0].tv_usec * 1000L;
+    ts[1].tv_sec  = tv[1].tv_sec;
+    ts[1].tv_nsec = tv[1].tv_usec * 1000L;
+}
+
+int amiport_utimes(const char *path, const void *times_ptr)
+{
+    /* times_ptr is NULL (POSIX: use current time) or a
+     * struct timeval[2]. When NULL, pass NULL straight to utimensat
+     * which also honors the "use current time" contract. */
+    if (path == NULL) {
+        return -1;
+    }
+
+    if (times_ptr == NULL) {
+        return amiport_utimensat(0, path, NULL, 0);
+    } else {
+        struct timespec ts[2];
+        timeval_to_timespec(
+            (const struct amiport_timeval *)times_ptr, ts);
+        return amiport_utimensat(0, path, ts, 0);
+    }
+}
+
+int amiport_futimes(int fd, const void *times_ptr)
+{
+    /* Delegate to futimens, which recovers the path via NameFromFH
+     * from an amiport fd and calls SetFileDate. For libnix fds
+     * (which are a different namespace from amiport fds), futimens
+     * will return -1 with errno=EBADF -- POSIX-correct for an
+     * invalid descriptor, which is how libnix fds appear from the
+     * amiport side. */
+    if (times_ptr == NULL) {
+        return amiport_futimens(fd, NULL);
+    } else {
+        struct timespec ts[2];
+        timeval_to_timespec(
+            (const struct amiport_timeval *)times_ptr, ts);
+        return amiport_futimens(fd, ts);
+    }
+}
+
+/*
  * strptime — parse a time string according to a format
  *
  * amiport: minimal implementation supporting the most common format

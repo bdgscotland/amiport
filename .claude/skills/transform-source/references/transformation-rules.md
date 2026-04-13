@@ -1073,6 +1073,8 @@ fchown(fd, owner, group) -> amiport_fchown(fd, owner, group)  /* stub -- returns
 lchown(path, owner, group) -> amiport_lchown(path, owner, group)  /* stub -- returns 0 */
 utimensat(dirfd, path, times, flags) -> amiport_utimensat(dirfd, path, times, flags)
 futimens(fd, times)      -> amiport_futimens(fd, times)
+utimes(path, times)      -> amiport_utimes(path, times)   /* BSD-style, times[2] is struct timeval */
+futimes(fd, times)       -> amiport_futimes(fd, times)    /* BSD-style; delegates to futimens */
 
 /* Process operations (no macro -- call directly) */
 getcwd(buf, size)        -> amiport_getcwd(buf, size)
@@ -1213,6 +1215,7 @@ struct tm                -> struct amiport_tm   /* used by amiport_strptime */
 ```c
 getpwuid(uid)            -> amiport_getpwuid(uid)
 getpwnam(name)           -> amiport_getpwnam(name)
+getpwuid_r(u, p, b, l, r) -> amiport_getpwuid_r(u, p, b, l, r)  /* thread-safe -- copies into caller buffer */
 getuid()                 -> amiport_getuid()
 geteuid()                -> amiport_geteuid()
 setuid(uid)              -> amiport_setuid(uid)

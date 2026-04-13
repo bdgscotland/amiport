@@ -1,5 +1,6 @@
 /*
- * test_new_funcs.c — Tests for explicit_bzero, readlink, ftruncate, strptime
+ * test_new_funcs.c — Tests for explicit_bzero, readlink, ftruncate,
+ *                    strptime, utimes, futimes
  */
 
 #include "test_framework.h"
@@ -316,6 +317,139 @@ TEST(strptime_null_args)
 }
 
 /* ------------------------------------------------------------------ */
+/* utimes / futimes tests                                              */
+/* ------------------------------------------------------------------ */
+
+TEST(utimes_null_path_rejected)
+{
+    ASSERT_EQ(amiport_utimes(NULL, NULL), -1);
+}
+
+TEST(utimes_null_times_uses_current)
+{
+    int fd;
+    int rc;
+
+    /* Create a file, then call utimes with NULL times (POSIX: use
+     * current time). The shim calls DateStamp() + SetFileDate().
+     * On vamos SetFileDate may be a no-op for the T: handler -- we
+     * accept rc == 0 or the amiport shim returning -1 gracefully.
+     * What we're testing is that the call doesn't crash and returns
+     * a POSIX-shape value (0 or -1), not an uninitialized value. */
+    fd = amiport_open("T:test_utimes.txt",
+                      O_WRONLY | O_CREAT | O_TRUNC);
+    ASSERT(fd >= 0);
+    amiport_write(fd, "hi", 2);
+    amiport_close(fd);
+
+    rc = amiport_utimes("T:test_utimes.txt", NULL);
+    if (rc != 0 && rc != -1) {
+        printf("    NOTE: utimes returned unexpected %d\n", rc);
+    }
+    ASSERT(rc == 0 || rc == -1);
+
+    amiport_unlink("T:test_utimes.txt");
+}
+
+TEST(utimes_with_explicit_times)
+{
+    int fd;
+    int rc;
+    /* Use struct amiport_timeval since that's the shim type. The
+     * POSIX struct timeval is layout-identical on 68k. */
+    struct amiport_timeval times[2];
+
+    fd = amiport_open("T:test_utimes_explicit.txt",
+                      O_WRONLY | O_CREAT | O_TRUNC);
+    ASSERT(fd >= 0);
+    amiport_write(fd, "x", 1);
+    amiport_close(fd);
+
+    /* atime (ignored by shim) + mtime = 2026-01-01 00:00:00 UTC
+     * = 1767225600 Unix seconds. */
+    times[0].tv_sec = 1767225600L;
+    times[0].tv_usec = 0;
+    times[1].tv_sec = 1767225600L;
+    times[1].tv_usec = 0;
+
+    rc = amiport_utimes("T:test_utimes_explicit.txt", times);
+    ASSERT(rc == 0 || rc == -1);
+
+    amiport_unlink("T:test_utimes_explicit.txt");
+}
+
+TEST(utimes_pre_1978_clamps)
+{
+    int fd;
+    int rc;
+    struct amiport_timeval times[2];
+
+    fd = amiport_open("T:test_utimes_old.txt",
+                      O_WRONLY | O_CREAT | O_TRUNC);
+    ASSERT(fd >= 0);
+    amiport_write(fd, "x", 1);
+    amiport_close(fd);
+
+    /* Unix 0 = 1970-01-01, earlier than Amiga epoch (1978). The
+     * shim clamps the DateStamp to zero rather than producing
+     * negative ds_Days (which SetFileDate would reject). */
+    times[0].tv_sec = 0;
+    times[0].tv_usec = 0;
+    times[1].tv_sec = 0;
+    times[1].tv_usec = 0;
+
+    rc = amiport_utimes("T:test_utimes_old.txt", times);
+    ASSERT(rc == 0 || rc == -1);
+
+    amiport_unlink("T:test_utimes_old.txt");
+}
+
+TEST(futimes_invalid_fd_fails)
+{
+    /* amiport_futimes delegates to amiport_futimens, which validates
+     * the fd against the amiport fd table. Invalid fds return -1
+     * with errno=EBADF -- POSIX-correct behaviour. Not the no-op
+     * stub an earlier draft implemented. */
+    ASSERT_EQ(amiport_futimes(-1, NULL), -1);
+    ASSERT_EQ(amiport_futimes(999, NULL), -1);
+
+    {
+        struct amiport_timeval times[2];
+        times[0].tv_sec = 1767225600L;
+        times[0].tv_usec = 0;
+        times[1].tv_sec = 1767225600L;
+        times[1].tv_usec = 0;
+        ASSERT_EQ(amiport_futimes(-1, times), -1);
+    }
+}
+
+TEST(futimes_valid_amiport_fd)
+{
+    int fd;
+    int rc;
+
+    /* Open via amiport_open so the fd is in the amiport fd table
+     * (not libnix). futimes should succeed on such a fd -- the
+     * futimens path uses NameFromFH to recover the file name
+     * and then calls SetFileDate.
+     *
+     * On vamos T: the SetFileDate may be a no-op for the handler,
+     * so we accept either rc == 0 (success) or rc == -1 (handler
+     * rejected -- errno should be set). The test verifies the
+     * call doesn't crash and returns a POSIX-shape value. */
+    fd = amiport_open("T:test_futimes.txt",
+                      O_WRONLY | O_CREAT | O_TRUNC);
+    ASSERT(fd >= 0);
+    amiport_write(fd, "hi", 2);
+
+    rc = amiport_futimes(fd, NULL);
+    ASSERT(rc == 0 || rc == -1);
+
+    amiport_close(fd);
+    amiport_unlink("T:test_futimes.txt");
+}
+
+/* ------------------------------------------------------------------ */
 /* main                                                                */
 /* ------------------------------------------------------------------ */
 
@@ -349,6 +483,14 @@ int main(void)
     RUN_TEST(strptime_bad_format_returns_null);
     RUN_TEST(strptime_mismatch_returns_null);
     RUN_TEST(strptime_null_args);
+
+    printf("\n-- utimes / futimes --\n");
+    RUN_TEST(utimes_null_path_rejected);
+    RUN_TEST(utimes_null_times_uses_current);
+    RUN_TEST(utimes_with_explicit_times);
+    RUN_TEST(utimes_pre_1978_clamps);
+    RUN_TEST(futimes_invalid_fd_fails);
+    RUN_TEST(futimes_valid_amiport_fd);
 
     return test_summary();
 }

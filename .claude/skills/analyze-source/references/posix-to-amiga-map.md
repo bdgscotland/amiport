@@ -124,6 +124,10 @@ or amiport shim wrappers. Used by the `analyze-source` and `transform-source` sk
 | `gettimeofday()` | `timer.device` | `amiport_gettimeofday()` | needs-shim | Requires timer device |
 | `sleep()` | `Delay()` (dos.library) | `amiport_sleep()` | needs-shim | Delay() uses ticks (1/50s PAL, 1/60s NTSC) |
 | `usleep()` | `timer.device` | `amiport_usleep()` | needs-shim | Requires timer device for microsecond precision |
+| `utimensat()` | `SetFileDate()` (dos.library V36+) | `amiport_utimensat()` | needs-shim | Only mtime stored (AmigaOS has no atime) |
+| `futimens()` | `NameFromFH()` + `SetFileDate()` | `amiport_futimens()` | needs-shim | Recovers path from fd via NameFromFH |
+| `utimes()` | delegates to `utimensat()` | `amiport_utimes()` | needs-shim | BSD timeval wrapper; tv_nsec = tv_usec*1000 |
+| `futimes()` | delegates to `futimens()` | `amiport_futimes()` | needs-shim | libnix fds return EBADF (wrong fd namespace) |
 
 ## Networking (Category 4 — see ADR-010)
 

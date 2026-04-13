@@ -82,6 +82,83 @@ struct amiport_passwd *amiport_getpwnam(const char *name)
     return &s_passwd;
 }
 
+int amiport_getpwuid_r(int uid,
+                       struct amiport_passwd *pwd_out,
+                       char *buf,
+                       unsigned long buflen,
+                       struct amiport_passwd **result)
+{
+    /* amiport: AmigaOS has a single hardcoded "amiga" user. Copy the
+     * static passwd strings into the caller's buffer per POSIX.1-2008
+     * getpwuid_r semantics, then point the returned struct's string
+     * fields at the buffer. Uid argument is ignored -- we have no
+     * user database, only the one stub user.
+     *
+     * Total string bytes needed: sum of each field (including NUL)
+     * from s_passwd above. Approximate upper bound is 64 bytes for
+     * the current stub values; we refuse if buflen < 64.
+     */
+    static const unsigned long REQUIRED_BYTES = 64UL;
+
+    unsigned long cursor;
+    unsigned long name_len;
+    unsigned long pass_len;
+    unsigned long gecos_len;
+    unsigned long dir_len;
+    unsigned long shell_len;
+
+    (void)uid;
+
+    if (pwd_out == NULL || result == NULL) {
+        *result = NULL;
+        return 22;  /* EINVAL */
+    }
+
+    if (buf == NULL || buflen < REQUIRED_BYTES) {
+        *result = NULL;
+        return 34;  /* ERANGE */
+    }
+
+    name_len  = (unsigned long)strlen(s_passwd.pw_name)   + 1;
+    pass_len  = (unsigned long)strlen(s_passwd.pw_passwd) + 1;
+    gecos_len = (unsigned long)strlen(s_passwd.pw_gecos)  + 1;
+    dir_len   = (unsigned long)strlen(s_passwd.pw_dir)    + 1;
+    shell_len = (unsigned long)strlen(s_passwd.pw_shell)  + 1;
+
+    if (name_len + pass_len + gecos_len + dir_len + shell_len > buflen) {
+        *result = NULL;
+        return 34;  /* ERANGE */
+    }
+
+    cursor = 0;
+
+    memcpy(buf + cursor, s_passwd.pw_name, name_len);
+    pwd_out->pw_name = buf + cursor;
+    cursor += name_len;
+
+    memcpy(buf + cursor, s_passwd.pw_passwd, pass_len);
+    pwd_out->pw_passwd = buf + cursor;
+    cursor += pass_len;
+
+    memcpy(buf + cursor, s_passwd.pw_gecos, gecos_len);
+    pwd_out->pw_gecos = buf + cursor;
+    cursor += gecos_len;
+
+    memcpy(buf + cursor, s_passwd.pw_dir, dir_len);
+    pwd_out->pw_dir = buf + cursor;
+    cursor += dir_len;
+
+    memcpy(buf + cursor, s_passwd.pw_shell, shell_len);
+    pwd_out->pw_shell = buf + cursor;
+    /* cursor += shell_len; -- unused after last copy */
+
+    pwd_out->pw_uid = s_passwd.pw_uid;
+    pwd_out->pw_gid = s_passwd.pw_gid;
+
+    *result = pwd_out;
+    return 0;
+}
+
 /* --- Group database --- */
 
 struct amiport_group *amiport_getgrgid(int gid)

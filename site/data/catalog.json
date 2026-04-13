@@ -49,245 +49,7 @@
     "pager": "text/show"
   },
   "shim_functions": {
-    "stat": {
-      "tier": 1,
-      "status": "implemented",
-      "complexity": "done",
-      "unlocks": [],
-      "unlocks_count": 0
-    },
-    "fstat": {
-      "tier": 1,
-      "status": "implemented",
-      "complexity": "done",
-      "unlocks": [],
-      "unlocks_count": 0
-    },
-    "open": {
-      "tier": 1,
-      "status": "implemented",
-      "complexity": "done",
-      "unlocks": [],
-      "unlocks_count": 0
-    },
-    "close": {
-      "tier": 1,
-      "status": "implemented",
-      "complexity": "done",
-      "unlocks": [],
-      "unlocks_count": 0
-    },
-    "read": {
-      "tier": 1,
-      "status": "implemented",
-      "complexity": "done",
-      "unlocks": [],
-      "unlocks_count": 0
-    },
-    "write": {
-      "tier": 1,
-      "status": "implemented",
-      "complexity": "done",
-      "unlocks": [],
-      "unlocks_count": 0
-    },
-    "lseek": {
-      "tier": 1,
-      "status": "implemented",
-      "complexity": "done",
-      "unlocks": [],
-      "unlocks_count": 0
-    },
-    "opendir": {
-      "tier": 1,
-      "status": "implemented",
-      "complexity": "done",
-      "unlocks": [],
-      "unlocks_count": 0
-    },
-    "readdir": {
-      "tier": 1,
-      "status": "implemented",
-      "complexity": "done",
-      "unlocks": [],
-      "unlocks_count": 0
-    },
-    "closedir": {
-      "tier": 1,
-      "status": "implemented",
-      "complexity": "done",
-      "unlocks": [],
-      "unlocks_count": 0
-    },
-    "mkdir": {
-      "tier": 1,
-      "status": "implemented",
-      "complexity": "done",
-      "unlocks": [],
-      "unlocks_count": 0
-    },
-    "getcwd": {
-      "tier": 1,
-      "status": "implemented",
-      "complexity": "done",
-      "unlocks": [],
-      "unlocks_count": 0
-    },
-    "chdir": {
-      "tier": 1,
-      "status": "implemented",
-      "complexity": "done",
-      "unlocks": [],
-      "unlocks_count": 0
-    },
-    "unlink": {
-      "tier": 1,
-      "status": "implemented",
-      "complexity": "done",
-      "unlocks": [],
-      "unlocks_count": 0
-    },
-    "rename": {
-      "tier": 1,
-      "status": "implemented",
-      "complexity": "done",
-      "unlocks": [],
-      "unlocks_count": 0
-    },
     "access": {
-      "tier": 1,
-      "status": "implemented",
-      "complexity": "done",
-      "unlocks": [],
-      "unlocks_count": 0
-    },
-    "sleep": {
-      "tier": 1,
-      "status": "implemented",
-      "complexity": "done",
-      "unlocks": [],
-      "unlocks_count": 0
-    },
-    "usleep": {
-      "tier": 1,
-      "status": "implemented",
-      "complexity": "done",
-      "unlocks": [],
-      "unlocks_count": 0
-    },
-    "getenv": {
-      "tier": 1,
-      "status": "implemented",
-      "complexity": "done",
-      "unlocks": [],
-      "unlocks_count": 0
-    },
-    "getpid": {
-      "tier": 1,
-      "status": "implemented",
-      "complexity": "done",
-      "unlocks": [],
-      "unlocks_count": 0
-    },
-    "isatty": {
-      "tier": 1,
-      "status": "implemented",
-      "complexity": "done",
-      "unlocks": [],
-      "unlocks_count": 0
-    },
-    "time": {
-      "tier": 1,
-      "status": "implemented",
-      "complexity": "done",
-      "unlocks": [],
-      "unlocks_count": 0
-    },
-    "gettimeofday": {
-      "tier": 1,
-      "status": "implemented",
-      "complexity": "done",
-      "unlocks": [],
-      "unlocks_count": 0
-    },
-    "getopt": {
-      "tier": 1,
-      "status": "implemented",
-      "complexity": "done",
-      "unlocks": [],
-      "unlocks_count": 0
-    },
-    "getopt_long": {
-      "tier": 1,
-      "status": "implemented",
-      "complexity": "done",
-      "unlocks": [],
-      "unlocks_count": 0
-    },
-    "strtok_r": {
-      "tier": 1,
-      "status": "implemented",
-      "complexity": "done",
-      "unlocks": [],
-      "unlocks_count": 0
-    },
-    "signal": {
-      "tier": 1,
-      "status": "implemented",
-      "complexity": "done",
-      "unlocks": [],
-      "unlocks_count": 0
-    },
-    "tmpfile": {
-      "tier": 1,
-      "status": "implemented",
-      "complexity": "done",
-      "unlocks": [],
-      "unlocks_count": 0
-    },
-    "fnmatch": {
-      "tier": 1,
-      "status": "implemented",
-      "complexity": "done",
-      "unlocks": [],
-      "unlocks_count": 0
-    },
-    "glob": {
-      "tier": 1,
-      "status": "implemented",
-      "complexity": "done",
-      "unlocks": [],
-      "unlocks_count": 0
-    },
-    "scandir": {
-      "tier": 1,
-      "status": "implemented",
-      "complexity": "done",
-      "unlocks": [],
-      "unlocks_count": 0
-    },
-    "strlcpy": {
-      "tier": 1,
-      "status": "implemented",
-      "complexity": "done",
-      "unlocks": [],
-      "unlocks_count": 0
-    },
-    "strlcat": {
-      "tier": 1,
-      "status": "implemented",
-      "complexity": "done",
-      "unlocks": [],
-      "unlocks_count": 0
-    },
-    "reallocarray": {
-      "tier": 1,
-      "status": "implemented",
-      "complexity": "done",
-      "unlocks": [],
-      "unlocks_count": 0
-    },
-    "recallocarray": {
       "tier": 1,
       "status": "implemented",
       "complexity": "done",
@@ -301,38 +63,52 @@
       "unlocks": [],
       "unlocks_count": 0
     },
-    "mkstemp": {
+    "chdir": {
       "tier": 1,
       "status": "implemented",
       "complexity": "done",
       "unlocks": [],
       "unlocks_count": 0
     },
-    "pread": {
+    "chmod": {
       "tier": 1,
       "status": "implemented",
       "complexity": "done",
       "unlocks": [],
       "unlocks_count": 0
     },
-    "pwrite": {
+    "chown": {
+      "tier": 3,
+      "status": "not_implemented",
+      "complexity": "low",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "close": {
       "tier": 1,
       "status": "implemented",
       "complexity": "done",
       "unlocks": [],
       "unlocks_count": 0
     },
-    "getline": {
+    "closedir": {
       "tier": 1,
       "status": "implemented",
       "complexity": "done",
       "unlocks": [],
       "unlocks_count": 0
     },
-    "fpurge": {
+    "curses": {
       "tier": 1,
       "status": "implemented",
       "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "dlopen": {
+      "tier": 3,
+      "status": "not_implemented",
+      "complexity": "blocker",
       "unlocks": [],
       "unlocks_count": 0
     },
@@ -350,71 +126,43 @@
       "unlocks": [],
       "unlocks_count": 0
     },
-    "chmod": {
+    "errc": {
       "tier": 1,
       "status": "implemented",
       "complexity": "done",
       "unlocks": [],
       "unlocks_count": 0
     },
-    "rmdir": {
-      "tier": 1,
+    "exec": {
+      "tier": 3,
+      "status": "not_implemented",
+      "complexity": "blocker",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "fchmod": {
+      "tier": 3,
       "status": "implemented",
       "complexity": "done",
       "unlocks": [],
       "unlocks_count": 0
     },
-    "lstat": {
-      "tier": 1,
+    "fchown": {
+      "tier": 3,
       "status": "implemented",
       "complexity": "done",
       "unlocks": [],
       "unlocks_count": 0
     },
-    "setenv": {
-      "tier": 1,
-      "status": "implemented",
-      "complexity": "done",
-      "unlocks": [],
-      "unlocks_count": 0
-    },
-    "unsetenv": {
-      "tier": 1,
-      "status": "implemented",
-      "complexity": "done",
-      "unlocks": [],
-      "unlocks_count": 0
-    },
-    "realpath": {
-      "tier": 1,
-      "status": "implemented",
-      "complexity": "done",
-      "unlocks": [],
-      "unlocks_count": 0
-    },
-    "regex": {
+    "fcntl": {
       "tier": 2,
-      "status": "implemented",
-      "complexity": "done",
+      "status": "not_implemented",
+      "complexity": "medium",
       "unlocks": [],
       "unlocks_count": 0
     },
-    "mmap": {
-      "tier": 2,
-      "status": "implemented",
-      "complexity": "done",
-      "unlocks": [],
-      "unlocks_count": 0
-    },
-    "pipe": {
-      "tier": 2,
-      "status": "implemented",
-      "complexity": "done",
-      "unlocks": [],
-      "unlocks_count": 0
-    },
-    "sigaction": {
-      "tier": 2,
+    "fnmatch": {
+      "tier": 1,
       "status": "implemented",
       "complexity": "done",
       "unlocks": [],
@@ -429,82 +177,29 @@
       ],
       "unlocks_count": 1
     },
-    "exec": {
-      "tier": 3,
-      "status": "not_implemented",
-      "complexity": "blocker",
-      "unlocks": [],
-      "unlocks_count": 0
-    },
-    "wait": {
-      "tier": 3,
-      "status": "not_implemented",
-      "complexity": "blocker",
-      "unlocks": [
-        "file"
-      ],
-      "unlocks_count": 1
-    },
-    "popen": {
-      "tier": 2,
-      "status": "not_implemented",
-      "complexity": "medium",
-      "unlocks": [
-        "awk-plan9"
-      ],
-      "unlocks_count": 1
-    },
-    "select": {
-      "tier": 1,
-      "status": "not_implemented",
-      "complexity": "medium",
-      "unlocks": [],
-      "unlocks_count": 0
-    },
-    "socket": {
+    "fpurge": {
       "tier": 1,
       "status": "implemented",
       "complexity": "done",
       "unlocks": [],
       "unlocks_count": 0
     },
-    "fcntl": {
-      "tier": 2,
-      "status": "not_implemented",
-      "complexity": "medium",
-      "unlocks": [],
-      "unlocks_count": 0
-    },
-    "ioctl": {
-      "tier": 2,
-      "status": "implemented",
-      "complexity": "done",
-      "unlocks": [],
-      "unlocks_count": 0
-    },
-    "dlopen": {
-      "tier": 3,
-      "status": "not_implemented",
-      "complexity": "blocker",
-      "unlocks": [],
-      "unlocks_count": 0
-    },
-    "pthread": {
-      "tier": 3,
-      "status": "not_implemented",
-      "complexity": "blocker",
-      "unlocks": [],
-      "unlocks_count": 0
-    },
-    "termios": {
+    "fstat": {
       "tier": 1,
       "status": "implemented",
       "complexity": "done",
       "unlocks": [],
       "unlocks_count": 0
     },
-    "curses": {
-      "tier": 1,
+    "fts_children": {
+      "tier": 3,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "fts_close": {
+      "tier": 3,
       "status": "implemented",
       "complexity": "done",
       "unlocks": [],
@@ -524,13 +219,6 @@
       "unlocks": [],
       "unlocks_count": 0
     },
-    "fts_close": {
-      "tier": 3,
-      "status": "implemented",
-      "complexity": "done",
-      "unlocks": [],
-      "unlocks_count": 0
-    },
     "fts_set": {
       "tier": 3,
       "status": "implemented",
@@ -538,43 +226,36 @@
       "unlocks": [],
       "unlocks_count": 0
     },
-    "fts_children": {
+    "futimens": {
+      "tier": 2,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "futimes": {
+      "complexity": "done",
+      "status": "implemented",
+      "tier": 2,
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "getcwd": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "getegid": {
       "tier": 3,
       "status": "implemented",
       "complexity": "done",
       "unlocks": [],
       "unlocks_count": 0
     },
-    "getpwuid": {
-      "tier": 3,
-      "status": "implemented",
-      "complexity": "done",
-      "unlocks": [],
-      "unlocks_count": 0
-    },
-    "getpwnam": {
-      "tier": 3,
-      "status": "implemented",
-      "complexity": "done",
-      "unlocks": [],
-      "unlocks_count": 0
-    },
-    "getgrnam": {
-      "tier": 3,
-      "status": "implemented",
-      "complexity": "done",
-      "unlocks": [],
-      "unlocks_count": 0
-    },
-    "getgrgid": {
-      "tier": 3,
-      "status": "implemented",
-      "complexity": "done",
-      "unlocks": [],
-      "unlocks_count": 0
-    },
-    "getuid": {
-      "tier": 3,
+    "getenv": {
+      "tier": 1,
       "status": "implemented",
       "complexity": "done",
       "unlocks": [],
@@ -594,14 +275,14 @@
       "unlocks": [],
       "unlocks_count": 0
     },
-    "getegid": {
+    "getgrgid": {
       "tier": 3,
       "status": "implemented",
       "complexity": "done",
       "unlocks": [],
       "unlocks_count": 0
     },
-    "getgroups": {
+    "getgrnam": {
       "tier": 3,
       "status": "implemented",
       "complexity": "done",
@@ -615,6 +296,27 @@
       "unlocks": [],
       "unlocks_count": 0
     },
+    "getgroups": {
+      "tier": 3,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "gethostname": {
+      "tier": 3,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "getline": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
     "getlogin": {
       "tier": 3,
       "status": "implemented",
@@ -622,8 +324,255 @@
       "unlocks": [],
       "unlocks_count": 0
     },
-    "symlink": {
+    "getopt": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "getopt_long": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "getpid": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "getprogname": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "getpwnam": {
       "tier": 3,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "getpwuid": {
+      "tier": 3,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "getpwuid_r": {
+      "complexity": "done",
+      "status": "implemented",
+      "tier": 3,
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "getrusage": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "gettimeofday": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "getuid": {
+      "tier": 3,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "glob": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "group_from_gid": {
+      "tier": 3,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "ioctl": {
+      "tier": 2,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "isatty": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "iswblank": {
+      "tier": 2,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "lchown": {
+      "tier": 3,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "link": {
+      "tier": 3,
+      "status": "not_implemented",
+      "complexity": "blocker",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "localeconv": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "lseek": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "lstat": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "mbrtowc": {
+      "tier": 2,
+      "status": "not_implemented",
+      "complexity": "medium",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "mbtowc": {
+      "tier": 2,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "mkdir": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "mkstemp": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "mmap": {
+      "tier": 2,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "nanosleep": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "nl_langinfo": {
+      "tier": 2,
+      "status": "not_implemented",
+      "complexity": "low",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "open": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "opendir": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "pipe": {
+      "tier": 2,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "popen": {
+      "tier": 2,
+      "status": "not_implemented",
+      "complexity": "medium",
+      "unlocks": [
+        "awk-plan9"
+      ],
+      "unlocks_count": 1
+    },
+    "pread": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "pthread": {
+      "tier": 3,
+      "status": "not_implemented",
+      "complexity": "blocker",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "pwrite": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "read": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "readdir": {
+      "tier": 1,
       "status": "implemented",
       "complexity": "done",
       "unlocks": [],
@@ -636,43 +585,71 @@
       "unlocks": [],
       "unlocks_count": 0
     },
-    "link": {
-      "tier": 3,
+    "reallocarray": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "realpath": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "recallocarray": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "regex": {
+      "tier": 2,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "rename": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "rmdir": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "scandir": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "select": {
+      "tier": 1,
       "status": "not_implemented",
-      "complexity": "blocker",
+      "complexity": "medium",
       "unlocks": [],
       "unlocks_count": 0
     },
-    "chown": {
-      "tier": 3,
-      "status": "not_implemented",
-      "complexity": "low",
-      "unlocks": [],
-      "unlocks_count": 0
-    },
-    "lchown": {
-      "tier": 3,
+    "setenv": {
+      "tier": 1,
       "status": "implemented",
       "complexity": "done",
       "unlocks": [],
       "unlocks_count": 0
     },
-    "fchown": {
-      "tier": 3,
-      "status": "implemented",
-      "complexity": "done",
-      "unlocks": [],
-      "unlocks_count": 0
-    },
-    "fchmod": {
-      "tier": 3,
-      "status": "implemented",
-      "complexity": "done",
-      "unlocks": [],
-      "unlocks_count": 0
-    },
-    "gethostname": {
-      "tier": 3,
+    "setgid": {
+      "tier": 1,
       "status": "implemented",
       "complexity": "done",
       "unlocks": [],
@@ -687,6 +664,160 @@
       ],
       "unlocks_count": 1
     },
+    "setlocale": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "setproctitle": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "setuid": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "sigaction": {
+      "tier": 2,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "sigaddset": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "sigemptyset": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "signal": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "sigprocmask": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "sleep": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "socket": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "stat": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "strcoll": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "strlcat": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "strlcpy": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "strptime": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "strtok_r": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "symlink": {
+      "tier": 3,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "sysconf": {
+      "tier": 2,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "termios": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "time": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "timegm": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "tmpfile": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
     "ttyname": {
       "tier": 3,
       "status": "implemented",
@@ -694,29 +825,8 @@
       "unlocks": [],
       "unlocks_count": 0
     },
-    "user_from_uid": {
-      "tier": 3,
-      "status": "implemented",
-      "complexity": "done",
-      "unlocks": [],
-      "unlocks_count": 0
-    },
-    "group_from_gid": {
-      "tier": 3,
-      "status": "implemented",
-      "complexity": "done",
-      "unlocks": [],
-      "unlocks_count": 0
-    },
-    "utimensat": {
-      "tier": 2,
-      "status": "implemented",
-      "complexity": "done",
-      "unlocks": [],
-      "unlocks_count": 0
-    },
-    "futimens": {
-      "tier": 2,
+    "uname": {
+      "tier": 1,
       "status": "implemented",
       "complexity": "done",
       "unlocks": [],
@@ -731,24 +841,61 @@
       ],
       "unlocks_count": 1
     },
-    "sysconf": {
-      "tier": 2,
-      "status": "implemented",
-      "complexity": "done",
-      "unlocks": [],
-      "unlocks_count": 0
-    },
-    "setlocale": {
+    "unlink": {
       "tier": 1,
       "status": "implemented",
       "complexity": "done",
       "unlocks": [],
       "unlocks_count": 0
     },
-    "mbrtowc": {
+    "unsetenv": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "user_from_uid": {
+      "tier": 3,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "usleep": {
+      "tier": 1,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "utimensat": {
       "tier": 2,
+      "status": "implemented",
+      "complexity": "done",
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "utimes": {
+      "complexity": "done",
+      "status": "implemented",
+      "tier": 2,
+      "unlocks": [],
+      "unlocks_count": 0
+    },
+    "wait": {
+      "tier": 3,
       "status": "not_implemented",
-      "complexity": "medium",
+      "complexity": "blocker",
+      "unlocks": [
+        "file"
+      ],
+      "unlocks_count": 1
+    },
+    "wctomb": {
+      "tier": 2,
+      "status": "implemented",
+      "complexity": "done",
       "unlocks": [],
       "unlocks_count": 0
     },
@@ -759,140 +906,7 @@
       "unlocks": [],
       "unlocks_count": 0
     },
-    "mbtowc": {
-      "tier": 2,
-      "status": "implemented",
-      "complexity": "done",
-      "unlocks": [],
-      "unlocks_count": 0
-    },
-    "wctomb": {
-      "tier": 2,
-      "status": "implemented",
-      "complexity": "done",
-      "unlocks": [],
-      "unlocks_count": 0
-    },
-    "iswblank": {
-      "tier": 2,
-      "status": "implemented",
-      "complexity": "done",
-      "unlocks": [],
-      "unlocks_count": 0
-    },
-    "nl_langinfo": {
-      "tier": 2,
-      "status": "not_implemented",
-      "complexity": "low",
-      "unlocks": [],
-      "unlocks_count": 0
-    },
-    "utimes": {
-      "tier": 2,
-      "status": "not_implemented",
-      "complexity": "medium",
-      "unlocks": [],
-      "unlocks_count": 0
-    },
-    "setuid": {
-      "tier": 1,
-      "status": "implemented",
-      "complexity": "done",
-      "unlocks": [],
-      "unlocks_count": 0
-    },
-    "setgid": {
-      "tier": 1,
-      "status": "implemented",
-      "complexity": "done",
-      "unlocks": [],
-      "unlocks_count": 0
-    },
-    "getprogname": {
-      "tier": 1,
-      "status": "implemented",
-      "complexity": "done",
-      "unlocks": [],
-      "unlocks_count": 0
-    },
-    "uname": {
-      "tier": 1,
-      "status": "implemented",
-      "complexity": "done",
-      "unlocks": [],
-      "unlocks_count": 0
-    },
-    "getrusage": {
-      "tier": 1,
-      "status": "implemented",
-      "complexity": "done",
-      "unlocks": [],
-      "unlocks_count": 0
-    },
-    "setproctitle": {
-      "tier": 1,
-      "status": "implemented",
-      "complexity": "done",
-      "unlocks": [],
-      "unlocks_count": 0
-    },
-    "sigemptyset": {
-      "tier": 1,
-      "status": "implemented",
-      "complexity": "done",
-      "unlocks": [],
-      "unlocks_count": 0
-    },
-    "sigaddset": {
-      "tier": 1,
-      "status": "implemented",
-      "complexity": "done",
-      "unlocks": [],
-      "unlocks_count": 0
-    },
-    "sigprocmask": {
-      "tier": 1,
-      "status": "implemented",
-      "complexity": "done",
-      "unlocks": [],
-      "unlocks_count": 0
-    },
-    "nanosleep": {
-      "tier": 1,
-      "status": "implemented",
-      "complexity": "done",
-      "unlocks": [],
-      "unlocks_count": 0
-    },
-    "timegm": {
-      "tier": 1,
-      "status": "implemented",
-      "complexity": "done",
-      "unlocks": [],
-      "unlocks_count": 0
-    },
-    "localeconv": {
-      "tier": 1,
-      "status": "implemented",
-      "complexity": "done",
-      "unlocks": [],
-      "unlocks_count": 0
-    },
-    "errc": {
-      "tier": 1,
-      "status": "implemented",
-      "complexity": "done",
-      "unlocks": [],
-      "unlocks_count": 0
-    },
-    "strcoll": {
-      "tier": 1,
-      "status": "implemented",
-      "complexity": "done",
-      "unlocks": [],
-      "unlocks_count": 0
-    },
-    "strptime": {
+    "write": {
       "tier": 1,
       "status": "implemented",
       "complexity": "done",

@@ -24,6 +24,34 @@ struct amiport_passwd {
 struct amiport_passwd *amiport_getpwuid(int uid);
 struct amiport_passwd *amiport_getpwnam(const char *name);
 
+/*
+ * amiport_getpwuid_r -- thread-safe getpwuid variant
+ *
+ * AmigaOS is single-threaded at the user level, so "thread-safe" is
+ * moot, but libgit2 and other portable code call this signature to
+ * avoid depending on static buffers. The shim copies the static
+ * passwd struct and its strings into the caller's buffer.
+ *
+ * Parameters match POSIX.1-2008:
+ *   uid      -- user id to look up (ignored -- only "amiga"/uid 0 exists)
+ *   pwd_out  -- caller's passwd struct to fill
+ *   buf      -- caller's buffer for string fields
+ *   buflen   -- size of buf in bytes
+ *   result   -- *result set to pwd_out on success, NULL on not-found
+ *
+ * Returns 0 on success, ERANGE if buflen is too small, or an errno
+ * value on other failures. On success *result points at pwd_out; on
+ * not-found *result is NULL and the function still returns 0 (POSIX).
+ *
+ * Since AmigaOS has a single hardcoded user, this function always
+ * succeeds regardless of uid.
+ */
+int amiport_getpwuid_r(int uid,
+                       struct amiport_passwd *pwd_out,
+                       char *buf,
+                       unsigned long buflen,
+                       struct amiport_passwd **result);
+
 /* UID/GID functions */
 int amiport_getuid(void);
 int amiport_geteuid(void);
@@ -40,6 +68,8 @@ const char *amiport_user_from_uid(int uid, int noname);
 #define passwd       amiport_passwd
 #define getpwuid(u)  amiport_getpwuid(u)
 #define getpwnam(n)  amiport_getpwnam(n)
+#define getpwuid_r(u, p, b, l, r) \
+    amiport_getpwuid_r((u), (p), (b), (unsigned long)(l), (r))
 #define getuid()     amiport_getuid()
 #define geteuid()    amiport_geteuid()
 #define setuid(u)    amiport_setuid(u)
