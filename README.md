@@ -166,6 +166,7 @@ Most porting failures come from the POSIX gap. amiport bridges it with a three-t
 | [console-shim](lib/console-shim/) | ncurses/termcap API via console.device | `-lamiport-console` |
 | [bsdsocket-shim](lib/bsdsocket-shim/) | BSD socket API via bsdsocket.library | `-lamiport-net` |
 | [oniguruma](lib/oniguruma/) | Perl-compatible regex engine (for jq) | `-loniguruma` |
+| [zlib](lib/zlib/) | DEFLATE/gzip/zlib compression (zlib 1.3.1, for libgit2) | `-lz` |
 
 **Tier 1** (posix-shim) covers functions where POSIX and AmigaOS semantics map cleanly: `open`, `read`, `stat`, `opendir`, `getopt`, `glob`, `fnmatch`, `scandir`, etc. Drop-in replacements, no caveats.
 

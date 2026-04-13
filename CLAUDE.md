@@ -29,6 +29,7 @@ The porting pipeline has 4 stages, each backed by a Claude skill:
 - `lib/bsdsocket-shim/` — BSD socket API via bsdsocket.library with auto lifecycle (ADR-010)
 - `lib/http-shim/` — Reusable HTTP/1.0 GET client library on bsdsocket-shim. Used by amiport CLI. Handles redirects, Content-Length validation, progress callbacks, 30s socket timeout.
 - `lib/oniguruma/` — Oniguruma 6.9.9 regex engine (ASCII-only build, 156 KB). Perl-compatible regex with named captures. Used by jq for test/match/sub/gsub. Unicode data tables replaced with stubs to save 312 KB.
+- `lib/zlib/` — zlib 1.3.1 DEFLATE/gzip/zlib compression library (~90 KB). Pure C89, no amiport shim dependencies, uses libnix fd calls directly for gz* file I/O. Built `-O0` default with per-file `-O1` on hot-path files (`inffast.c`, `adler32.c`, `crc32.c`). `-DNO_DIVIDE` eliminates software divides in adler32. Required by libgit2/amigit (PDR-010) and available for any future compression-dependent ports.
 - `lib/amissl-sdk/` — AmiSSL SDK headers and stub libraries for optional HTTPS support (used by wget). See known-pitfalls re: libamisslauto.a hard dependency.
 - `site/` — Website source for amiport.platesteel.net
   - `site/css/style.css` — MUI warm gray design system (see DESIGN.md)
@@ -48,7 +49,7 @@ The porting pipeline has 4 stages, each backed by a Claude skill:
 - `docs/` — Architecture docs, API mapping tables, porting guide, tier classification
 - `docs/references/adcd/` — Complete ADCD 2.1 in agent-optimized markdown (Libraries, Devices, Hardware, Amiga Mail, Autodocs)
 - `docs/references/amiga-intern/` — "Amiga Intern" (1992) converted to markdown — 68030 CPU internals, custom chip architecture, memory map, hardware programming
-- `tests/` — Unit tests (shim/, emu/, console/, net/, common/)
+- `tests/` — Unit tests (shim/, emu/, console/, net/, common/, zlib/)
 - `ports/` — Output directory for real ports (each port gets original/, ported/, Makefile, PORT.md)
 - `ports/templates/` — Canonical templates for per-port artifacts (Makefile, PORT.md, .readme, directory structure)
 - `data/catalog.json` — Porting Tech Tree: candidate inventory, readiness scoring, shim unlock index, hardware profiles
