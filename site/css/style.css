@@ -1846,6 +1846,97 @@ a:focus-visible {
 .badge--declined { background: var(--error-bg); color: var(--text); border-color: var(--error-border); }
 
 /* ==========================================================================
+   News
+   ========================================================================== */
+
+.news-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-md);
+}
+
+.news-item {
+    padding: var(--sp-sm) var(--sp-md);
+    background: var(--light-surface);
+    border-top: 1px solid var(--bevel-shine);
+    border-left: 1px solid var(--bevel-shine);
+    border-right: 1px solid var(--bevel-shadow);
+    border-bottom: 1px solid var(--bevel-shadow);
+}
+
+.news-item__head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: var(--sp-md);
+    margin-bottom: var(--sp-xs);
+    padding-bottom: var(--sp-xs);
+    border-bottom: 1px solid var(--bevel-shadow);
+}
+
+.news-item__title {
+    margin: 0;
+    font-size: var(--fs-md);
+    font-weight: 700;
+    color: var(--brown);
+}
+
+.news-item__title a {
+    color: var(--brown);
+    text-decoration: none;
+}
+
+.news-item__title a:hover,
+.news-item__title a:focus {
+    color: var(--amber-dark);
+    text-decoration: underline;
+}
+
+.news-item__date {
+    font-size: var(--fs-sm);
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+
+.news-item__body {
+    font-size: var(--fs-sm);
+    line-height: 1.5;
+    color: var(--text);
+}
+
+.news-item__body p {
+    margin: 0 0 var(--sp-sm) 0;
+}
+
+.news-item__body p:last-child {
+    margin-bottom: 0;
+}
+
+.news-item__body code {
+    font-family: Monaco, Consolas, monospace;
+    font-size: 0.9em;
+    background: var(--elevated);
+    padding: 0 var(--sp-2xs);
+    border: 1px solid var(--bevel-shadow);
+}
+
+.news-tags {
+    margin-top: var(--sp-sm);
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-2xs);
+}
+
+.news-tag {
+    display: inline-block;
+    padding: 0 var(--sp-xs);
+    background: var(--elevated);
+    border: 1px solid var(--bevel-shadow);
+    font-size: var(--fs-xs, 0.75em);
+    color: var(--text-muted);
+}
+
+/* ==========================================================================
    Responsive — Per-Port Page
    ========================================================================== */
 

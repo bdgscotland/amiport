@@ -33,6 +33,14 @@ This applies to version bumps (REVISION changes), dependency additions (e.g., ad
 
 13. **test-fsemu-visual-cases.txt** — Visual verification tests in a SEPARATE file from functional tests (ADR-024). Functional and visual MUST be separate FS-UAE passes.
 
+## When Announcing News / Updates
+
+Never hand-edit `site/data/news.json`. Use the `/post-news` skill. It validates JSON + ASCII, appends the entry, dispatches `site-manager` to deploy, and clears `/tmp/amiport-activity-cache.json` so the homepage activity feed refreshes immediately. News surfaces in three places automatically once deployed:
+
+14. **site/news.html** (rendered from news.json)
+15. **site/feed.php** (RSS 2.0, merged with package items)
+16. **Homepage activity feed** (via `site/api/v1/activity.php`)
+
 ## When Making Cross-Cutting Convention Changes
 
 A convention change (versioning, naming, coding standards, etc.) touches many files beyond the standard checklist above. Before claiming completion, audit ALL of these:

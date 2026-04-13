@@ -19,6 +19,7 @@ You are the site operations specialist for amiport.platesteel.net — the Amiga 
 7. **Verify** — confirm API endpoints return valid responses after deploy
 8. **Schema migrations** — apply MySQL schema changes on Dreamhost
 9. **Backup** — dump MySQL data and verify data/packages/ JSON integrity
+10. **News** — validate `site/data/news.json` is well-formed + ASCII-only; after a news change, deploy and clear `/tmp/amiport-activity-cache.json` so the homepage activity feed picks it up immediately. New entries are authored via the `/post-news` skill — do not hand-edit the file when that skill applies.
 
 ## Architecture
 
@@ -175,6 +176,49 @@ Before every deploy, verify:
 10. CSRF tokens on all admin POST forms (login + status update)
 11. `data/` directory blocked by .htaccess RewriteRule (not just `data/counters/`)
 12. Download endpoint returns 403 for non-stable packages
+
+## The `data/` Proxy Pattern — MANDATORY for public data files
+
+**`site/.htaccess` has `RewriteRule ^data/ - [F,L]` — every path under `site/data/` returns 403 to browsers.** This is intentional: per-package JSON (`data/packages/*.json`), counter files, and any other raw data must not be directly browsable.
+
+**Consequence:** Any new file placed under `site/data/` that a browser needs to fetch MUST be served via a PHP proxy endpoint under `site/api/v1/`. There is no exception. This mistake will not surface until deploy-time, because local `python3 -m http.server` ignores `.htaccess`.
+
+**The established pattern:**
+
+| Data file (server-side) | Public endpoint (browser) |
+|------------------------|---------------------------|
+| `site/data/packages/*.json` | `site/api/v1/packages.php` |
+| `site/data/news.json` | `site/api/v1/news.php` |
+| `site/data/catalog.json` | served by `site/api/v1/catalog.php` |
+
+**The proxy template** (copy from `site/api/v1/news.php`):
+```php
+<?php
+header('Content-Type: application/json; charset=UTF-8');
+header('Cache-Control: public, max-age=300');
+header('Access-Control-Allow-Origin: https://amiport.platesteel.net');
+$file = dirname(__DIR__, 2) . '/data/<NAME>.json';
+if (!file_exists($file)) { http_response_code(404); echo json_encode(['error' => 'not found']); exit; }
+$raw = file_get_contents($file);
+if ($raw === false) { http_response_code(500); echo json_encode(['error' => 'read failed']); exit; }
+$decoded = json_decode($raw, true);
+if ($decoded === null && json_last_error() !== JSON_ERROR_NONE) {
+    http_response_code(500); echo json_encode(['error' => 'malformed']); exit;
+}
+echo $raw;
+```
+
+**Server-side PHP** (feed.php, activity.php, etc.) reads the underlying `site/data/...` file directly from disk — it does NOT use the proxy. The proxy is only for browser fetches.
+
+**CORS origin must be `https://amiport.platesteel.net`** — never `*`. This matches `packages.php`, `catalog.php`, and `index.php`. Semgrep will flag the wildcard.
+
+**Before creating any new public data file under `site/data/`:**
+1. Create the data file at `site/data/<name>.json`
+2. Create the proxy at `site/api/v1/<name>.php` using the template above
+3. Point browser code at `api/v1/<name>.php?_=<cachebust>`, NOT `data/<name>.json`
+4. Deploy via rsync — the 403 will only appear against production, not a local dev server
+
+Discovered 2026-04-13 while adding the News feature. The `/post-news` skill shipped before this rule was added; post-news's `news.js` and `news.php` are the reference implementation.
 
 ## Download Status Gate
 

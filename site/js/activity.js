@@ -14,7 +14,8 @@
         'port_updated': '\u25B8',
         'request_submitted': '?',
         'request_status': '\u25C8',
-        'milestone': '\u2605'
+        'milestone': '\u2605',
+        'news': '\u25A0'
     };
 
     function relativeTime(isoString) {

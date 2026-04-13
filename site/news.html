@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="amiport changelog — timeline of published ports for classic AmigaOS 3.x.">
-    <title>Changelog — amiport</title>
-    <link rel="stylesheet" href="css/style.css?v=20260325c">
+    <meta name="description" content="amiport news — release announcements, project updates, and behind-the-scenes notes for classic AmigaOS porting.">
+    <title>News — amiport</title>
+    <link rel="stylesheet" href="css/style.css?v=20260325d">
     <link rel="icon" type="image/svg+xml" href="img/favicon.svg">
     <link rel="alternate" type="application/rss+xml" title="amiport — New Ports" href="/feed.php">
 </head>
@@ -22,8 +22,8 @@
             <li><a href="packages.html">Packages</a></li>
             <li><a href="catalog.html">Catalog</a></li>
             <li><a href="stats.html">Stats</a></li>
-            <li><a href="news.html">News</a></li>
-            <li><a href="changelog.html" aria-current="page">Changelog</a></li>
+            <li><a href="news.html" aria-current="page">News</a></li>
+            <li><a href="changelog.html">Changelog</a></li>
             <li><a href="shims.html">Shims</a></li>
             <li><a href="amiga.html">Amiga</a></li>
             <li><a href="https://github.com/bdgscotland/amiport" target="_blank" rel="noopener">GitHub</a></li>
@@ -34,26 +34,15 @@
 <!-- Main Content -->
 <main id="main" class="content">
 
-    <h1 class="sr-only">amiport Changelog</h1>
+    <h1 class="sr-only">amiport News</h1>
 
-    <section class="group-frame" aria-labelledby="changelog-heading">
-        <div class="group-frame__title" id="changelog-heading" role="heading" aria-level="2">Changelog</div>
+    <section class="group-frame" aria-labelledby="news-heading">
+        <div class="group-frame__title" id="news-heading" role="heading" aria-level="2">News</div>
         <div class="group-frame__body">
-            <div id="changelog-loading" class="state-msg">Loading changelog...</div>
-            <div id="changelog-empty" class="state-msg hidden">No ports published yet. The pipeline is warming up.</div>
-            <div class="wb-table-wrap">
-                <table class="wb-table hidden" id="changelog-table">
-                    <thead>
-                        <tr>
-                            <th scope="col">Date</th>
-                            <th scope="col">Package</th>
-                            <th scope="col">Version</th>
-                            <th scope="col">Description</th>
-                        </tr>
-                    </thead>
-                    <tbody id="changelog-tbody"></tbody>
-                </table>
-            </div>
+            <p class="mb-md">Release announcements, project updates, and behind-the-scenes notes from the amiport porting pipeline. Also available via the <a href="feed.php">RSS feed</a>.</p>
+            <div id="news-loading" class="state-msg">Loading news...</div>
+            <div id="news-empty" class="state-msg hidden">No news yet. Check back soon.</div>
+            <div id="news-list" class="news-list" aria-live="polite"></div>
         </div>
     </section>
 
@@ -70,7 +59,7 @@
     <span>By <strong>Duncan Bowring</strong> &middot; Built with <a href="https://claude.ai/code" target="_blank" rel="noopener">Claude Code</a>.</span>
 </footer>
 
-<script src="js/changelog.js?v=20260327a"></script>
+<script src="js/news.js?v=20260413a"></script>
 
 </body>
 </html>

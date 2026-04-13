@@ -37,12 +37,16 @@ The porting pipeline has 4 stages, each backed by a Claude skill:
   - `site/index.html` — Landing page (hero terminal animation, featured packages, getting started, port request form)
   - `site/packages.html` — Package browser with search/filter/sort, rich detail view (porting notes, test gauge, limitations)
   - `site/stats.html` — Stats dashboard with SVG bar charts, category breakdown, publication timeline
+  - `site/news.html` — News archive page — release announcements, project updates, behind-the-scenes notes. JS-driven from `site/data/news.json`, rendered by `site/js/news.js`.
   - `site/amiga.html` — HTML 3.2 page for classic Amiga browsers (IBrowse/AWeb). PHP-generated, table layout, <30KB, 640x480
-  - `site/feed.php` — RSS 2.0 feed of published packages, sorted by publish date
+  - `site/feed.php` — RSS 2.0 feed combining published packages **and news entries** (`site/data/news.json`), sorted by date. `?category=<cat>` filter narrows to packages only (news is project-wide).
+  - `site/data/news.json` — Source of truth for site news. Flat JSON array of `{id, date, title, body, tags, url}`. ASCII-only. Appended via `/post-news` skill — do not hand-edit when the skill applies. `site/api/v1/activity.php` and `site/feed.php` read this file server-side; the browser reaches it via `site/api/v1/news.php` (see below) because `.htaccess` blocks direct `/data/` access.
+  - `site/api/v1/news.php` — Public JSON proxy for `site/data/news.json`. Matches the same pattern as `packages.php` proxying `data/packages/*.json`. Validates JSON parses before echoing.
   - `site/js/packages.js` — Package browser logic + keyboard shortcuts (P/S/Esc//)
   - `site/js/stats.js` — Stats rendering with SVG chart generation (no charting library)
+  - `site/js/news.js` — News archive renderer. Supports a markdown-lite subset in `body`: paragraphs (blank line), links (`[text](url)`), bold (`**x**`), inline code (`` `x` ``).
   - `site/js/terminal-anim.js` — Hero typing animation (respects prefers-reduced-motion)
-  - `site/api/v1/` — PHP API endpoints (packages, stats, download, vote, request)
+  - `site/api/v1/` — PHP API endpoints (packages, stats, download, vote, request, activity — the activity endpoint merges news.json entries into the feed)
 - `toolchain/` — Cross-compiler Docker images, build scripts, target profiles
 - `toolchain/keyinject/` — KeyInject: keyboard event injector for functional interactive testing via AddIEvents() (ADR-023)
 - `toolchain/screenread/` — ScreenRead: ConUnit cursor reader for visual test cursor verification (ADR-025)
@@ -67,6 +71,9 @@ The `/port-project` skill has GATE checks — it will not proceed to the next st
 **Post-port quality skills:**
 - `/extend-shim <function-name>` — Add a missing POSIX function to the shim library
 - `/review-amiga <path>` — Amiga-specific code review (stack safety, BPTR handling, conventions)
+
+**Site skills:**
+- `/post-news` — Publish a news entry to `site/data/news.json` and deploy. Use for release announcements, project updates, and behind-the-scenes notes. Validates JSON + ASCII, dispatches `site-manager` to deploy, clears the activity cache. Do not hand-edit `site/data/news.json` when this skill applies — use the skill so deploy + cache clear happen atomically.
 
 **Available agents:**
 | Agent | When to dispatch |

@@ -259,7 +259,9 @@ make publish TARGET=...     # Package and upload to Aminet
 
 ## Website
 
-[amiport.platesteel.net](https://amiport.platesteel.net) — package browser, stats dashboard, and download index. Built with an Amiga MUI design system (warm gray, amber/brown/red accents, 1px bevels, no rounded corners). No CSS frameworks, no JS charting libraries, no CDN dependencies. See [DESIGN.md](DESIGN.md).
+[amiport.platesteel.net](https://amiport.platesteel.net) — package browser, stats dashboard, news, and download index. Built with an Amiga MUI design system (warm gray, amber/brown/red accents, 1px bevels, no rounded corners). No CSS frameworks, no JS charting libraries, no CDN dependencies. See [DESIGN.md](DESIGN.md).
+
+Release announcements and project updates are published via the `/post-news` skill, which appends to `site/data/news.json`, validates ASCII + schema, dispatches the `site-manager` agent to deploy, and clears the activity feed cache. News items surface on the homepage activity feed, in the News archive (`news.html`), and in the [RSS feed](https://amiport.platesteel.net/feed.php) alongside package releases.
 
 ## Contributing
 

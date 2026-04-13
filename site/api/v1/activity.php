@@ -42,6 +42,37 @@ if (file_exists($cacheFile) && (time() - filemtime($cacheFile)) < $cacheTtl) {
 
 $items = [];
 
+// 0. News entries from data/news.json (last 90 days)
+$newsFile = dirname(__DIR__, 2) . '/data/news.json';
+if (file_exists($newsFile)) {
+    $newsRaw = json_decode(file_get_contents($newsFile), true);
+    $newsItems = [];
+    if (is_array($newsRaw)) {
+        // Accept either a flat array or { items: [...] }.
+        if (isset($newsRaw['items']) && is_array($newsRaw['items'])) {
+            $newsItems = $newsRaw['items'];
+        } elseif (array_keys($newsRaw) === range(0, count($newsRaw) - 1)) {
+            $newsItems = $newsRaw;
+        }
+    }
+    $newsCutoff = date('c', strtotime('-90 days'));
+    foreach ($newsItems as $entry) {
+        if (!is_array($entry)) continue;
+        $date = $entry['date'] ?? '';
+        if ($date === '' || $date < $newsCutoff) continue;
+        $title = $entry['title'] ?? '';
+        if ($title === '') continue;
+        $id = $entry['id'] ?? '';
+        $url = $entry['url'] ?? ('/news.html' . ($id !== '' ? '#' . $id : ''));
+        $items[] = [
+            'type' => 'news',
+            'title' => $title,
+            'timestamp' => $date,
+            'url' => $url,
+        ];
+    }
+}
+
 // 1. Published packages from JSON files (last 90 days)
 $dataDir = dirname(__DIR__, 2) . '/data/packages';
 $cutoff = date('c', strtotime('-90 days'));

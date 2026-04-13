@@ -1,0 +1,18 @@
+[
+  {
+    "id": "2026-04-13-amigit-released",
+    "date": "2026-04-13T12:00:00Z",
+    "title": "amigit 0.1 -- first git client for classic AmigaOS",
+    "body": "amigit is the first native git client for AmigaOS 3.x, built on a ported libgit2 1.8.5. It covers the essentials -- init, add, commit, status, log, show, diff, branch, tag, checkout, reset -- running entirely on real 68k hardware.\n\nThe port required porting zlib 1.3.1 and libgit2 to amiport first, plus an FS-UAE trap workaround for a mathieeesingbas issue in libgit2's patch generator. Writeup coming soon.\n\nGrab it from [the packages page](/packages/?name=amigit).",
+    "tags": ["release", "amigit", "libgit2"],
+    "url": "/packages/?name=amigit"
+  },
+  {
+    "id": "2026-04-13-news-section",
+    "date": "2026-04-13T09:00:00Z",
+    "title": "News section is live",
+    "body": "amiport now has a proper news section. Release announcements, project updates, and behind-the-scenes notes will land here first, then surface in the homepage activity feed and the RSS feed.\n\nSubscribe via the [RSS feed](/feed.php) to follow along.",
+    "tags": ["meta", "site"],
+    "url": "/news.html"
+  }
+]
