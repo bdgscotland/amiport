@@ -45,11 +45,12 @@ RANLIB = $(TOOLCHAIN_BIN)/m68k-amigaos-ranlib
 CFLAGS = -std=gnu99 -noixemul -m68000 -O0 \
          -Wall -Wno-unused-parameter -Wno-unused-function \
          -Wno-pointer-sign -Wno-sign-compare \
-         -include $(abspath src/util/amigaos_compat.h) \
+         -include src/util/amigaos_compat.h \
          -Isrc/util -Isrc/libgit2 -Iinclude \
          -Isrc/xdiff -Isrc/pcre \
          -I../zlib/include \
          -DNO_MMAP \
+         -DGIT_IO_SELECT \
          -DSHA1DC_FORCE_BIGENDIAN=1 \
          -DHAVE_CONFIG_H \
          -DLINK_SIZE=2
