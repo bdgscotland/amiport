@@ -312,3 +312,17 @@ during Stage 3 (counted in the 162 archived `.o` files).
 - Archive contains the expected public API (spot-checked
   `git_blob_create_*`, `git_repository_init`, `git_commit_create`,
   etc. via `m68k-amigaos-nm`)
+
+## Known upstream defects carried (not patched)
+
+### git_revwalk_new() leaks ~100-200 bytes on rare init failure
+
+**Location:** `src/libgit2/revwalk.c`, function `git_revwalk_new`.
+
+**Defect:** The function allocates the `git_revwalk` struct with `git__calloc`, then calls `git_oidmap_new`, `git_pqueue_init`, and `git_pool_init` sequentially. If any of the first three inits fails, the function returns `-1` without freeing the revwalk struct. Only the final `git_revwalk_enqueue_commit` path (and onward) has a cleanup `goto`. On AmigaOS `-noixemul`, this is a permanent leak of the revwalk struct (100-200 bytes) per failed `git_revwalk_new` call.
+
+**Why not patched:** Upstream bug, low probability (requires memory exhaustion or corruption during one of three early inits that typically succeed). Patching in place creates a rebase burden and diverges from upstream. Documented here so amiport consumers (and the future `ports/amigit/`) know the ceiling on revwalk leak exposure.
+
+**Mitigation in consumers:** Call `git_revwalk_new` only once per session where possible; in long-running consumers, treat `git_revwalk_new` failure as a session-terminating condition and let the process exit naturally to reclaim space.
+
+**Detection reference:** `lib/libgit2/MEMORY-AUDIT.md` Stage 6 (2026-04-13), "HIGH" finding.
