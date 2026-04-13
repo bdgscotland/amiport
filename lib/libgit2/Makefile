@@ -53,7 +53,16 @@ CFLAGS = -std=gnu99 -noixemul -m68000 -O0 \
          -DGIT_IO_SELECT \
          -DSHA1DC_FORCE_BIGENDIAN=1 \
          -DHAVE_CONFIG_H \
-         -DLINK_SIZE=2
+         -DLINK_SIZE=2 \
+         -DGIT_LEGACY_HASH
+
+# HOTPATH_CFLAGS: -O1 with -fno-strict-aliasing for audited scalar-only files.
+# -fno-strict-aliasing is mandatory -- xdiff and SHA1DC cast pointers freely
+# (char* <-> long*, uint8_t* <-> uint32_t*, chastore pointers). Without it,
+# the compiler may reorder stores through unrelated types, producing silent
+# data corruption. Promoted files verified: no struct-by-value returns > 8
+# bytes, no large stack locals above the 512-byte threshold. See PERF-REPORT.md.
+HOTPATH_CFLAGS = $(subst -O0,-O1,$(CFLAGS)) -fno-strict-aliasing
 
 # PCRE files need an extra define to signal the bundled-minimal build
 PCRE_CFLAGS = $(CFLAGS) -DPCRE_STATIC -DSUPPORT_PCRE8 -Isrc/pcre
@@ -125,6 +134,48 @@ src/xdiff/%.o: src/xdiff/%.c
 # PCRE uses its own config.h and needs extra defines
 src/pcre/%.o: src/pcre/%.c
 	$(CC) $(PCRE_CFLAGS) -c $< -o $@
+
+# ========================================================================
+# Per-file -O1 promotions (HOTPATH_CFLAGS) -- audited by perf-optimizer
+# Stage 7, 2026-04-13. See PERF-REPORT.md for full audit rationale.
+# Each file verified: no struct-by-value return > 8 bytes, no large stack
+# locals > 512 bytes, no inline-asm, -fno-strict-aliasing covers pointer
+# casting. Do NOT add files here without a full per-TU audit.
+# ========================================================================
+
+# SHA1DC: 80-step unrolled compression; register allocation at -O1 is the
+# dominant win (a,b,c,d,e state variables stay in regs across all 80 steps).
+src/util/hash/sha1dc/sha1.o: src/util/hash/sha1dc/sha1.c
+	$(CC) $(HOTPATH_CFLAGS) -c $< -o $@
+
+src/util/hash/sha1dc/ubc_check.o: src/util/hash/sha1dc/ubc_check.c
+	$(CC) $(HOTPATH_CFLAGS) -c $< -o $@
+
+# xdiff core: Myers O(ND) algorithm, line hashing, context preparation.
+# -fno-strict-aliasing covers chastore's (char*) <-> (long*) casts.
+XDIFF_HOTPATH_CFLAGS = $(subst -O0,-O1,$(XDIFF_CFLAGS)) -fno-strict-aliasing
+
+src/xdiff/xdiffi.o: src/xdiff/xdiffi.c
+	$(CC) $(XDIFF_HOTPATH_CFLAGS) -c $< -o $@
+
+src/xdiff/xprepare.o: src/xdiff/xprepare.c
+	$(CC) $(XDIFF_HOTPATH_CFLAGS) -c $< -o $@
+
+src/xdiff/xutils.o: src/xdiff/xutils.c
+	$(CC) $(XDIFF_HOTPATH_CFLAGS) -c $< -o $@
+
+src/xdiff/xhistogram.o: src/xdiff/xhistogram.c
+	$(CC) $(XDIFF_HOTPATH_CFLAGS) -c $< -o $@
+
+src/xdiff/xmerge.o: src/xdiff/xmerge.c
+	$(CC) $(XDIFF_HOTPATH_CFLAGS) -c $< -o $@
+
+src/xdiff/xpatience.o: src/xdiff/xpatience.c
+	$(CC) $(XDIFF_HOTPATH_CFLAGS) -c $< -o $@
+
+# wildmatch: .gitignore / pathspec matching; pure table-driven char lookup.
+src/util/wildmatch.o: src/util/wildmatch.c
+	$(CC) $(HOTPATH_CFLAGS) -c $< -o $@
 
 clean:
 	rm -f $(ALL_OBJS) $(TARGET)
