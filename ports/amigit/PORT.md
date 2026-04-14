@@ -5,18 +5,114 @@
 | Field | Value |
 |-------|-------|
 | Program | amigit |
-| Version | 0.1-3 |
+| Version | 0.1-4 |
 | Source | amiport-native (hand-written on libgit2 1.8.5) |
 | Category | 1 -- CLI tool |
 | License | GPL-2.0 (libgit2) + MIT (amiport code) |
 | Original Author | Duncan Bowring (amiport project) |
 | Port Date | 2026-04-13 |
-| Last Update | 2026-04-13 (revision 3) |
+| Last Update | 2026-04-13 (revision 4) |
+| Maturity | **Developer preview** -- not yet stable for daily use |
 
 ## Status
 
-**0.1-3 (2026-04-13).** All 10 PDR-010a v1 commands shipping.
-**82/82** FS-UAE functional tests passing.
+**0.1-4 (2026-04-13) -- DEVELOPER PREVIEW.** All 11 PDR-010a v1
+commands compile and run, **82/82** FS-UAE functional tests
+passing. But the test corpus covers synthetic happy paths and
+does not exercise the full real-world workflow. The first user
+who tried `WORK:amigit init` on a fresh Shell (post 0.1 release)
+hit a libgit2 limitation immediately. 0.1-2 added a partial
+friendly error; 0.1-3 widened it; 0.1-4 reframes the public
+copy to be honest about preview status.
+
+amigit 0.1.x is a **proof-of-concept that proves libgit2 can
+be embedded into a 68k binary and that the on-disk git format
+works under libnix file I/O**. It is NOT yet a usable git
+client for daily work. Three honest gaps:
+
+1. **Init friction wall.** `amigit init` from a typical Shell
+   prompt on a multi-character volume name (`WORK:`, `Ram Disk:`,
+   `System 3.1:`) does not work -- libgit2's `git_fs_path_root`
+   only recognizes single-character drive prefixes. Workaround
+   is to AmigaDOS Assign a single-letter alias (`Assign R: WORK:`)
+   then init against that. A new user hits this wall in minute
+   one. Three real-fix experiments tried and rolled back -- see
+   "What changed in 0.1-3" below for the engineering notes.
+2. **No network = no real git.** The whole collaboration value
+   of git is missing. `amigit clone https://...` is the
+   watershed feature and is not yet implemented. It needs a
+   custom libgit2 smart-HTTP transport backend on AmiSSL,
+   roughly 6-10 weeks of focused work tracked as the 1.0
+   milestone.
+3. **The 82 tests don't cover the workflow that broke.** They
+   cover specific commands in specific synthetic paths
+   (explicit `T:amigit-test` argument, isolated flag parsing,
+   etc.). They didn't catch the bare-init case until the user
+   typed it. They didn't catch the explicit-WORK:-init case
+   until the user typed THAT either. The test corpus needs
+   to grow alongside real usage. The positional-argument
+   matrix rule (test-coverage-standard.md section 1a, added
+   in this session) is the deterministic enforcement going
+   forward.
+
+### What's good for in this preview
+
+- Validating the libgit2 + amiport posix-shim stack on real
+  AmigaOS hardware (Vampire V2/V4, A1200, A3000/4000)
+- Walking the history of an existing `.git/` directory copied
+  over from a Linux machine via floppy/network
+- Experimenting with a journal-style local-only workflow
+- Reporting bugs that help shape 0.2 / 0.3 / 1.0
+
+### What it's NOT good for yet
+
+- Daily git workflow on real projects
+- Collaboration via GitHub / GitLab / Codeberg / etc
+- Anything that requires merge, rebase, or stash
+
+### Roadmap (effort estimates from end-of-session perspective)
+
+| Release | Scope | Effort estimate |
+|---------|-------|-----------------|
+| 0.2 | Init works from any volume + cheap perf wins | 1-3 sessions |
+| 0.3 | Bundled libgit2 + zlib rebuilt at -m68020 (real perf) | 1-2 sessions |
+| 1.0 | HTTPS clone, fetch, log against public repos via libgit2 smart-HTTP backend on AmiSSL | 6-10 weeks of focused work |
+| 1.1+ | HTTPS push, libssh2 SSH, merge / rebase / stash | 4-8 weeks beyond 1.0 |
+
+The real risk is **scope creep** on the 1.0 networking work. We
+should ship 0.2 / 0.3 as visible incremental wins so the project
+doesn't sit at 0.1.x and look abandoned during the long quiet
+networking stretch.
+
+### What changed in 0.1-4
+
+Metadata-and-copy reframe only. No source code changes.
+
+- `amigit.readme` rewritten to lead with "DEVELOPER PREVIEW",
+  describe what works and what doesn't honestly, lead with the
+  init friction wall as the first thing the user will hit, and
+  publish the 0.2 / 0.3 / 1.0 roadmap with effort estimates.
+- `Short:` field changed from "Local-only git client for
+  AmigaOS 3.x" to "Local-only git CLI for AmigaOS 3.x (preview)"
+  -- the (preview) tag flags the maturity at a glance.
+- PORT.md (this file) reframed to lead with the preview
+  status and the three honest gaps, with the roadmap table
+  above.
+- site/data/packages/amigit.json status field flipped from
+  "stable" to "preview" so the website renders the preview tag
+  next to the package name.
+- Version strings bumped to 0.1-4 in Makefile, AMIGIT_VERSION
+  macro, $VER tag, test-fsemu-cases.txt expectation. Binary
+  rebuilt clean, 82/82 tests still green (no functional change).
+
+The reframe was triggered by Duncan's question end-of-session
+2026-04-13: "we're overselling the usefulness of it in its
+current form, do you think we'll get it to where it needs to
+go?" The honest answer was yes-but-the-narrative-is-wrong, and
+the right move was to fix the narrative tonight rather than
+sit on it.
+
+### What changed in 0.1-3 (since 0.1-2)
 
 ### What changed in 0.1-3 (since 0.1-2)
 

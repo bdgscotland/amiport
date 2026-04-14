@@ -5,7 +5,7 @@
 | Field | Value |
 |-------|-------|
 | Port | amigit |
-| Date | 2026-04-13 21:52:28 |
+| Date | 2026-04-13 22:24:03 |
 | Duration | 136s |
 | Platform | FS-UAE 3.2.35 (A1200, Kickstart 3.1) |
 | Binary | `WORK:amigit` (1.0M) |
@@ -243,7 +243,7 @@ and compares against the expected output string.
 
 TEST: version prints amigit version on first line
 CMD: WORK:amigit version
-EXPECT: amigit 0.1-3 (built 2026-04-13)
+EXPECT: amigit 0.1-4 (built 2026-04-13)
 EXPECT_RC: 0
 
 TEST: version prints libgit2 version on second line

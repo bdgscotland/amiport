@@ -3104,12 +3104,12 @@
     {
       "id": "amigit",
       "name": "amigit",
-      "description": "Local-only git client for AmigaOS 3.x",
+      "description": "Local-only git CLI for AmigaOS 3.x (preview)",
       "amiport_category": "cli",
       "aminet_category": "dev/misc",
       "upstream": {
         "source": "amiport-native (built on libgit2 1.8.5)",
-        "version": "0.1-3",
+        "version": "0.1-4",
         "license": "GPL-2.0 (libgit2) + MIT (amiport code)"
       },
       "status": "ported",
