@@ -70,7 +70,29 @@ PCRE_CFLAGS = $(CFLAGS) -DPCRE_STATIC -DSUPPORT_PCRE8 -Isrc/pcre
 # xdiff header is inside src/xdiff/
 XDIFF_CFLAGS = $(CFLAGS) -Isrc/xdiff
 
-TARGET = libgit2.a
+# ----------------------------------------------------------------------
+# Dual-flavor 68020 build (Track A, 2026-04-14)
+#
+# Mirror the pattern from lib/zlib/Makefile (commit 4a8a362). All four
+# CFLAGS variants get a -020 twin derived via $(subst -m68000,-m68020),
+# so future changes to the base flags automatically propagate. Same
+# -O levels in both flavors -- the win is in the CPU instruction set,
+# not the optimizer (see lib/zlib/Makefile commit message for the
+# full rationale).
+#
+# Per .claude/rules/library-pipeline.md + the "Libraries MUST Use
+# -m68000" pitfall: libgit2.a (000 flavor) remains the default, is
+# the only one linked by the Stage 5 test suite, and is what every
+# current amiport port sees. libgit2-020.a is opt-in for amigit-020
+# and any future 68020+ consumer.
+# ----------------------------------------------------------------------
+CFLAGS_020              = $(subst -m68000,-m68020,$(CFLAGS))
+HOTPATH_CFLAGS_020      = $(subst -m68000,-m68020,$(HOTPATH_CFLAGS))
+PCRE_CFLAGS_020         = $(subst -m68000,-m68020,$(PCRE_CFLAGS))
+XDIFF_CFLAGS_020        = $(subst -m68000,-m68020,$(XDIFF_CFLAGS))
+
+TARGET     = libgit2.a
+TARGET_020 = libgit2-020.a
 
 # ========================================================================
 # Source file lists -- directories are pre-pruned by the Stage 2 copy
@@ -95,17 +117,36 @@ PCRE_OBJS     = $(PCRE_SRCS:.c=.o)
 
 ALL_OBJS = $(LIBGIT2_OBJS) $(UTIL_OBJS) $(XDIFF_OBJS) $(PCRE_OBJS)
 
+# Dual-flavor 020 object lists -- same source tree, .020.o suffix.
+LIBGIT2_OBJS_020 = $(LIBGIT2_SRCS:.c=.020.o)
+UTIL_OBJS_020    = $(UTIL_SRCS:.c=.020.o)
+XDIFF_OBJS_020   = $(XDIFF_SRCS:.c=.020.o)
+PCRE_OBJS_020    = $(PCRE_SRCS:.c=.020.o)
+
+ALL_OBJS_020 = $(LIBGIT2_OBJS_020) $(UTIL_OBJS_020) $(XDIFF_OBJS_020) $(PCRE_OBJS_020)
+
 # ========================================================================
 # Build rules
 # ========================================================================
 
-all: $(TARGET)
+# 'all' still means "build the 000 flavor only". 020 is opt-in via
+# 'make all-020' or 'make dual'.
+all:     $(TARGET)
+all-020: $(TARGET_020)
+dual:    $(TARGET) $(TARGET_020)
 
 $(TARGET): $(ALL_OBJS)
 	$(AR) rcs $@ $(ALL_OBJS)
 	$(RANLIB) $@
 
-# Standard rules (libgit2 core + util)
+$(TARGET_020): $(ALL_OBJS_020)
+	$(AR) rcs $@ $(ALL_OBJS_020)
+	$(RANLIB) $@
+
+# ------------------------------------------------------------------
+# 000 flavor pattern rules -- unchanged from the pre-dual-flavor era.
+# ------------------------------------------------------------------
+
 src/libgit2/%.o: src/libgit2/%.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
@@ -135,6 +176,38 @@ src/xdiff/%.o: src/xdiff/%.c
 src/pcre/%.o: src/pcre/%.c
 	$(CC) $(PCRE_CFLAGS) -c $< -o $@
 
+# ------------------------------------------------------------------
+# 020 flavor pattern rules -- mirror the 000 rules with .020.o suffix
+# and the -020 CFLAGS variants.
+# ------------------------------------------------------------------
+
+src/libgit2/%.020.o: src/libgit2/%.c
+	$(CC) $(CFLAGS_020) -c $< -o $@
+
+src/util/%.020.o: src/util/%.c
+	$(CC) $(CFLAGS_020) -c $< -o $@
+
+src/util/allocators/%.020.o: src/util/allocators/%.c
+	$(CC) $(CFLAGS_020) -c $< -o $@
+
+src/util/hash/%.020.o: src/util/hash/%.c
+	$(CC) $(CFLAGS_020) -c $< -o $@
+
+src/util/hash/sha1dc/%.020.o: src/util/hash/sha1dc/%.c
+	$(CC) $(CFLAGS_020) -c $< -o $@
+
+src/util/hash/rfc6234/%.020.o: src/util/hash/rfc6234/%.c
+	$(CC) $(CFLAGS_020) -c $< -o $@
+
+src/util/unix/%.020.o: src/util/unix/%.c
+	$(CC) $(CFLAGS_020) -c $< -o $@
+
+src/xdiff/%.020.o: src/xdiff/%.c
+	$(CC) $(XDIFF_CFLAGS_020) -c $< -o $@
+
+src/pcre/%.020.o: src/pcre/%.c
+	$(CC) $(PCRE_CFLAGS_020) -c $< -o $@
+
 # ========================================================================
 # Per-file -O1 promotions (HOTPATH_CFLAGS) -- audited by perf-optimizer
 # Stage 7, 2026-04-13. See PERF-REPORT.md for full audit rationale.
@@ -153,7 +226,8 @@ src/util/hash/sha1dc/ubc_check.o: src/util/hash/sha1dc/ubc_check.c
 
 # xdiff core: Myers O(ND) algorithm, line hashing, context preparation.
 # -fno-strict-aliasing covers chastore's (char*) <-> (long*) casts.
-XDIFF_HOTPATH_CFLAGS = $(subst -O0,-O1,$(XDIFF_CFLAGS)) -fno-strict-aliasing
+XDIFF_HOTPATH_CFLAGS     = $(subst -O0,-O1,$(XDIFF_CFLAGS)) -fno-strict-aliasing
+XDIFF_HOTPATH_CFLAGS_020 = $(subst -m68000,-m68020,$(XDIFF_HOTPATH_CFLAGS))
 
 src/xdiff/xdiffi.o: src/xdiff/xdiffi.c
 	$(CC) $(XDIFF_HOTPATH_CFLAGS) -c $< -o $@
@@ -177,7 +251,43 @@ src/xdiff/xpatience.o: src/xdiff/xpatience.c
 src/util/wildmatch.o: src/util/wildmatch.c
 	$(CC) $(HOTPATH_CFLAGS) -c $< -o $@
 
-clean:
-	rm -f $(ALL_OBJS) $(TARGET)
+# ------------------------------------------------------------------
+# 020 flavor hot-path promotions -- mirror every override above.
+# Each file here was audited at the 000 Stage 7 perf-optimizer pass
+# (2026-04-13, PERF-REPORT.md) and verified safe for -O1. The audit
+# is CPU-family-independent -- the struct-return/large-locals/inline-
+# asm/pointer-casting concerns don't change between -m68000 and
+# -m68020, so the 020 flavor inherits the same safety verdict.
+# ------------------------------------------------------------------
 
-.PHONY: all clean
+src/util/hash/sha1dc/sha1.020.o: src/util/hash/sha1dc/sha1.c
+	$(CC) $(HOTPATH_CFLAGS_020) -c $< -o $@
+
+src/util/hash/sha1dc/ubc_check.020.o: src/util/hash/sha1dc/ubc_check.c
+	$(CC) $(HOTPATH_CFLAGS_020) -c $< -o $@
+
+src/xdiff/xdiffi.020.o: src/xdiff/xdiffi.c
+	$(CC) $(XDIFF_HOTPATH_CFLAGS_020) -c $< -o $@
+
+src/xdiff/xprepare.020.o: src/xdiff/xprepare.c
+	$(CC) $(XDIFF_HOTPATH_CFLAGS_020) -c $< -o $@
+
+src/xdiff/xutils.020.o: src/xdiff/xutils.c
+	$(CC) $(XDIFF_HOTPATH_CFLAGS_020) -c $< -o $@
+
+src/xdiff/xhistogram.020.o: src/xdiff/xhistogram.c
+	$(CC) $(XDIFF_HOTPATH_CFLAGS_020) -c $< -o $@
+
+src/xdiff/xmerge.020.o: src/xdiff/xmerge.c
+	$(CC) $(XDIFF_HOTPATH_CFLAGS_020) -c $< -o $@
+
+src/xdiff/xpatience.020.o: src/xdiff/xpatience.c
+	$(CC) $(XDIFF_HOTPATH_CFLAGS_020) -c $< -o $@
+
+src/util/wildmatch.020.o: src/util/wildmatch.c
+	$(CC) $(HOTPATH_CFLAGS_020) -c $< -o $@
+
+clean:
+	rm -f $(ALL_OBJS) $(ALL_OBJS_020) $(TARGET) $(TARGET_020)
+
+.PHONY: all all-020 dual clean
