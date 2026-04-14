@@ -134,4 +134,8 @@ No critical memory safety issues. All allocations either properly freed or accep
 
 The Makefile REVISION was bumped from 2 to 3 (and the `$VER` string + `sed.readme Version:` field updated to match) to reconcile a pre-existing drift surfaced by the new `check-port-metadata` Check 10. Before this bump, `site/data/packages/sed.json` advertised `revision: 3` and the live server shipped `sed-1.47-3.lha` (sha verified against the catalog), but `ports/sed/Makefile` was still at `REVISION = 2`. The Makefile was lagging behind the catalog and the deployed artifact.
 
-**Pre-existing inconsistency NOT resolved by this bump:** the binary inside the currently-shipped `sed-1.47-3.lha` was built before the bump and embeds `$VER: sed 1.47 (20.03.2026)` (rev 1, not rev 3). Running `Version sed FULL` on a real Amiga against the currently-installed binary will display the rev-1 string. The next clean `make package` will produce a binary that correctly embeds `$VER: sed 1.47-3 (14.04.2026)` -- at which point the local `ports/sed/sed-1.47-3.lha` will have a different sha than the one currently on the server. Operator should either (a) `make package`, refresh `sed.json` sha256, redeploy, or (b) accept the binary-vs-source $VER drift indefinitely.
+**Resolved by clean rebuild (later same day):** the build-manager agent ran a fresh `make package`, producing a new binary that correctly embeds `$VER: sed 1.47-3 (14.04.2026)`. New artifacts:
+- `sed-1.47-3.lha` — 94138 bytes, sha256 `56ca22048bc4cf2c677113cb8c04ba8fb74a355308a21912fb287387fc6a801e`
+- `sed-1.47-machine.lha` — 35778 bytes, sha256 `511cb586ce9223e46878f13ba06d6a3ef21f48b44b18f2bb9dd6d1ee0d7ecf91`
+
+`site/data/packages/sed.json` was updated with the new sha256 + machine_sha256 + size and deployed via site-manager. Live server now serves the rebuilt binary; running `Version sed FULL` on a real Amiga reports the correct rev-3 string. Source, catalog, filename, and embedded $VER are all consistent.
