@@ -155,16 +155,146 @@ Test inputs in port directory: `test-patch-base.txt` (5-line baseline file),
 the corresponding flag tests). All inputs live inside `ports/patch/` per
 test-hygiene rules.
 
+## Platform Compatibility Notes
+
+- **`fstat(fileno(pfp))` -> `amiport_stat(filename, ...)`** (pch.c:128-132).
+  patch was reading the patch file size via `fstat(fileno(pfp))`. `pfp` is a
+  libnix `FILE*` so `fileno()` returns a libnix fd. Calling `amiport_fstat()`
+  on a libnix fd would return EBADF -- the fd-namespace crossing problem
+  (crash-patterns #12). Fix: drop `fstat`/`fileno` and use filename-based
+  `amiport_stat()` directly.
+- **AmigaOS exclusive write lock for ed-format diffs.** When applying an `-e`
+  ed-style diff, patch was attempting to open the output file twice: once via
+  `init_output()` and again from inside `write_lines()`. AmigaDOS
+  `MODE_NEWFILE` acquires an exclusive lock, so the second `fopen("w")`
+  failed with `ERROR_OBJECT_IN_USE`. Fix: close the first handle in
+  `init_output()` before re-opening in the ed write path. See known-pitfalls
+  "AmigaOS Exclusive Write Lock".
+- **`SIZE_MAX` not in libnix limits.h.** Both `inp.c` and `pch.c` define a
+  fallback `#define SIZE_MAX ((size_t)-1)`. This is a recurring libnix gap.
+- **`EXDEV` not always defined.** Both `inp.c` and `util.c` define a fallback
+  `#define EXDEV 18`. patch uses this on the rename failure path.
+- **No 68k alignment issues** (crash-patterns #15): patch uses no custom
+  allocators that compute alignment from `offsetof()`.
+- **No struct-by-value return issues** (crash-patterns #16): all structs are
+  passed/returned via pointer.
+- **Tab stop bug** (pch.c:1196): upstream had `indent += 8 - (indent % 7)` --
+  off-by-one for standard 8-column tabs. Fixed in port. This is an upstream
+  defect, not an Amiga-specific issue.
+
+## Memory Safety
+
+Memory-checker (Stage 6b) audit during the original port found and fixed 2
+leaks:
+
+1. **Temp file name strings** (util.c:442-447). `TMPOUTNAME`, `TMPINNAME`,
+   `TMPREJNAME`, `TMPPATNAME` are `asprintf()`-allocated in `patch.c` during
+   temp file setup. AmigaOS with `-noixemul` has no process-exit memory
+   reclaim. Fix: `my_cleanup()` now `free()`s each name pointer after the
+   corresponding `amiport_unlink()` and sets it to NULL.
+2. **TTY fd leak** (util.c:63, 449-453). `ask()` was opening a local tty fd
+   that was never closed on FATAL/exit paths. Fix: hoisted to file-scope
+   `static int ask_ttyfd = -1;` and closed in `my_cleanup()` before
+   `exit()`.
+
+`my_cleanup()` is called from BOTH `my_exit()` (normal exit path) AND
+`my_sigexit()` (signal handler path). Both paths use plain `exit(10)` --
+NOT `_exit(10)` -- because crash-patterns #9 debunked the "exit hangs" theory
+and `exit()` correctly runs atexit handlers.
+
+The mmap emulation (`amiport_emu_mmap` / `amiport_emu_munmap`) is paired
+correctly in `re_input()` (inp.c:96-103) and `reallocate_lines()`
+(inp.c:138-141). plan_a allocates the entire input file into a single
+AllocMem block; failure to grow the line index calls `amiport_emu_munmap()`
+to release that block before failing over to plan_b.
+
+## Performance Notes
+
+Two perf-optimizer wins applied during the original port (Stage 6c):
+
+1. **`putc()` loop -> `fwrite()` in `dump_line()`** (patch.c). The original
+   code wrote each character to the output file via `putc()` -- one libnix
+   stdio call per byte. Replaced with a single `fwrite(line, 1, len, ofp)`
+   call. Measured 2-3x speedup on output-heavy patches. Same pattern as the
+   libnix `fgetc()` -> `fgets()` win (see known-pitfalls "fgetc() Is 3-5x
+   Slower").
+2. **Upstream tab-stop bug** (pch.c:1196). `% 7` -> `% 8`. Not a perf win in
+   the throughput sense -- it's a correctness fix -- but it was caught by
+   the perf review pass that walked the column-counting loops.
+
+`-O2` is safe for patch -- the binary builds cleanly at `-O2` with no
+struct-return corruption. patch's structs are all passed by pointer.
+
 ## Known Limitations
 
 - Path handling assumes Unix-style paths in diff headers (the standard case). AmigaOS-native paths (DH0:foo/bar) in diff output may not strip correctly with `-p`.
 - mmap in plan_a uses amiport-emu which reads entire file into memory. Files larger than available RAM fall through to plan_b (fgets-based) gracefully.
 - SIGHUP handler is a no-op — only SIGINT (Ctrl-C) works for interruption.
 - Ed-format diffs (`-e`) required closing ofp before write_lines to avoid AmigaOS exclusive lock conflict (ERROR_OBJECT_IN_USE). Fixed.
+- pledge/unveil are stubbed as `(0)`. Any patch behaviour that depended on
+  filesystem sandboxing on OpenBSD is silently absent on AmigaOS. Not a
+  practical issue -- patch's sandboxing is defence in depth, not a
+  correctness requirement.
+- `--posix` mode compiles and accepts the flag but the strict POSIX path
+  has not been exhaustively tested against POSIX 2017 patch semantics. The
+  test (Cat 1) only verifies it does not error out.
 
 ## Review
 
 - **Memory checker:** 2 leaks found and fixed (TMP name strings + ttyfd in my_cleanup)
-- **Perf optimizer:** putc→fwrite in dump_line (2-3x output speedup), tab stop bug fix (% 7 → % 8)
+- **Perf optimizer:** putc->fwrite in dump_line (2-3x output speedup), tab stop bug fix (% 7 -> % 8)
 - **Crash patterns discovered:** #16 (libnix getopt_long broken), #17 (dirname corrupts input)
-- **Score: READY** — 42/42 FS-UAE tests passing, memory leaks fixed, performance optimized
+- **Score: READY** -- 42/42 FS-UAE tests passing, memory leaks fixed, performance optimized
+
+## Revision Candidates
+
+Items flagged for a future revision once shim/tooling improves. **Do not act
+on these in this PORT.md edit pass** -- they are notes for a future
+`/extend-shim` or pipeline cleanup pass.
+
+1. **Bundled `EXDEV` fallback** (inp.c:60-62, util.c:54). Two source files
+   independently define `EXDEV = 18`. amiport's `<amiport/errno.h>` could
+   provide it once and these fallbacks could be removed.
+2. **Bundled `SIZE_MAX` fallback** (inp.c:44-47, pch.c:36). Same story --
+   `<amiport/limits.h>` could supply this once. Two-site duplication is a
+   smell.
+3. **`fstat()`-on-libnix-fd refactor** (pch.c:128-132). The current fix
+   re-stats by filename, which races against any concurrent rename
+   (impossible in patch's single-threaded flow but a minor smell). If
+   amiport ever provides an `amiport_fstat()` that handles libnix fds
+   correctly, this could revert to the upstream `fstat(fileno(pfp))` form.
+4. **`<amiport-emu/popen.h>` not used.** patch does not use popen/system at
+   runtime -- it has no shell-out. The Makefile pulls in `-lamiport-emu`
+   only for `amiport_emu_mmap` / `amiport_emu_munmap`. If amiport ever
+   splits the emu library into per-feature archives, patch could link only
+   the mmap shim and shave a few KB off the final binary.
+5. **`madvise()` no-op macro** (inp.c:57). Could be moved to `<amiport-emu/mmap.h>`
+   so every consumer doesn't need to redefine it. Low priority.
+6. **`fgetln()` static buffer** (inp.c:317-329). The current fix uses a
+   static `MAXHUNKSIZE+2` byte buffer. amiport could provide a real
+   `fgetln()` shim using `getline()` underneath. Until then, the static
+   buffer is bounded and the worst case (very long patch hunks) is the
+   same as upstream.
+7. **`__progname` strong symbol** (patch.c:71). Per the updated known-pitfalls
+   section "`__progname` -- Do NOT Define in Ported Source", since
+   2026-03-25 `argv_expand.o` in `libamiport.a` defines `__progname` as a
+   strong symbol. patch DOES NOT call `amiport_expand_argv()`, so it has
+   to keep its local definition. If patch ever adopts `amiport_expand_argv`
+   for argv globbing, the local `__progname` line should be removed to
+   avoid the multiple-definition link error.
+8. **Test gap: ENOENT input on plan_a.** The test suite checks nonexistent
+   input file (RC=10) but does not specifically distinguish plan_a vs
+   plan_b failure modes. A test that forces plan_b (via low memory or
+   very large input) would document the fall-through path.
+9. **Test gap: cross-device rename.** util.c handles `EXDEV` from
+   `amiport_rename()` by copying instead of renaming. There is no test
+   that exercises this path. AmigaOS volumes could trigger this when
+   patching across `WORK:` and `RAM:`.
+10. **Versioning string mismatch.** util.c:428 prints "Patch version
+    2.0-12u8-OpenBSD" via `version()`, but the `$VER` cookie is "patch 1.78"
+    and the Makefile `VERSION = 1.78`. The 2.0-12u8 string is an upstream
+    artifact from the OpenBSD source. Cosmetic; consider aligning if a
+    future revision touches util.c.
+11. **`-lamiport-emu` link order.** The Makefile lists `-lamiport-emu` before
+    `-lamiport` (via `LDFLAGS`). Confirm this order is required for symbol
+    resolution; if not, switching could simplify common.mk inheritance.
