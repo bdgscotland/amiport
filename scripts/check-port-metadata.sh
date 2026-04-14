@@ -89,6 +89,23 @@ for dir in "$PORTS_DIR"/*/; do
     fi
 
     # ----------------------------------------------------------
+    # Check 2a: No inline `# comment` on Makefile variable assignments
+    # ----------------------------------------------------------
+    # make(1) treats `VAR = value # comment` as VAR having the literal
+    # value `value # comment`. On DESCRIPTION this blew the Aminet 40-
+    # char Short: field; on REVISION it is a latent DISPLAY_VERSION
+    # fragility. The project's Makefile.template was fixed 2026-04-14
+    # to keep guidance above the assignments; this check prevents the
+    # pattern from creeping back in. See the mop-up commit that
+    # followed 96bd984.
+    inline_leaks=$(grep -nE '^(TARGET|SOURCES|VERSION|REVISION|DESCRIPTION|AUTHOR|CATEGORY|AMINET_CAT)[[:space:]]*=[^#]*#' "$dir/Makefile" 2>/dev/null || true)
+    if [ -n "$inline_leaks" ]; then
+        first_leak=$(echo "$inline_leaks" | head -1)
+        echo "FAIL  $name: Makefile — inline '# comment' on a variable assignment (make treats it as part of the value): $first_leak"
+        port_failed=1
+    fi
+
+    # ----------------------------------------------------------
     # Check 2b: Short description length (Aminet max: 40 chars)
     # ----------------------------------------------------------
     desc=$(grep -E '^DESCRIPTION\s*=' "$dir/Makefile" 2>/dev/null | head -1 | sed 's/^DESCRIPTION[[:space:]]*=[[:space:]]*//' || true)

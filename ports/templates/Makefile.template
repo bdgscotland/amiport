@@ -1,11 +1,17 @@
 # Makefile for __TARGET__ (amiport)
 include ../common.mk
 
+# REVISION: increment when ported/ changes but upstream VERSION stays
+# the same. Revision 1 is implicit; revision 2+ is shown as "X.Y-N".
+# DESCRIPTION: max 40 chars, ASCII only (Aminet Short: field). Keep
+# the value line comment-free -- make(1) treats a trailing "# ..." as
+# part of the variable value, which has bitten patch/tetris/uniq
+# (see crash-patterns or the 2026-04-14 hygiene pass).
 TARGET      = __TARGET__
 SOURCES     = ported/__TARGET__.c
 VERSION     = __VERSION__
-REVISION    = 1                # Increment when ported/ changes but upstream version stays the same
-DESCRIPTION = __DESCRIPTION__  # Max 40 chars, ASCII only (Aminet requirement)
+REVISION    = 1
+DESCRIPTION = __DESCRIPTION__
 AUTHOR      = __AUTHOR__
 
 # Override if not util/cli (e.g., util/misc, text/edit)

@@ -11,15 +11,21 @@ document for where to go next, with honest effort estimates.
 
 ## Current state snapshot
 
-- **amigit 0.1 shipped** at commit `8faf039` on `origin/main`.
-- 81/81 FS-UAE functional tests green (`make test-fsemu TARGET=ports/amigit`).
+- **amigit 0.1-5 shipped** at commit `ca798e6` on `origin/main`
+  (0.1 originally shipped at `8faf039`, 2026-04-13; 0.1-5 bump landed
+  2026-04-14 as the -O1 + -F cheap-wins pass).
+- 87/87 FS-UAE functional tests green (`make test-fsemu TARGET=ports/amigit`).
+  Up from 81 at 0.1 -- +5 tests cover the new `-F` file flag: 3 error
+  paths, 1 multi-word happy path, 1 log roundtrip.
 - 79/79 libgit2 Stage 5 tests still green on vamos
   (`make -C tests/libgit2 run`).
 - memory-checker CLEAN, perf-optimizer CLEAN.
-- Binary: 1,085,544 bytes (1.06 MB), `-m68000 -O0 -noixemul`.
-- LHA packages:
-  - `ports/amigit/amigit-0.1.lha` (510,782 bytes, sha256 fefcab64...)
-  - `ports/amigit/amigit-0.1-machine.lha` (450,837 bytes, sha256 53da172b...)
+- Binary: 1,081,432 bytes (1.03 MB), `-m68000 -O1 -noixemul`. ~4 KB
+  smaller than 0.1 thanks to the -O1 promotion of the 13 amigit port
+  TUs (libgit2.a and libz.a stay -O0).
+- LHA packages (latest revision):
+  - `ports/amigit/amigit-0.1-5.lha` (522,387 bytes)
+  - `ports/amigit/amigit-0.1-5-machine.lha` (451,066 bytes)
 - Website entries: `PORTS.md`, `README.md`, `data/catalog.json`,
   `site/data/catalog.json`, `site/data/packages/amigit.json`.
 
@@ -70,36 +76,30 @@ All 11 commands (10 PDR-010a v1 + `version`):
 
 Ranked by user value / effort ratio.
 
-### Cheap wins (hours to 1 day)
+### Cheap wins
 
-1. **`-O1` promotion of port TUs** -- perf-optimizer (2026-04-13) audited
-   all 13 TUs SAFE for -O1. No struct-by-value returns > 8 bytes, no
-   recursion, no float division in amigit's own code. Binary may shrink
-   slightly and log/status may run marginally faster.
-   - Risk: low. Re-run full 81-test suite after the flag flip.
-   - Effort: 5 minutes + 1 FS-UAE test cycle (~7 min).
+**Items 1-4 below are all SHIPPED as of amigit 0.1-5 (commit ca798e6,
+2026-04-14).** The 0.1-5 commit message calls out -O1 and -F explicitly;
+the fputs/putchar refactor in `cmd_log.c` and the `is_help_flag`
+consolidation also landed in the same commit's -O1 audit pass but were
+not named in the commit subject. Verified 2026-04-14 in the next
+session (commit 96bd984):
+  - `cmd_log.c:137-143` uses `fputs(short_sha); fputc(' '); fputs(summary);
+    fputc('\n')` with an explicit perf comment.
+  - All 10 `cmd_*.c` files call the shared `amigit_is_help_flag()`
+    defined at `amigit.c:162` and declared at `amigit.h:105`. No static
+    duplicates remain.
 
-2. **`-F <file>` flag for commit messages** -- solves the single-word
-   commit-message limitation by reading from a file. libgit2's
-   `git_commit_create_v` doesn't care about argv quoting; the message
-   string can have any bytes including newlines.
-   - Usage: `amigit commit -F T:commitmsg.txt`
-   - Effort: 1-2 hours, including argparse + the inrepo-setup wrapper
-     for testing.
-   - Test plan: add 3 new TEST blocks (happy path, missing file, empty
-     file) to `test-fsemu-cases.txt`.
+~~1. `-O1` promotion of port TUs~~ SHIPPED (0.1-5).
+~~2. `-F <file>` flag for commit messages~~ SHIPPED (0.1-5).
+~~3. `fputs` + `putchar` in `cmd_log.c`~~ SHIPPED (0.1-5).
+~~4. Consolidate `is_help_flag` to `amigit.c`~~ SHIPPED (0.1-5).
 
-3. **`fputs` + `putchar` in `cmd_log.c`** -- replace the `printf` per
-   commit with `fputs(sha); putchar(' '); fputs(summary); putchar('\n');`.
-   Saves ~30-50% of the print-path cycles per commit. Marginal for
-   small repos, noticeable for logs with hundreds of commits.
-   - Effort: 15 minutes + test run.
-
-4. **Consolidate `is_help_flag` to `amigit.c`** -- 11 duplicated copies
-   waste ~500 bytes of binary and pressure the A1200's 256-byte I-cache.
-   Declare non-static in `amigit.c`, extern in `amigit.h`, remove the
-   static copies from each `cmd_*.c`.
-   - Effort: 20 minutes + test run.
+Items 5 and 6 remain as "medium" work -- each requires a `lib/libgit2/`
+library rebuild (re-enabling source files currently excluded by the
+Phase 2 prune) plus new cmd TU plus test suite additions. They are
+NOT cheap; the "cheap wins (hours to 1 day)" framing was wrong for
+these two from the start.
 
 5. **Local-only `clone` command (`file://` URL)** -- `git_clone` with a
    local path (or `file://` URL) copies a repo from one local directory
@@ -119,6 +119,33 @@ Ranked by user value / effort ratio.
    `cmd_remote.c`. Useful for setting up remotes even before networking
    works (`git config -e`-style setup).
    - Effort: ~1 day.
+
+### Genuine small wins left (half-day to 1-2 days, no library rebuild)
+
+These are net-new bounded items that emerged after 0.1-5 closed out
+items 1-4. Each is self-contained, ships as a small 0.1.x or 0.2
+revision, and does not need a `lib/libgit2/` rebuild.
+
+- **Annotated tag support (`tag -a -m <word>` AND `tag -a -F <file>`)**
+  -- upgrade `cmd_tag.c` to call `git_tag_create` for annotated tags
+  with a signature. Must implement BOTH `-m` and `-F` simultaneously
+  because annotated tags have the same AmigaDOS argv-split limitation
+  as commits -- shipping only `-m` would immediately repeat the
+  "cannot supply multi-word tag message" limitation that `-F` solved
+  for commit. Mirror the cmd_commit `-m`/`-F` plumbing.
+  - Effort: ~1 day (argparse refactor, `read_message_file`
+    consolidation if factored out of cmd_commit, ~5 new TEST blocks
+    including a multi-word roundtrip via `git_tag_lookup`).
+
+- **`log --grep <pattern>`** -- iterate commits via `git_revwalk` and
+  filter by `git_commit_message` substring match. No new dependencies.
+  - Effort: 1-2 days.
+
+- **Pager auto-detect for `log` and `show`** -- when `Output()` is
+  interactive AND output would exceed a screen, write to a temp file
+  and invoke AmigaDOS `More`. Must not break the test harness (which
+  captures stdout via `Execute scriptfile >file`).
+  - Effort: 1-2 days.
 
 ### v1.1 features (days to 1-2 weeks)
 
@@ -437,24 +464,34 @@ Resume amigit evolution. Start by reading ports/amigit/HANDOFF.md
 the roadmap options with honest effort estimates, and the
 known-good test commands. Phase 3 (v1 release) is complete.
 
-Current head: 8faf039 on origin/main. amigit 0.1 is shipped with
-all 11 v1 commands, 81/81 FS-UAE tests green, memory-checker CLEAN,
-perf-optimizer CLEAN, LHA packages built.
+Current head: main at or after ca798e6 on origin/main. amigit 0.1-5
+is shipped with all 11 v1 commands, the -F flag for multi-word commit
+messages, port TUs built at -O1, 87/87 FS-UAE tests green, memory-
+checker CLEAN, perf-optimizer CLEAN, LHA packages built.
+
+HANDOFF "Cheap wins" items 1-4 (-O1 promotion, -F flag, fputs in
+cmd_log, is_help_flag consolidation) are ALL shipped in 0.1-5. Do
+NOT re-chase them -- HANDOFF struck them in the 2026-04-14 mop-up
+session (commit after 96bd984). Items 5 and 6 (local-file clone,
+remote commands) are actually medium work because they need a
+lib/libgit2/ rebuild.
 
 The vamos monkey-patches required for libgit2 Stage 5 regression
 testing are still in place locally (raise DOS lock cap to 65536,
 handle SetFileDate FileNotFoundError); re-apply from HANDOFF.md
-section "Still-required local vamos monkey-patches" if 
+section "Still-required local vamos monkey-patches" if
 `make -C tests/libgit2 run` fails with a stack trace involving
 LockManager or utime.
 
-Ask me what I want to tackle next. The options, ranked by effort
-and value, are in HANDOFF.md "Known limitations" + "CPU bump"
-+ "Networking" sections. Common choices:
+Ask me what I want to tackle next. The honest options, ranked by
+effort:
 
-- Cheap wins pass: -O1 promotion, -F commit message from file,
-  log printf -> fputs, is_help_flag consolidation, local-file
-  clone command. About 1-2 days. Ships as amigit 0.2.
+- Genuine small wins (1-2 days each, no library rebuild): annotated
+  tag support (tag -a -m AND tag -a -F in one go, ~1 day), log
+  --grep, pager auto-detect. See HANDOFF "Genuine small wins left".
+  Each ships as a small 0.1.x or 0.2 revision.
+- Local-file clone (item #5, ~1 day but NOT cheap -- requires
+  lib/libgit2/ rebuild with clone.c re-enabled + stub adjust).
 - CPU dual-flavor build: 68000 + 68020 variants. 1 day
   infrastructure. Ships as 0.3. Sets up networking prerequisite.
 - Full Tier 1 HTTPS networking: custom git smart-HTTP transport
@@ -465,7 +502,7 @@ and value, are in HANDOFF.md "Known limitations" + "CPU bump"
 Before starting any non-trivial work, verify the local vamos
 monkey-patches are still applied (run `make -C tests/libgit2 run`
 -- should print 79/79), and verify the v1 test suite still passes
-(`make test-fsemu TARGET=ports/amigit` should print 81/81). If
+(`make test-fsemu TARGET=ports/amigit` should print 87/87). If
 either regresses, investigate before making changes.
 ```
 
