@@ -15,7 +15,9 @@ SRCS = src/socket.c \
        src/sockfd.c \
        src/resolve.c \
        src/select_net.c \
-       src/inet.c
+       src/inet.c \
+       src/getaddrinfo.c \
+       src/fcntl_socket.c
 
 OBJS = $(SRCS:.c=.o)
 LIB = libamiport-net.a

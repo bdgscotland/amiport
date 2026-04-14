@@ -1,0 +1,37 @@
+Short:        SSH client for AmigaOS (68020+)
+Uploader:     duncan@example.com
+Author:       Matt Johnston (upstream), Duncan Bowring (port)
+Type:         comm/net
+Version:      2025.89
+Architecture: m68k-amigaos >= 3.0
+Distribution: Aminet
+Requires:     68020+, Roadshow/AmiTCP/Miami TCP/IP stack
+
+Dropbear SSH client (dbclient) for AmigaOS 3.x.
+
+Connects to SSH servers using modern ciphers (ChaCha20-Poly1305,
+AES-CTR) and key types (Ed25519, RSA, ECDSA). Password and public
+key authentication supported.
+
+Requires a TCP/IP stack (Roadshow, AmiTCP, or Miami) and a 68020+
+CPU. Tested on A2000 + Vampire V2 + X-Surf 100 + Roadshow.
+
+Usage:
+  dbclient user@hostname
+  dbclient -i S:.ssh/id_dropbear user@hostname
+
+Features:
+  - ChaCha20-Poly1305 (fastest on 68k without AES instructions)
+  - AES-128/256-CTR (compatibility)
+  - Ed25519, RSA-2048, ECDSA host keys
+  - Password and public key authentication
+  - Local/remote TCP forwarding (-L, -R)
+
+Limitations:
+  - No ProxyCommand (-J) -- AmigaOS has no fork()
+  - No SSH agent forwarding -- no AF_UNIX sockets
+  - No X11 forwarding
+  - IPv4 only
+  - No zlib compression
+
+This is an amiport project port. See https://amiport.platesteel.net

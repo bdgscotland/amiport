@@ -9,6 +9,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <errno.h>
 
 unsigned long amiport_inet_addr(const char *cp)
 {
@@ -54,5 +55,64 @@ int amiport_inet_aton(const char *cp, struct in_addr *inp)
     }
 
     inp->s_addr = addr;
+    return 1;
+}
+
+/*
+ * amiport: inet_ntop — convert binary address to presentation string
+ * IPv4 only (AmigaOS has no IPv6). Wraps inet_ntoa internally.
+ */
+const char *amiport_inet_ntop(int af, const void *src, char *dst, int size)
+{
+    struct in_addr in;
+    unsigned long addr;
+
+    if (af != AF_INET) {
+        errno = EAFNOSUPPORT;
+        return NULL;
+    }
+
+    if (!src || !dst || size < 16) {
+        errno = ENOSPC;
+        return NULL;
+    }
+
+    memcpy(&addr, src, 4);
+    in.s_addr = addr;
+    addr = ntohl(in.s_addr);
+
+    snprintf(dst, (size_t)size, "%lu.%lu.%lu.%lu",
+             (addr >> 24) & 0xFF,
+             (addr >> 16) & 0xFF,
+             (addr >> 8)  & 0xFF,
+             addr & 0xFF);
+    return dst;
+}
+
+/*
+ * amiport: inet_pton — convert presentation string to binary address
+ * IPv4 only (AmigaOS has no IPv6). Wraps inet_addr internally.
+ */
+int amiport_inet_pton(int af, const char *src, void *dst)
+{
+    unsigned long addr;
+
+    if (af != AF_INET) {
+        errno = EAFNOSUPPORT;
+        return -1;
+    }
+
+    if (!src || !dst) return 0;
+
+    addr = amiport_inet_addr(src);
+    if (addr == INADDR_NONE) {
+        if (strcmp(src, "255.255.255.255") == 0) {
+            addr = INADDR_BROADCAST;
+        } else {
+            return 0;
+        }
+    }
+
+    memcpy(dst, &addr, 4);
     return 1;
 }

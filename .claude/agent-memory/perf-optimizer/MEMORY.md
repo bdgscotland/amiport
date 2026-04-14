@@ -40,3 +40,4 @@
 - [port_batch_which_strings_seq_mv_cmp_perf.md](port_batch_which_strings_seq_mv_cmp_perf.md) - Performance findings for ports/which 1.27, strings 1.0, seq 1.8, mv 1.47, cmp 1.19 — batch review 2026-04-11
 - [port_logname_touch_rm_pr_sponge_perf.md](port_logname_touch_rm_pr_sponge_perf.md) - Performance findings for ports/logname 1.10, touch 1.27, rm 1.45, pr 1.46, sponge 0.1 — batch review 2026-04-11
 - [port_libgit2_perf.md](port_libgit2_perf.md) - Performance findings for lib/libgit2 1.8.5 — SHA1DC + xdiff -O1 promotion, GIT_LEGACY_HASH unaligned-cast fix reviewed 2026-04-13
+- [port_libtomcrypt_perf.md](port_libtomcrypt_perf.md) - Performance findings for lib/libtomcrypt 1.18.2 — AES/ChaCha20/SHA-256/Poly1305/CTR/Fortuna -O1 promotion, 68k big-endian fast-path already enabled, struct-safe audit reviewed 2026-04-14

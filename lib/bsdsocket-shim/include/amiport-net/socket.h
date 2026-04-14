@@ -204,12 +204,31 @@ int amiport_is_socket(int fd);
 /* Get last socket error */
 int amiport_socket_errno(void);
 
+/* Minimal fcntl() for sockets — F_SETFL/F_GETFL with O_NONBLOCK only.
+ * Maps to IoctlSocket(fd, FIONBIO, &flag) via bsdsocket.library.
+ * File fds return -1 with errno EINVAL. */
+#ifndef F_GETFL
+#define F_GETFL 3
+#endif
+#ifndef F_SETFL
+#define F_SETFL 4
+#endif
+#ifndef O_NONBLOCK
+#define O_NONBLOCK 0x4000
+#endif
+int amiport_fcntl(int fd, int cmd, int arg);
+
 /* h_errno -- host resolution error variable */
 extern int h_errno;
 
 /* ================================================================
  * Convenience macros for transparent name mapping
  * ================================================================ */
+
+/* fcntl macro — always active (no NDK conflict) */
+#ifndef AMIPORT_NO_FCNTL_MACROS
+#define fcntl(fd,cmd,arg) amiport_fcntl((fd),(cmd),(arg))
+#endif
 
 #ifdef AMIPORT_NET_MACROS
 #define socket(d,t,p)       amiport_socket((d),(t),(p))

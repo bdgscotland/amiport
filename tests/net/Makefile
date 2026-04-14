@@ -3,7 +3,8 @@
 # Tests the pure-C parts: inet conversion, fd tracking, constants.
 # Network operations (actual socket calls) require FS-UAE + TCP/IP stack.
 
-CC = m68k-amigaos-gcc
+TOOLCHAIN_BIN = ../../toolchain/scripts
+CC = $(TOOLCHAIN_BIN)/m68k-amigaos-gcc
 CFLAGS = -O2 -Wall -Wextra -noixemul -m68020 \
          -I../../lib/bsdsocket-shim/include \
          -I../common

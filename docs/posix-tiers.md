@@ -320,11 +320,16 @@ struct Process *child = CreateNewProcTags(
 - Replace `close(sockfd)` → `amiport_closesocket()` (routes to CloseSocket automatically)
 - Replace `select()` on sockets → `amiport_net_select()` (uses WaitSelect, handles mixed file/socket)
 - Replace `gethostbyname()` → `amiport_gethostbyname()`
+- Replace `getaddrinfo()` → `amiport_getaddrinfo()` (wraps gethostbyname, IPv4 only)
+- Replace `freeaddrinfo()` → `amiport_freeaddrinfo()`
+- Replace `inet_ntop()` → `amiport_inet_ntop()` (IPv4 only, pure C)
+- Replace `inet_pton()` → `amiport_inet_pton()` (IPv4 only, pure C)
+- Replace `fcntl(fd, F_SETFL, O_NONBLOCK)` → `amiport_fcntl()` (maps to IoctlSocket FIONBIO for sockets)
 - Library open/close is automatic (first use → atexit cleanup)
 
 See `docs/references/bsdsocket-mapping.md` for the full API mapping table.
 
-**Limitations:** Requires a TCP/IP stack to be installed and running. No IPv6. No SSL/TLS (requires AmiSSL separately). Graceful degradation returns ENOTSUP when no stack installed.
+**Limitations:** Requires a TCP/IP stack to be installed and running. No IPv6. No SSL/TLS (requires AmiSSL separately). Graceful degradation returns ENOTSUP when no stack installed. fcntl() only supports F_SETFL/F_GETFL with O_NONBLOCK on socket fds.
 
 ### Pattern: ncurses/termcap → console-shim library
 

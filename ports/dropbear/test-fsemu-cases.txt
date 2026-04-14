@@ -1,0 +1,8 @@
+# Dropbear SSH client (dbclient) -- FS-UAE test cases
+# Category 4 (Network) -- requires Roadshow TCP/IP stack
+# WIP: Placeholder test suite. Full tests to be designed after
+# runtime verification on FS-UAE + Roadshow.
+
+TEST: version flag
+CMD: WORK:dbclient -V
+EXPECT_RC: 0

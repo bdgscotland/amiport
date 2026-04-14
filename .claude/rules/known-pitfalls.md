@@ -973,3 +973,29 @@ my_errc_fallback(int rc, int errcode, const char *fmt, ...)
 **Audit trigger:** whenever the shim gains a new function, grep `ports/*/ported/compat.h` for `static.*amiport_<name>` or local fallback implementations of the same name and delete or guard them.
 
 **Discovered in sed 1.47-2 (2026-04-13).**
+
+## LibTomMath mp_prime_is_prime Fails Without Custom RNG Source
+
+LibTomMath built with `-DMP_NO_DEV_URANDOM` (required on AmigaOS — no `/dev/urandom`) disables the platform random source. `mp_prime_is_prime()` with `t > 0` needs random Miller-Rabin witnesses via `mp_rand()`, which calls the platform source. Without it, `mp_rand()` fails -> `mp_prime_is_prime()` returns `MP_ERR` -> LibTomCrypt's `rand_prime()` returns `CRYPT_ERROR` -> RSA keygen fails silently.
+
+**Fix:** Register a custom RNG source that bridges LTC's Fortuna into LTM's prime testing:
+
+```c
+static int ltm_rand_callback(void *out, size_t sz)
+{
+    if (fortuna_read((unsigned char *)out, (unsigned long)sz, &prng)
+        != (unsigned long)sz) return -1;
+    return 0;
+}
+mp_rand_source(ltm_rand_callback);
+```
+
+Call AFTER `fortuna_ready()`, BEFORE any `rsa_make_key()`. Declare `mp_rand_source` via `extern` -- do NOT include `tommath.h` alongside `tomcrypt.h`.
+
+Discovered in LibTomCrypt 1.18.2 + LibTomMath 1.3.0 (PDR-013 Phase 1b, 2026-04-14).
+
+## Cannot Include Both tomcrypt.h and tommath.h in Same TU
+
+`tomcrypt_math.h` defines macros redirecting ALL `mp_*` names to `ltc_mp.*` dispatch entries. Including `tommath.h` after causes declaration conflicts. **Fix:** Use `#define DESC_DEF_ONLY` before `tomcrypt.h` (disables redirects), or declare LTM functions via `extern` without the header, or put LTM-direct code in a separate `.c` file.
+
+Discovered in LibTomCrypt 1.18.2 test implementation (PDR-013 Phase 1b, 2026-04-14).

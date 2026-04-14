@@ -197,6 +197,12 @@
   - Impact: Permanent file handle leak (~16 bytes) per occurrence until reboot
   - All other allocations CLEAN: argv expansion via atexit, libnix getenv static, FILE* properly closed, termcap strings in static buffer
 
+- [memory-audit-libtomcrypt.md](memory-audit-libtomcrypt.md) - lib/libtomcrypt 1.18.2 memory safety audit (2026-04-14)
+  - Status: CLEAN
+  - Verdict: Approved for linking from Dropbear SSH — zero leaks, exemplary upstream quality
+  - Summary: Zero direct malloc/free (all LibTomMath dispatch); comprehensive error path cleanup; sensitive zeroing via zeromem(); Fortuna/RSA/ECDSA/DH safe
+  - Dropbear integration: verify LTC_CLEAN_STACK define, mp_rand_source callback ordering, atexit fortuna_done() call
+
 - [memory-audit-vim.md](memory-audit-vim.md) - ports/vim 9.1 memory safety review (2026-03-26)
   - Status: CRITICAL FILE HANDLE LEAK — 1 issue
   - Verdict: Cannot ship without 1-line fix
@@ -216,3 +222,11 @@
   - Tier 2 real-world: DNS cache (10-100KB), cookies (1-10KB), HSTS (1-50KB)
   - Socket/SSL cleanup CLEAN ✅
   - Upstream design violates AmigaOS -noixemul assumption: no automatic process memory cleanup
+
+- [memory-audit-libtommath.md](memory-audit-libtommath.md) - lib/libtommath 1.3.0 memory safety review (2026-04-14)
+  - Status: CLEAN ✓
+  - Verdict: APPROVED FOR PRODUCTION — zero leaks, exemplary patterns
+  - Library: 154 .c files, pure integer arithmetic, -O0 default + 9 hot-path files at -O1
+  - Key findings: Exemplary lifecycle (mp_init_multi with atomic error recovery), canonical safe-realloc in mp_grow, cascade cleanup via goto labels, single-temp-with-backtrack pattern throughout
+  - All patterns PERFECT: no fixes required, ready to ship
+  - Reference implementation for future library audits: safe-realloc, variadic multi-init, cascade cleanup, fail-safe entropy handling

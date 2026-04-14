@@ -20,6 +20,7 @@ PDRs capture product-level decisions — what we build, who it's for, and why. T
 | [PDR-010](010-amigit-on-libgit2.md) | amigit — a local-only git for AmigaOS 3.x via libgit2 | Proposed | 2026-04-12 |
 | [PDR-010a](010a-amigit-cli-spec.md) | amigit v1 CLI specification (10-command scope, Category 1) | Proposed | 2026-04-13 |
 | [PDR-012](012-amigit-https-networking.md) | amigit HTTPS networking — clone / fetch / pull / push to GitHub (multi-session plan) | Proposed | 2026-04-14 |
+| [PDR-013](013-dropbear-ssh-client.md) | Dropbear SSH client for AmigaOS 3.x — phased port with crypto libs | Accepted | 2026-04-14 |
 
 ## Template
 

@@ -109,6 +109,7 @@ AmigaOS predates POSIX. There is no `stat()`, no `opendir()`, no `getopt()`, no 
 | Port | Version | Source | Status |
 |------|---------|--------|--------|
 | [amiport](ports/amiport/) | 1.0 | Original | Built & tested |
+| [dropbear](ports/dropbear/) | 2025.89 | MIT | In progress |
 | [wget](ports/wget/) | 1.20.3-2 | GNU | Published on amiport |
 
 ### amiport — Package Manager for AmigaOS

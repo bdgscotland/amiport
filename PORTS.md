@@ -68,6 +68,7 @@ Version format: `upstream[-portrev]` — port revision is shown when > 1 (e.g., 
 | [tetris](ports/tetris/) | 1.35 | Terminal tetris game (first for AmigaOS!) | Console UI | OpenBSD tetris v1.35 (BSD 3-Clause) | Built & tested (18/18 FS-UAE) | Not submitted |
 | [vim](ports/vim/) | 9.1 | Vi IMproved text editor | Console UI | Vim 9.1 (Vim License) | Built & tested | Submitted 2026-03-27 |
 | [wget](ports/wget/) | 1.20.3-2 | HTTP/HTTPS/FTP download utility | Network | GNU wget 1.20.3 (GPL-3.0) | Built & tested (68/68 FS-UAE) | Published on amiport |
+| [dropbear](ports/dropbear/) | 2025.89 | SSH client for AmigaOS (68020+) | Network | Dropbear 2025.89 (MIT) | In progress | Not submitted |
 | [python3](ports/python3/) | 3.11.12 | CPython interpreter | Scripting | CPython 3.11.12 (PSF License) | In progress | Not submitted |
 
 ## Aminet Publication Tracking
