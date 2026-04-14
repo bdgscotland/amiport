@@ -2,7 +2,7 @@ TARGET      = basename
 SOURCES     = ported/basename.c
 VERSION     = 1.14
 REVISION    = 1
-DESCRIPTION = Strip directory and suffix from filenames
+DESCRIPTION = Strip directory and suffix from filename
 AUTHOR      = The Regents of the University of California
 
 # Aminet category

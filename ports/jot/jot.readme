@@ -1,4 +1,4 @@
-Short:        Print sequential or random data (OpenBSD)
+Short:        Print sequential/random data (OpenBSD)
 Type:         util/cli
 Architecture: m68k-amigaos >= 3.0
 Uploader:     duncan@bowring.us

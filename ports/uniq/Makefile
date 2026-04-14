@@ -5,7 +5,7 @@ TARGET      = uniq
 SOURCES     = ported/uniq.c
 VERSION     = 1.33
 REVISION    = 1
-DESCRIPTION = Filter/report repeated lines in files  # Max 40 chars, ASCII only (Aminet requirement)
+DESCRIPTION = Filter/report repeated lines in files
 AUTHOR      = OpenBSD Project
 
 # Override if not util/cli (e.g., util/misc, text/edit)

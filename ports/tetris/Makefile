@@ -4,8 +4,8 @@ include ../common.mk
 TARGET      = tetris
 SOURCES     = ported/tetris.c ported/screen.c ported/input.c ported/scores.c ported/shapes.c
 VERSION     = 1.35
-REVISION    = 1                # Increment when ported/ changes but upstream version stays the same
-DESCRIPTION = Terminal tetris game from OpenBSD  # Max 40 chars, ASCII only (Aminet requirement)
+REVISION    = 1
+DESCRIPTION = Terminal tetris game from OpenBSD
 AUTHOR      = Chris Torek, Darren F. Provine
 
 # Category 3 (Console UI): needs console-shim for termcap

@@ -150,31 +150,49 @@ for dir in "$PORTS_DIR"/*/; do
         ver_readme=$(grep -E '^Version:' "$dir/${name}.readme" 2>/dev/null | head -1 | sed 's/Version:\s*//' | tr -d ' ' || true)
     fi
 
-    # Extract from PORT.md (| Version | X.Y |)
+    # Extract from PORT.md (| Version | X.Y | or | Version | X.Y (port revision: N) |)
+    # Take just the first whitespace-delimited token of the version cell so
+    # the human-readable "(port revision: N)" suffix does not break the compare.
     ver_portmd=""
     if [ -f "$dir/PORT.md" ]; then
-        ver_portmd=$(grep -E '^\| Version \|' "$dir/PORT.md" 2>/dev/null | head -1 | awk -F'|' '{print $3}' | tr -d ' ' || true)
+        ver_portmd=$(grep -E '^\| Version \|' "$dir/PORT.md" 2>/dev/null | head -1 | awk -F'|' '{print $3}' | awk '{print $1}' || true)
     fi
 
     # Extract from $VER string in ported/*.c
+    # Only count lines that contain a full parseable "$VER: name X.Y" token.
+    # Some ports (vim) build $VER via preprocessor macro concatenation across
+    # multiple string literals; those lines have no in-source version and are
+    # skipped here -- the .readme + Makefile compare still enforces correctness.
     ver_source=""
     ver_count=0
     ver_versions=""
     ver_conflict=false
+    ver_unparseable=0
     if [ -d "$dir/ported" ]; then
         while IFS= read -r line; do
-            ver_count=$((ver_count + 1))
             # Extract version: $VER: name X.Y (date) -> X.Y
             v=$(echo "$line" | sed -E 's/.*\$VER: [^ ]+ ([^ ]+) .*/\1/')
+            # Skip if the sed didn't actually substitute (parse failed) or if
+            # the extracted value doesn't look like a version token.
+            if [ "$v" = "$line" ] || ! echo "$v" | grep -qE '^[0-9]+(\.[0-9]+)*(-[0-9]+)?$'; then
+                ver_unparseable=$((ver_unparseable + 1))
+                continue
+            fi
+            ver_count=$((ver_count + 1))
             ver_versions="$ver_versions $v"
             [ -z "$ver_source" ] && ver_source="$v"
-        done < <(grep -rh '\$VER:' "$dir/ported/"*.c 2>/dev/null || true)
+        done < <(grep -rh --include='*.c' '\$VER:' "$dir/ported/" 2>/dev/null || true)
     fi
 
     # Check $VER count and consistency
     if [ "$ver_count" -eq 0 ]; then
-        echo "FAIL  $name: version — no \$VER string in ported/*.c"
-        port_failed=1
+        if [ "$ver_unparseable" -gt 0 ]; then
+            echo "WARN  $name: version — \$VER string is preprocessor-built (skipping source compare)"
+            port_warned=1
+        else
+            echo "FAIL  $name: version — no \$VER string in ported/*.c"
+            port_failed=1
+        fi
     else
         # Check all $VER strings agree
         ver_conflict=false
@@ -291,8 +309,14 @@ for dir in "$PORTS_DIR"/*/; do
     for f in "$dir"/gmon.out; do [ -f "$f" ] && strays="$strays gmon.out"; done
     for f in "$dir"/*_native; do [ -f "$f" ] && strays="$strays $(basename "$f")"; done
     for f in "$dir"/*.map; do [ -f "$f" ] && strays="$strays $(basename "$f")"; done
-    # Check for .o files in ported/ (build artifacts)
-    for f in "$dir"/ported/*.o; do [ -f "$f" ] && strays="$strays ported/$(basename "$f")"; done
+    # Check for .o files anywhere under ported/ (build artifacts).
+    # Large ports (wget, python3) have nested subdirs; recurse so leftover
+    # build output in ported/lib/ or ported/Python/ is detected too.
+    if [ -d "$dir/ported" ]; then
+        while IFS= read -r f; do
+            [ -n "$f" ] && strays="$strays ${f#$dir/}"
+        done < <(find "$dir/ported" -name '*.o' 2>/dev/null)
+    fi
 
     if [ -n "$strays" ]; then
         echo "FAIL  $name: stray artifacts —$strays"

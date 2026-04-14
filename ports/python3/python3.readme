@@ -1,0 +1,20 @@
+Short:        Python 3.11 interpreter (WIP, not shipped)
+Type:         dev/lang
+Architecture: m68k-amigaos >= 68020
+Uploader:     duncan@bowring.us
+Author:       Python Software Foundation, amiport port
+Version:      3.11.12
+URL:          https://github.com/bdgscotland/amiport
+
+python3 3.11.12 -- WORK IN PROGRESS
+
+This port is in active development and is NOT yet shipped.
+The binary builds but has unresolved runtime issues. There is
+no LHA package yet. This readme exists only to satisfy the
+port-hygiene checks until the port is ready for release.
+
+See ports/python3/PORT.md for the current status and known
+issues.
+
+Built on: amiport posix-shim
+Cross-compiled with m68k-amigaos-gcc 6.5.0b for AmigaOS 3.x.

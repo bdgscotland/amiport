@@ -1,4 +1,4 @@
-Short:        Display file checksums and sizes (FreeBSD)
+Short:        Display file checksums & sizes (FreeBSD)
 Type:         util/cli
 Architecture: m68k-amigaos >= 3.0
 Uploader:     duncan@bowring.us

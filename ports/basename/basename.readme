@@ -1,4 +1,4 @@
-Short:        Strip directory and suffix from filenames
+Short:        Strip directory and suffix from filename
 Type:         util/cli
 Architecture: m68k-amigaos >= 3.0
 Uploader:     duncan@bowring.us

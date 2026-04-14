@@ -3,7 +3,7 @@ TARGET      = patch
 SOURCES     = ported/patch.c ported/pch.c ported/inp.c ported/util.c ported/ed.c ported/backupfile.c ported/mkpath.c
 VERSION     = 1.78
 REVISION    = 1
-DESCRIPTION = Apply diff patches to source files  # Max 40 chars, ASCII only (Aminet requirement)
+DESCRIPTION = Apply diff patches to source files
 AUTHOR      = OpenBSD contributors
 
 include ../common.mk
