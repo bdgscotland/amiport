@@ -47,6 +47,7 @@ OBJECTS = ported/amigit.o \
           ported/cmd_branch.o \
           ported/cmd_tag.o \
           ported/cmd_ls_remote.o \
+          ported/cmd_https_probe.o \
           ported/transport_https.o \
           ported/http_client.o \
           ported/amissl_glue.o \

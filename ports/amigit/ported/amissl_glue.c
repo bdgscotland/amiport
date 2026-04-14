@@ -112,9 +112,28 @@ ensure_amissl_open(void)
     }
 
     if (AmiSSLMasterBase == NULL) {
+        /* Try LIBS: chain first (standard path). If OpenLibrary's
+         * LIBS: walk doesn't reach ADD'd entries on some AmigaOS
+         * versions, fall back to explicit paths the harness knows
+         * about. Passing version 0 here is deliberate -- let the
+         * subsequent InitAmiSSLMaster() call reject if the version
+         * is too old. This lets us diagnose "can't find the
+         * library file" separately from "found it but too old". */
         AmiSSLMasterBase = OpenLibrary(
-            (CONST_STRPTR)"amisslmaster.library",
-            AMISSLMASTER_MIN_VERSION);
+            (CONST_STRPTR)"amisslmaster.library", 0);
+        if (AmiSSLMasterBase == NULL) {
+            /* Explicit path fallback: try the harness staging
+             * location first (WORK:Libs under the FS-UAE harness)
+             * and the real-hardware canonical location second.
+             * Either resolving via LIBS: chain or via full path is
+             * acceptable. */
+            AmiSSLMasterBase = OpenLibrary(
+                (CONST_STRPTR)"WORK:Libs/amisslmaster.library", 0);
+        }
+        if (AmiSSLMasterBase == NULL) {
+            AmiSSLMasterBase = OpenLibrary(
+                (CONST_STRPTR)"RAM:Libs/amisslmaster.library", 0);
+        }
         if (AmiSSLMasterBase == NULL) {
             /* Not installed -- caller should print a friendly hint. */
             return HTTP_ERR_TLS_MISSING;

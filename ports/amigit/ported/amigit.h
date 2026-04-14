@@ -117,5 +117,8 @@ int amigit_cmd_checkout(int argc, char **argv);
 int amigit_cmd_branch(int argc, char **argv);
 int amigit_cmd_tag(int argc, char **argv);
 int amigit_cmd_ls_remote(int argc, char **argv);
+/* Debug-only (PDR-012 Phase 3): not in public --help. Removed
+ * once Phase 5 wires http_client into transport_https.c. */
+int amigit_cmd_https_probe(int argc, char **argv);
 
 #endif /* AMIGIT_H */

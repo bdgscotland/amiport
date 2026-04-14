@@ -221,6 +221,18 @@ Run >NIL: WORK:SegTracker
 Run >NIL: WORK:MungWall
 Run >NIL: WORK:Enforcer STACKLINES=4 STACKCHECK DATESTAMP
 Wait 2
+; AmiSSL: add WORK:Libs to the LIBS: search path so manual
+; OpenLibrary("amisslmaster.library") hits amisslmaster.library
+; from build/amiga/Libs/. Also copy to RAM:Libs and assign
+; there (some AmigaOS versions have trouble with ADD on a
+; pre-existing LIBS: assign backed by a read-only root drive).
+; See PDR-012 Phase 3 session 2.
+MakeDir >NIL: RAM:Libs
+MakeDir >NIL: RAM:Libs/AmiSSL
+MakeDir >NIL: RAM:Libs/AmiSSL/68020-40
+Copy >NIL: WORK:Libs/amisslmaster.library RAM:Libs/
+Copy >NIL: WORK:Libs/AmiSSL/68020-40/amissl_v362.library RAM:Libs/AmiSSL/68020-40/
+Assign LIBS: RAM:Libs ADD
 SYS:System/RexxMast >NIL:
 Wait 2
 SYS:Rexxc/rx WORK:test-runner.rexx
@@ -228,6 +240,18 @@ AMIGA_SCRIPT
     else
         cat > "$startup_file" << 'AMIGA_SCRIPT'
 ; amiport FS-UAE test runner
+; AmiSSL: add WORK:Libs to the LIBS: search path so manual
+; OpenLibrary("amisslmaster.library") hits amisslmaster.library
+; from build/amiga/Libs/. Also copy to RAM:Libs and assign
+; there (some AmigaOS versions have trouble with ADD on a
+; pre-existing LIBS: assign backed by a read-only root drive).
+; See PDR-012 Phase 3 session 2.
+MakeDir >NIL: RAM:Libs
+MakeDir >NIL: RAM:Libs/AmiSSL
+MakeDir >NIL: RAM:Libs/AmiSSL/68020-40
+Copy >NIL: WORK:Libs/amisslmaster.library RAM:Libs/
+Copy >NIL: WORK:Libs/AmiSSL/68020-40/amissl_v362.library RAM:Libs/AmiSSL/68020-40/
+Assign LIBS: RAM:Libs ADD
 SYS:System/RexxMast >NIL:
 Wait 2
 SYS:Rexxc/rx WORK:test-runner.rexx

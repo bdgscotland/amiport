@@ -730,10 +730,173 @@ If a previous session's handoff mentions "Phase 8" or "Phase 12"
 those refer to the OLD numbering -- see the current
 `## Phase plan` section for authoritative current numbering.
 
-**Last completed phase:** Phase 2 -- transport TU skeleton + dummy
-registration. Phase 3 session 1 is complete (parser + glue +
-vamos unit tests). Phase 3 remaining work: AmiSSL install in
-FS-UAE HDF + live-HTTPS TEST block + real-hardware smoke.
+**Last completed phase:** Phase 2 + Phase 3 sessions 1 and 2.
+Phase 3 session 3 remaining work: debug OpenLibrary-returns-NULL
+on the FS-UAE harness (amisslmaster.library fails to load even
+with file verifiably accessible at multiple paths), add a live
+HTTPS TEST block once the load issue is resolved, and run the
+real-hardware smoke test on Duncan's A2000.
+
+**Phase 3 session 2 summary (2026-04-14):**
+
+Session 2 wired the infrastructure for FS-UAE live HTTPS
+testing. Landed:
+
+- New debug command `ports/amigit/ported/cmd_https_probe.c` (~170 lines).
+  Usage: `amigit _https-probe <url>`. The underscore prefix hides
+  it from public `--help` output; it exists to exercise
+  `http_client` directly before Phase 5 wires it into
+  `transport_https.c`'s `https_action()`. Parses `https://host[:port][/path]`,
+  calls `http_connect(use_tls=1)` + `http_send_request` +
+  `http_read_response_status`, and prints `probe: status=NNN` on
+  success or a stage-specific diagnosis (DNS, CONNECT, TLS_MISSING,
+  TLS_HANDSHAKE, SEND, RECV, PROTOCOL) on failure. Wired into the
+  amigit dispatch table with extern in `amigit.h` and object in
+  `ports/amigit/Makefile` OBJECTS.
+- AmiSSL 5.27 OS3 libraries downloaded from
+  `github.com/jens-maus/amissl/releases/5.27/AmiSSL-5.27-OS3.lha`
+  and extracted into `build/amissl-install/ex/` (gitignored). The
+  relevant files -- `amisslmaster.library` (4976 bytes) and the
+  68020-40 flavor of `amissl_v362.library` (3.5 MB) -- are staged
+  into `build/amiga/Libs/` and `build/amiga/Libs/AmiSSL/68020-40/`
+  so that WORK: (the `build/amiga/` directory mount) exposes them
+  to the emulated Amiga. The system.hdf is 6 MB and near-full,
+  so we cannot write either library to the HDF's Workbench3.1:Libs;
+  WORK:Libs is the storage.
+- `scripts/test-fsemu.sh` User-Startup now unconditionally
+  `MakeDir`s `RAM:Libs/` and `RAM:Libs/AmiSSL/68020-40/`, copies
+  the two library files from `WORK:Libs/` into RAM, and runs
+  `Assign LIBS: RAM:Libs ADD` so OpenLibrary can walk into RAM's
+  copy. (Copying instead of ADDing WORK:Libs directly was
+  defensive -- some AmigaOS versions have trouble with ADDed
+  assigns that point at directory-backed volumes, so RAM is the
+  safer target.) Both the HDF and directory-mode User-Startup
+  branches were updated.
+- `ports/amigit/test-fsemu-cases.txt` gains two new `_https-probe`
+  tests: missing-URL (argv parse error) and invalid-URL (scheme
+  check returns `invalid URL`). Both pass. The live-HTTPS test
+  that drives `http_client` end-to-end against
+  `https://amiport.platesteel.net/` is intentionally NOT
+  committed in session 2 -- see the OpenLibrary blocker below.
+
+**Build and test results (session 2):**
+
+- `make -C tests/libgit2 run`: **79/79** (unchanged).
+- `make -C tests/amigit-http-client run`: **14/14** (unchanged).
+- `make test-fsemu TARGET=ports/amigit`: **93/93** (91 prior +
+  2 new `_https-probe` argv tests).
+- `ports/amigit/amigit` binary: **1,211,472 bytes** (+1,436 from
+  session 1 for the new `cmd_https_probe.o`). No Makefile/objects
+  churn beyond the one new TU.
+
+**Session 2 blocker -- OpenLibrary("amisslmaster.library") returns NULL:**
+
+This is the one open thing preventing a live-HTTPS test on
+FS-UAE. What we know:
+
+1. `amisslmaster.library` (4976 bytes, from AmiSSL 5.27 OS3) is
+   physically staged at `build/amiga/Libs/amisslmaster.library`
+   and copied to `RAM:Libs/amisslmaster.library` by the
+   User-Startup. Both locations are visible from the Amiga side --
+   the diagnostic tests we ran during debugging (before reverting
+   them) confirmed:
+   - `c:list RAM:Libs` shows `amisslmaster.library`
+   - `c:list WORK:Libs` shows `amisslmaster.library`
+   - `c:assign` dump shows `LIBS Workbench3.1:Libs + Workbench3.1:Classes + Ram Disk:Libs`
+     -- the `ADD` walks to our staged copy correctly.
+2. `amissl_glue.c` tries three OpenLibrary calls in order:
+   - `OpenLibrary("amisslmaster.library", 0)` -- name-only lookup,
+     version 0 (accept any), which should walk the LIBS: chain.
+   - `OpenLibrary("WORK:Libs/amisslmaster.library", 0)` -- explicit
+     path to the WORK: staging copy.
+   - `OpenLibrary("RAM:Libs/amisslmaster.library", 0)` -- explicit
+     path to the RAM copy.
+   ALL THREE return NULL. The graceful-degrade path fires and
+   the probe command prints
+   `probe: HTTPS not available (AmiSSL not installed); run amiport install amissl`.
+3. Kickstart is 3.1 (`~/Documents/FS-UAE/Kickstarts/kick3.1.rom`)
+   which satisfies AmiSSL 5.27's documented `Requires: AmigaOS
+   3.0+/68020+`. Machine is A1200 with 8 MB Fast RAM. Copy from
+   WORK: to RAM: succeeds so the file is readable; the issue is
+   strictly at the `OpenLibrary`/library-init level.
+
+Hypotheses for session 3 to investigate (in priority order):
+
+a. **Kickstart-32 ROM**: Kick 3.1 is 1993; amisslmaster.library
+   5.27 might internally call a dos.library or utility.library
+   function that only exists in Kickstart 3.1.4+ or 3.2. The
+   library's init routine would fail silently, returning NULL.
+   Test: try a newer Kickstart (3.1.4 from Hyperion, or Kick 3.2).
+b. **Memory layout**: amigit is ~1.2 MB and uses libgit2+zlib+
+   libnix. After all those libraries are loaded, there may not
+   be enough contiguous memory for amisslmaster + its backend
+   (3.5 MB). Test: a minimal C probe program (no libgit2) that
+   just opens amisslmaster.library and reports the result.
+c. **Init dependency**: amisslmaster.library itself may
+   `OpenLibrary` on something at init time that we don't have
+   (SSL has some cipher/RNG init hooks). Test: run AmiSSL's own
+   `openssl version` binary from the extracted LHA (`AmiSSL/C/AmigaOS3/OpenSSL`);
+   if that also fails to load amisslmaster, it's an environment
+   issue, not an amigit issue.
+d. **LIBS: multi-assign walk**: the `ADD` chain is confirmed
+   visible via `c:assign`, but maybe AmigaOS's `OpenLibrary` does
+   NOT walk the ADD chain -- it only searches the primary assign
+   target. We also try explicit full paths (b and c above), which
+   should bypass LIBS: resolution entirely. If those still return
+   NULL, rule out path resolution.
+
+None of these can be debugged without a minimal probe binary.
+Session 3 should start with:
+- Write a 50-line `tests/amissl-probe/probe.c` that does nothing
+  but `OpenLibrary`, prints the result, and exits. Run it under
+  the same FS-UAE harness. This isolates the issue from amigit.
+- If the probe succeeds, the issue is amigit-specific (memory,
+  link order, something being initialized before amigit's main).
+- If the probe fails, the issue is environmental. Test hypothesis
+  (a) by swapping the Kickstart ROM, then (c) by running the
+  shipped OpenSSL binary directly.
+
+**Pragmatic session 2 exit state:**
+
+The live-HTTPS TEST block is NOT committed -- committing a
+failing test that we don't understand would block the pre-commit
+hooks and obscure session 3's diagnostic work. The infrastructure
+(command, library staging, ASSIGN, URL parser, graceful-degrade)
+IS committed and all 93 FS-UAE tests pass green. Session 3 can
+flip the live test ON once the OpenLibrary mystery is resolved.
+
+The real-hardware smoke test on Duncan's A2000 + Vampire + X-Surf
++ Roadshow + AmiSSL (session 3) is independently valuable: it
+uses the installer-configured AmiSSL environment (not our
+harness's stage-to-WORK:Libs hack), so it's the authoritative
+test of whether our glue layer is correct. If the real-hardware
+test succeeds, the FS-UAE issue is harness-specific and we can
+decide whether to invest more in FS-UAE live testing vs. rely on
+real hardware for this phase.
+
+**Session 2 surprises / scope deltas:**
+
+- `xdftool write` to the HDF failed silently for a 4976-byte
+  library because the 6 MB system.hdf is near-full (AmigaOS 3.1
+  + OS3.9 support tooling + Amiga Forever bits eat ~5.8 MB). The
+  smallest library (amisslmaster) wouldn't fit; the big one
+  (amissl_v362.library at 3.5 MB) has no chance. Switching to
+  WORK:Libs / RAM:Libs staging was necessary.
+- `c:list LIBS:amisslmaster.library QUICK` returns RC=20 even
+  when the ADD chain IS pointing at the staged copy (confirmed by
+  `c:assign` dump). This proves `list` resolves LIBS: to the
+  PRIMARY assign only -- it does not walk the multi-assign chain.
+  This was a misleading diagnostic; the real question is whether
+  `OpenLibrary` walks the chain, and the evidence (even explicit
+  full paths to both WORK: and RAM: staging failing) says we have
+  a library-load issue, not a path-resolution issue.
+- The user-startup debug echo we added to test-fsemu.sh (now
+  reverted) proved the generated `User-Startup` is 686 bytes
+  (our script + the stock content), xdftool write returns 0,
+  and the HDF S/User-Startup file has the expected size. The
+  file IS being executed -- we can see the `c:assign` dump
+  showing the ADDed entry. So User-Startup and ASSIGN are fine.
+  The failure is downstream at OpenLibrary itself.
 
 **Phase 3 session 1 summary (2026-04-14):**
 

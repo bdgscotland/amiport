@@ -126,6 +126,11 @@ static const amigit_command dispatch_table[] = {
       "List or create lightweight tags" },
     { "ls-remote", amigit_cmd_ls_remote,
       "List references from a remote (HTTPS stub in Phase 2)" },
+    /* Debug-only probe -- underscore prefix hides it from public
+     * help output. Exercises http_client directly before Phase 5
+     * wires it into transport_https.c. Removed at 1.0. */
+    { "_https-probe", amigit_cmd_https_probe,
+      "[debug] Connect, handshake, GET / and print status=NNN" },
     { NULL,       NULL,              NULL }
 };
 
