@@ -245,45 +245,133 @@ or leak memory.
 - The new test passes: amigit sees an HTTPS URL, routes to our
   transport, gets a controlled failure, cleans up, exits 10.
 
-### Phase 3: Generic HTTP/1.1 client -- connect + request + response headers (2 sessions)
+### Phase 3: HTTPS client -- HTTP/1.1 + AmiSSL TLS from day one (3 sessions)
 
-**Goal:** write the HTTP-level plumbing in `transport_https.c` or a
-new `ports/amigit/ported/http_client.c`. No TLS yet -- test against
-a plain HTTP endpoint locally. This phase builds the foundation
-without the AmiSSL complication.
+**Goal:** write a full HTTPS-capable HTTP/1.1 client in
+`ports/amigit/ported/http_client.c` with AmiSSL TLS integration
+wired in from the very first connect. No plain-HTTP stepping
+stone -- GitHub and every other git forge worth cloning is HTTPS
+only (locked decision #5). Building a plain-HTTP client first
+would be a testable artifact against nothing real.
+
+**Scope merge note:** this phase is the combined Phase 3 (HTTP
+plumbing) + Phase 7 (AmiSSL integration) from the original plan.
+Collapsed 2026-04-14 after realizing nothing we want to talk to
+uses plain HTTP, so deferring AmiSSL just means Phase 4-6 would
+run against a synthetic `http://local-git-daemon/repo` that
+proves nothing. Phases 4-onward renumber down by one as a
+result; old Phase 7 no longer exists as a standalone.
+
+**Reference implementation to copy, not invent:**
+`ports/wget/ported/src/` ships HTTPS via manual-OpenLibrary
+AmiSSL integration on the same A2000 + Vampire + X-Surf +
+Roadshow + AmiSSL stack we're targeting. The `libamisslauto.a`
+vs manual-open pitfall is already documented in
+`.claude/rules/known-pitfalls.md`. Phase 3 copies wget's SSL
+glue verbatim (modulo naming) -- do NOT roll a new AmiSSL
+wrapper from scratch.
 
 **Deliverables:**
-- `http_client.c` / `http_client.h` with:
+- `ports/amigit/ported/http_client.c` / `.h` with:
   - `http_conn_t` -- opaque connection struct (socket fd, host,
-    port, tls flag, keepalive state, buffers)
-  - `http_connect(conn, host, port, use_tls)` -- DNS resolve,
-    `socket()`, `connect()` via bsdsocket-shim. If `use_tls` is
-    true, fail with ENOSYS for now (AmiSSL comes in Phase 7).
-  - `http_send_request(conn, method, path, headers, body, len)` --
-    format request line + headers + optional body; write via
-    bsdsocket `send()`.
+    port, tls flag, AmiSSL `SSL *` handle, SSL_CTX *, keepalive
+    state, read/write buffers)
+  - `http_connect(conn, host, port, use_tls)` -- DNS resolve via
+    bsdsocket-shim `getaddrinfo`, `socket()`, `connect()`. If
+    `use_tls == true` (mandatory for `https://`): manual
+    OpenLibrary AmiSSL, `SSL_CTX_new`, `SSL_CTX_set_verify`,
+    `SSL_new`, `SSL_set_fd(ssl, sockfd)`, `SSL_connect`. If
+    AmiSSL open fails: return a specific error so the caller can
+    produce a friendly "HTTPS not available (AmiSSL not
+    installed); run `amiport install amissl`" message.
+  - `http_send_request(conn, method, path, headers, body, len)`
+    -- format request line + headers + optional body. If TLS,
+    route through `SSL_write`; otherwise raw bsdsocket `send()`.
   - `http_read_response_status(conn, &status)` -- parse HTTP/1.1
-    status line.
+    status line. TLS-aware read.
   - `http_read_response_header(conn, name, value)` -- iterate
-    headers one at a time.
-  - `http_read_body(conn, buf, max)` -- read from body, respecting
-    Content-Length. Chunked encoding is Phase 4.
-  - `http_close(conn)` -- close socket, free buffers.
+    headers one at a time. TLS-aware read.
+  - `http_read_body(conn, buf, max)` -- read from body,
+    respecting Content-Length. Chunked encoding is Phase 4. TLS-
+    aware read.
+  - `http_close(conn)` -- `SSL_free`, `SSL_CTX_free`,
+    `CloseLibrary(AmiSSLBase)`, close socket, free buffers.
+    Handles partial-init cleanup (e.g. OpenLibrary succeeded but
+    SSL_connect failed).
+- `ports/amigit/ported/amissl_glue.c` (or fold into http_client.c
+  if it's short) -- the actual OpenLibrary/OpenAmiSSLTags/
+  CloseLibrary boilerplate, isolated so the HTTP layer is
+  testable without AmiSSL-specific symbols leaking through its
+  interface. Follows the wget pattern exactly.
+- `ports/amigit/Makefile` -- add `-L../../lib/bsdsocket-shim
+  -lamiport-net` and `-L../../lib/amissl-sdk/lib -lamisslstubs`
+  (NOT `-lamisslauto` -- that triggers the process-start crash
+  documented in known-pitfalls). Add `-I../../lib/amissl-sdk/include`
+  to CFLAGS. Add `ported/http_client.o` (and `ported/amissl_glue.o`
+  if separate) to OBJECTS.
 - Unit test TU: `tests/amigit-http-client/` -- vamos-compatible
   unit tests for the parser half (status line parsing, header
-  parsing) driven from string literals.
-- Integration test: a `TEST:` block in amigit's test suite that
-  runs against `http://example.com/` (if FS-UAE has bsdsocket
-  passthrough) or skipped with a documented reason.
+  parsing, Content-Length body reader) driven from string
+  literals in memory. NO live network, NO AmiSSL in the unit
+  tests -- the TLS branch is gated behind `use_tls` and the
+  unit tests pass `use_tls=false` + a pre-populated buffer so
+  the read/write calls go through a local fd pair. This proves
+  the parser logic without needing bsdsocket or AmiSSL in vamos.
+- Integration test strategy:
+  - **vamos:** parser unit tests only. vamos cannot open
+    bsdsocket.library or amisslmaster.library.
+  - **FS-UAE:** IF the FS-UAE config has bsdsocket passthrough +
+    AmiSSL installed, add one `TEST:` block that does a live
+    HTTPS GET against `https://amiport.platesteel.net/` (known
+    stable, our own infrastructure, no rate limits, no auth).
+    If passthrough/AmiSSL aren't available in the test harness,
+    document it and skip the live test -- real-hardware manual
+    verification covers the gap.
+  - **Real hardware:** manual smoke test -- `amigit ls-remote
+    https://github.com/bdgscotland/amiport` from the A2000 +
+    Vampire + X-Surf + Roadshow + AmiSSL stack. The
+    `transport_https.c` action() is still a Phase 2 stub at this
+    point, so "success" here is "http_client talks to github,
+    returns a parseable response, then the stub fires
+    not-implemented cleanly". The stub message on a real
+    github.com response is MORE evidence the stack works than a
+    vamos parser test could ever provide.
 
 **Done when:**
-- Unit tests green on vamos.
-- If FS-UAE passthrough works: one smoke request to a known plain-
-  HTTP endpoint returns a parseable response.
-- Memory-checker: all HTTP client buffers tracked for cleanup.
-- Test: 87/87 + new unit tests.
+- Unit tests green on vamos (parser-only, no network, no TLS).
+- Memory-checker CLEAN across `http_client.c` and
+  `amissl_glue.c`. Every malloc tracked for atexit cleanup; SSL
+  handles freed on every exit path (including error paths where
+  OpenLibrary succeeded but SSL_connect failed).
+- If FS-UAE passthrough + AmiSSL available in the test harness:
+  one live HTTPS GET to `amiport.platesteel.net` returns a
+  parseable response.
+- Real-hardware smoke: `amigit ls-remote https://github.com/...`
+  on Duncan's Amiga reaches github, gets an HTTPS response, and
+  the Phase 2 stub returns "not implemented" AFTER the network
+  layer succeeded (not before).
+- Graceful degrade: rename `amisslmaster.library` temporarily,
+  retry, confirm the friendly "HTTPS not available" error.
+- `make -C tests/libgit2 run` still prints 79/79.
+- `make test-fsemu TARGET=ports/amigit` still prints 91/91 (or
+  92/92 if the live FS-UAE HTTPS test was added).
+
+**Risk vs. deferred-TLS ordering:** bundling TLS in from day one
+means a bad response from github.com is ambiguous between
+"HTTP parser is wrong" and "AmiSSL recv is wrong". Mitigant:
+(a) wget's AmiSSL glue is a proven in-tree reference, not a new
+invention, so the SSL side starts as a known-good copy; (b) the
+parser unit tests run without AmiSSL in the loop (TLS gated
+behind `use_tls`), so any parser failure can be reproduced in a
+vamos unit test without touching the network; (c) if the live
+test fails, the isolation tool is `wget https://...` from the
+same Amiga -- if wget works and amigit doesn't, the bug is in
+amigit's glue, not AmiSSL itself.
 
 ### Phase 4: pkt-line framing + chunked transfer encoding (1 session)
+
+*(Was Phase 4 in the original plan. Unchanged scope.)*
+
 
 **Goal:** implement the two framing layers the smart-HTTP protocol
 needs. pkt-line is git's 4-byte-hex-length-prefix framing.
@@ -311,6 +399,10 @@ Chunked is HTTP/1.1's `Transfer-Encoding: chunked` body format.
 
 ### Phase 5: Service discovery -- GET /info/refs?service=git-upload-pack (1 session)
 
+*(Was Phase 5 in the original plan. Unchanged scope, except the
+target URL is `https://` from the start, not `http://`, because
+Phase 3 now has working TLS.)*
+
 **Goal:** implement the first real git smart-HTTP interaction. Send
 the initial discovery request, parse the capability line, parse the
 ref advertisement. Wire the result back into libgit2's
@@ -337,6 +429,11 @@ ref advertisement. Wire the result back into libgit2's
 
 ### Phase 6: Upload-pack body -- want/have negotiation + pack reception (2 sessions)
 
+*(Was Phase 6 in the original plan. Target URL is `https://` from
+the start -- the old "clone from plain-HTTP local git daemon as a
+stepping stone" milestone is deleted; success criterion is now
+"clone from real github.com over HTTPS".)*
+
 **Goal:** the big one. Send the POST request with want/have
 negotiation. Parse the side-band-64k response. Feed pack data to
 `git_indexer` for writing into the object database.
@@ -353,47 +450,24 @@ negotiation. Parse the side-band-64k response. Feed pack data to
      (band 1), progress messages (band 2), and errors (band 3).
   5. Hand pack bytes to the caller's read stream so
      `git_indexer_append` can consume them incrementally.
-- Full integration: `amigit clone http://local-git-daemon/repo`
-  creates a working clone on disk. (Plain HTTP only for now --
-  HTTPS comes in Phase 7.)
+- Full integration: `amigit clone https://github.com/bdgscotland/amiport`
+  creates a working clone on disk. No plain-HTTP intermediate --
+  TLS is already working as of Phase 3.
 - Memory-checker: pack buffer lifecycle. Side-band-64k can
   interleave packets; buffer management is error-prone.
 
 **Done when:**
-- Clone from a plain-HTTP git server succeeds.
-- The cloned repo passes `amigit log`, `amigit status`, and a
-  follow-up `git status` on the Linux machine that served it.
-- 87/87 functional suite still green.
-
-### Phase 7: AmiSSL integration (1-2 sessions)
-
-**Goal:** wire TLS into `http_client.c` so Phase 5/6 work over
-`https://` URLs. Manual `OpenLibrary("amisslmaster.library", ...)`
-per the wget pattern. Graceful degrade if AmiSSL is not installed.
-
-**Deliverables:**
-- `ports/amigit/ported/amissl_glue.c` -- manual OpenLibrary,
-  OpenAmiSSLTags, SSL_CTX_new, SSL_CTX_set_verify, SSL_new, SSL_set_fd,
-  SSL_connect, SSL_read, SSL_write, SSL_free, CloseLibrary cleanup.
-  Cross-reference `ports/wget/ported/src/` for the reference pattern.
-- `http_client.c` -- when `use_tls == true`, route read/write
-  through the AmiSSL SSL_read/SSL_write instead of raw
-  bsdsocket recv/send.
-- `ports/amigit/Makefile` -- add `-lamisslstubs` (NOT
-  `-lamisslauto`), add `-I../../lib/amissl-sdk/include`.
-- Error path: if AmiSSL open fails, return a specific error so
-  the transport can produce a clear "HTTPS not available (AmiSSL
-  not installed); run `amiport install amissl` or retry with a
-  different protocol" message.
-
-**Done when:**
-- First successful real-hardware test: `amigit clone
-  https://github.com/bdgscotland/amiport` on Duncan's
+- Clone from real github.com over HTTPS succeeds on Duncan's
   A2000 + Vampire + X-Surf + Roadshow + AmiSSL stack.
-- Graceful degrade test: rename amisslmaster.library temporarily,
-  retry, confirm the friendly error.
+- The cloned repo passes `amigit log`, `amigit status`, and a
+  follow-up `git status` on a Linux machine that checks out the
+  same commit.
+- 91/91 functional suite still green.
 
-### Phase 8: Credential callback -- GitHub PAT auth (1 session)
+### Phase 7: Credential callback -- GitHub PAT auth (1 session)
+
+*(Was Phase 8 in the original plan. Renumbered after Phase 3/7
+merge.)*
 
 **Goal:** wire up GitHub personal access tokens. Read from
 `GIT_HTTP_TOKEN` environment variable first; fall back to stdin
@@ -417,7 +491,10 @@ prompt on interactive input.
   unless 401).
 - Interactive prompt works (visual test / manual).
 
-### Phase 9: cmd_clone.c + amigit 0.2 release (1 session)
+### Phase 8: cmd_clone.c + amigit 0.2 release (1 session)
+
+*(Was Phase 9. Renumbered after Phase 3/7 merge.)*
+
 
 **Goal:** ship a real `amigit clone <url> [path]` command, update
 all metadata, cut the 0.2 release.
@@ -453,7 +530,10 @@ all metadata, cut the 0.2 release.
 - Committed, documented, HANDOFF updated per the "strike done items
   in the same commit" rule.
 
-### Phase 10: cmd_fetch.c + cmd_pull.c (1 session)
+### Phase 9: cmd_fetch.c + cmd_pull.c (1 session)
+
+*(Was Phase 10. Renumbered after Phase 3/7 merge.)*
+
 
 **Goal:** incremental updates. `fetch` downloads new commits without
 merging. `pull` is fetch + fast-forward-only merge.
@@ -477,7 +557,10 @@ merging. `pull` is fetch + fast-forward-only merge.
 - Fast-forward pull updates HEAD correctly.
 - Non-fast-forward case fails cleanly without corrupting the repo.
 
-### Phase 11: Stabilization pass (1-2 sessions)
+### Phase 10: Stabilization pass (1-2 sessions)
+
+*(Was Phase 11. Renumbered after Phase 3/7 merge.)*
+
 
 **Goal:** harden the networking path. Audit memory, audit error
 paths, test edge cases that weren't covered by the happy-path
@@ -507,7 +590,11 @@ development.
   cleanly from real hardware and the resulting working copy passes
   `amigit status` (clean tree).
 
-### Phase 12: Push support -- cmd_push.c + amigit 1.0 (1-2 sessions)
+### Phase 11: Push support -- cmd_push.c + amigit 1.0 (1-2 sessions)
+
+*(Was Phase 12. Renumbered after Phase 3/7 merge. This is still
+the 1.0 watershed release.)*
+
 
 **Goal:** the final piece. `amigit push origin main`. Wire up
 `git_remote_push` with the receive-pack service instead of
@@ -536,26 +623,30 @@ upload-pack.
 
 ## Testing strategy by phase
 
+*(Updated 2026-04-14 after Phase 3/7 merge. Old phases 7-12
+renumbered to 7-11.)*
+
 | Phase | vamos OK? | FS-UAE OK? | Real hw needed? |
 |---|---|---|---|
 | 1 | yes (libgit2 Stage 5) | yes (amigit 87/87) | no |
 | 2 | yes | yes | no |
-| 3 | parser tests | if bsdsocket passthrough | no |
+| 3 | parser tests only | if bsdsocket+AmiSSL passthrough | **yes** (HTTPS+AmiSSL) |
 | 4 | yes | yes | no |
-| 5 | parser tests | if bsdsocket passthrough | yes (real HTTPS) |
-| 6 | parser tests | if bsdsocket passthrough | yes |
-| 7 | no | depends on AmiSSL in emu | **yes** (AmiSSL) |
-| 8 | no | no | yes (PAT on real GH) |
+| 5 | parser tests | if bsdsocket+AmiSSL passthrough | yes (real HTTPS) |
+| 6 | parser tests | if bsdsocket+AmiSSL passthrough | yes |
+| 7 | no | no | yes (PAT on real GH) |
+| 8 | parser tests | yes for error paths | yes (ship smoke) |
 | 9 | parser tests | yes for error paths | yes (ship smoke) |
-| 10 | parser tests | yes for error paths | yes (ship smoke) |
-| 11 | extensive | extensive | yes (final) |
-| 12 | parser tests | no | yes (ship smoke) |
+| 10 | extensive | extensive | yes (final) |
+| 11 | parser tests | no | yes (ship smoke) |
 
 **Open question for Phase 3:** does the current FS-UAE test setup
-have `bsdsocket.library` passthrough? If yes, we can run integration
-tests against a localhost HTTP server from the emulator. If no, Phase
-3 onwards is strictly unit-tests + real-hardware manual verification.
-This is the FIRST thing Phase 3 should establish.
+have `bsdsocket.library` passthrough AND AmiSSL installed in the
+emulated AmigaOS image? If yes, we can run live integration tests
+against `https://amiport.platesteel.net/` from the emulator. If
+no, Phase 3 onwards is strictly parser unit-tests + real-hardware
+manual verification. This is the FIRST thing Phase 3 should
+establish -- before writing any http_client code.
 
 ## Risks
 
@@ -619,9 +710,21 @@ The project is DONE when all of these are true:
 
 ## Session checkpoint (update in-place every session)
 
-**Current phase:** Phase 3 (Generic HTTP/1.1 client -- connect + request +
-response headers, 2 sessions).
+**Current phase:** Phase 3 (HTTPS client -- HTTP/1.1 + AmiSSL TLS
+from day one, 3 sessions).
 Last update: 2026-04-14.
+
+**2026-04-14 plan change:** original Phase 3 (plain HTTP only)
+and original Phase 7 (AmiSSL integration) MERGED into the
+current Phase 3 after recognizing that nothing worth talking to
+uses plain HTTP (GitHub, GitLab, Gitea, Codeberg all HTTPS-only,
+and the PDR's locked decision #5 already said "HTTPS only"). Old
+Phases 4-6 unchanged in scope. Old Phases 7-12 renumbered down
+by one to 7-11. Old Phase 7 (standalone AmiSSL) no longer exists
+as a separate phase. Old Phase 12 (1.0 release) is now Phase 11.
+If a previous session's handoff mentions "Phase 8" or "Phase 12"
+those refer to the OLD numbering -- see the current
+`## Phase plan` section for authoritative current numbering.
 
 **Last completed phase:** Phase 2 -- transport TU skeleton + dummy
 registration.
@@ -742,40 +845,78 @@ artifacts, leave release metadata pinned to 0.1-6 until 0.2 cut.
 
 **Phase 3 hints (what the next session should know):**
 
-Phase 3 is the first phase with real network code. Scope per the
-plan:
+Phase 3 is the first phase with real network code, AND the
+first phase with TLS. Scope per the revised 2026-04-14 plan:
 
-- New files: `ports/amigit/ported/http_client.c` + `.h`.
+- New files: `ports/amigit/ported/http_client.c` + `.h` and
+  (optionally, if readable) `ports/amigit/ported/amissl_glue.c`.
 - `http_connect(conn, host, port, use_tls)` -- DNS + socket +
-  connect via `lib/bsdsocket-shim/libamiport-net.a`. TLS branch
-  returns ENOSYS until Phase 7.
+  connect via `lib/bsdsocket-shim/libamiport-net.a`. If
+  `use_tls == true`, ALSO open AmiSSL (manual OpenLibrary per
+  wget pattern), SSL_new / SSL_set_fd / SSL_connect. Graceful
+  degrade if AmiSSL is missing with a friendly "run `amiport
+  install amissl`" error.
 - `http_send_request`, `http_read_response_status`,
   `http_read_response_header`, `http_read_body` (Content-Length
-  only -- chunked is Phase 4).
-- `http_close`.
+  only -- chunked is Phase 4). Each is TLS-aware: routes through
+  SSL_read/SSL_write when `use_tls`, raw bsdsocket otherwise.
+- `http_close` -- SSL_free, SSL_CTX_free, CloseLibrary, socket
+  close, buffer free. Handles partial-init cleanup.
 - Unit tests at `tests/amigit-http-client/` for the parser half
-  (vamos-compatible, driven from string literals).
+  (vamos-compatible, driven from string literals in memory, TLS
+  OFF -- the parser runs over a local fd pair).
 
 Things to know before starting:
 
-1. `libamiport-net.a` is already in the tree and known-good
+1. **Don't reinvent AmiSSL glue.** `ports/wget/ported/src/`
+   ships a working manual-OpenLibrary AmiSSL integration on the
+   exact same target stack (A2000 + Vampire + X-Surf + Roadshow
+   + AmiSSL). Copy its glue verbatim, then adapt the naming.
+   Do NOT use `libamisslauto.a` -- it crashes at process start
+   if AmiSSL is missing. See `.claude/rules/known-pitfalls.md`
+   entry "libamisslauto.a Is a Hard Runtime Dependency".
+2. **`libamiport-net.a`** is already in the tree and known-good
    (wget ships on it). Link `-L../../lib/bsdsocket-shim
-   -lamiport-net` in the amigit Makefile for Phase 3.
-2. vamos cannot open `bsdsocket.library`. Phase 3 unit tests must
-   be pure-C parsers driven from string literals, not live
+   -lamiport-net` in the amigit Makefile. Also add
+   `-L../../lib/amissl-sdk/lib -lamisslstubs` and
+   `-I../../lib/amissl-sdk/include`.
+3. **vamos cannot open `bsdsocket.library` OR
+   `amisslmaster.library`.** Phase 3 unit tests must be
+   pure-C parser tests driven from string literals, not live
    network tests. Live tests happen on FS-UAE with bsdsocket
-   passthrough or on real hardware.
-3. The `transport_https.c` skeleton already has the subtransport
-   plumbing. Phase 3 adds a `http_client.c` consumer; Phase 5
-   wires it into `https_action()`.
-4. KB gaps noted during Phase 2 (same as Phase 1): bsdsocket HTTP
-   client pitfalls and AmiSSL runtime-load patterns are NOT in
-   amiga-kb yet. The reference implementations are `ports/wget/`
-   (real hardware, real AmiSSL) and `lib/http-shim/`
-   (bsdsocket lifecycle, socket timeout handling).
-5. Memory-checker agent mandatory for any TU that malloc's HTTP
-   buffers -- no process memory cleanup on exit under
-   `-noixemul`.
+   passthrough + AmiSSL installed in the emulated image, OR on
+   real hardware.
+4. **First thing to establish:** does the current FS-UAE test
+   harness have bsdsocket passthrough AND AmiSSL installed? If
+   no, Phase 3's FS-UAE test count stays at 91/91 and real
+   hardware becomes mandatory for live verification. Check
+   `scripts/test-fsemu.sh` and `toolchain/configs/amiport-test.fs-uae`
+   for `bsdsocket_library` and `amissl` references, OR check
+   whether `ports/wget/test-fsemu-cases.txt` has any live-HTTPS
+   tests -- wget is the reference for "HTTPS tests in the amigit
+   harness".
+5. **The `transport_https.c` skeleton already has the
+   subtransport plumbing.** Phase 3 adds a `http_client.c`
+   consumer; Phase 5 wires it into `https_action()`. Do NOT
+   modify `transport_https.c` in Phase 3 -- it stays as the
+   Phase 2 stub until Phase 5.
+6. **Real-hardware smoke test for Phase 3:** from Duncan's
+   A2000, run `amigit ls-remote https://github.com/bdgscotland/amiport`.
+   Success is "http_client.c reaches github over HTTPS, gets a
+   parseable response, and the Phase 2 stub in transport_https.c
+   fires not-implemented AFTER the TLS handshake succeeded".
+   That's more evidence the stack works than any vamos unit test
+   could ever provide.
+7. **Memory-checker agent mandatory** for http_client.c + the
+   AmiSSL glue. Partial-init cleanup is error-prone -- every
+   exit path must free SSL_CTX, SSL handle, socket fd, and
+   CloseLibrary AmiSSL in the right order. No process memory
+   reclaim under `-noixemul`.
+8. **KB gaps** (same as Phases 1-2): bsdsocket HTTP client
+   pitfalls and AmiSSL runtime-load patterns are NOT in
+   amiga-kb yet. wget is the in-tree reference. Worth capturing
+   Phase 3 learnings to amiga-kb via `/capture-learning` as
+   they emerge.
 
 **Phase 1 summary (2026-04-14):**
 
@@ -871,10 +1012,14 @@ integration pattern (wget port is the reference in-tree, not
 captured in the KB yet).
 
 **What to do next:** Open this file in a fresh session after
-`/clear`. Read Phase 3's "Deliverables" and "Done when" sections.
-Start building `ports/amigit/ported/http_client.c` as the
-HTTP/1.1 request/response layer over `libamiport-net.a`. Keep the
-TLS path stubbed for Phase 7.
+`/clear`. Read the revised Phase 3 "Deliverables" and "Done when"
+sections (Phase 3 + old Phase 7 are merged as of 2026-04-14).
+Before writing any code, check whether the FS-UAE test harness
+has bsdsocket passthrough + AmiSSL installed (see Phase 3 hint
+#4 above). Then copy `ports/wget/ported/src/` AmiSSL glue as the
+reference implementation and start building
+`ports/amigit/ported/http_client.c` with TLS support mandatory
+from day one -- not stubbed.
 
 When you finish a phase, update this checkpoint section with:
 - The phase just completed
