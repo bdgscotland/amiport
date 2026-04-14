@@ -680,6 +680,22 @@ PDR-012 Phase 2 (HTTPS transport stub)" section:
 - `ports/amigit/amigit` binary: **1,194,888 bytes** (+1,820 from
   Phase 1 baseline 1,193,068). Within noise.
 
+**Deliberate non-update (don't repeat Phase 3+):** `data/catalog.json`,
+`site/data/packages/amigit.json`, `README.md`, and `PORTS.md` all
+still read "87/87" for amigit. They are NOT updated to "91/91".
+Rationale: Phase 2 is stealth scaffolding work, not a release --
+the shipped amigit 0.1-6 LHA still represents the 87-test state,
+no new LHA was cut, and the 4 new Phase 2 tests exercise
+`GIT_ERROR_NOT_IMPLEMENTED` stubs rather than real functionality.
+Updating the dashboard to 91 without rebuilding the shipped LHA
+would desync the website from the package users actually
+download. The correct time to roll catalog/site forward is at
+the 0.2 release cut (after Phase 9 per the phase plan). Same
+reasoning for `measured_binary_kb` (catalog still says 1054 KB;
+current binary is ~1167 KB but not shipped). Phase 3+ should
+follow the same pattern: update PDR checkpoint + in-repo build
+artifacts, leave release metadata pinned to 0.1-6 until 0.2 cut.
+
 **Surprises / scope deltas:**
 
 - **libgit2 `git_transport_register` public-doc vs

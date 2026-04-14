@@ -842,6 +842,40 @@ Until one of these (or a fourth approach) can be made to work, the friendly-erro
 
 Discovered in amigit 0.1-2 (2026-04-13). The 0.1 release shipped with 81/81 green tests because no test had ever exercised the zero-positional-arg CWD form -- every existing init test used an explicit `T:amigit-test` path.
 
+## libgit2 git_transport_register Takes BARE Scheme, Not "scheme://"
+
+libgit2's public header `git2/sys/transport.h` documents the `prefix` parameter of `git_transport_register` as "The scheme (ending in `://`) to match, i.e. `git://`". **The implementation disagrees.** `lib/libgit2/src/libgit2/transport.c:157` does:
+
+```c
+if ((error = git_str_printf(&prefix, "%s://", scheme)) < 0)
+    goto on_error;
+```
+
+It takes the bare scheme and appends `://` itself. Passing `"https://"` produces the internal prefix `"https:////"` which never matches any URL. `transport_find_by_url` (same file, line 51) iterates `custom_transports` first and then the static `transports[]` table, so on a miss the dispatcher falls through to the upstream entry for the scheme -- in the amiport build that's the `git_smart_subtransport_http` stub in `lib/libgit2/src/libgit2/transport_stubs.c`, which returns "not available in amiport build". Confusing error; wrong backend.
+
+The same format-twice bug applies to `git_transport_unregister`.
+
+**Fix:** pass the BARE scheme.
+
+```c
+/* WRONG: internal prefix becomes "https:////" */
+git_transport_register("https://", git_transport_smart, &my_def);
+
+/* RIGHT: internal prefix becomes "https://" */
+git_transport_register("https", git_transport_smart, &my_def);
+
+/* later: */
+git_transport_unregister("https");  /* bare scheme here too */
+```
+
+**Detection:** if your custom libgit2 transport is registered successfully but the upstream "not available in amiport build" stub (or the native upstream http.c) is firing on your URLs instead of your backend, this is the cause. `transport_find_by_url` logs nothing -- you'll just see the wrong error from the wrong dispatch target.
+
+**Applies to:** any amiport port that registers a custom `git_transport_cb` via `git_transport_register` -- not just amigit. Future libgit2 consumers (alternative git clients, `.git/` introspection tools, custom fetch backends for CI-like agents) will hit the same rake.
+
+Discovered in amigit PDR-012 Phase 2 (2026-04-14) while wiring up the custom HTTPS subtransport in `ports/amigit/ported/transport_https.c`. First FS-UAE run came back 88/91 with the upstream stub message; flipping `"https://"` → `"https"` fixed it to 91/91 on the second pass. The reference implementation is `amigit_transport_https_register()` in that file; the block comment above the register function documents the gotcha in source too.
+
+Cross-reference: amiga-kb pitfall with the same title (routed via `amiga_add_pitfall` from `/capture-learning`).
+
 ## bebbo-gcc -m68020 Is Cosmetic at -O0 Without a Library Rebuild
 
 Flipping `-m68000` to `-m68020` on a port's CFLAGS does not produce meaningful speedup on its own under bebbo-gcc 6.5.0b at `-O0`. Two reasons:
