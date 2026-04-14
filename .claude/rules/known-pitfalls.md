@@ -884,3 +884,58 @@ then at the moment `common.mk` is parsed, `REVISION` is still its default `?= 1`
 **Workaround (per-port):** set `VERSION`/`REVISION` *before* the `include ../common.mk` line. Reference: `ports/amigit/Makefile` after the 0.1-2 fix (2026-04-13). Also fixed at the source in `ports/common.mk` via a deferred-expansion `DISPLAY_VERSION` so future ports cannot hit this even if they put `REVISION =` after the include.
 
 **Discovered in amigit 0.1-2 (2026-04-13)** -- the first revision bump on amigit produced LHAs stuck at `0.1` and the issue was only caught when `ls ports/amigit/amigit-0.1-2.lha` returned No such file or directory.
+
+## amiport_rename() Is Not POSIX-Compliant -- Cannot Overwrite or Cross Volumes
+
+`amiport_rename()` in `lib/posix-shim/src/file_io.c:406` directly calls AmigaDOS `Rename()`, which has two POSIX gaps:
+
+1. **No overwrite of existing target**: AmigaDOS `Rename()` returns FALSE with `IoErr() == ERROR_OBJECT_EXISTS` when the target path already exists. POSIX `rename()` is required to replace the target atomically. Any port that uses rename-based atomic replacement (tempfile-then-rename pattern -- sed -i, awk -i, in-place editors, atomic config file writes) will fail on the second invocation because the destination already exists from the first.
+
+2. **No cross-volume fallback**: AmigaDOS `Rename()` can only rename within the same filesystem/volume. A rename from `T:foo` to `WORK:bar` fails unconditionally. POSIX sets `errno = EXDEV` in this case and callers are expected to fall back to copy+delete, but the shim neither returns EXDEV nor does the fallback automatically. Any port that creates a tmpfile in `T:` and renames to a user-visible volume is broken.
+
+**Impact:** sed -i (discovered 2026-04-13, shim-audit session -- sed 1.47-2 attempt blocked on this). Likely affects any future in-place editor, any atomic config writer, any compiler that builds to tmpfile then renames.
+
+**Per-port workaround** (until the shim is fixed):
+- For cross-volume concern: place the tmpfile on the same volume as the target. Append a suffix to the target path rather than using `T:` -- e.g. `<target>.tmpXXXXXX`.
+- For target-exists concern: `unlink(target)` immediately before `rename(tmp, target)`. There is a small window where the target is gone but the rename has not yet happened; a crash in between loses the original. Acceptable for most CLI tools but NOT for long-lived daemons or concurrent writers.
+
+**Shim fix (pending):** make `amiport_rename()` POSIX-compliant by (a) detecting `ERROR_OBJECT_EXISTS` and calling `DeleteFile()` + retry, and (b) detecting cross-volume and falling back to copy+delete. Both fixes should live in `lib/posix-shim/src/file_io.c:amiport_rename`.
+
+## amiport_mkstemp() + amiport_fdopen() Is a Double-Lock Trap
+
+`amiport_mkstemp()` opens the tmpfile via `amiport_open(..., O_RDWR | O_CREAT | O_TRUNC)` which maps to `Open(MODE_NEWFILE)` -- an **exclusive write lock** on the tmpfile. `amiport_fdopen()` then recovers the filename from the BPTR via `NameFromFH()` and calls libnix `fopen(name, "w")` -- which tries `Open(MODE_NEWFILE)` a SECOND time on the same path. The second Open fails with `ERROR_OBJECT_IN_USE` because the first lock is still held, and `amiport_fdopen()` returns NULL.
+
+This is a specific manifestation of the "AmigaOS Exclusive Write Lock" pitfall (already documented higher in this file) but the internal shim-to-shim interaction is not obvious from reading either function in isolation.
+
+**Symptom:** any port that does `int fd = mkstemp(template); FILE *fp = fdopen(fd, "w");` sees `fp == NULL` and falls into its error branch. Tests often pass because ports treat "can't open tmpfile" as graceful failure, but the feature (typically in-place editing) is silently broken.
+
+**Workaround:** skip the mkstemp + fdopen pair. Do a single libnix `fopen(tmpname, "w")` on a manually-generated unique tmpname. `FindTask(NULL)` address + a static counter provides sufficient uniqueness for a single-process tmpfile. Reference implementation: `ports/sed/ported/compat.h:sed_tmpname_fopen()` (2026-04-13 sed 1.47-2 attempt).
+
+**Shim fix (pending):** make `amiport_fdopen()` close the original amiport fd before calling libnix `fopen()`. This releases the AmigaOS lock and lets the libnix open succeed. The tradeoff: the amiport fd is no longer usable after fdopen -- which is actually POSIX-compliant (fdopen transfers ownership, caller should NOT use the raw fd afterwards).
+
+**Discovered in sed 1.47-2 (2026-04-13).**
+
+## compat.h Local Shim Helpers Collide When the Real Shim Catches Up
+
+When a port's `compat.h` defines a **local `static` implementation** of an `amiport_*` function (not just a macro alias), and the shim library later gains that function as a real symbol, the duplicate causes a hard compile error: `redefinition of 'amiport_errc'` (or similar).
+
+This happened in sed: compat.h had a `static void amiport_errc(...) { ... }` that predated the shim gaining a real `amiport_errc` in `amiport/err.h`. The port built fine until the shim was extended, then stopped compiling -- and the failure mode is easy to misdiagnose as "the shim broke" rather than "my compat.h is now obsolete".
+
+**Fix pattern for local fallback implementations**: always guard with a macro check so the local body disappears when the shim provides the real thing:
+
+```c
+/* amiport: local fallback -- drops out automatically
+ * when the shim gains a real amiport_errc(). */
+#ifndef errc
+static void
+my_errc_fallback(int rc, int errcode, const char *fmt, ...)
+{
+    /* ... local implementation ... */
+}
+#define errc my_errc_fallback
+#endif
+```
+
+**Audit trigger:** whenever the shim gains a new function, grep `ports/*/ported/compat.h` for `static.*amiport_<name>` or local fallback implementations of the same name and delete or guard them.
+
+**Discovered in sed 1.47-2 (2026-04-13).**

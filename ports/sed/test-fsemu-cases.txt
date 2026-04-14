@@ -47,9 +47,9 @@ CMD: WORK:sed -u s/hello/goodbye/ WORK:test-sed-input.txt
 EXPECT: goodbye world
 EXPECT_RC: 0
 
-TEST: -i flag reports not supported on AmigaOS (fdopen stub)
+TEST: -i flag edits file in place (rewrites test-sed-input.txt)
 CMD: WORK:sed -i s/x/y/ WORK:test-sed-input.txt
-EXPECT_RC: 10
+EXPECT_RC: 0
 
 TEST: multiple -e expressions applied in sequence
 CMD: WORK:sed -e s/hello/hi/ -e s/world/earth/ WORK:test-sed-input.txt

@@ -89,7 +89,21 @@ This prevents build failures from wrong argument counts or missing headers.
 - Check `references/redesign-patterns.md` for Tier 3 pattern templates
 - If a pattern isn't covered, flag it for human review rather than stubbing silently
 
+## Verification Before Editing (MANDATORY)
 
+Before applying ANY fix that depends on macro expansion, verify the target file's actual include chain. Do not trust the fix brief to tell you which macros are active -- **read the file's includes yourself**.
+
+**Example failure** (2026-04-13, jq revision 3 first attempt): a fix assumed `getenv()` in `builtin.c` would call `amiport_getenv()` (which returns malloc'd memory). The file actually includes plain `<stdlib.h>`, NOT `<amiport/stdlib.h>`, so `getenv()` is libnix's native version (returns static storage). The "fix" added a `free()` on the getenv result -- which would crash with AN_MemCorrupt on real hardware. Caught by the memory-checker re-audit before shipping, but the bug was avoidable.
+
+**Rule:** for every external call mentioned in your fix (`getenv`, `exit`, `malloc`, `free`, `strdup`, etc.), grep the top of the file for the header that would define the macro. If the file does NOT include that header, the call is NOT routed through the shim -- plan the fix accordingly.
+
+## Break/Return Path Cleanup Tracing (MANDATORY)
+
+When adding an early-exit path (break / goto / return) inside a function that already has post-loop or function-tail cleanup, **trace every cleanup call to its exit path** before inserting the new one. Adding a `free(x)` or `jv_free(x)` to a break block can double-free if the function tail also frees `x` unconditionally.
+
+**Example failure** (2026-04-13, jq revision 3 first attempt): a fix added `jv_free(result)` to a Ctrl-C break block. Below the while loop, there was an unconditional `jv_free(result)` that already handled all exit paths. The break path hit both frees -- double-free. Caught by memory-checker.
+
+**Rule:** before adding cleanup in a break/return path, scan from the early-exit point through every statement after the loop/block to the function's `}`. If any of them already clean up the same value on an unconditional code path, DO NOT add your own cleanup -- either set the variable to NULL/safe-sentinel after your use, or restructure the break to skip the unconditional cleanup, or simply let the existing cleanup do its job.
 
 ## Learnings Report (REQUIRED)
 

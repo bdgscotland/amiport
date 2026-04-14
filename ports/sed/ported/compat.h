@@ -65,20 +65,54 @@ typedef int regoff_t;
 /* amiport: getline() now provided by amiport/stdio_ext.h (promoted from inline) */
 #include <amiport/stdio_ext.h>
 
-/* amiport: fdopen() — not in libnix.
- * Stub that returns NULL; in-place editing (-i) will fail gracefully.
- * sed's -i mode needs fdopen(fd, "w") after mkstemp(). */
-#ifndef fdopen
+/* amiport: sed -i needs a FILE* writing to a unique tmpfile. The obvious
+ * mkstemp() + fdopen() combo does not work on AmigaOS: amiport_mkstemp()
+ * opens the tmpfile with an EXCLUSIVE write lock (MODE_NEWFILE), and then
+ * fdopen()'s internal libnix fopen(name, "w") is blocked by that lock
+ * (the AmigaOS "Exclusive Write Lock" pitfall -- crash-patterns #19).
+ * Solution: skip the intermediate fd and do a single direct libnix fopen()
+ * on a manually-generated unique name. Called from the __AMIGA__ branch
+ * in main.c's mf_getline().
+ *
+ * Template must end with "XXXXXX". The XXXXXX is replaced in place with
+ * a unique suffix derived from the task address + counter. Returns a
+ * libnix FILE* open for writing, or NULL with errno set. */
+#ifdef __AMIGA__
+#include <proto/exec.h>    /* FindTask */
+
+static int sed_tmpname_counter = 0;
+
 static FILE *
-amiport_fdopen(int fd, const char *mode)
+sed_tmpname_fopen(char *tmpl)
 {
-    (void)fd;
-    (void)mode;
-    /* amiport: fdopen not available on AmigaOS; in-place editing limited */
-    return NULL;
+    int len;
+    char suffix[7];
+    struct Task *t;
+    FILE *fp;
+
+    if (!tmpl) {
+        errno = EINVAL;
+        return NULL;
+    }
+    len = (int)strlen(tmpl);
+    if (len < 6 || strcmp(tmpl + len - 6, "XXXXXX") != 0) {
+        errno = EINVAL;
+        return NULL;
+    }
+    t = FindTask(NULL);
+    sprintf(suffix, "%02lx%04x",
+            (unsigned long)((unsigned long)t & 0xFF),
+            (unsigned int)(sed_tmpname_counter++ & 0xFFFF));
+    memcpy(tmpl + len - 6, suffix, 6);
+    fp = fopen(tmpl, "w");
+    if (!fp) {
+        /* restore template on failure so caller can report original path */
+        memcpy(tmpl + len - 6, "XXXXXX", 6);
+        return NULL;
+    }
+    return fp;
 }
-#define fdopen amiport_fdopen
-#endif
+#endif /* __AMIGA__ */
 
 /* amiport: open() with 3 args (O_CREAT mode) — the shim macro only accepts
  * 2 args.  AmigaOS has no permission model so the mode argument is always
@@ -140,21 +174,11 @@ amiport_dirname(char *path)
 
 #define dirname amiport_dirname
 
-/* amiport: errc() — like err() but with explicit error code.
- * OpenBSD extension, not available on Amiga. */
-static void
-amiport_errc(int eval, int code, const char *fmt, ...)
-{
-    va_list ap;
-    if (fmt != NULL) {
-        va_start(ap, fmt);
-        (void)vfprintf(stderr, fmt, ap);
-        va_end(ap);
-        (void)fprintf(stderr, ": ");
-    }
-    (void)fprintf(stderr, "%s\n", strerror(code));
-    exit(eval);
-}
+/* amiport: errc() is provided by amiport/err.h (included above via amiport/unistd.h).
+ * The local static definition was removed in REVISION 2 to resolve the duplicate
+ * definition error introduced when the shim added amiport_errc() as a real function. */
+#ifndef errc
 #define errc amiport_errc
+#endif
 
 #endif /* SED_COMPAT_H */

@@ -5,7 +5,7 @@
 | Field | Value |
 |-------|-------|
 | Port | jq |
-| Date | 2026-04-13 20:55:27 |
+| Date | 2026-04-13 21:18:20 |
 | Duration | 285s |
 | Platform | FS-UAE 3.2.35 (A1200, Kickstart 3.1) |
 | Binary | `WORK:jq` (582K) |

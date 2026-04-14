@@ -5,8 +5,8 @@
 | Field | Value |
 |-------|-------|
 | Port | tail |
-| Date | 2026-04-13 21:30:16 |
-| Duration | 28s |
+| Date | 2026-04-13 21:38:42 |
+| Duration | 27s |
 | Platform | FS-UAE 3.2.35 (A1200, Kickstart 3.1) |
 | Binary | `WORK:tail` (38K) |
 | Test method | ARexx harness → TAP output |
