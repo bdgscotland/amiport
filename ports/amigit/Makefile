@@ -12,12 +12,17 @@
 # TARGET must be defined before include so common.mk's all: $(TARGET) expands correctly
 TARGET      = amigit
 
-include ../common.mk
+# VERSION/REVISION must be set BEFORE including common.mk -- common.mk
+# computes DISPLAY_VERSION via `ifeq ($(REVISION),1)` at include time,
+# so a `REVISION = 2` after the include is too late and DISPLAY_VERSION
+# stays at "0.1" instead of "0.1-2". Discovered while bumping to 0.1-2.
 VERSION     = 0.1
-REVISION    = 1
+REVISION    = 2
 DESCRIPTION = Local-only git client for AmigaOS 3.x
 AUTHOR      = Duncan Bowring (amiport, on libgit2)
 AMINET_CAT  = dev/misc
+
+include ../common.mk
 
 # Port category: 1 (CLI). No color, no paging, no interactive input.
 # See PDR-010a for the category rationale.
@@ -48,12 +53,17 @@ SOURCES = $(OBJECTS:.o=.c)
 
 # CFLAGS: start from common.mk defaults, then:
 # - replace -O2 with -O0 to match lib/libgit2 baseline (crash-patterns #16)
+# - replace -m68000 with -m68020 -- amigit targets 68020+ only (no A500
+#   support). The realistic audience for a git client is accelerated
+#   Amigas (Vampire V2/V4, A1200/030+, A3000/A4000, FS-UAE). A plain
+#   68000 A500 is not viable for git workloads. See memory:
+#   project_amigit_68020_target.md (2026-04-13).
 # - add -std=gnu99 for libgit2's C99-heavy headers
 # - force-include amigaos_compat.h so the macro namespace matches the
 #   built libgit2.a (tests/libgit2/Makefile uses the same pattern)
 # - add include paths for libgit2 public headers and internal util/
 # - suppress noisy warnings from libgit2 headers
-CFLAGS := $(subst -O2,-O0,$(CFLAGS)) \
+CFLAGS := $(subst -O2,-O0,$(subst -m68000,-m68020,$(CFLAGS))) \
           -std=gnu99 \
           -Wno-unused-parameter -Wno-unused-function \
           -I../../lib/libgit2/include \
@@ -72,8 +82,11 @@ LDFLAGS := -L../../lib/libgit2 -lgit2 \
 # vamos stack and memory: match tests/libgit2/Makefile.
 # libgit2's tree/pack walk is deeply recursive; 256 KB covers it.
 # 4 MB RAM covers the binary (~1 MB) + stack + libgit2 workspace.
+# vamos defaults to 68000 but amigit is -m68020, so tell vamos to
+# emulate a 68020 CPU (known-pitfalls: "vamos Needs -C 68020").
 VAMOS_STACK = 256
 VAMOS_MEM   = 4096
+VAMOS_CPU   = 68020
 
 # Override common.mk's default $(TARGET) rule with our per-file build.
 $(TARGET): $(OBJECTS) $(SHIM_LIB) ../../lib/libgit2/libgit2.a ../../lib/zlib/libz.a
@@ -94,7 +107,7 @@ ported/%.o: ported/%.c
 # via FS-UAE; this target is just a quick pulse-check.
 test: $(TARGET)
 	@echo "=== Testing $(TARGET) (vamos smoke) ==="
-	$(TOOLCHAIN_BIN)/vamos -q -s $(VAMOS_STACK) -m $(VAMOS_MEM) ./$(TARGET) version
+	VAMOS_MEM=$(VAMOS_MEM) $(TOOLCHAIN_BIN)/vamos -C $(VAMOS_CPU) -s $(VAMOS_STACK) -- ./$(TARGET) version
 	@echo "=== $(TARGET) smoke passed ==="
 
 compare: $(TARGET)

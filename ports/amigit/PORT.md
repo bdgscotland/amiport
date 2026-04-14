@@ -5,18 +5,81 @@
 | Field | Value |
 |-------|-------|
 | Program | amigit |
-| Version | 0.1 |
+| Version | 0.1-2 |
 | Source | amiport-native (hand-written on libgit2 1.8.5) |
 | Category | 1 -- CLI tool |
 | License | GPL-2.0 (libgit2) + MIT (amiport code) |
 | Original Author | Duncan Bowring (amiport project) |
 | Port Date | 2026-04-13 |
+| Last Update | 2026-04-13 (revision 2) |
 
 ## Status
 
-**v1 complete (2026-04-13).** All 10 PDR-010a v1 commands shipping.
-81/81 FS-UAE functional tests passing. memory-checker CLEAN,
-perf-optimizer CLEAN.
+**0.1-2 (2026-04-13).** All 10 PDR-010a v1 commands shipping.
+**82/82** FS-UAE functional tests passing.
+
+### What changed in 0.1-2 (since 0.1 first release)
+
+- **Compiled with `-m68020`** (was `-m68000`). amigit now targets
+  accelerated Amigas only (Vampire V2/V4, A1200 with 030+, A3000/4000,
+  modern emulators). Plain 68000/A500 is no longer supported -- the
+  realistic audience for a git client is accelerators where the
+  binary is large and the workload is non-trivial. See memory note
+  `project_amigit_68020_target.md` for the full rationale. vamos is
+  invoked with `-C 68020`.
+  **Honest performance disclosure:** at `-O0`, the perf-optimizer
+  audit found this flag flip is essentially cosmetic for amigit's
+  own translation units -- bebbo-gcc 6.5.0b's `-O0` emits straight
+  sequential code with no scheduling, and amigit's TUs have no
+  integer math worth `MULS.L` and no pointer alignment hazards.
+  The hot work lives in `lib/libgit2/libgit2.a` and `lib/zlib/libz.a`
+  which are still built at `-m68000` for cross-port compatibility.
+  Real perf wins from CPU targeting are blocked behind a future
+  library rebuild at `-m68020` plus updating `tests/libgit2/`
+  to pass `-C 68020` to vamos. Deferred to amigit 0.1-3 (or to a
+  dedicated "amigit accelerator build" of `lib/libgit2/`). The
+  `-m68020` flag on amigit binaries today is *forward-looking* --
+  it ensures that when libgit2 flips, all the link-time pieces
+  match, and it cleanly documents the project's stated minimum
+  CPU target. For now, treat the speedup as <5%.
+- **Friendly error for `amigit init` from a multi-character volume CWD.**
+  When the user runs `amigit init` with no positional arguments from
+  inside a Shell whose CWD is on a volume like `WORK:`, `Ram Disk:`,
+  or `System 3.1:`, libgit2's `git_fs_path_root()` does not recognize
+  the path as rooted (it only handles single-character ASCII drive
+  letters), so `mkdir_canonicalize` walks dirname back to `./.` and
+  fails with the cryptic `failed to make directory './.'`. amigit
+  now detects this case in `cmd_init.c` and emits a multi-line error
+  pointing the user at the explicit-path workaround:
+  `amigit init <path>`. All other commands (status, log, add, commit,
+  branch, checkout, tag) work normally from any CWD because they go
+  through `git_repository_open_ext()` which has a tolerant path
+  handler. The deeper fix (extending libgit2's path root recognizer
+  to handle AmigaOS multi-char volume names) is deferred -- I tried
+  it and it regressed 20 in-repo tests because libnix does not treat
+  `"Ram Disk:/foo"` the same way as `"Ram Disk:foo"` for stat/read.
+- **`cmd_log` hot path uses `fputs`+`fputc`** instead of `printf("%s %s\n",...)`.
+  Skips libnix's format-parser overhead which adds up when walking
+  long histories.
+- **`amigit_is_help_flag()` consolidated** into a single shared helper
+  (declared in `amigit.h`, defined in `amigit.c`). Removed 10 duplicate
+  `static int is_help_flag(...)` definitions across `cmd_*.c` files.
+  Mechanical refactor; behavior identical.
+- **New regression test (test 82)** asserts that `amigit init` from
+  a multi-char volume CWD exits RC=10 with the friendly error path.
+  This is the zero-positional-arg cell of the `init` positional-
+  argument matrix per the new test-coverage standard section 1a.
+  Before 0.1-2, no test exercised the user CWD case at all -- this
+  is exactly the gap that made the original bug invisible to 81/81.
+- **Makefile fix:** `VERSION` and `REVISION` must be set BEFORE
+  `include ../common.mk` -- common.mk evaluates `DISPLAY_VERSION`
+  via `ifeq` at include time. Previously revision-bumping a port
+  silently produced LHA filenames with the wrong version. Other
+  ports doing post-include REVISION overrides have the same trap.
+
+### v1 (0.1) status, retained
+
+memory-checker CLEAN, perf-optimizer CLEAN (audited 2026-04-13).
 
 Phase breakdown (per PDR-010a "Phased build"):
 

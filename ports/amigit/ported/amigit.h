@@ -15,7 +15,7 @@
 
 /* amigit version string. Keep in sync with the $VER tag in amigit.c
  * and the VERSION variable in the Makefile. */
-#define AMIGIT_VERSION "0.1"
+#define AMIGIT_VERSION "0.1-2"
 
 /*
  * Command function signature. argc/argv are the full program argv
@@ -93,6 +93,16 @@ int amigit_resolve_repo_path(const char *in, char *out, size_t outsize);
  *   return amigit_usage(NULL, RETURN_ERROR);   // stderr, exit 10
  */
 int amigit_usage(const char *cmd_name, int rc);
+
+/*
+ * amigit_is_help_flag -- return non-zero if `s` is "--help" or "-h".
+ *
+ * Shared helper used by every cmd_*.c flag-parse loop. Previously
+ * each command file defined its own static copy; this consolidation
+ * removes ~10 duplicates and ensures one source of truth for what
+ * counts as a help flag.
+ */
+int amigit_is_help_flag(const char *s);
 
 /* Command implementations -- one per ported/cmd_<name>.c */
 int amigit_cmd_version(int argc, char **argv);

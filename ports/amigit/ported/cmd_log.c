@@ -30,11 +30,6 @@
 
 #include "amigit.h"
 
-static int is_help_flag(const char *s)
-{
-    return strcmp(s, "--help") == 0 || strcmp(s, "-h") == 0;
-}
-
 static int cmd_log_usage(int rc)
 {
     FILE *out = (rc == RETURN_OK) ? stdout : stderr;
@@ -59,7 +54,7 @@ int amigit_cmd_log(int argc, char **argv)
     int i;
 
     for (i = 2; i < argc; i++) {
-        if (is_help_flag(argv[i])) {
+        if (amigit_is_help_flag(argv[i])) {
             return cmd_log_usage(RETURN_OK);
         }
         if (strcmp(argv[i], "--oneline") == 0) {
@@ -135,8 +130,17 @@ int amigit_cmd_log(int argc, char **argv)
         /* Render a 7-char abbreviated SHA -- git's default. */
         git_oid_tostr(short_sha, sizeof(short_sha), &oid);
 
+        /* Hot path -- one line per commit. fputs + fputc skips the
+         * libnix printf format-parser, which is meaningful on slow
+         * accelerators when walking long histories. Functionally
+         * identical to the printf form. */
         summary = git_commit_summary(commit);
-        printf("%s %s\n", short_sha, summary != NULL ? summary : "");
+        fputs(short_sha, stdout);
+        fputc(' ', stdout);
+        if (summary != NULL) {
+            fputs(summary, stdout);
+        }
+        fputc('\n', stdout);
 
         git_commit_free(commit);
         commit = NULL;

@@ -26,11 +26,6 @@
 
 #include "amigit.h"
 
-static int is_help_flag(const char *s)
-{
-    return strcmp(s, "--help") == 0 || strcmp(s, "-h") == 0;
-}
-
 static int cmd_add_usage(int rc)
 {
     FILE *out = (rc == RETURN_OK) ? stdout : stderr;
@@ -50,7 +45,7 @@ int amigit_cmd_add(int argc, char **argv)
 
     /* First pass: scan for --help and find the first positional. */
     for (i = 2; i < argc; i++) {
-        if (is_help_flag(argv[i])) {
+        if (amigit_is_help_flag(argv[i])) {
             return cmd_add_usage(RETURN_OK);
         }
         if (argv[i][0] == '-') {

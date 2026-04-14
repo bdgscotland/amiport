@@ -89,7 +89,7 @@ int amigit_resolve_repo_path(const char *in, char *out, size_t outsize)
 long __stack = 262144;
 
 /* $VER tag for `version` command. Date is the build day. */
-static const char *verstag = "$VER: amigit 0.1 (13.04.2026)";
+static const char *verstag = "$VER: amigit 0.1-2 (13.04.2026)";
 
 /* ========================================================================
  * Dispatch table -- single source of truth for v1 command set
@@ -153,6 +153,15 @@ int amigit_usage(const char *cmd_name, int rc)
     fprintf(out, "usage: amigit %s ...\n", cmd_name);
     fprintf(out, "Run 'amigit %s --help' for details.\n", cmd_name);
     return rc;
+}
+
+/* ========================================================================
+ * amigit_is_help_flag -- shared "--help" / "-h" recognizer
+ * ======================================================================== */
+
+int amigit_is_help_flag(const char *s)
+{
+    return strcmp(s, "--help") == 0 || strcmp(s, "-h") == 0;
 }
 
 /* ========================================================================

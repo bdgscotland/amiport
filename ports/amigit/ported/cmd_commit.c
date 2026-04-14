@@ -35,11 +35,6 @@
 
 #include "amigit.h"
 
-static int is_help_flag(const char *s)
-{
-    return strcmp(s, "--help") == 0 || strcmp(s, "-h") == 0;
-}
-
 static int cmd_commit_usage(int rc)
 {
     FILE *out = (rc == RETURN_OK) ? stdout : stderr;
@@ -92,7 +87,7 @@ int amigit_cmd_commit(int argc, char **argv)
     int unborn_head = 0;
 
     for (i = 2; i < argc; i++) {
-        if (is_help_flag(argv[i])) {
+        if (amigit_is_help_flag(argv[i])) {
             return cmd_commit_usage(RETURN_OK);
         }
         if (strcmp(argv[i], "-m") == 0) {

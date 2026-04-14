@@ -35,7 +35,7 @@
 
 TEST: version prints amigit version on first line
 CMD: WORK:amigit version
-EXPECT: amigit 0.1 (built 2026-04-13)
+EXPECT: amigit 0.1-2 (built 2026-04-13)
 EXPECT_RC: 0
 
 TEST: version prints libgit2 version on second line

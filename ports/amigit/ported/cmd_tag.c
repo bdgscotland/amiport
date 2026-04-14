@@ -32,11 +32,6 @@
 
 #include "amigit.h"
 
-static int is_help_flag(const char *s)
-{
-    return strcmp(s, "--help") == 0 || strcmp(s, "-h") == 0;
-}
-
 static int cmd_tag_usage(int rc)
 {
     FILE *out = (rc == RETURN_OK) ? stdout : stderr;
@@ -101,7 +96,7 @@ int amigit_cmd_tag(int argc, char **argv)
     int i;
 
     for (i = 2; i < argc; i++) {
-        if (is_help_flag(argv[i])) {
+        if (amigit_is_help_flag(argv[i])) {
             return cmd_tag_usage(RETURN_OK);
         }
         if (strcmp(argv[i], "-l") == 0 ||
