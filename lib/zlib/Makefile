@@ -35,7 +35,30 @@ CFLAGS = -O0 -noixemul -m68000 -Wall -Wno-unused-parameter \
 # safe by perf-optimizer (2026-04-12).
 HOTPATH_CFLAGS = $(CFLAGS) -O1
 
-TARGET = libz.a
+# ----------------------------------------------------------------------
+# Dual-flavor 68020 build (Track A, 2026-04-14)
+#
+# amigit/amigit-020 and any future 68020-targeted consumer links against
+# libz-020.a instead of libz.a. The 020 variant gets the same -O level
+# as 000 -- the win comes from the CPU instruction set (long multiplies
+# in 1-2 cycles, wider addressing modes, extb/extw) not from the
+# optimizer. bebbo-gcc's struct-by-value bug at -O1/-O2 (crash-patterns
+# #16) still applies, so do NOT change -O between flavors.
+#
+# Per .claude/rules/library-pipeline.md + the "Libraries MUST Use
+# -m68000" pitfall: libz.a (000 flavor) remains the default and is
+# still what the vamos test suite and all existing ports link against.
+# The 020 flavor is opt-in for consumers that declare a 68020+ target.
+#
+# CFLAGS_020 is derived from CFLAGS via substitution so new defines or
+# includes added to CFLAGS automatically propagate to the 020 variant.
+# The same is true for HOTPATH_CFLAGS_020.
+# ----------------------------------------------------------------------
+CFLAGS_020         = $(subst -m68000,-m68020,$(CFLAGS))
+HOTPATH_CFLAGS_020 = $(subst -m68000,-m68020,$(HOTPATH_CFLAGS))
+
+TARGET     = libz.a
+TARGET_020 = libz-020.a
 
 SRCDIR = src
 
@@ -61,16 +84,29 @@ GZ_SRCS = \
     $(SRCDIR)/gzwrite.c
 
 SRCS = $(CORE_SRCS) $(GZ_SRCS)
-OBJS = $(SRCS:.c=.o)
+OBJS     = $(SRCS:.c=.o)
+OBJS_020 = $(SRCS:.c=.020.o)
 
-all: $(TARGET)
+# 'all' still means "build the 000 flavor only", preserving existing
+# behaviour for every consumer and CI invocation. The 020 flavor is
+# opt-in via 'make all-020' or 'make dual'.
+all:     $(TARGET)
+all-020: $(TARGET_020)
+dual:    $(TARGET) $(TARGET_020)
 
 $(TARGET): $(OBJS)
 	$(AR) rcs $@ $(OBJS)
 	$(RANLIB) $@
 
+$(TARGET_020): $(OBJS_020)
+	$(AR) rcs $@ $(OBJS_020)
+	$(RANLIB) $@
+
 $(SRCDIR)/%.o: $(SRCDIR)/%.c
 	$(CC) $(CFLAGS) -c $< -o $@
+
+$(SRCDIR)/%.020.o: $(SRCDIR)/%.c
+	$(CC) $(CFLAGS_020) -c $< -o $@
 
 # Hot-path files compiled at -O1. Order matters -- these override the
 # pattern rule above. Any -O1-related regression should be isolated by
@@ -84,7 +120,17 @@ $(SRCDIR)/adler32.o: $(SRCDIR)/adler32.c
 $(SRCDIR)/crc32.o: $(SRCDIR)/crc32.c
 	$(CC) $(HOTPATH_CFLAGS) -c $< -o $@
 
-clean:
-	rm -f $(OBJS) $(TARGET)
+# 020 flavor -- mirror the three -O1 hot-path overrides.
+$(SRCDIR)/inffast.020.o: $(SRCDIR)/inffast.c
+	$(CC) $(HOTPATH_CFLAGS_020) -c $< -o $@
 
-.PHONY: all clean
+$(SRCDIR)/adler32.020.o: $(SRCDIR)/adler32.c
+	$(CC) $(HOTPATH_CFLAGS_020) -c $< -o $@
+
+$(SRCDIR)/crc32.020.o: $(SRCDIR)/crc32.c
+	$(CC) $(HOTPATH_CFLAGS_020) -c $< -o $@
+
+clean:
+	rm -f $(OBJS) $(OBJS_020) $(TARGET) $(TARGET_020)
+
+.PHONY: all all-020 dual clean
