@@ -17,7 +17,7 @@ TARGET      = amigit
 # so a `REVISION = 2` after the include is too late and DISPLAY_VERSION
 # stays at "0.1" instead of "0.1-2". Discovered while bumping to 0.1-2.
 VERSION     = 0.1
-REVISION    = 5
+REVISION    = 6
 DESCRIPTION = Local git CLI for AmigaOS 3.x (preview)
 AUTHOR      = Duncan Bowring (amiport, on libgit2)
 AMINET_CAT  = dev/misc
@@ -76,13 +76,33 @@ CFLAGS := $(subst -O2,-O1,$(subst -m68000,-m68020,$(CFLAGS))) \
           -include ../../lib/libgit2/src/util/amigaos_compat.h
 
 # LDFLAGS: libgit2 link chain. Order matters: libgit2 -> libz ->
-# libamiport (already from common.mk) -> libm. -lm is mandatory for
-# libgit2's khash soft-float load-factor math even though amigit has
-# no explicit floating point (known-pitfalls: libgit2 khash).
-LDFLAGS := -L../../lib/libgit2 -lgit2 \
-           -L../../lib/zlib -lz \
-           $(LDFLAGS) \
+# libamiport -> libm. -lm is mandatory for libgit2's khash soft-float
+# load-factor math even though amigit has no explicit floating point
+# (known-pitfalls: libgit2 khash).
+#
+# 0.1-6 (Track A, 2026-04-14): link against the -m68020 library
+# flavors (libgit2-020.a, libz-020.a, libamiport-020.a) from
+# commits 4a8a362 and 0dcb0a6. Before this, amigit 0.1-5 was a
+# 68020 binary linked against 68000 libraries -- exactly the
+# "cosmetic -m68020 at -O0" pitfall from known-pitfalls.md. The
+# binary's own 13 TUs were already 68020-O1 but the hot work
+# (libgit2 pack/diff/xdiff, zlib inflate, posix-shim fd ops) was
+# running on 68000 instructions. This commit fixes that.
+#
+# Note: we do NOT replace -lamiport (from common.mk's $(LDFLAGS))
+# via text substitution because common.mk bakes in a specific
+# library search order. Instead we override SHIM_LIB and prepend
+# the -020 library search path so the linker picks up the 020
+# variants first.
+LDFLAGS := -L../../lib/libgit2 -lgit2-020 \
+           -L../../lib/zlib -lz-020 \
+           -L../../lib/posix-shim -lamiport-020 \
+           $(filter-out -lamiport,$(LDFLAGS)) \
            -lm
+
+# Point the library-dependency edges at the 020 variants so make
+# rebuilds them automatically when they're stale.
+SHIM_LIB = ../../lib/posix-shim/libamiport-020.a
 
 # vamos stack and memory: match tests/libgit2/Makefile.
 # libgit2's tree/pack walk is deeply recursive; 256 KB covers it.
@@ -94,18 +114,22 @@ VAMOS_MEM   = 4096
 VAMOS_CPU   = 68020
 
 # Override common.mk's default $(TARGET) rule with our per-file build.
-$(TARGET): $(OBJECTS) $(SHIM_LIB) ../../lib/libgit2/libgit2.a ../../lib/zlib/libz.a
+# Depend on the -020 library archives so make rebuilds them when stale.
+$(TARGET): $(OBJECTS) $(SHIM_LIB) ../../lib/libgit2/libgit2-020.a ../../lib/zlib/libz-020.a
 	$(CC) $(CFLAGS) -o $(TARGET) $(OBJECTS) $(LDFLAGS)
 
 ported/%.o: ported/%.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
-# Make sure the upstream libraries get built when they're stale.
-../../lib/libgit2/libgit2.a:
-	$(MAKE) -C ../../lib/libgit2
+# Make sure the 020 library variants get built when they're stale.
+../../lib/libgit2/libgit2-020.a:
+	$(MAKE) -C ../../lib/libgit2 all-020
 
-../../lib/zlib/libz.a:
-	$(MAKE) -C ../../lib/zlib
+../../lib/zlib/libz-020.a:
+	$(MAKE) -C ../../lib/zlib all-020
+
+../../lib/posix-shim/libamiport-020.a:
+	$(MAKE) -C ../../lib/posix-shim all-020
 
 # Smoke test: vamos runs `amigit version` and verifies exit 0 plus
 # output contains "libgit2". Real testing happens in test-fsemu-cases.txt

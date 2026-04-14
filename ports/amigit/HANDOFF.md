@@ -11,23 +11,32 @@ document for where to go next, with honest effort estimates.
 
 ## Current state snapshot
 
-- **amigit 0.1-5 shipped** at commit `ca798e6` on `origin/main`
+- **amigit 0.1-6 shipped** at the Track A commit on `origin/main`
   (0.1 originally shipped at `8faf039`, 2026-04-13; 0.1-5 bump landed
-  2026-04-14 as the -O1 + -F cheap-wins pass).
+  2026-04-14 as the -O1 + -F cheap-wins pass at `ca798e6`; 0.1-6
+  closes Track A by relinking against -m68020 library flavors).
 - 87/87 FS-UAE functional tests green (`make test-fsemu TARGET=ports/amigit`).
   Up from 81 at 0.1 -- +5 tests cover the new `-F` file flag: 3 error
-  paths, 1 multi-word happy path, 1 log roundtrip.
+  paths, 1 multi-word happy path, 1 log roundtrip. Re-verified on the
+  0.1-6 binary (new libraries, same test outcomes).
 - 79/79 libgit2 Stage 5 tests still green on vamos
-  (`make -C tests/libgit2 run`).
+  (`make -C tests/libgit2 run`) -- the 000 libgit2.a remains untouched
+  and is what the test suite links against.
 - memory-checker CLEAN, perf-optimizer CLEAN.
-- Binary: 1,081,432 bytes (1.03 MB), `-m68000 -O1 -noixemul`. ~4 KB
-  smaller than 0.1 thanks to the -O1 promotion of the 13 amigit port
-  TUs (libgit2.a and libz.a stay -O0).
+- Binary: 1,078,892 bytes (1.03 MB), `-m68020 -O1 -noixemul`, linked
+  against `libgit2-020.a` + `libz-020.a` + `libamiport-020.a`. ~2.5 KB
+  smaller than 0.1-5 (denser 68020 instruction encoding in the
+  libraries). 0.1-5 was cosmetically -m68020 -- the BINARY's own 13
+  TUs were 68020-O1 but all the hot work (libgit2 pack/diff/xdiff,
+  zlib inflate, POSIX shims) ran 68000 code inside a 68020 process.
+  0.1-6 is the first revision where every code path in the final
+  image uses the 68020 instruction set.
 - LHA packages (latest revision):
-  - `ports/amigit/amigit-0.1-5.lha` (522,387 bytes)
-  - `ports/amigit/amigit-0.1-5-machine.lha` (451,066 bytes)
+  - `ports/amigit/amigit-0.1-6.lha` (521,236 bytes)
+  - `ports/amigit/amigit-0.1-6-machine.lha` (449,646 bytes)
 - Website entries: `PORTS.md`, `README.md`, `data/catalog.json`,
-  `site/data/catalog.json`, `site/data/packages/amigit.json`.
+  `site/data/catalog.json`, `site/data/packages/amigit.json`, and
+  both LHAs staged into `site/packages/`.
 
 ## Still-required local vamos monkey-patches (NOT in git)
 
@@ -188,11 +197,43 @@ revision, and does not need a `lib/libgit2/` rebuild.
 
 ## The big-ticket items: CPU bump and networking
 
-These are linked. Let me walk through each honestly.
+These are linked. CPU bump is **DONE as of 0.1-6 (Track A, 2026-04-14).**
+This section is kept for historical context; see the mop-up at the end
+for what actually shipped.
 
-### CPU bump: `-m68000` -> `-m68020`
+### CPU bump: `-m68000` -> `-m68020` -- SHIPPED IN 0.1-6
 
-**Current state:** amigit and all its dependencies (libgit2.a, libz.a,
+**What happened:** Added Option B (dual-flavor library builds) to
+`lib/zlib/`, `lib/libgit2/`, and `lib/posix-shim/`. The 000 variants
+(`libz.a`, `libgit2.a`, `libamiport.a`) are unchanged, bit-identical
+to their pre-Track-A hashes, and are still what every other amiport
+port and the Stage 5 libgit2 test suite link against. The 020 variants
+(`libz-020.a`, `libgit2-020.a`, `libamiport-020.a`) are opt-in via
+`make -C lib/<name> all-020` / `make -C lib/<name> dual` and today
+only amigit consumes them. Both flavors use the same -O levels; the
+020 win is CPU-instruction-level (long multiplies, denser encoding,
+wider addressing modes), NOT optimizer-level -- the crash-patterns
+#16 struct-return constraint still applies.
+
+amigit itself did NOT need a dual binary (Option C). 0.1-5 was already
+`-m68020` in CFLAGS; the problem was that it linked against `-m68000`
+libraries. 0.1-6 just flips the library link line to the 020 variants
+and ships a single binary. See the 0.1-6 readme for the "cosmetic
+-m68020 at -O0 without a library rebuild" framing.
+
+**What was NOT done:** the abandoned historical analysis below
+contemplated shipping dual LHAs (`amigit-0.2.lha` (000) +
+`amigit-0.2-020.lha` (020)) under the assumption that 0.1 was
+`-m68000`. That assumption was wrong by 0.1-5, so dual LHAs were
+unnecessary. Single-binary 0.1-6 ships instead.
+
+The remainder of this section (kept for context) is the original
+pre-session planning.
+
+---
+
+~~**Current state:**~~ (historical, pre-Track-A)
+amigit and all its dependencies (libgit2.a, libz.a,
 libamiport.a) are built `-m68000`. This is a hard constraint for vamos
 smoke testing, since vamos's default CPU is 68000 and anything with
 68020+ instructions crashes with `ALERT: code=00068020`.
@@ -464,17 +505,22 @@ Resume amigit evolution. Start by reading ports/amigit/HANDOFF.md
 the roadmap options with honest effort estimates, and the
 known-good test commands. Phase 3 (v1 release) is complete.
 
-Current head: main at or after ca798e6 on origin/main. amigit 0.1-5
-is shipped with all 11 v1 commands, the -F flag for multi-word commit
-messages, port TUs built at -O1, 87/87 FS-UAE tests green, memory-
-checker CLEAN, perf-optimizer CLEAN, LHA packages built.
+Current head: main at or after the Track A commit on origin/main.
+amigit 0.1-6 is shipped with all 11 v1 commands, the -F flag for
+multi-word commit messages, port TUs built at -O1, the entire bundled
+library stack (libgit2 + zlib + posix-shim) rebuilt at -m68020, 87/87
+FS-UAE tests green, memory-checker CLEAN, perf-optimizer CLEAN, LHA
+packages built and staged into site/packages/.
 
 HANDOFF "Cheap wins" items 1-4 (-O1 promotion, -F flag, fputs in
 cmd_log, is_help_flag consolidation) are ALL shipped in 0.1-5. Do
-NOT re-chase them -- HANDOFF struck them in the 2026-04-14 mop-up
-session (commit after 96bd984). Items 5 and 6 (local-file clone,
-remote commands) are actually medium work because they need a
-lib/libgit2/ rebuild.
+NOT re-chase them. HANDOFF "big-ticket items / CPU bump" is SHIPPED
+in 0.1-6 via dual-flavor library builds -- lib/{zlib,libgit2,
+posix-shim}/Makefile now have `make all-020` and `make dual` targets
+and amigit's own Makefile links against the -020 variants. Do NOT
+re-chase CPU dual-flavor either. Items 5 and 6 of cheap wins (local-
+file clone, remote commands) are still actually medium work because
+they need a lib/libgit2/ rebuild (re-enabling pruned source files).
 
 The vamos monkey-patches required for libgit2 Stage 5 regression
 testing are still in place locally (raise DOS lock cap to 65536,
@@ -483,27 +529,30 @@ section "Still-required local vamos monkey-patches" if
 `make -C tests/libgit2 run` fails with a stack trace involving
 LockManager or utime.
 
-Ask me what I want to tackle next. The honest options, ranked by
-effort:
+Ask me what I want to tackle next. The honest options after Track A
+shipped, ranked by effort:
 
 - Genuine small wins (1-2 days each, no library rebuild): annotated
   tag support (tag -a -m AND tag -a -F in one go, ~1 day), log
   --grep, pager auto-detect. See HANDOFF "Genuine small wins left".
   Each ships as a small 0.1.x or 0.2 revision.
-- Local-file clone (item #5, ~1 day but NOT cheap -- requires
-  lib/libgit2/ rebuild with clone.c re-enabled + stub adjust).
-- CPU dual-flavor build: 68000 + 68020 variants. 1 day
-  infrastructure. Ships as 0.3. Sets up networking prerequisite.
+- Local-file clone (item #5, ~1 day -- requires lib/libgit2/ source
+  re-enable of clone.c + stub adjust; same dual-flavor library build
+  is fine, just needs more sources included in both the 000 and 020
+  archives).
 - Full Tier 1 HTTPS networking: custom git smart-HTTP transport
-  backend (libgit2 extension point) + AmiSSL integration + 68020
-  CPU bump + lib/libgit2 re-enable of clone.c/fetch.c/remote.c.
+  backend (libgit2 extension point) + AmiSSL integration (AmiSSL
+  already requires -m68020 so the CPU prerequisite is already met
+  by 0.1-6) + lib/libgit2 re-enable of clone.c/fetch.c/remote.c.
   3-4 weeks of focused work. Ships as amigit 1.0.
 
 Before starting any non-trivial work, verify the local vamos
 monkey-patches are still applied (run `make -C tests/libgit2 run`
--- should print 79/79), and verify the v1 test suite still passes
-(`make test-fsemu TARGET=ports/amigit` should print 87/87). If
-either regresses, investigate before making changes.
+-- should print 79/79, testing the 000 libgit2.a which is still
+untouched), and verify the amigit test suite still passes
+(`make test-fsemu TARGET=ports/amigit` should print 87/87 against
+the 020-linked binary). If either regresses, investigate before
+making changes.
 ```
 
 ## Phase 3c session artifacts (historical record)

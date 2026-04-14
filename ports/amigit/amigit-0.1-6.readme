@@ -3,10 +3,10 @@ Type:         dev/misc
 Architecture: m68k-amigaos >= 68020
 Uploader:     duncan@bowring.us
 Author:       Duncan Bowring (amiport, built on libgit2)
-Version:      0.1-5
+Version:      0.1-6
 URL:          https://github.com/bdgscotland/amiport
 
-amigit 0.1-5 -- DEVELOPER PREVIEW
+amigit 0.1-6 -- DEVELOPER PREVIEW
 
 This is an early developer preview, NOT a stable git client.
 Suitable for early testers and feedback. Not yet suitable for
@@ -30,6 +30,8 @@ What does NOT work yet:
     whitespace). Use -F <file> for multi-word messages instead
     (added 0.1-5): write your message to a file and pass it via
     -F. Multi-line messages work too.
+  - Annotated tags with messages (tag -a). Only lightweight
+    tags work today. Planned for a future revision.
   - Merge, rebase, cherry-pick, revert, stash. None implemented.
   - Color output, pager integration, interactive flows.
 
@@ -51,10 +53,17 @@ The init friction:
   the 0.1.x line and rolled back.
 
 Roadmap:
-  0.2 -- init works from any volume + cheap perf wins. Removes
-        the friction wall above. Target: weeks, not months.
-  0.3 -- bundled libgit2 / zlib rebuilt at -m68020 for real
-        perf gain on accelerated Amigas (Vampire / 030 / 040).
+  0.1-6 (this release) -- bundled libgit2 / zlib / posix-shim
+        rebuilt at -m68020 alongside the amigit binary itself.
+        0.1-5 was a -m68020 binary linked against -m68000
+        libraries, so the hot work (libgit2 pack/diff, zlib
+        inflate, POSIX shims) was still running 68000 code.
+        0.1-6 fixes that: every code path in the final image
+        uses the 68020 instruction set. Noticeable on diff,
+        log, and status over larger histories.
+  0.2 -- init works from any volume + annotated tag messages
+        (tag -a -F <file>). Removes the init friction wall
+        above. Target: weeks, not months.
   1.0 -- HTTPS clone, fetch, log, diff against public repos
         via a libgit2 smart-HTTP backend on AmiSSL. Target:
         roughly 6-10 weeks of focused work. This is the
@@ -97,8 +106,8 @@ functional tests passing -- but those tests cover synthetic
 happy paths and do not yet exercise the full real-world
 workflow. Real workflow validation is a 0.2 milestone.
 
-Binary: ~1.05 MB. Stack: 256 KB. Requires 4 MB free RAM at
-runtime.
+Binary: ~1.03 MB (stripped). Stack: 256 KB. Requires 4 MB
+free RAM at runtime. 68020 minimum.
 
 Bug reports and feedback welcome via the GitHub issue tracker:
 https://github.com/bdgscotland/amiport/issues

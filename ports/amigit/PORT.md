@@ -5,24 +5,36 @@
 | Field | Value |
 |-------|-------|
 | Program | amigit |
-| Version | 0.1-5 |
+| Version | 0.1-6 |
 | Source | amiport-native (hand-written on libgit2 1.8.5) |
 | Category | 1 -- CLI tool |
 | License | GPL-2.0 (libgit2) + MIT (amiport code) |
 | Original Author | Duncan Bowring (amiport project) |
 | Port Date | 2026-04-13 |
-| Last Update | 2026-04-14 (revision 5) |
+| Last Update | 2026-04-14 (revision 6) |
 | Maturity | **Developer preview** -- not yet stable for daily use |
 
 ## Status
 
-**0.1-5 (2026-04-14) -- DEVELOPER PREVIEW.** All 11 PDR-010a v1
+**0.1-6 (2026-04-14) -- DEVELOPER PREVIEW.** All 11 PDR-010a v1
 commands compile and run, **87/87** FS-UAE functional tests
-passing (up from 82 in 0.1-4). This revision adds `commit -F <file>`
-for multi-word commit messages, promotes amigit's own 13 port TUs
-to `-O1`, and ships a new rule enforcing that new feature tests
-must exercise the feature's actual purpose (not shallow happy-path
-"does it not crash" tests). See "What changed in 0.1-5" below.
+passing. This revision closes Track A: bundled `libgit2.a`,
+`libz.a`, and `libamiport.a` are now built at `-m68020` alongside
+the amigit binary itself, via the new dual-flavor library build
+(`lib/{zlib,libgit2,posix-shim}/Makefile` gained `all-020` and
+`dual` targets; amigit's Makefile links against the `-020.a`
+archives). 0.1-5 had been cosmetically `-m68020` -- amigit's own
+13 port TUs were 68020-O1 but all the hot work (libgit2 pack/diff/
+xdiff, zlib inflate, POSIX shims) ran 68000 code inside a 68020
+process. 0.1-6 is the first revision where every code path in
+the final image actually uses the 68020 instruction set.
+
+**0.1-5 (2026-04-14) -- DEVELOPER PREVIEW.** Added `commit -F
+<file>` for multi-word commit messages, promoted amigit's own 13
+port TUs to `-O1`, and shipped a new rule enforcing that new
+feature tests must exercise the feature's actual purpose (not
+shallow happy-path "does it not crash" tests). See "What changed
+in 0.1-5" below.
 
 **0.1-4 (2026-04-13) -- DEVELOPER PREVIEW.** All 11 PDR-010a v1
 commands compile and run, **82/82** FS-UAE functional tests
@@ -92,13 +104,72 @@ should ship 0.2 / 0.3 as visible incremental wins so the project
 doesn't sit at 0.1.x and look abandoned during the long quiet
 networking stretch.
 
+### What changed in 0.1-6
+
+Closes HANDOFF.md Track A ("CPU bump: -m68000 -> -m68020"). Bundled
+libraries are now built with the 68020 instruction set, matching the
+amigit binary's long-standing `-m68020` target.
+
+- **Dual-flavor library builds.** `lib/zlib/Makefile`,
+  `lib/libgit2/Makefile`, and `lib/posix-shim/Makefile` each grew
+  a parallel `-020` target set. `make -C lib/<name> all` still
+  builds only the 000 archive (unchanged for every other port and
+  the Stage 5 test suite). `make -C lib/<name> all-020` builds the
+  020 archive. `make -C lib/<name> dual` builds both. The 020
+  objects use a `.020.o` suffix in the existing `src/` tree, so no
+  shadow directories and no recursive make. CFLAGS_020 is derived
+  via `$(subst -m68000,-m68020,$(CFLAGS))` so any future flag
+  addition to the base CFLAGS propagates automatically.
+
+- **000 archives are bit-identical to their pre-Track-A hashes.**
+  Verified via `shasum -a 256` before and after the refactor:
+  `libz.a` = `e12a2d28...`, `libgit2.a` = `0e04eca6...`, `libamiport.a`
+  = `b0ecfdfa...`. The 000 variants are still what every other
+  amiport port and the `tests/libgit2/` Stage 5 suite link against;
+  there is zero behaviour change for any consumer that wasn't
+  modified to explicitly opt in to the 020 flavors.
+
+- **amigit relinks against the 020 archives.** `ports/amigit/Makefile`
+  switched LDFLAGS from `-lgit2 -lz -lamiport` to `-lgit2-020 -lz-020
+  -lamiport-020`, and the $(TARGET) rule's library prerequisites
+  switched from `libgit2.a`/`libz.a` to `libgit2-020.a`/`libz-020.a`.
+  `$(filter-out -lamiport,$(LDFLAGS))` removes the 000 libamiport
+  that common.mk injected by default. `SHIM_LIB` override points
+  at `libamiport-020.a`.
+
+- **Binary is 2,540 bytes smaller at 1,078,892 bytes** (vs 0.1-5's
+  1,081,432 bytes). The shrink comes from denser 020 instruction
+  encoding in the libraries; amigit's own TUs are unchanged from
+  0.1-5 (still -O1 -m68020).
+
+- **The "cosmetic -m68020 at -O0" pitfall.** 0.1-5 was the first
+  amigit revision compiled with `-m68020` for its own 13 TUs, but
+  all three libraries (libgit2.a, libz.a, libamiport.a) were still
+  `-m68000` because the project rule "Libraries MUST Use -m68000"
+  (known-pitfalls.md) prevents vamos test regression. That meant
+  every call out of amigit's code into libgit2's pack walker, zlib's
+  inflate, or the POSIX shim's file I/O dropped from 68020 code
+  back to 68000 code. Net perf win was close to zero -- the
+  libraries were the hot path, not the CLI dispatch layer. Track A's
+  dual-flavor build resolves this: the 020 variants exist alongside
+  the 000 ones, amigit opts in, vamos tests for other ports still
+  work because they see the unchanged 000 archives.
+
+- **87/87 FS-UAE tests re-run.** The full test suite was run twice:
+  once on the 0.1-5-stringed binary linked against 020 libraries (to
+  prove the relink produces a functional binary before the version
+  bump), and once on the 0.1-6-stringed binary after the `AMIGIT_VERSION`
+  + `$VER` updates (to prove the version-bump verification gate).
+  Both green. vamos smoke test also passed twice deterministically.
+
 ### What changed in 0.1-5
 
 Cheap-wins pass from HANDOFF.md (B-track): perf promotion of amigit
 port TUs to `-O1` (the 13 cmd_*.c + amigit.c files; `lib/libgit2/`
-and `lib/zlib/` stay at `-O0`), new `commit -F <file>` flag for
-multi-word commit messages, and a testing-discipline rule to prevent
-the shallow-happy-path lie that was caught in this session.
+and `lib/zlib/` stayed at `-O0` in 0.1-5 but are rebuilt at 020
+in 0.1-6), new `commit -F <file>` flag for multi-word commit
+messages, and a testing-discipline rule to prevent the shallow-
+happy-path lie that was caught in this session.
 
 - **`-O1` promotion for amigit's port TUs.** perf-optimizer
   (2026-04-13 audit, HANDOFF.md item 1) declared all 13 TUs safe

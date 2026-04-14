@@ -5,8 +5,8 @@
 | Field | Value |
 |-------|-------|
 | Port | amigit |
-| Date | 2026-04-14 11:31:17 |
-| Duration | 148s |
+| Date | 2026-04-14 13:22:42 |
+| Duration | 146s |
 | Platform | FS-UAE 3.2.35 (A1200, Kickstart 3.1) |
 | Binary | `WORK:amigit` (1.0M) |
 | Test method | ARexx harness → TAP output |
@@ -253,7 +253,7 @@ and compares against the expected output string.
 
 TEST: version prints amigit version on first line
 CMD: WORK:amigit version
-EXPECT: amigit 0.1-5 (built 2026-04-14)
+EXPECT: amigit 0.1-6 (built 2026-04-14)
 EXPECT_RC: 0
 
 TEST: version prints libgit2 version on second line

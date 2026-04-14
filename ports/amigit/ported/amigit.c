@@ -89,7 +89,7 @@ int amigit_resolve_repo_path(const char *in, char *out, size_t outsize)
 long __stack = 262144;
 
 /* $VER tag for `version` command. Date is the build day. */
-static const char *verstag = "$VER: amigit 0.1-5 (14.04.2026)";
+static const char *verstag = "$VER: amigit 0.1-6 (14.04.2026)";
 
 /* ========================================================================
  * Dispatch table -- single source of truth for v1 command set
