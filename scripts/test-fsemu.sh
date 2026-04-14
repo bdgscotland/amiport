@@ -940,7 +940,11 @@ cleanup() {
 
     # Clean up results dir
     if [ -n "${RESULTS_DIR:-}" ] && [ -d "${RESULTS_DIR:-}" ]; then
-        rm -rf "$RESULTS_DIR"
+        if [ "${AMIPORT_KEEP_RESULTS:-0}" = "1" ]; then
+            echo "AMIPORT_KEEP_RESULTS=1 -- leaving $RESULTS_DIR for inspection"
+        else
+            rm -rf "$RESULTS_DIR"
+        fi
     fi
 }
 

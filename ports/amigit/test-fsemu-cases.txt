@@ -588,3 +588,16 @@ TEST: log after two commits shows most recent commit on first line
 CMD: SYS:Rexxc/rx WORK:test-amigit-inrepo.rexx T:amigit-c3 log
 EXPECT_CONTAINS: worldadd
 EXPECT_RC: 0
+
+# ======================================================================
+# DIAG: reproduce CWD-relative init bug (user report, 2026-04-13)
+# ======================================================================
+# The user hit `WORK:amigit init` from inside a Shell whose CWD was
+# WORK:playground and got a stat error. Every existing init test uses
+# an explicit T:amigit-test path, so the "init from a user CWD" case
+# has never been exercised. This DIAG block proves it on FS-UAE and
+# will stay as a regression test after the fix.
+
+TEST: init from freshly created CWD with no args succeeds
+CMD: SYS:Rexxc/rx WORK:test-amigit-cwd-init.rexx
+EXPECT_RC: 0
