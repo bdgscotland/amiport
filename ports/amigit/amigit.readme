@@ -26,8 +26,10 @@ What does NOT work yet:
   - Network: no clone, no fetch, no push, no remote, no pull.
     The whole collaboration value of git is missing. amigit
     currently only manages LOCAL repositories.
-  - Multi-line commit messages via -m. Use a single shell token
-    for now; -F <file> is planned.
+  - Multi-word commit messages via -m (AmigaDOS splits argv on
+    whitespace). Use -F <file> for multi-word messages instead
+    (added 0.1-5): write your message to a file and pass it via
+    -F. Multi-line messages work too.
   - Merge, rebase, cherry-pick, revert, stash. None implemented.
   - Color output, pager integration, interactive flows.
 
@@ -90,7 +92,7 @@ Built on: libgit2 1.8.5, zlib 1.3.1, amiport posix-shim
 
 Cross-compiled with m68k-amigaos-gcc 6.5.0b for AmigaOS 3.x.
 Targets 68020 minimum (no plain 68000 / A500 support --
-accelerated Amigas only). Tested in FS-UAE A1200 with 82/82
+accelerated Amigas only). Tested in FS-UAE A1200 with 87/87
 functional tests passing -- but those tests cover synthetic
 happy paths and do not yet exercise the full real-world
 workflow. Real workflow validation is a 0.2 milestone.
