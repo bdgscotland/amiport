@@ -48,6 +48,8 @@ OBJECTS = ported/amigit.o \
           ported/cmd_tag.o \
           ported/cmd_ls_remote.o \
           ported/transport_https.o \
+          ported/http_client.o \
+          ported/amissl_glue.o \
           ported/amigit_libgit2_stubs.o
 
 # Override SOURCES so common.mk's default single-file rule is bypassed.
@@ -75,6 +77,8 @@ CFLAGS := $(subst -O2,-O1,$(subst -m68000,-m68020,$(CFLAGS))) \
           -Wno-unused-parameter -Wno-unused-function \
           -I../../lib/libgit2/include \
           -I../../lib/libgit2/src/util \
+          -I../../lib/bsdsocket-shim/include \
+          -I../../lib/amissl-sdk/include \
           -include ../../lib/libgit2/src/util/amigaos_compat.h
 
 # LDFLAGS: libgit2 link chain. Order matters: libgit2 -> libz ->
@@ -99,6 +103,8 @@ CFLAGS := $(subst -O2,-O1,$(subst -m68000,-m68020,$(CFLAGS))) \
 LDFLAGS := -L../../lib/libgit2 -lgit2-020 \
            -L../../lib/zlib -lz-020 \
            -L../../lib/posix-shim -lamiport-020 \
+           -L../../lib/bsdsocket-shim -lamiport-net \
+           -L../../lib/amissl-sdk/lib -lamisslstubs \
            $(filter-out -lamiport,$(LDFLAGS)) \
            -lm
 

@@ -711,8 +711,12 @@ The project is DONE when all of these are true:
 ## Session checkpoint (update in-place every session)
 
 **Current phase:** Phase 3 (HTTPS client -- HTTP/1.1 + AmiSSL TLS
-from day one, 3 sessions).
-Last update: 2026-04-14.
+from day one, 3 sessions). Session 1 of 3 landed the parser,
+socket backend, and AmiSSL glue in-tree. Remaining session work:
+install AmiSSL into the FS-UAE system.hdf, add a live-HTTPS
+TEST: block, and run a real-hardware smoke test on Duncan's
+A2000 + Vampire + X-Surf + Roadshow + AmiSSL stack.
+Last update: 2026-04-14 (Phase 3 session 1 landed).
 
 **2026-04-14 plan change:** original Phase 3 (plain HTTP only)
 and original Phase 7 (AmiSSL integration) MERGED into the
@@ -727,7 +731,176 @@ those refer to the OLD numbering -- see the current
 `## Phase plan` section for authoritative current numbering.
 
 **Last completed phase:** Phase 2 -- transport TU skeleton + dummy
-registration.
+registration. Phase 3 session 1 is complete (parser + glue +
+vamos unit tests). Phase 3 remaining work: AmiSSL install in
+FS-UAE HDF + live-HTTPS TEST block + real-hardware smoke.
+
+**Phase 3 session 1 summary (2026-04-14):**
+
+Three new files under `ports/amigit/ported/`:
+
+- `http_client.h` -- public API. Opaque `http_conn_t` plus an
+  `http_io_t` vtable (read/write/close fn pointers) so parser
+  tests can run over memory buffers. Explicit HTTP_ERR_* codes
+  including `HTTP_ERR_TLS_MISSING` so callers can graceful-degrade.
+- `http_client.c` (~550 lines) -- pure-C parser half (status
+  line, header iteration, Content-Length body reader) on top of
+  the io vtable. Plus a socket backend (`socket_read`/`write`/`close`
+  using amiport_recv/send/closesocket from bsdsocket-shim) and
+  `http_connect()` which does `amiport_getaddrinfo` + `socket` +
+  `connect`. The parser is vamos-testable; the socket backend is
+  Amiga-only (#ifdef __AMIGA__).
+- `amissl_glue.c` (~320 lines) -- manual `OpenLibrary
+  ("amisslmaster.library")` + `InitAmiSSLMaster` + `OpenAmiSSL` +
+  `SSL_CTX_new` + `SSL_new` + `SSL_set_fd` + `SSL_connect`. Uses
+  **explicit** hostname verification via
+  `X509_VERIFY_PARAM_set1_host` + `X509_CHECK_FLAG_NO_PARTIAL_WILDCARDS`
+  + SNI via `SSL_set_tlsext_host_name` -- not just `SSL_VERIFY_PEER`
+  alone (chain-only verification would allow a valid cert for any
+  trusted domain on any host). The AmiSSL master + backend are
+  cached globally via `AmiSSLMasterBase`/`AmiSSLBase` and released
+  by `amissl_glue_free_cached()` which is registered via `atexit`
+  in `amigit.c`. Per-connection `SSL_CTX` + `SSL` are freed in the
+  io->close callback with teardown order `SSL_shutdown` -> `SSL_free`
+  -> `SSL_CTX_free` -> `closesocket`.
+
+New test suite: `tests/amigit-http-client/`
+
+- `test_http_client.c` -- 14 vamos-testable unit tests driven by
+  an in-memory io vtable (memio_priv_t). Covers status 200/301/404/
+  500/malformed/HTTP 2.0 rejected; single/multi/whitespace/malformed
+  headers; body with Content-Length + zero-length; GET + POST request
+  formatting. No bsdsocket, no AmiSSL -- the parser runs over string
+  literals.
+- `Makefile` -- matches `tests/zlib` / `tests/libgit2` pattern.
+  Builds with `-O0 -m68020` + `-I` paths for posix-shim, bsdsocket
+  -shim, amissl-sdk. Links the full production surface (libamiport +
+  libamiport-net + libamisslstubs + libm) so http_client.c's socket
+  backend and amissl_glue.c's TLS backend resolve even though the
+  parser tests never call them. vamos runs with `-C 68020 -s 512 -m 4096`.
+
+Wiring:
+
+- `ports/amigit/Makefile` -- OBJECTS gains `ported/http_client.o`
+  + `ported/amissl_glue.o`. CFLAGS gains `-I../../lib/bsdsocket-shim/include`
+  + `-I../../lib/amissl-sdk/include`. LDFLAGS gains `-L../../lib/bsdsocket-shim
+  -lamiport-net -L../../lib/amissl-sdk/lib -lamisslstubs`. Link order
+  preserved so `-lamiport-020` from the existing chain wins.
+- `ports/amigit/ported/amigit.c` -- includes `http_client.h` for the
+  `amissl_glue_free_cached` extern and registers it via
+  `atexit(amissl_glue_free_cached)` right after `atexit(shutdown_libgit2)`.
+
+Deliberately NOT touched in Phase 3 session 1:
+- `ports/amigit/ported/transport_https.c` -- still a Phase 2 stub
+  (`https_action` returns `GIT_ERROR_NET "HTTPS transport not
+  implemented yet"`). Phase 5 will wire http_client into
+  `https_action()`. Phase 4 adds pkt-line + chunked transfer first.
+- `lib/bsdsocket-shim/` -- parallel sessions own this (uncommitted
+  `getaddrinfo.c` / `fcntl_socket.c`). The existing `libamiport-net.a`
+  already exports `amiport_getaddrinfo` / `amiport_freeaddrinfo` /
+  `amiport_fcntl` symbols, so we link against whatever is on disk
+  without touching the sources.
+
+**Build and test results:**
+
+- `make -C tests/libgit2 run`: **79/79** (unchanged).
+- `make test-fsemu TARGET=ports/amigit`: **91/91** (unchanged).
+- `make -C tests/amigit-http-client run`: **14/14** (new suite).
+- `ports/amigit/amigit` binary: **1,210,036 bytes** (+15,148 from
+  Phase 2 baseline 1,194,888). Delta is the http_client + amissl_glue
+  object code; AmiSSL symbols are runtime-resolved via `libamisslstubs`
+  so there's no static bloat from the OpenSSL surface.
+- memory-checker agent audit of `http_client.c` + `amissl_glue.c`:
+  **CLEAN**. All partial-init paths honored, teardown order correct,
+  graceful-degrade contract between `http_connect` and
+  `amissl_glue_open_io` holds (on TLS failure the glue closes the
+  sockfd and leaves io untouched; the caller frees io).
+
+**Surprises / scope deltas:**
+
+- **PDR said "copy wget's AmiSSL glue verbatim." wget has no
+  such glue.** wget's shipped Phase 1 build is HTTP-only:
+  `ports/wget/Makefile` does not link libamisslstubs or libamisslauto,
+  `ports/wget/ported/src/openssl.c` is not in SOURCES, and the
+  known-pitfalls "libamisslauto.a Is a Hard Runtime Dependency"
+  entry records that wget's attempted Phase 2 crashed on real
+  hardware and was reverted. The in-tree `ports/wget/ported/src/openssl.c`
+  still exists as dead code and its inclusion of `<proto/amissl.h>`
+  is the only artifact of the aborted integration. Result: Phase 3
+  wrote the manual-OpenLibrary pattern from the AmiSSL 5.x SDK
+  headers directly (`proto/amisslmaster.h` + the autodocs), not
+  by copying wget.
+- **The uncommitted lib/bsdsocket-shim/ parallel work already
+  shipped `amiport_getaddrinfo`, `amiport_freeaddrinfo`,
+  `amiport_fcntl` symbols into `libamiport-net.a`.** `nm` confirms
+  they resolve at link time without any edits from this session.
+  This is "treat libamiport-net.a as other sessions own this" in
+  practice -- the archive on disk is load-bearing and we link
+  against it unchanged.
+- **Semgrep caught `SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER, NULL)`
+  as CWE-295 "Improper Certificate Validation".** The rule
+  trigger is the `NULL` callback argument, which is the OpenSSL
+  default-verify path (NOT "no verification") -- but semgrep is
+  right that `SSL_VERIFY_PEER` alone validates the chain without
+  binding the hostname. The fix is threefold: (1) pass an explicit
+  `amigit_verify_cb` that returns `preverify_ok` instead of NULL,
+  (2) call `X509_VERIFY_PARAM_set1_host(vp, host, 0)` on the SSL
+  object's verify params before `SSL_connect`, and (3) set
+  `X509_CHECK_FLAG_NO_PARTIAL_WILDCARDS`. This is the modern
+  OpenSSL 1.0.2+ API and AmiSSL 5.x exposes it. Without (2), a
+  github.com cert served on amiport.platesteel.net would pass
+  verification.
+- **Tests link `libamiport-net` and `libamisslstubs` even though
+  the parser path never touches them.** http_client.c references
+  `amiport_*` functions from its #ifdef __AMIGA__ socket backend
+  and amissl_glue.c references SSL_* symbols from its TLS backend;
+  both appear in the compiled objects regardless of whether the
+  test runtime calls them. Linker needs all symbols resolved.
+  Adding the `-L` / `-l` entries is cleaner than splitting
+  http_client.c into "parser" and "backend" files -- a future
+  refactor might do the split but it's not worth it for Phase 3.
+
+**Phase 3 remaining work for next session (session 2 of 3):**
+
+1. **Install AmiSSL into `build/system.hdf`.** The shipped FS-UAE
+   test harness uses a minimal Workbench 3.1 HDF that does NOT
+   have `amisslmaster.library`, `amissl_v3xx.library`, or the
+   `AmiSSL/` catalog directory. FS-UAE already has bsdsocket
+   passthrough (`bsdsocket_library = 1` in
+   `toolchain/configs/amiport-test.fs-uae` and
+   `scripts/test-fsemu.sh`), so raw TCP works -- only TLS is
+   missing. Download AmiSSL 5.x from
+   `github.com/jens-maus/amissl/releases`, extract the libraries
+   into a staging dir, and `xdftool build/system.hdf write` them
+   under `Libs/amisslmaster.library` + `Libs/AmiSSL/v3xx/amissl_v3xx.library`.
+   Verify with `xdftool list | grep amissl`. Document the install
+   in `scripts/test-fsemu.sh` comments.
+2. **Add a live-HTTPS TEST: block to `ports/amigit/test-fsemu-cases.txt`.**
+   Since `transport_https.c` is still a Phase 2 stub, the live
+   test cannot yet be "full clone through libgit2". It needs a
+   debug path that exercises `http_connect` + `http_send_request`
+   + `http_read_response_status` directly. Easiest: add a hidden
+   subcommand `amigit _https-probe <url>` (underscore prefix =
+   debug, not in user docs) that opens the URL with use_tls=1,
+   sends a GET, prints "status=NNN" or an error code. Then a
+   TEST: block with `CMD: WORK:amigit _https-probe https://amiport.platesteel.net/`
+   + `EXPECT_CONTAINS: status=200`. Session 2 can also throw in
+   a graceful-degrade test (rename amisslmaster.library to
+   amisslmaster.library.hidden, re-run, expect "HTTPS not
+   available"), though that requires test-harness support for
+   pre/post file manipulation in the HDF.
+3. **Real-hardware smoke test on Duncan's Amiga** -- manual,
+   not automated. Run `amigit _https-probe https://github.com/bdgscotland/amiport`
+   on the A2000 + Vampire + X-Surf + Roadshow + AmiSSL stack.
+   Success = http_client reaches github over HTTPS and prints a
+   status code. That's more evidence the stack works than any
+   vamos parser test could ever provide.
+
+**Session 2 is expected to be smaller than session 1** -- mostly
+shell scripting for the HDF install, one new small C file for the
+debug subcommand, one new TEST block, and a few `strings | grep`
+sanity checks. Session 3 is the real-hardware smoke + stabilization
+/ known-pitfalls capture.
 
 **Phase 2 summary (2026-04-14):**
 

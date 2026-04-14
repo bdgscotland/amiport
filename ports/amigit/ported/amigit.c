@@ -28,6 +28,7 @@
 
 #include "amigit.h"
 #include "transport_https.h"
+#include "http_client.h"   /* amissl_glue_free_cached */
 
 /* ========================================================================
  * amigit_resolve_repo_path -- AmigaDOS path -> libgit2-friendly form
@@ -257,6 +258,11 @@ int main(int argc, char **argv)
         me->pr_WindowPtr = saved_win;
         return RETURN_FAIL;
     }
+
+    /* Release cached AmiSSL library handles (AmiSSLMasterBase /
+     * AmiSSLBase) on exit. No-op if amissl_glue_open_io was never
+     * called (e.g. local-only commands). PDR-012 Phase 3. */
+    (void)atexit(amissl_glue_free_cached);
 
     /* Register the amigit custom HTTPS subtransport. Must be called
      * AFTER git_libgit2_init() (which sets up the transport registry)
