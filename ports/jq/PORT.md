@@ -5,12 +5,13 @@
 | Field | Value |
 |-------|-------|
 | Program | jq |
-| Version | 1.7.1-2 |
+| Version | 1.7.1-3 |
 | Source | https://github.com/jqlang/jq (jq-1.7.1) |
-| Category | 1 — CLI |
+| Category | 1 - CLI |
 | License | MIT (jq), ICU (decNumber) |
 | Original Author | Stephen Dolan / jqlang contributors |
 | Port Date | 2026-03-22 |
+| Last Revised | 2026-04-13 |
 
 ## Description
 
@@ -149,3 +150,25 @@ Reviewed with 3 specialized agents (2 rounds each):
 - **Profiler:** 87% startup, linear scaling, output-bound for large workloads.
 
 Score: **READY** (with -O0 and known limitations documented)
+
+## Revision History
+
+### 1.7.1-3 (2026-04-13)
+
+Shim-audit revision pass. Two surgical fixes against the 2026-04 shim surface:
+
+1. **builtin.c `gmtime_r_to_utc`**: fixed strdup leak. The function saved `getenv("TZ")` into a local pointer, called `strdup()`, then called `setenv("TZ", "", 1)` + `mktime()` + `setenv("TZ", saved, 1)`. The strdup copy was never freed on return. File uses libnix `<stdlib.h>` (not `<amiport/stdlib.h>`), so `getenv()` returns static storage and must NOT be freed - only the strdup result needs freeing. Verified clean by memory-checker.
+
+2. **main.c `process()` loop**: added `amiport_check_break()` at the top of the filter evaluation `while (jv_is_valid(result = jq_next(jq)))` loop. Long-running filters on large JSON are now Ctrl-C interruptible. On break, `ret` is set to `JQ_OK_NO_OUTPUT` and control falls through to the unconditional post-loop `jv_free(result)` - no double-free.
+
+Binary: 595,672 bytes (-60 from 1.7.1-2 due to removed dead lines). 60/60 FS-UAE tests still pass. Memory-checker verdict: OK to publish.
+
+Also fixed a Makefile ordering bug: `VERSION`/`REVISION` are now set BEFORE `include ../common.mk` so `DISPLAY_VERSION` computes correctly at parse time. Previously required `REVISION=3` on the command line to produce the correctly-named LHA.
+
+### 1.7.1-2 (2026-03-25)
+
+Added Oniguruma 6.9.9 regex engine (ASCII-only build, 227 KB). All regex builtins work: test, match, capture, scan, sub, gsub. Named capture groups supported. Single-entry regex compilation cache. Memory leak on regex error path fixed.
+
+### 1.7.1-1 (2026-03-22)
+
+First 68k AmigaOS port of jq. Builtin libm math paths, IEEE 754 doubles (no decNumber), pthread TLS replaced with static singleton stubs. 50 functional tests.

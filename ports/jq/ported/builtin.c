@@ -1430,15 +1430,22 @@ static time_t my_mktime(struct tm *tm) {
 #elif WIN32
   return _mkgmtime(tm);
 #else
-  char *tz;
-
-  tz = (tz = getenv("TZ")) != NULL ? strdup(tz) : NULL;
-  if (tz != NULL)
+  /* amiport: strdup() leak fixed -- the TZ copy was never freed after setenv restore.
+   * Note: this file uses libnix <stdlib.h>, so getenv() returns static storage (not
+   * malloc'd) -- the getenv result must NOT be freed. */
+  char *tz = getenv("TZ");
+  if (tz != NULL) {
+    tz = strdup(tz);
     setenv("TZ", "", 1);
-  time_t t = mktime(tm);
-  if (tz != NULL)
-    setenv("TZ", tz, 1);
-  return t;
+  }
+  {
+    time_t t = mktime(tm);
+    if (tz != NULL) {
+      setenv("TZ", tz, 1);
+      free(tz);
+    }
+    return t;
+  }
 #endif
 }
 

@@ -1,9 +1,9 @@
 # Makefile for jq (amiport)
 TARGET      = jq
+VERSION     = 1.7.1
+REVISION    = 3
 
 include ../common.mk
-VERSION     = 1.7.1
-REVISION    = 2
 DESCRIPTION = Lightweight command-line JSON processor
 AUTHOR      = Stephen Dolan / jqlang
 AMINET_CAT  = util/cli

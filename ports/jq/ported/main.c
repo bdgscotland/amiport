@@ -10,8 +10,10 @@
 #include <amiport/stdlib.h>
 #include <stdio.h>
 #include <string.h>
-/* amiport: replaced <unistd.h> with <amiport/unistd.h> — provides isatty(), realpath() */
+/* amiport: replaced <unistd.h> with <amiport/unistd.h> -- provides isatty(), realpath() */
 #include <amiport/unistd.h>
+/* amiport: Ctrl-C break check for long-running filters */
+#include <amiport/signal.h>
 
 /* amiport: declare dirname() — provided by libnix libc.a, no header in sysroot */
 extern char *dirname(char *path);
@@ -21,7 +23,7 @@ extern char *dirname(char *path);
 #endif
 
 /* amiport: Amiga version string */
-static const char *verstag = "$VER: jq 1.7.1-2 (25.03.2026)";
+static const char *verstag = "$VER: jq 1.7.1-3 (13.04.2026)";
 
 /* amiport: stack cookie — jq's recursive filter evaluator needs deep stack */
 /* amiport: increased to 128KB — at -O0, bison parser alloca + dos.library hidden
@@ -262,6 +264,13 @@ static int process(jq_state *jq, jv value, int flags, int dumpopts, int options)
   jq_start(jq, value, flags);
   jv result;
   while (jv_is_valid(result = jq_next(jq))) {
+    /* amiport: allow Ctrl-C to interrupt long-running filters.
+     * Do not free result here -- the post-loop jv_free(result) at function
+     * tail handles cleanup on all exit paths. */
+    if (amiport_check_break()) {
+      ret = JQ_OK_NO_OUTPUT;
+      break;
+    }
     if ((options & RAW_OUTPUT) && jv_get_kind(result) == JV_KIND_STRING) {
       if (options & ASCII_OUTPUT) {
         jv_dumpf(jv_copy(result), stdout, JV_PRINT_ASCII);
