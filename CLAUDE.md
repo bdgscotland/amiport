@@ -235,7 +235,7 @@ The amiga-kb MCP server must be running (`docker compose up -d` in the amiga-kb 
 **Skill injection:** Knowledge base skills are injected into agent definitions via the `skills:` frontmatter field. When an agent is dispatched, its injected skills are loaded into context automatically. See individual agent definitions in `.claude/agents/` for the injection matrix.
 - `/extend-shim` — Invoke when adding new POSIX functions to the shim library.
 - `/review-amiga` — Invoke for Amiga-specific code review.
-- `/capture-learning` — Invoke when a bug, mistake, or process failure occurs. Routes universal knowledge (OS behavior, 68k gotchas) to amiga-kb via `amiga_add_pitfall` / `amiga_report_gap`. Routes project-specific knowledge to local rules/skills.
+- `/capture-learning` — Invoke when a bug, mistake, or process failure occurs. **Dual-writes** by default: project-local enforcement (hook/rule/agent/skill/memory — strongest) AND amiga-kb via `amiga_add_pitfall` / `amiga_add_crash_pattern` / `amiga_report_gap` when the learning is universal AmigaOS/68k/libnix/bebbo knowledge. Project-local knowledge (pipeline mechanics, site architecture, amiport conventions) stays local only. The skill file has the full YES/NO classification.
 
 **Architecture & guides:** `docs/architecture.md`, `docs/porting-guide.md`, `docs/api-mapping.md`
 
