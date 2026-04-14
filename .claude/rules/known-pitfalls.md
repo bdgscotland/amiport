@@ -817,3 +817,62 @@ Discovered in amigit Phase 3c (2026-04-13). A Guru `8000 000B` in libgit2's `git
 4. Only pursue speculative theories (stack overflow, codegen, alignment, etc.) AFTER the KB returns no confident match.
 
 **Corollary:** odd-address PCs in 68k crash reports are almost always stack-corruption symptoms, NOT the actual crash site. A `nm` lookup on an odd PC will find the nearest-symbol-below and report it confidently -- but that's a lie. 68k instructions are word-aligned (even addresses only); any PC ending in an odd byte is evidence that the return-address slot on the stack was smashed. Don't try to map odd PCs to symbols unless you first prove the PC is even.
+
+## libgit2 git_fs_path_root Only Recognizes Single-Character Drive Prefixes
+
+libgit2's `dos_drive_prefix_length()` in `src/util/fs_path.c` only matches a single ASCII letter followed by `:` (Windows drive style). On AmigaOS, `NameFromLock(pr_CurrentDir)` returns paths in the *volume* form -- and AmigaOS volume names can be **multi-character and contain spaces**: `Ram Disk:foo`, `WORK:playground`, `System 3.1:bin`. For these, `dos_drive_prefix_length` returns 0, so `git_fs_path_root` returns -1 (unrooted). libgit2 then treats the whole path as relative.
+
+**Impact (read side -- harmless):** `git_repository_open_ext()` walks dirname forgivingly and finds `.git/` regardless. Status, log, diff, add, commit, branch, checkout, tag from a CWD all work fine.
+
+**Impact (init -- fails):** `git_repository_init()` calls `git_futils_mkdir()` which calls `mkdir_canonicalize()` which uses `git_fs_path_root` to set the dirname-walk ceiling. With root_len=0, the walk strips the entire path back to "." and tries `p_mkdir("./.")` which fails with `failed to make directory './.': No such file or directory`. The error is cryptic and does not name the actual problem.
+
+**Pragmatic fix (port-side):** detect the multi-char-volume CWD case in cmd_init and emit a friendly "use: amigit init <path>" error before calling libgit2. See `ports/amigit/ported/cmd_init.c` for the reference implementation.
+
+**Real fix (libgit2-side, deferred):** patch `dos_drive_prefix_length` to scan for the first `:` on AmigaOS (`#ifdef __AMIGA__`) and accept multi-char drive prefixes. Tried this 2026-04-13 plus an amigit_resolve_repo_path rewrite to inject `/` after the volume separator. Result: the in-repo open paths (status/log/etc.) regressed from 81/81 to 62/82 because libnix does NOT treat `"Ram Disk:/foo"` the same way as `"Ram Disk:foo"` for `p_stat`/`p_open` operations -- the deeper fix needs both libgit2 path recognition AND libnix path normalization to agree on the form. Both need to flip together. Until then, the friendly-error approach in cmd_init is the working compromise.
+
+**Detection:** any port that uses libgit2 and exposes a "create new repo from current directory" entry point will hit this. Add a positional-argument-matrix test (per docs/test-coverage-standard.md section 1a) for the zero-arg / CWD case from a real Execute-script-CD'd directory before declaring the port complete.
+
+Discovered in amigit 0.1-2 (2026-04-13). The 0.1 release shipped with 81/81 green tests because no test had ever exercised the zero-positional-arg CWD form -- every existing init test used an explicit `T:amigit-test` path.
+
+## bebbo-gcc -m68020 Is Cosmetic at -O0 Without a Library Rebuild
+
+Flipping `-m68000` to `-m68020` on a port's CFLAGS does not produce meaningful speedup on its own under bebbo-gcc 6.5.0b at `-O0`. Two reasons:
+
+1. **At `-O0`, the optimizer does not reschedule.** `-m68020` instruction selection improvements (32-bit `MULS.L`/`MULU.L`, unaligned access, better addressing modes) only manifest when the optimizer has freedom to schedule and select. `-O0` emits straight sequential code with no scheduling, so the flag changes essentially nothing about the generated instructions.
+
+2. **The hot work is usually in libraries, not the consuming binary.** For ports built on top of `lib/libgit2/`, `lib/zlib/`, or `lib/posix-shim/`, the consuming binary is mostly control flow + string ops + library API calls. The CPU-intensive work (SHA computation, deflate/inflate, regex, sorting) lives in the library `.a` files which are still compiled `-m68000` for cross-port compatibility (and to keep vamos's default 68000 emulation working for tests).
+
+**Implication:** "compiled with -m68020 for accelerator perf" is a misleading marketing claim if the binary's libraries are still `-m68000` and the binary is built `-O0`. The correct claim is "targets 68020+" (a runtime requirement) -- not "optimized for 68020". Be honest in PORT.md, the `.readme`, and any user-facing release notes.
+
+**To get real perf wins from a CPU bump:**
+- Either rebuild the bundled libraries at `-m68020` too (requires per-library Makefile flip + `tests/<lib>/Makefile` flip + `VAMOS_CPU = 68020` in tests + an `#ifdef __AMIGA__` exception to the project's "all libraries must be -m68000" rule)
+- Or promote individual hot files to `-O1 -m68020` after auditing each for crash-patterns #16 (struct-by-value return corruption at -O1/-O2)
+
+**Discovered in amigit 0.1-2 (2026-04-13).** The amigit port flipped to `-m68020` and the perf-optimizer audit honestly disclosed the flag was essentially cosmetic at `-O0` for amigit's own TUs. Real perf cliff deferred to amigit 0.1-3 once `lib/libgit2/` and `lib/zlib/` flip.
+
+## Makefile VERSION/REVISION Must Be Set Before include common.mk
+
+`ports/common.mk` computes `DISPLAY_VERSION` via:
+```make
+ifeq ($(REVISION),1)
+DISPLAY_VERSION = $(VERSION)
+else
+DISPLAY_VERSION = $(VERSION)-$(REVISION)
+endif
+```
+
+The `ifeq` is evaluated **at parse time of the include statement**, not at variable expansion time. So if a port Makefile does:
+
+```make
+include ../common.mk
+VERSION  = 0.1
+REVISION = 2     # -- TOO LATE
+```
+
+then at the moment `common.mk` is parsed, `REVISION` is still its default `?= 1` from common.mk's own definition. `DISPLAY_VERSION` evaluates to `"0.1"` (no suffix). The port's later `REVISION = 2` correctly updates `REVISION` for any direct references, but `DISPLAY_VERSION` is already locked at `"0.1"`.
+
+**Visible symptom:** `make package` produces an LHA filename like `amigit-0.1.lha` instead of the expected `amigit-0.1-2.lha`. The `$VER` string in the binary may also still say `0.1` if the source-level constant is templated from DISPLAY_VERSION rather than VERSION+REVISION directly.
+
+**Workaround (per-port):** set `VERSION`/`REVISION` *before* the `include ../common.mk` line. Reference: `ports/amigit/Makefile` after the 0.1-2 fix (2026-04-13). Also fixed at the source in `ports/common.mk` via a deferred-expansion `DISPLAY_VERSION` so future ports cannot hit this even if they put `REVISION =` after the include.
+
+**Discovered in amigit 0.1-2 (2026-04-13)** -- the first revision bump on amigit produced LHAs stuck at `0.1` and the issue was only caught when `ls ports/amigit/amigit-0.1-2.lha` returned No such file or directory.

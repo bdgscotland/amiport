@@ -30,15 +30,23 @@ REVISION ?= 1
 # vamos memory limit in KiB (default 4MB — increase for large binaries like jq)
 VAMOS_MEM ?= 4096
 
-# Display version: includes revision suffix when REVISION > 1
-# Used in $VER strings, .readme Version: field, and PORTS.md
-ifeq ($(REVISION),1)
-DISPLAY_VERSION = $(VERSION)
-else
-DISPLAY_VERSION = $(VERSION)-$(REVISION)
-endif
+# Display version: includes revision suffix when REVISION > 1.
+# Used in $VER strings, .readme Version: field, and PORTS.md.
+#
+# DEFERRED expansion ($(if ...) function) -- evaluates at use time, NOT
+# at common.mk include time. This lets per-port Makefiles override
+# REVISION AFTER the `include ../common.mk` line and still get the
+# right LHA filename. The previous `ifeq ... else ... endif` form
+# evaluated REVISION at include-parse time, so any post-include
+# `REVISION = 2` was silently ignored for filename purposes -- visible
+# symptom was `make package` producing amigit-0.1.lha instead of
+# amigit-0.1-2.lha. Discovered during the amigit 0.1-2 bump
+# (2026-04-13). See known-pitfalls.md "VERSION/REVISION Must Be Set
+# Before include common.mk".
+DISPLAY_VERSION = $(VERSION)$(if $(filter-out 1,$(REVISION)),-$(REVISION))
 
-# Package suffix: same as DISPLAY_VERSION (used for LHA/readme filenames)
+# Package suffix: same as DISPLAY_VERSION (used for LHA/readme filenames).
+# Also deferred so it inherits the late-binding semantics above.
 PKG_SUFFIX = $(DISPLAY_VERSION)
 
 # Aminet category (override per port if needed)
