@@ -44,7 +44,7 @@ Verdict: MODERATE — 12 Tier 1 issues, 1 Tier 2 (mmap with graceful fallback), 
 
 ## Transformations Applied
 
-Multi-file port (7 .c files, 6 .h files + 2 vendored headers — common.h, ed.h,
+Multi-file port (7 .c files, 6 .h files + 2 vendored headers -- common.h, ed.h,
 inp.h, pch.h, util.h, backupfile.h plus vendored queue.h and amiga_paths.h).
 Every transformation is annotated with an `/* amiport: ... */` comment in the
 source. Summary:

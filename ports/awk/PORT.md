@@ -83,8 +83,8 @@ Math library (`-lm`):
 - `pow`, `exp`, `log`, `sqrt`, `sin`, `cos`, `atan2`, `modf`, `fmod` (all FRAND/FLOG/FEXP/etc. builtin paths in run.c)
 
 Notably NOT used:
-- `amiport_open()` family — awk uses libnix `fopen`/`fclose`/`getc`/`fread` exclusively (FILE* throughout)
-- `amiport_getopt` — awk has its own hand-rolled `-f`/`-F`/`-v`/`--csv` parser in main.c
+- `amiport_open()` family -- awk uses libnix `fopen`/`fclose`/`getc`/`fread` exclusively (FILE* throughout)
+- `amiport_getopt` -- awk has its own hand-rolled `-f`/`-F`/`-v`/`--csv` parser in main.c
 
 ## Build Configuration
 
