@@ -116,5 +116,6 @@ int amigit_cmd_commit(int argc, char **argv);
 int amigit_cmd_checkout(int argc, char **argv);
 int amigit_cmd_branch(int argc, char **argv);
 int amigit_cmd_tag(int argc, char **argv);
+int amigit_cmd_ls_remote(int argc, char **argv);
 
 #endif /* AMIGIT_H */

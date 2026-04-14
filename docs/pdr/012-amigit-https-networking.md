@@ -619,10 +619,144 @@ The project is DONE when all of these are true:
 
 ## Session checkpoint (update in-place every session)
 
-**Current phase:** Phase 2 (transport TU skeleton + dummy registration).
+**Current phase:** Phase 3 (Generic HTTP/1.1 client -- connect + request +
+response headers, 2 sessions).
 Last update: 2026-04-14.
 
-**Last completed phase:** Phase 1 -- libgit2 network source un-pruning.
+**Last completed phase:** Phase 2 -- transport TU skeleton + dummy
+registration.
+
+**Phase 2 summary (2026-04-14):**
+
+Three new files in `ports/amigit/ported/`:
+
+- `transport_https.h` -- public interface:
+  `amigit_transport_https_register()` + `amigit_transport_https_cleanup()`.
+- `transport_https.c` (~210 lines) -- `git_smart_subtransport_definition`
+  with `rpc=1`, a subtransport struct whose `action()` returns `-1` after
+  calling `git_error_set_str(GIT_ERROR_NET, "HTTPS transport not
+  implemented yet (service=<verb>, url=<url>, scheduled for amigit 0.2
+  per PDR-012)")`. `https_subtransport_cb` `calloc`s the subtransport
+  object, `https_free` matches with `free`. `https_close` is a no-op
+  for Phase 2 (nothing to tear down yet).
+- `cmd_ls_remote.c` -- minimal Phase 2 debug command. Runs
+  `git_remote_create_detached(&remote, url)` +
+  `git_remote_connect(remote, GIT_DIRECTION_FETCH, NULL, NULL, NULL)`.
+  Phase 5 will replace the body with real ref iteration.
+
+Wiring:
+- `ported/amigit.c` now calls `amigit_transport_https_register()`
+  right after `atexit(shutdown_libgit2)` in `main()`. Failure is
+  non-fatal (local-only commands still work).
+- `ported/amigit.c` dispatch table gained an `ls-remote` entry
+  pointing at `amigit_cmd_ls_remote`.
+- `ported/amigit.h` forward-declares `amigit_cmd_ls_remote`.
+- `ports/amigit/Makefile` OBJECTS adds `ported/cmd_ls_remote.o` and
+  `ported/transport_https.o`.
+
+Four new TEST blocks appended to
+`ports/amigit/test-fsemu-cases.txt` under an "ls-remote command --
+PDR-012 Phase 2 (HTTPS transport stub)" section:
+
+1. `ls-remote` with no url -> RC=10, stdout contains "ls-remote:
+   missing url argument".
+2. `ls-remote --help` -> RC=0, stdout contains "usage: amigit
+   ls-remote".
+3. `ls-remote https://github.com/bdgscotland/amiport` -> RC=10,
+   stdout contains "HTTPS transport not implemented yet".
+4. Same URL -> RC=10, stdout contains "upload-pack-ls" (proves
+   the service verb round-trip through our stub).
+
+**Build and test results:**
+
+- `make -C lib/libgit2 dual`: unchanged from Phase 1 (no libgit2
+  edits in Phase 2).
+- `make -C tests/libgit2 run`: **79/79** still green.
+- `make test-fsemu TARGET=ports/amigit`: **91/91** (87 prior + 4
+  new Phase 2 tests) -- no regressions.
+- `ports/amigit/amigit` binary: **1,194,888 bytes** (+1,820 from
+  Phase 1 baseline 1,193,068). Within noise.
+
+**Surprises / scope deltas:**
+
+- **libgit2 `git_transport_register` public-doc vs
+  implementation disagreement.** `git2/sys/transport.h` documents
+  the `prefix` parameter as "The scheme (ending in "://") to
+  match, i.e. git://". The implementation at
+  `lib/libgit2/src/libgit2/transport.c:157` does
+  `git_str_printf(&prefix, "%s://", scheme)` -- it takes the bare
+  scheme and appends `://` itself. Passing `"https://"` produces
+  the internal prefix `"https:////"` which never matches any URL,
+  so the dispatcher falls through to the static transports[]
+  table and picks up `git_smart_subtransport_http` from
+  `transport_stubs.c` instead. The stub then fails with "not
+  available in amiport build" -- exactly the wrong error message
+  for Phase 2.
+
+  Code wins over docs: `amigit_transport_https_register()` now
+  passes `"https"` (bare scheme). `transport_https.c` documents
+  the gotcha in a block comment above the register function so
+  the next person hitting the same rake pattern knows which
+  source is authoritative.
+
+  First-pass run was 88/91 with the stub message coming from
+  `git_smart_subtransport_http` (upstream stub) instead of
+  `https_action` (our stub); fixing the bare-scheme call flipped
+  it to 91/91 on the second pass.
+
+- **Test harness only captures stdout.** `amigit_error_exit()`
+  writes to stderr, which is the correct default for a CLI but
+  invisible to the ARexx/FS-UAE test harness's output capture.
+  Phase 2 works around this with a local `ls_remote_fail()`
+  helper that echoes the `git_error_last()` message to stdout
+  BEFORE calling `amigit_error_exit()`. This is a throwaway --
+  Phase 5 will replace `cmd_ls_remote.c` entirely with real ref
+  iteration and the stdout echo goes with it.
+
+- **Clang LSP diagnostics in Kak/nvim are cross-compile noise.**
+  The local clang in the editor doesn't know about bebbo-gcc's
+  cross-include paths (`-I../../lib/libgit2/include` etc.), so
+  every amigit C file lights up with "git2.h not found" and
+  "unknown type git_remote" spam. These are NOT real errors.
+  The cross-toolchain build is clean. Future sessions: ignore
+  clang LSP noise on anything under `ports/amigit/ported/`.
+
+**Phase 3 hints (what the next session should know):**
+
+Phase 3 is the first phase with real network code. Scope per the
+plan:
+
+- New files: `ports/amigit/ported/http_client.c` + `.h`.
+- `http_connect(conn, host, port, use_tls)` -- DNS + socket +
+  connect via `lib/bsdsocket-shim/libamiport-net.a`. TLS branch
+  returns ENOSYS until Phase 7.
+- `http_send_request`, `http_read_response_status`,
+  `http_read_response_header`, `http_read_body` (Content-Length
+  only -- chunked is Phase 4).
+- `http_close`.
+- Unit tests at `tests/amigit-http-client/` for the parser half
+  (vamos-compatible, driven from string literals).
+
+Things to know before starting:
+
+1. `libamiport-net.a` is already in the tree and known-good
+   (wget ships on it). Link `-L../../lib/bsdsocket-shim
+   -lamiport-net` in the amigit Makefile for Phase 3.
+2. vamos cannot open `bsdsocket.library`. Phase 3 unit tests must
+   be pure-C parsers driven from string literals, not live
+   network tests. Live tests happen on FS-UAE with bsdsocket
+   passthrough or on real hardware.
+3. The `transport_https.c` skeleton already has the subtransport
+   plumbing. Phase 3 adds a `http_client.c` consumer; Phase 5
+   wires it into `https_action()`.
+4. KB gaps noted during Phase 2 (same as Phase 1): bsdsocket HTTP
+   client pitfalls and AmiSSL runtime-load patterns are NOT in
+   amiga-kb yet. The reference implementations are `ports/wget/`
+   (real hardware, real AmiSSL) and `lib/http-shim/`
+   (bsdsocket lifecycle, socket timeout handling).
+5. Memory-checker agent mandatory for any TU that malloc's HTTP
+   buffers -- no process memory cleanup on exit under
+   `-noixemul`.
 
 **Phase 1 summary (2026-04-14):**
 
@@ -718,9 +852,10 @@ integration pattern (wget port is the reference in-tree, not
 captured in the KB yet).
 
 **What to do next:** Open this file in a fresh session after
-`/clear`. Read Phase 2's "Deliverables" and "Done when" sections.
-Start building `ports/amigit/ported/transport_https.c` as the stub
-subtransport definition.
+`/clear`. Read Phase 3's "Deliverables" and "Done when" sections.
+Start building `ports/amigit/ported/http_client.c` as the
+HTTP/1.1 request/response layer over `libamiport-net.a`. Keep the
+TLS path stubbed for Phase 7.
 
 When you finish a phase, update this checkpoint section with:
 - The phase just completed

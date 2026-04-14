@@ -46,6 +46,8 @@ OBJECTS = ported/amigit.o \
           ported/cmd_checkout.o \
           ported/cmd_branch.o \
           ported/cmd_tag.o \
+          ported/cmd_ls_remote.o \
+          ported/transport_https.o \
           ported/amigit_libgit2_stubs.o
 
 # Override SOURCES so common.mk's default single-file rule is bypassed.

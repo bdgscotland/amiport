@@ -5,17 +5,17 @@
 | Field | Value |
 |-------|-------|
 | Port | amigit |
-| Date | 2026-04-14 14:22:43 |
-| Duration | 149s |
+| Date | 2026-04-14 15:03:33 |
+| Duration | 154s |
 | Platform | FS-UAE 3.2.35 (A1200, Kickstart 3.1) |
 | Binary | `WORK:amigit` (1.1M) |
 | Test method | ARexx harness → TAP output |
-| Result | **PASS** — 87/87 passed |
+| Result | **PASS** — 91/91 passed |
 
 ## Test Results
 
 ```
-1..87
+1..91
 ok 1 - version prints amigit version on first line
 ok 2 - version prints libgit2 version on second line
 ok 3 - version prints shim availability on third line
@@ -103,7 +103,11 @@ ok 84 - log after two commits shows most recent commit on first line
 ok 85 - commit -F from file delivers multi-word message (the whole point of -F)
 ok 86 - log after -F commit shows the full multi-word message (-F roundtrip)
 ok 87 - init friendly-error fires for bare-CWD AND explicit-mc-volume cases
-# passed: 87 failed: 0 total: 87
+ok 88 - ls-remote with no url exits RETURN_ERROR
+ok 89 - ls-remote --help prints usage and exits 0
+ok 90 - ls-remote on https url routes to amigit stub and fails with PDR-012 message
+ok 91 - ls-remote stub message names the service verb and PDR-012
+# passed: 91 failed: 0 total: 91
 ```
 
 ### Breakdown
@@ -197,6 +201,10 @@ ok 87 - init friendly-error fires for bare-CWD AND explicit-mc-volume cases
 | 85 | commit -F from file delivers multi-word message (the whole point of -F) | PASS | |
 | 86 | log after -F commit shows the full multi-word message (-F roundtrip) | PASS | |
 | 87 | init friendly-error fires for bare-CWD AND explicit-mc-volume cases | PASS | |
+| 88 | ls-remote with no url exits RETURN_ERROR | PASS | |
+| 89 | ls-remote --help prints usage and exits 0 | PASS | |
+| 90 | ls-remote on https url routes to amigit stub and fails with PDR-012 message | PASS | |
+| 91 | ls-remote stub message names the service verb and PDR-012 | PASS | |
 
 ## Environment
 
@@ -889,6 +897,45 @@ EXPECT_RC: 0
 TEST: init friendly-error fires for bare-CWD AND explicit-mc-volume cases
 CMD: SYS:Rexxc/rx WORK:test-amigit-cwd-init.rexx
 EXPECT_RC: 0
+
+# ======================================================================
+# ls-remote command -- PDR-012 Phase 2 (HTTPS transport stub)
+# ======================================================================
+#
+# Phase 2 scope: prove that an https:// URL routes through amigit's
+# registered git_smart_subtransport backend (transport_https.c) rather
+# than the transport_stubs.c git_smart_subtransport_http dummy or a
+# crash in libgit2's path probing.
+#
+# The backend's action() handler returns GIT_ERROR_NET with a
+# readable "HTTPS transport not implemented yet (scheduled for amigit
+# 0.2 per PDR-012)" message for every git_smart_service_t verb. The
+# CLI surfaces this via amigit_error_exit() as RC=10 with the
+# message on stderr.
+#
+# Phase 3+ will grow transport_https.c into a real HTTP/1.1 + AmiSSL
+# client and this test will be expanded into a real ref-listing
+# scenario (see PDR-012 Phase 5).
+
+TEST: ls-remote with no url exits RETURN_ERROR
+CMD: WORK:amigit ls-remote
+EXPECT_CONTAINS: ls-remote: missing url argument
+EXPECT_RC: 10
+
+TEST: ls-remote --help prints usage and exits 0
+CMD: WORK:amigit ls-remote --help
+EXPECT_CONTAINS: usage: amigit ls-remote
+EXPECT_RC: 0
+
+TEST: ls-remote on https url routes to amigit stub and fails with PDR-012 message
+CMD: WORK:amigit ls-remote https://github.com/bdgscotland/amiport
+EXPECT_CONTAINS: HTTPS transport not implemented yet
+EXPECT_RC: 10
+
+TEST: ls-remote stub message names the service verb and PDR-012
+CMD: WORK:amigit ls-remote https://github.com/bdgscotland/amiport
+EXPECT_CONTAINS: upload-pack-ls
+EXPECT_RC: 10
 ```
 
 ## Emulator Log
@@ -903,9 +950,9 @@ Written by the ARexx harness when all tests complete:
 
 ```
 TESTS_COMPLETE
-passed=87
+passed=91
 failed=0
-total=87
+total=91
 ```
 
 ---

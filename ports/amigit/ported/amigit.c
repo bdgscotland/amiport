@@ -27,6 +27,7 @@
 #include <dos/dos.h>    /* RETURN_OK, RETURN_ERROR, RETURN_FAIL */
 
 #include "amigit.h"
+#include "transport_https.h"
 
 /* ========================================================================
  * amigit_resolve_repo_path -- AmigaDOS path -> libgit2-friendly form
@@ -122,6 +123,8 @@ static const amigit_command dispatch_table[] = {
       "List, create, or delete local branches" },
     { "tag",      amigit_cmd_tag,
       "List or create lightweight tags" },
+    { "ls-remote", amigit_cmd_ls_remote,
+      "List references from a remote (HTTPS stub in Phase 2)" },
     { NULL,       NULL,              NULL }
 };
 
@@ -253,6 +256,20 @@ int main(int argc, char **argv)
         fprintf(stderr, "amigit: atexit registration failed\n");
         me->pr_WindowPtr = saved_win;
         return RETURN_FAIL;
+    }
+
+    /* Register the amigit custom HTTPS subtransport. Must be called
+     * AFTER git_libgit2_init() (which sets up the transport registry)
+     * and BEFORE any git_remote_connect on an https:// URL. At Phase 2
+     * this is a stub that returns "not implemented"; Phase 3+ fleshes
+     * it out. See ports/amigit/ported/transport_https.c and
+     * docs/pdr/012-amigit-https-networking.md. */
+    if (amigit_transport_https_register() != 0) {
+        fprintf(stderr,
+            "amigit: failed to register HTTPS transport\n");
+        /* Not fatal for local-only commands -- let the dispatch
+         * continue. Commands that need HTTPS will fail when they
+         * try to connect. */
     }
 
     /* Dispatch by argv[1] */
