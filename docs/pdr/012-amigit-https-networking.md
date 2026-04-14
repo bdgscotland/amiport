@@ -619,14 +619,108 @@ The project is DONE when all of these are true:
 
 ## Session checkpoint (update in-place every session)
 
-**Current phase:** PLANNED (not started). Last update: 2026-04-14.
+**Current phase:** Phase 2 (transport TU skeleton + dummy registration).
+Last update: 2026-04-14.
 
-**Last completed phase:** N/A (this PDR is the starting point).
+**Last completed phase:** Phase 1 -- libgit2 network source un-pruning.
+
+**Phase 1 summary (2026-04-14):**
+
+Ten upstream libgit2 1.8.5 source files and three transport sources
+copied into `lib/libgit2/src/libgit2/`:
+
+- Top-level: `clone.c`, `clone.h` (replaced stub), `fetch.c`, `fetch.h`,
+  `fetchhead.c`, `fetchhead.h`, `proxy.c`, `proxy.h`, `push.c`,
+  `push.h`, `remote.c`, `remote.h` (replaced stub), `transport.c`
+- Smart transport: `transports/smart.c`, `transports/smart.h`
+  (replaced stub), `transports/smart_pkt.c`, `transports/smart_protocol.c`
+
+`lib/libgit2/src/libgit2/transport_stubs.c` rewritten: removed
+`git_smart__ofs_delta_enabled` (now owned by upstream
+`smart_protocol.c`), kept `git_http__expect_continue` but bumped
+`int` to `bool` to match upstream `http.h`, added stub
+implementations for `git_smart_subtransport_http` / `_git` / `_ssh`
+and `git_transport_local` so upstream `transport.c`'s static dispatch
+table resolves at link time. All stubs return `GIT_ERROR` with a
+clear "not available in amiport build" message. Include order:
+`common.h` + internal `errors.h` before the public headers (the
+warning fix for `git_error_set` implicit declaration).
+
+`lib/libgit2/src/libgit2/transports/http.h` stub kept minimal but
+the type bumped from `int` to `bool` to match the upstream `http.c`
+declaration that settings.c indirectly pulls in.
+
+`lib/libgit2/Makefile` updated:
+- Added `TRANSPORT_SRCS` variable listing the three smart transport
+  files explicitly (not wildcard-based -- avoids accidental
+  un-pruning of upstream additions in future rebases).
+- Added `TRANSPORT_OBJS` / `TRANSPORT_OBJS_020` to `ALL_OBJS` /
+  `ALL_OBJS_020`.
+- Added pattern rules for `src/libgit2/transports/%.o` (000 flavor)
+  and `src/libgit2/transports/%.020.o` (020 flavor).
+
+`ports/amigit/ported/amigit_libgit2_stubs.c` trimmed: removed the
+`git_remote_*` and `git_clone__submodule` stubs (now provided by
+real upstream code; keeping them caused `multiple definition`
+linker errors). Kept `strnlen`, `difftime`, `select`,
+`git_socket_stream__*`, `git_failalloc_*`, `__divsf3`,
+`__floatunsisf`. Updated the file header to document the new
+division of responsibility.
+
+**Build and test results:**
+
+- `make -C lib/libgit2 dual`: both `libgit2.a` (1,442,292 bytes) and
+  `libgit2-020.a` (1,443,348 bytes) rebuild cleanly, no new warnings
+  beyond the pre-existing `strnlen` / `missing braces` noise from
+  libgit2's own headers.
+- `make -C tests/libgit2 run`: **79/79** tests pass on the 000 archive
+  (Stage 5 test suite, unchanged vs baseline).
+- `make test-fsemu TARGET=ports/amigit`: **87/87** functional tests
+  pass on FS-UAE with the 020 archive.
+- `ports/amigit/amigit` binary: **1,193,068 bytes** (+114,176 from
+  baseline 1,078,892). In the middle of the PDR's expected
+  1.15-1.25 MB band -- no surprises in the cascade.
+
+**Surprises / scope deltas:**
+
+- No additional linker cascade beyond the predicted
+  `git_remote_*` / `git_clone__submodule` duplicates. `transport.c`'s
+  static dispatch table referenced `git_smart_subtransport_http`,
+  `_git`, `_ssh`, and `git_transport_local`, but those were
+  anticipated and stubbed up front in `transport_stubs.c`, so the
+  build link was clean on the first attempt.
+- The `TRANSPORT_SRCS` listing is explicit (not wildcard) to keep
+  the "stay-pruned" set of transport sources locked in. Future
+  rebases to a new libgit2 version must re-audit and update this
+  list by hand.
+- `git_smart__ofs_delta_enabled` moved definition owner from
+  `transport_stubs.c` to upstream `smart_protocol.c`. The global is
+  still a `bool` and still defaults to `true`, so there is no
+  functional change to the `GIT_OPT_ENABLE_OFS_DELTA` handler.
+
+**Phase 2 hints (what the next session should know):**
+
+The smart transport is now available for registration via
+`git_transport_register("https://", git_transport_smart, my_def)`.
+`transport_find_by_url()` checks the registered list (linked list)
+before the static table, so amigit's custom backend will preempt
+the `git_smart_subtransport_http` stub even though both are
+resolvable. The Phase 2 stub in
+`ports/amigit/ported/transport_https.c` just needs to build a
+`git_smart_subtransport_definition` pointing at a subtransport
+whose `action()` returns `GIT_ERROR_NOT_IMPLEMENTED` with a clean
+error message -- no network code yet.
+
+Knowledge-base gaps reported during this session (see
+`amiga_report_gap` section below): bsdsocket HTTP client pitfalls,
+libgit2 pruning/un-pruning cascade patterns, AmiSSL runtime-load
+integration pattern (wget port is the reference in-tree, not
+captured in the KB yet).
 
 **What to do next:** Open this file in a fresh session after
-`/clear`. Read the "Key technical decisions" and "Prerequisites"
-sections first. Then pick up Phase 1 and read its "Deliverables"
-and "Done when" sections. Start building.
+`/clear`. Read Phase 2's "Deliverables" and "Done when" sections.
+Start building `ports/amigit/ported/transport_https.c` as the stub
+subtransport definition.
 
 When you finish a phase, update this checkpoint section with:
 - The phase just completed

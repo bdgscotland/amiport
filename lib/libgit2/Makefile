@@ -101,6 +101,14 @@ TARGET_020 = libgit2-020.a
 # ========================================================================
 
 LIBGIT2_SRCS  = $(wildcard src/libgit2/*.c)
+# Transports subtree: PDR-012 Phase 1 un-pruned the smart transport
+# trio (smart.c / smart_pkt.c / smart_protocol.c). The rest of the
+# transports/ dir stays pruned (http.c, ssh_*.c, local.c, etc.).
+# Listed explicitly rather than via wildcard so accidental upstream
+# file additions do not silently enter the build.
+TRANSPORT_SRCS = src/libgit2/transports/smart.c \
+                 src/libgit2/transports/smart_pkt.c \
+                 src/libgit2/transports/smart_protocol.c
 UTIL_SRCS     = $(wildcard src/util/*.c) \
                 $(wildcard src/util/allocators/*.c) \
                 $(wildcard src/util/hash/*.c) \
@@ -111,19 +119,21 @@ XDIFF_SRCS    = $(wildcard src/xdiff/*.c)
 PCRE_SRCS     = $(wildcard src/pcre/*.c)
 
 LIBGIT2_OBJS  = $(LIBGIT2_SRCS:.c=.o)
+TRANSPORT_OBJS = $(TRANSPORT_SRCS:.c=.o)
 UTIL_OBJS     = $(UTIL_SRCS:.c=.o)
 XDIFF_OBJS    = $(XDIFF_SRCS:.c=.o)
 PCRE_OBJS     = $(PCRE_SRCS:.c=.o)
 
-ALL_OBJS = $(LIBGIT2_OBJS) $(UTIL_OBJS) $(XDIFF_OBJS) $(PCRE_OBJS)
+ALL_OBJS = $(LIBGIT2_OBJS) $(TRANSPORT_OBJS) $(UTIL_OBJS) $(XDIFF_OBJS) $(PCRE_OBJS)
 
 # Dual-flavor 020 object lists -- same source tree, .020.o suffix.
-LIBGIT2_OBJS_020 = $(LIBGIT2_SRCS:.c=.020.o)
-UTIL_OBJS_020    = $(UTIL_SRCS:.c=.020.o)
-XDIFF_OBJS_020   = $(XDIFF_SRCS:.c=.020.o)
-PCRE_OBJS_020    = $(PCRE_SRCS:.c=.020.o)
+LIBGIT2_OBJS_020   = $(LIBGIT2_SRCS:.c=.020.o)
+TRANSPORT_OBJS_020 = $(TRANSPORT_SRCS:.c=.020.o)
+UTIL_OBJS_020      = $(UTIL_SRCS:.c=.020.o)
+XDIFF_OBJS_020     = $(XDIFF_SRCS:.c=.020.o)
+PCRE_OBJS_020      = $(PCRE_SRCS:.c=.020.o)
 
-ALL_OBJS_020 = $(LIBGIT2_OBJS_020) $(UTIL_OBJS_020) $(XDIFF_OBJS_020) $(PCRE_OBJS_020)
+ALL_OBJS_020 = $(LIBGIT2_OBJS_020) $(TRANSPORT_OBJS_020) $(UTIL_OBJS_020) $(XDIFF_OBJS_020) $(PCRE_OBJS_020)
 
 # ========================================================================
 # Build rules
@@ -148,6 +158,9 @@ $(TARGET_020): $(ALL_OBJS_020)
 # ------------------------------------------------------------------
 
 src/libgit2/%.o: src/libgit2/%.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
+src/libgit2/transports/%.o: src/libgit2/transports/%.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 src/util/%.o: src/util/%.c
@@ -182,6 +195,9 @@ src/pcre/%.o: src/pcre/%.c
 # ------------------------------------------------------------------
 
 src/libgit2/%.020.o: src/libgit2/%.c
+	$(CC) $(CFLAGS_020) -c $< -o $@
+
+src/libgit2/transports/%.020.o: src/libgit2/transports/%.c
 	$(CC) $(CFLAGS_020) -c $< -o $@
 
 src/util/%.020.o: src/util/%.c

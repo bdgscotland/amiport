@@ -1,24 +1,42 @@
 /*
- * amigit_libgit2_stubs.c -- Link-time stubs for pruned libgit2.a
+ * amigit_libgit2_stubs.c -- Link-time stubs for PARTIALLY pruned libgit2.a
  *
- * lib/libgit2/libgit2.a is built with networking, clone, fetch, remote,
- * submodule transports, and failalloc excluded. However, some objects
- * inside the archive (branch.o, repository.o, submodule.o, settings.o,
- * posix.o, alloc.o) still contain references to the excluded symbols.
- * These stubs resolve those references at final link so amigit and its
- * tests can link without pulling in the excluded code.
+ * As of PDR-012 Phase 1 (2026-04-14), `lib/libgit2/libgit2-020.a` now
+ * ships real upstream `clone.c`, `fetch.c`, `remote.c`, `transport.c`,
+ * and the smart transport trio. The `git_remote_*` / `git_clone_*`
+ * stubs that lived here during PDR-010 Phase 2 have been REMOVED --
+ * those symbols are resolved by the archive. Keeping them here now
+ * produces `multiple definition` linker errors.
  *
- * Every stub returns a "this is not available" code (GIT_ENOTFOUND or
- * equivalent); they are never called at runtime because the call sites
- * are on dead networking paths. The stubs exist solely to satisfy the
- * linker.
+ * What's still stubbed:
  *
- * This file is shared verbatim with tests/libgit2/test_libgit2.c --
- * when the underlying libgit2 build configuration changes (e.g. if
- * networking is added in Phase 4), both this file and the test binary
- * will need updating.
+ *   1. Missing libnix symbols (`strnlen`, `difftime`) -- libnix gap,
+ *      same as before.
  *
- * See PDR-010a section "Build dependencies" for the rationale.
+ *   2. `select()` -- posix.c's p_poll() calls select when
+ *      `GIT_IO_SELECT` is defined. amigit never clones over the
+ *      network in Phase 1 (that's Phase 2+), so the symbol only needs
+ *      to resolve at link time. The stub returns -1/ENOSYS.
+ *      PDR-012 Phase 7 (AmiSSL integration) will replace this with a
+ *      real bsdsocket-backed `select()` when network traffic is live.
+ *
+ *   3. `git_socket_stream__connect_timeout` / `__timeout` -- globals
+ *      referenced by `settings.c` from the still-pruned
+ *      `streams/socket.c`. amigit's custom smart-HTTP transport in
+ *      PDR-012 Phase 2 will own its own timeout handling (socket-
+ *      level via bsdsocket + TLS-level via AmiSSL), so these globals
+ *      are dead weight but must resolve.
+ *
+ *   4. `git_failalloc_*` -- test-only code still excluded from
+ *      allocators/.
+ *
+ *   5. `__divsf3` / `__floatunsisf` -- single-precision soft-float
+ *      overrides. Without them, `patch_generate.c`'s progress
+ *      fraction computation routes through ROM mathieeesingbas.library
+ *      and crashes FS-UAE with Guru 8000000B (known-pitfalls.md
+ *      "libgit2 patch_generate Triggers FS-UAE mathieeesingbas Crash").
+ *      This is load-bearing -- do not remove.
+ *
  * See known-pitfalls.md "libnix missing strnlen and difftime" and
  * "libgit2 khash requires -lm" for related gaps.
  */
@@ -27,12 +45,6 @@
 #include <time.h>
 #include <errno.h>
 #include <sys/select.h>
-
-#include "git2/types.h"
-#include "git2/errors.h"
-#include "git2/strarray.h"
-#include "git2/remote.h"
-#include "git2/clone.h"
 
 /* ========================================================================
  * libnix gaps: strnlen and difftime
@@ -79,78 +91,22 @@ int select(int nfds, fd_set *rfds, fd_set *wfds, fd_set *efds,
 }
 
 /* ========================================================================
- * git_remote_* -- remote.c excluded
+ * git_remote_* / git_clone_* -- REMOVED in PDR-012 Phase 1 (2026-04-14)
+ *
+ * Previously this file stubbed git_remote_free, git_remote_create,
+ * git_remote_lookup, git_remote_fetch, git_remote_list, git_remote_url,
+ * git_remote__matching_refspec, git_remote__matching_dst_refspec, and
+ * git_clone__submodule.
+ *
+ * All of those symbols are now provided by the real upstream
+ * `remote.c` / `clone.c` inside `libgit2-020.a`. Keeping the stubs
+ * here causes multiple-definition linker errors.
+ *
+ * If amigit ever needs to NOT link the real remote/clone code (for
+ * example, a stripped-down variant), re-introduce the stubs here and
+ * unlink the upstream files from the library Makefile -- don't just
+ * un-comment these.
  * ======================================================================== */
-
-void git_remote_free(git_remote *remote)
-{
-    (void)remote;
-}
-
-int git_remote_create(git_remote **out, git_repository *repo,
-                      const char *name, const char *url)
-{
-    (void)repo; (void)name; (void)url;
-    *out = NULL;
-    return GIT_ENOTFOUND;
-}
-
-int git_remote_lookup(git_remote **out, git_repository *repo,
-                      const char *name)
-{
-    (void)repo; (void)name;
-    *out = NULL;
-    return GIT_ENOTFOUND;
-}
-
-int git_remote_fetch(git_remote *remote,
-                     const git_strarray *refspecs,
-                     const git_fetch_options *opts,
-                     const char *reflog_message)
-{
-    (void)remote; (void)refspecs; (void)opts; (void)reflog_message;
-    return GIT_ENOTFOUND;
-}
-
-int git_remote_list(git_strarray *out, git_repository *repo)
-{
-    (void)repo;
-    out->strings = NULL;
-    out->count = 0;
-    return 0;
-}
-
-const char *git_remote_url(const git_remote *remote)
-{
-    (void)remote;
-    return NULL;
-}
-
-const git_refspec *git_remote__matching_refspec(git_remote *remote,
-                                                 const char *refname)
-{
-    (void)remote; (void)refname;
-    return NULL;
-}
-
-const git_refspec *git_remote__matching_dst_refspec(git_remote *remote,
-                                                      const char *refname)
-{
-    (void)remote; (void)refname;
-    return NULL;
-}
-
-/* ========================================================================
- * git_clone__submodule -- clone.c excluded
- * ======================================================================== */
-
-int git_clone__submodule(git_repository **out, const char *url,
-                          const char *local_path,
-                          const git_clone_options *opts)
-{
-    (void)out; (void)url; (void)local_path; (void)opts;
-    return GIT_ENOTFOUND;
-}
 
 /* ========================================================================
  * git_failalloc_* -- failalloc.c excluded from allocators/

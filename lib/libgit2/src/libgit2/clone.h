@@ -1,19 +1,20 @@
 /*
- * clone.h -- stub for AmigaOS port (PDR-010, no clone/network support)
+ * Copyright (C) the libgit2 contributors. All rights reserved.
  *
- * amiport: git_clone__submodule is an internal function from clone.c
- * which was excluded from this port. The stub declaration allows
- * submodule.c to compile; calls at runtime will be unresolved (submodule
- * clone operations are unsupported on the Amiga target).
+ * This file is part of libgit2, distributed under the GNU GPL v2 with
+ * a Linking Exception. For full terms see the included COPYING file.
  */
 #ifndef INCLUDE_clone_h__
 #define INCLUDE_clone_h__
 
+#include "common.h"
+
 #include "git2/clone.h"
 
-/* Internal clone function used by submodule.c */
-int git_clone__submodule(git_repository **out, const char *url,
-                         const char *local_path,
-                         const git_clone_options *opts);
+extern int git_clone__submodule(git_repository **out,
+	const char *url, const char *local_path,
+	const git_clone_options *_options);
 
-#endif /* INCLUDE_clone_h__ */
+extern int git_clone__should_clone_local(const char *url, git_clone_local_t local);
+
+#endif

@@ -5,10 +5,10 @@
 | Field | Value |
 |-------|-------|
 | Port | amigit |
-| Date | 2026-04-14 13:22:42 |
-| Duration | 146s |
+| Date | 2026-04-14 14:22:43 |
+| Duration | 149s |
 | Platform | FS-UAE 3.2.35 (A1200, Kickstart 3.1) |
-| Binary | `WORK:amigit` (1.0M) |
+| Binary | `WORK:amigit` (1.1M) |
 | Test method | ARexx harness → TAP output |
 | Result | **PASS** — 87/87 passed |
 
