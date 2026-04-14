@@ -125,7 +125,7 @@ function formatSize($bytes) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="<?php echo htmlspecialchars($name, ENT_QUOTES, 'UTF-8'); ?> <?php echo htmlspecialchars($pkgVersion, ENT_QUOTES, 'UTF-8'); ?> for AmigaOS 3.x — <?php echo htmlspecialchars($pkgDesc, ENT_QUOTES, 'UTF-8'); ?>">
     <title><?php echo htmlspecialchars($name, ENT_QUOTES, 'UTF-8'); ?> <?php echo htmlspecialchars($pkgVersion, ENT_QUOTES, 'UTF-8'); ?> — amiport</title>
-    <link rel="stylesheet" href="../css/style.css?v=20260325c">
+    <link rel="stylesheet" href="../css/style.css?v=20260414a">
     <link rel="icon" type="image/svg+xml" href="../img/favicon.svg">
     <link rel="alternate" type="application/rss+xml" title="amiport — New Ports" href="/feed.php">
 </head>
@@ -140,10 +140,7 @@ function formatSize($bytes) {
     <nav aria-label="Main navigation">
         <ul class="screen-bar__nav">
             <li><a href="/packages.html">Packages</a></li>
-            <li><a href="/catalog.html">Catalog</a></li>
             <li><a href="/stats.html">Stats</a></li>
-            <li><a href="/changelog.html">Changelog</a></li>
-            <li><a href="/shims.html">Shims</a></li>
             <li><a href="/amiga.html">Amiga</a></li>
             <li><a href="https://github.com/bdgscotland/amiport" target="_blank" rel="noopener">GitHub</a></li>
         </ul>
@@ -308,6 +305,12 @@ function formatSize($bytes) {
         <a href="https://aminet.net/" target="_blank" rel="noopener">Aminet</a>
         &middot;
         <a href="/feed.php">RSS</a>
+        &middot;
+        <a href="/catalog.html">Catalog</a>
+        &middot;
+        <a href="/changelog.html">Changelog</a>
+        &middot;
+        <a href="/shims.html">Shims</a>
     </span>
     <span>
         By <strong>Duncan Bowring</strong> &middot; Built with <a href="https://claude.ai/code" target="_blank" rel="noopener">Claude Code</a>.
