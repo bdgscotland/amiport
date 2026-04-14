@@ -1,8 +1,19 @@
 # Dropbear SSH client (dbclient) -- FS-UAE test cases
-# Category 4 (Network) -- requires Roadshow TCP/IP stack
-# WIP: Placeholder test suite. Full tests to be designed after
-# runtime verification on FS-UAE + Roadshow.
+# Category 4 (Network) -- uses FS-UAE bsdsocket passthrough
+#
+# Password auth uses DROPBEAR_PASSWORD env var (bypasses getpass).
+# Host key auto-accepted via -y flag.
 
 TEST: version flag
 CMD: WORK:dbclient -V
+EXPECT_CONTAINS: Dropbear v2025.89
+EXPECT_RC: 0
+
+TEST: no args shows usage
+CMD: WORK:dbclient
+EXPECT_RC: 1
+
+TEST: help flag
+CMD: WORK:dbclient --help
+EXPECT_CONTAINS: -y
 EXPECT_RC: 0

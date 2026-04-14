@@ -10,6 +10,7 @@
 #   (Purchase from amigaforever.com or extract from real hardware)
 
 amiga_model = A1200
+cpu_speed = max
 
 # Kickstart 3.1 ROM — update path if yours is named differently
 kickstart_file = $BASE/Kickstarts/kick3.1.rom

@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <errno.h>
 
 /* --- strlcat: libnix has strlcpy but not strlcat --- */
 size_t strlcat(char *dst, const char *src, size_t dsize)
@@ -66,11 +67,14 @@ int vfork(void)
 }
 
 /* --- getgroups: single-user OS --- */
+/* amiport: must return -1 with ENOSYS so Dropbear's
+ * non-multiuser kernel check passes (common-session.c:77) */
 int getgroups(int size, int grouplist[])
 {
     (void)size;
     (void)grouplist;
-    return 0;
+    errno = ENOSYS;
+    return -1;
 }
 
 /* --- getnameinfo: stub for bsdsocket-shim --- */
