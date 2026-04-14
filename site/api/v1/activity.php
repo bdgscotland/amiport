@@ -89,6 +89,10 @@ if (is_array($packageFiles)) {
         }
         $name = $data['name'] ?? basename($file, '.json');
         $version = $data['version'] ?? '';
+        $revision = (int)($data['revision'] ?? 1);
+        if ($version !== '' && $revision > 1) {
+            $version .= '-' . $revision;
+        }
         $title = $name;
         if ($version !== '') {
             $title .= ' ' . $version;

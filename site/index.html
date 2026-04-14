@@ -384,7 +384,9 @@
             var desc = (p.description || '').toLowerCase();
             // Trim long descriptions for the side panel
             if (desc.length > 28) desc = desc.slice(0, 27) + '...';
-            meta.textContent = (p.version || '') + ' \u00b7 ' + desc;
+            var ver = p.version || '';
+            if (p.revision && p.revision > 1) ver += '-' + p.revision;
+            meta.textContent = ver + ' \u00b7 ' + desc;
 
             li.appendChild(a);
             li.appendChild(meta);

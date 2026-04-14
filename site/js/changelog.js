@@ -90,7 +90,9 @@
             tr.appendChild(tdName);
 
             var tdVer = document.createElement('td');
-            tdVer.textContent = p.version || '';
+            var verStr = p.version || '';
+            if (p.revision && p.revision > 1) verStr += '-' + p.revision;
+            tdVer.textContent = verStr;
             tr.appendChild(tdVer);
 
             var tdDesc = document.createElement('td');
