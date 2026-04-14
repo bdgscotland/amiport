@@ -84,6 +84,53 @@ This prevents silent regressions that break other ports. The shim is shared infr
 
 Maximum 5 build-fix iterations. If still failing after 5, report the remaining errors with analysis.
 
+## Version Bump Verification — MANDATORY After ANY Revision Bump
+
+When the caller's dispatch prompt mentions a version bump, revision
+bump, `$VER` tag change, `AMIGIT_VERSION` / similar macro change,
+or any edit touching a `printf`/`fputs`/literal string that the
+port's version test asserts on — you MUST verify the compiled
+binary actually contains the expected strings before reporting
+success.
+
+**Required verification step:**
+
+```bash
+strings ports/<name>/<binary> | grep -E "<expected_version>|<expected_date>"
+```
+
+Report the grep output in your response. If the expected strings
+are NOT in the binary, the build did not pick up the source
+changes (most likely: one of the caller's edits silently failed
+and stale source got compiled). Report the discrepancy prominently
+and DO NOT report "success" — this is a verification failure,
+not a build failure, and the caller needs to know immediately.
+
+**Rationale:** 2026-04-14 amigit 0.1-5 incident — the caller's
+Edit tool calls for `amigit.h` and `amigit.c` silently failed with
+"File has not been read yet" errors that were acknowledged but not
+retried. Two subsequent clean builds reported success at the
+correct binary size, but the binary still embedded `0.1-4` strings
+because the stale source compiled cleanly. The failure was caught
+90 minutes later when FS-UAE's version test failed. A single
+`strings | grep` check after the build would have caught it
+immediately.
+
+This applies to ANY source-level constant that flows into a test
+assertion: version strings, build dates, tagged literals, hardcoded
+paths. Whenever the caller's prompt implies such a constant
+changed, verify the binary carries the new value.
+
+## Edit Error Discipline — Never Ignore Silent Failures
+
+If any `Edit` or `Write` call inside this agent returns an error
+(e.g. "File has not been read yet", "old_string not found"), your
+next action MUST be the fix: `Read` the file, retry the edit.
+Do not acknowledge the error in prose and move on to other work.
+Do not trust that the build will magically pick up the change.
+
+See `.claude/rules/tool-error-discipline.md` for the general rule
+this follows.
 
 ## Learnings Report (REQUIRED)
 

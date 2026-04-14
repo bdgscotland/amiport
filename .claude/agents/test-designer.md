@@ -83,6 +83,67 @@ ARexx `ADDRESS COMMAND` does NOT support stdin piping. If a program reads from s
 - **If the program is stdin-ONLY** (like `rs`, `colrm`, `tr`): use AmigaDOS `<` redirection in the CMD line (`CMD: WORK:rs 2 3 <WORK:test-input.txt`). This works because CMD lines are written into Execute scripts where the shell parses `<` as stdin redirection.
 - **Always check the source** — grep for `fopen` of argv entries vs `stdin`-only reads before deciding which pattern to use.
 
+## Shallow Happy-Path Smell — REJECT These Tests
+
+**A happy-path test is a lie when its input does not exercise the
+reason the feature exists.** Before accepting ANY new functional
+test (especially one you are asked to audit in diff-audit mode), ask:
+
+1. **What problem does this feature solve that an existing feature
+   doesn't already solve?** The test's happy-path input must exercise
+   THAT problem, not just a generic "does it return 0".
+2. **Can the test's input be delivered by the pre-feature tooling?**
+   If yes, the test is shallow. Example: `amigit commit -F <file>`
+   exists SPECIFICALLY to deliver multi-word messages that
+   `commit -m` cannot pass through argv (AmigaDOS splits on
+   whitespace). A `-F` happy-path test using `"fromfile"` as message
+   content proves nothing `-m fromfile` wouldn't already prove —
+   it's the canonical shallow-happy-path lie. The real test needs
+   a multi-word message like `"fix the broken parser in cmd_commit"`.
+3. **Is there a roundtrip?** For stateful features (write commands
+   on databases, VCS tools, config managers), a one-shot "command
+   succeeded" test is insufficient. A follow-up read must surface
+   the exact value just written. Pair every `commit -F` test with
+   `log -n 1` verifying the full multi-word message persisted.
+4. **Are error paths tested against distinct failure modes?** Not
+   just "returns non-zero" — each failure branch in source must
+   have a dedicated test.
+
+When dispatched in **diff-audit mode** (caller shows you the source
+diff + proposed new tests), explicitly flag any test whose happy-path
+input fails question 2. Suggest the concrete fix — "replace
+`'fromfile'` with `'fix the parser bug'` so the multi-word AmigaDOS
+argv-split bypass is actually exercised".
+
+See `.claude/rules/test-designer-for-new-features.md` for the
+mandatory-dispatch rule that forces this audit on every new feature.
+
+## Git-Adjacent Ports Are Special — Multi-Suite Testing
+
+For ports that manage non-trivial persistent state (amigit today;
+future ports might include database clients, VCS tools, config
+managers), a single `test-fsemu-cases.txt` with isolated
+one-command-per-test cases is insufficient. These ports need:
+
+- **State-transition assertions** — before N state; run command;
+  after must be N+1 state verified via a follow-up read command.
+- **Roundtrip assertions** — written value is readable and matches
+  exactly (not "contains substring").
+- **Cross-command scenarios** — sequences of 3+ commands with state
+  assertions between each, matching how a real user exercises the
+  tool.
+- **Fixture-based setup** — known-starting-state repositories /
+  databases, not just "empty T:scratch".
+
+When designing tests for a stateful port, propose these as scenario
+tests. The multi-suite file split (unit / integration / e2e /
+stress) is tracked as a deferred design in
+`memory/project_amigit_multi_suite_testing.md`. Until that lands,
+stateful-port scenario tests go into the main
+`test-fsemu-cases.txt` with `[ordered-N]` dependencies and explicit
+state-check follow-up tests (see the amigit 0.1-5 pattern: every
+`commit -F` is paired with `log -n 1` roundtrip verification).
+
 ## Output Verification Strategy — CRITICAL
 
 **Tests must verify exact correctness, not just "something came out."**

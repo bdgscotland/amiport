@@ -17,8 +17,8 @@ TARGET      = amigit
 # so a `REVISION = 2` after the include is too late and DISPLAY_VERSION
 # stays at "0.1" instead of "0.1-2". Discovered while bumping to 0.1-2.
 VERSION     = 0.1
-REVISION    = 4
-DESCRIPTION = Local-only git client for AmigaOS 3.x
+REVISION    = 5
+DESCRIPTION = Local git CLI for AmigaOS 3.x (preview)
 AUTHOR      = Duncan Bowring (amiport, on libgit2)
 AMINET_CAT  = dev/misc
 
@@ -52,7 +52,12 @@ OBJECTS = ported/amigit.o \
 SOURCES = $(OBJECTS:.o=.c)
 
 # CFLAGS: start from common.mk defaults, then:
-# - replace -O2 with -O0 to match lib/libgit2 baseline (crash-patterns #16)
+# - replace -O2 with -O1 for amigit's own 13 port TUs only. libgit2.a and
+#   libz.a remain -O0 (built separately under lib/). perf-optimizer
+#   audited all port TUs SAFE for -O1 on 2026-04-13: no struct-by-value
+#   returns > 8 bytes (crash-patterns #16), no recursion, no float div
+#   in amigit's own code. Re-verified by the full 82-test FS-UAE suite
+#   after the 0.2 -O1 flip.
 # - replace -m68000 with -m68020 -- amigit targets 68020+ only (no A500
 #   support). The realistic audience for a git client is accelerated
 #   Amigas (Vampire V2/V4, A1200/030+, A3000/A4000, FS-UAE). A plain
@@ -63,7 +68,7 @@ SOURCES = $(OBJECTS:.o=.c)
 #   built libgit2.a (tests/libgit2/Makefile uses the same pattern)
 # - add include paths for libgit2 public headers and internal util/
 # - suppress noisy warnings from libgit2 headers
-CFLAGS := $(subst -O2,-O0,$(subst -m68000,-m68020,$(CFLAGS))) \
+CFLAGS := $(subst -O2,-O1,$(subst -m68000,-m68020,$(CFLAGS))) \
           -std=gnu99 \
           -Wno-unused-parameter -Wno-unused-function \
           -I../../lib/libgit2/include \

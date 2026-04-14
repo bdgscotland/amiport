@@ -35,7 +35,7 @@
 
 TEST: version prints amigit version on first line
 CMD: WORK:amigit version
-EXPECT: amigit 0.1-4 (built 2026-04-13)
+EXPECT: amigit 0.1-5 (built 2026-04-14)
 EXPECT_RC: 0
 
 TEST: version prints libgit2 version on second line
@@ -395,6 +395,20 @@ TEST: commit outside repo exits RETURN_ERROR
 CMD: WORK:amigit commit -m test
 EXPECT_RC: 10
 
+# commit -F <file> flag-parsing tests (0.2 -- no repo required)
+
+TEST: commit -F without file argument exits RETURN_ERROR
+CMD: WORK:amigit commit -F
+EXPECT_RC: 10
+
+TEST: commit -F with nonexistent file exits RETURN_ERROR
+CMD: WORK:amigit commit -F T:amigit-no-such-msg.txt
+EXPECT_RC: 10
+
+TEST: commit -m and -F together exits RETURN_ERROR (mutually exclusive)
+CMD: WORK:amigit commit -m hello -F T:anyfile.txt
+EXPECT_RC: 10
+
 # ======================================================================
 # commit command -- error paths in c3 repo (wrapper required)
 # ======================================================================
@@ -587,6 +601,32 @@ EXPECT_RC: 0
 TEST: log after two commits shows most recent commit on first line
 CMD: SYS:Rexxc/rx WORK:test-amigit-inrepo.rexx T:amigit-c3 log
 EXPECT_CONTAINS: worldadd
+EXPECT_RC: 0
+
+# [ordered-9] commit -F <file> happy path (0.1-5).
+#
+# THIS IS THE POINT of -F: it must deliver a message containing spaces
+# and (ideally) newlines that could NOT have been passed via -m because
+# AmigaDOS splits argv on whitespace. Single-word messages would not
+# prove -F works -- they would only prove it doesn't crash. The test
+# below uses "fix the broken parser in cmd_commit" as the message.
+# ARexx PARSE ARG with the last variable grabs the remainder of the
+# line verbatim (including internal spaces), so the wrapper receives
+# the full multi-word string and writes it to T:amigit_f_msg.txt.
+# amigit commit -F reads the file, passes the full string to
+# git_commit_create_v, and the success line `[<sha>] <msg>` then
+# contains the full multi-word message as a single commit summary.
+TEST: commit -F from file delivers multi-word message (the whole point of -F)
+CMD: SYS:Rexxc/rx WORK:test-amigit-inrepo-commit-f.rexx T:amigit-c3 readme.txt fix the broken parser in cmd_commit
+EXPECT_CONTAINS: fix the broken parser in cmd_commit
+EXPECT_RC: 0
+
+# [ordered-9b] After the commit above, log must show the full
+# multi-word message as the most recent commit. If -F wrote only a
+# truncated prefix (e.g. the first token) this will fail.
+TEST: log after -F commit shows the full multi-word message (-F roundtrip)
+CMD: SYS:Rexxc/rx WORK:test-amigit-inrepo.rexx T:amigit-c3 log -n 1
+EXPECT_CONTAINS: fix the broken parser in cmd_commit
 EXPECT_RC: 0
 
 # ======================================================================

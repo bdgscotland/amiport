@@ -5,16 +5,24 @@
 | Field | Value |
 |-------|-------|
 | Program | amigit |
-| Version | 0.1-4 |
+| Version | 0.1-5 |
 | Source | amiport-native (hand-written on libgit2 1.8.5) |
 | Category | 1 -- CLI tool |
 | License | GPL-2.0 (libgit2) + MIT (amiport code) |
 | Original Author | Duncan Bowring (amiport project) |
 | Port Date | 2026-04-13 |
-| Last Update | 2026-04-13 (revision 4) |
+| Last Update | 2026-04-14 (revision 5) |
 | Maturity | **Developer preview** -- not yet stable for daily use |
 
 ## Status
+
+**0.1-5 (2026-04-14) -- DEVELOPER PREVIEW.** All 11 PDR-010a v1
+commands compile and run, **87/87** FS-UAE functional tests
+passing (up from 82 in 0.1-4). This revision adds `commit -F <file>`
+for multi-word commit messages, promotes amigit's own 13 port TUs
+to `-O1`, and ships a new rule enforcing that new feature tests
+must exercise the feature's actual purpose (not shallow happy-path
+"does it not crash" tests). See "What changed in 0.1-5" below.
 
 **0.1-4 (2026-04-13) -- DEVELOPER PREVIEW.** All 11 PDR-010a v1
 commands compile and run, **82/82** FS-UAE functional tests
@@ -83,6 +91,63 @@ The real risk is **scope creep** on the 1.0 networking work. We
 should ship 0.2 / 0.3 as visible incremental wins so the project
 doesn't sit at 0.1.x and look abandoned during the long quiet
 networking stretch.
+
+### What changed in 0.1-5
+
+Cheap-wins pass from HANDOFF.md (B-track): perf promotion of amigit
+port TUs to `-O1` (the 13 cmd_*.c + amigit.c files; `lib/libgit2/`
+and `lib/zlib/` stay at `-O0`), new `commit -F <file>` flag for
+multi-word commit messages, and a testing-discipline rule to prevent
+the shallow-happy-path lie that was caught in this session.
+
+- **`-O1` promotion for amigit's port TUs.** perf-optimizer
+  (2026-04-13 audit, HANDOFF.md item 1) declared all 13 TUs safe
+  for `-O1`: no struct-by-value returns > 8 bytes
+  (crash-patterns #16), no recursion, no float division in
+  amigit's own code. Binary went from 1,085,544 bytes (0.1-4) to
+  1,081,432 bytes (0.1-5) -- 4 KB smaller. `libgit2.a` and
+  `libz.a` stay at `-O0` (changing those would require a full
+  library pipeline re-run per `.claude/rules/library-pipeline.md`).
+
+- **`commit -F <file>`.** Solves the single-word-message limitation
+  of `commit -m`. AmigaDOS shells split argv on whitespace, so
+  `commit -m "fix the bug"` delivers argv entries `"fix"`, `"the"`,
+  `"bug"` and the second/third get rejected as "unexpected
+  argument". `-F` reads the message from a file -- any content,
+  including spaces, newlines, and up to 65,536 bytes. New helpers:
+  `read_message_file()` slurps the file into a malloc'd buffer;
+  `amigit_commit_free_msg_buf()` is registered via `atexit()` so
+  every exit path (including deep libgit2 errors) cleans up the
+  buffer. `-m` and `-F` are mutually exclusive.
+
+- **Testing discipline -- the shallow-happy-path lie.** The first
+  pass of `-F` tests had a single-word happy-path case
+  (`"fromfile"`) that proved nothing `-m fromfile` wouldn't already
+  prove -- a shallow test lie for a feature that exists
+  specifically to deliver multi-word messages. Caught by user in
+  mid-session and fixed: the happy-path now uses `"fix the broken
+  parser in cmd_commit"` and is paired with a follow-up
+  `log -n 1` test verifying the full multi-word message survives
+  through libgit2's commit object storage. New rule
+  `.claude/rules/test-designer-for-new-features.md` mandates
+  test-designer dispatch for new feature tests; the test-designer
+  agent prompt now carries a "Shallow Happy-Path Smell -- REJECT
+  These Tests" section to detect this pattern in diff-audit mode.
+
+- **Multi-suite testing (DEFERRED).** User also called out that
+  "git is a very complex beast" and amigit specifically needs
+  multiple test suite files (unit/integration/e2e/scenario/stress)
+  with git-specific assertion primitives, not a single monolithic
+  `test-fsemu-cases.txt`. Captured as a project memory
+  (`project_amigit_multi_suite_testing.md`) with a full proposal;
+  deferred to its own session -- not a blocker for 0.1-5.
+
+- **Binary:** 1,081,432 bytes (1.03 MB), `-m68020 -O1 -noixemul`.
+- **Test suite:** 87/87 FS-UAE functional tests passing (85 prior
+  + 3 new `-F` error paths + 1 new `-F` happy path + 1 new
+  `-F`-through-log roundtrip test... wait, 82 prior + 4 new = 86
+  + 1 more roundtrip = 87. Math checks.).
+- **Dependencies unchanged:** libgit2 1.8.5, zlib 1.3.1, posix-shim.
 
 ### What changed in 0.1-4
 

@@ -1,10 +1,18 @@
 /*
- * cmd_commit.c -- `amigit commit -m <msg>`
+ * cmd_commit.c -- `amigit commit -m <msg>` / `amigit commit -F <file>`
  *
  * Records a commit from the current index. If the index has no staged
  * changes (matches HEAD's tree), exits 10 with "nothing to commit".
  * If HEAD is unborn (fresh repo), creates the initial commit with no
  * parent; otherwise creates a single-parent commit from HEAD.
+ *
+ * Message source:
+ *   -m <msg>   inline message (single shell token -- AmigaDOS does
+ *              not support multi-word quoting reliably in argv)
+ *   -F <file>  read message from file (supports multi-line messages
+ *              and arbitrary content; trailing newline is preserved)
+ *
+ * -m and -F are mutually exclusive.
  *
  * Author and committer default to "amigit user <amigit@localhost>" and
  * can be overridden via the standard git environment variables:
@@ -15,12 +23,14 @@
  * libnix time(NULL)).
  *
  * Usage:
- *   amigit commit -m "message"   -- record commit with inline message
- *   amigit commit --help         -- usage + exit 0
+ *   amigit commit -m "message"    -- record commit with inline message
+ *   amigit commit -F T:msg.txt    -- read message from file
+ *   amigit commit --help          -- usage + exit 0
  *
  * Exit:
  *   0  on success
- *   10 on missing -m, empty message, nothing to commit, or libgit2 error
+ *   10 on missing -m/-F, empty message, nothing to commit, unreadable
+ *      message file, or libgit2 error
  *
  * Reference: tests/libgit2/test_libgit2.c commit_create_initial,
  * commit_create_with_parent.
@@ -35,17 +45,113 @@
 
 #include "amigit.h"
 
+/*
+ * File-scope msg-file buffer so the atexit cleanup can free it on
+ * every exit path, including the many early-return paths deep inside
+ * libgit2 error handling. Registered exactly once per command
+ * invocation (amigit is single-command-per-process).
+ */
+static char *amigit_commit_msg_buf = NULL;
+
+static void amigit_commit_free_msg_buf(void)
+{
+    if (amigit_commit_msg_buf != NULL) {
+        free(amigit_commit_msg_buf);
+        amigit_commit_msg_buf = NULL;
+    }
+}
+
 static int cmd_commit_usage(int rc)
 {
     FILE *out = (rc == RETURN_OK) ? stdout : stderr;
-    fprintf(out, "usage: amigit commit -m <message>\n\n");
+    fprintf(out, "usage: amigit commit (-m <message> | -F <file>)\n\n");
     fprintf(out, "Record a commit from the current index.\n\n");
     fprintf(out, "Options:\n");
-    fprintf(out, "  -m <msg>   Commit message (required)\n\n");
+    fprintf(out, "  -m <msg>   Commit message (inline, single shell token)\n");
+    fprintf(out, "  -F <file>  Read commit message from file\n\n");
     fprintf(out, "Environment:\n");
     fprintf(out, "  GIT_AUTHOR_NAME, GIT_AUTHOR_EMAIL       -- author identity\n");
     fprintf(out, "  GIT_COMMITTER_NAME, GIT_COMMITTER_EMAIL -- committer identity\n");
     return rc;
+}
+
+/*
+ * Read an entire file into a newly malloc'd NUL-terminated buffer.
+ * Caller must free the returned buffer. Returns NULL on error and
+ * writes a human-readable diagnostic to stderr.
+ *
+ * Max size 65536 bytes -- larger than any plausible commit message,
+ * small enough that a runaway read cannot pressure the amiga RAM.
+ */
+static char *read_message_file(const char *path)
+{
+    FILE *fp;
+    char *buf;
+    size_t cap = 4096;
+    size_t len = 0;
+    size_t n;
+    const size_t max_msg = 65536;
+
+    fp = fopen(path, "r");
+    if (fp == NULL) {
+        fprintf(stderr,
+                "amigit: commit: cannot read message file '%s'\n", path);
+        return NULL;
+    }
+
+    buf = (char *)malloc(cap);
+    if (buf == NULL) {
+        fclose(fp);
+        fprintf(stderr, "amigit: commit: out of memory\n");
+        return NULL;
+    }
+
+    for (;;) {
+        if (len + 1 >= cap) {
+            char *grown;
+            size_t new_cap = cap * 2;
+            if (new_cap > max_msg + 1) new_cap = max_msg + 1;
+            if (new_cap == cap) {
+                fprintf(stderr,
+                        "amigit: commit: message file exceeds %lu bytes\n",
+                        (unsigned long)max_msg);
+                free(buf);
+                fclose(fp);
+                return NULL;
+            }
+            grown = (char *)realloc(buf, new_cap);
+            if (grown == NULL) {
+                free(buf);
+                fclose(fp);
+                fprintf(stderr, "amigit: commit: out of memory\n");
+                return NULL;
+            }
+            buf = grown;
+            cap = new_cap;
+        }
+        n = fread(buf + len, 1, cap - 1 - len, fp);
+        if (n == 0) break;
+        len += n;
+    }
+
+    if (ferror(fp)) {
+        fprintf(stderr,
+                "amigit: commit: read error on '%s'\n", path);
+        free(buf);
+        fclose(fp);
+        return NULL;
+    }
+    fclose(fp);
+
+    buf[len] = '\0';
+    if (len == 0) {
+        fprintf(stderr,
+                "amigit: commit: message file '%s' is empty\n", path);
+        free(buf);
+        return NULL;
+    }
+
+    return buf;
 }
 
 /*
@@ -96,7 +202,42 @@ int amigit_cmd_commit(int argc, char **argv)
                         "amigit: commit: -m requires an argument\n");
                 return cmd_commit_usage(RETURN_ERROR);
             }
+            if (message != NULL) {
+                fprintf(stderr,
+                        "amigit: commit: -m and -F are mutually exclusive\n");
+                return cmd_commit_usage(RETURN_ERROR);
+            }
             message = argv[++i];
+            continue;
+        }
+        if (strcmp(argv[i], "-F") == 0) {
+            if (i + 1 >= argc) {
+                fprintf(stderr,
+                        "amigit: commit: -F requires a file path\n");
+                return cmd_commit_usage(RETURN_ERROR);
+            }
+            if (message != NULL) {
+                fprintf(stderr,
+                        "amigit: commit: -m and -F are mutually exclusive\n");
+                return cmd_commit_usage(RETURN_ERROR);
+            }
+            amigit_commit_msg_buf = read_message_file(argv[++i]);
+            if (amigit_commit_msg_buf == NULL) {
+                return RETURN_ERROR;
+            }
+            /* Register one-shot atexit cleanup so every subsequent
+             * early-return path (including deep libgit2 errors) frees
+             * the message buffer. */
+            if (atexit(amigit_commit_free_msg_buf) != 0) {
+                /* atexit registration rarely fails, but if it does we
+                 * free now and bail rather than leak. */
+                free(amigit_commit_msg_buf);
+                amigit_commit_msg_buf = NULL;
+                fprintf(stderr,
+                        "amigit: commit: atexit registration failed\n");
+                return RETURN_ERROR;
+            }
+            message = amigit_commit_msg_buf;
             continue;
         }
         if (argv[i][0] == '-') {
@@ -110,7 +251,8 @@ int amigit_cmd_commit(int argc, char **argv)
     }
 
     if (message == NULL) {
-        fprintf(stderr, "amigit: commit: -m <message> is required\n");
+        fprintf(stderr,
+                "amigit: commit: -m <message> or -F <file> is required\n");
         return cmd_commit_usage(RETURN_ERROR);
     }
     if (message[0] == '\0') {

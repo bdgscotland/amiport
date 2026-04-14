@@ -5,17 +5,17 @@
 | Field | Value |
 |-------|-------|
 | Port | amigit |
-| Date | 2026-04-13 22:24:03 |
-| Duration | 136s |
+| Date | 2026-04-14 11:31:17 |
+| Duration | 148s |
 | Platform | FS-UAE 3.2.35 (A1200, Kickstart 3.1) |
 | Binary | `WORK:amigit` (1.0M) |
 | Test method | ARexx harness → TAP output |
-| Result | **PASS** — 82/82 passed |
+| Result | **PASS** — 87/87 passed |
 
 ## Test Results
 
 ```
-1..82
+1..87
 ok 1 - version prints amigit version on first line
 ok 2 - version prints libgit2 version on second line
 ok 3 - version prints shim availability on third line
@@ -70,35 +70,40 @@ ok 51 - commit --help prints usage and exits 0
 ok 52 - commit unknown flag exits RETURN_ERROR
 ok 53 - commit without -m exits RETURN_ERROR (missing message)
 ok 54 - commit outside repo exits RETURN_ERROR
-ok 55 - commit with nothing staged exits RETURN_ERROR (empty repo, no index)
-ok 56 - commit -m after add creates first commit and exits 0
-ok 57 - second commit with no new staged changes exits RETURN_ERROR
-ok 58 - branch --help prints usage and exits 0
-ok 59 - branch unknown flag exits RETURN_ERROR
-ok 60 - branch -d without name argument exits RETURN_ERROR
-ok 61 - branch outside repo exits RETURN_ERROR
-ok 62 - branch foo creates new branch at HEAD and exits 0
-ok 63 - branch -l after branch foo shows foo in list
-ok 64 - checkout --help prints usage and exits 0
-ok 65 - checkout unknown flag exits RETURN_ERROR
-ok 66 - checkout nonexistent ref exits RETURN_ERROR
-ok 67 - checkout foo switches to foo branch and exits 0
-ok 68 - branch -d foo while on foo exits RETURN_ERROR (cannot delete HEAD)
-ok 69 - checkout master switches back to master and exits 0
-ok 70 - branch -d foo after checkout master exits 0
-ok 71 - branch -d foo again exits RETURN_ERROR (branch no longer exists)
-ok 72 - tag --help prints usage and exits 0
-ok 73 - tag unknown flag exits RETURN_ERROR
-ok 74 - tag v0.1 in repo with unborn HEAD exits RETURN_ERROR
-ok 75 - tag v0.1 creates lightweight tag at HEAD and exits 0
-ok 76 - tag -l after tag v0.1 shows v0.1
-ok 77 - tag v0.1 again exits RETURN_ERROR (duplicate tag name)
-ok 78 - add second file world.txt stages it and exits 0
-ok 79 - diff --cached after staging world.txt shows new file additions
-ok 80 - commit second commit with parent exits 0 and shows message
-ok 81 - log after two commits shows most recent commit on first line
-ok 82 - init friendly-error fires for bare-CWD AND explicit-mc-volume cases
-# passed: 82 failed: 0 total: 82
+ok 55 - commit -F without file argument exits RETURN_ERROR
+ok 56 - commit -F with nonexistent file exits RETURN_ERROR
+ok 57 - commit -m and -F together exits RETURN_ERROR (mutually exclusive)
+ok 58 - commit with nothing staged exits RETURN_ERROR (empty repo, no index)
+ok 59 - commit -m after add creates first commit and exits 0
+ok 60 - second commit with no new staged changes exits RETURN_ERROR
+ok 61 - branch --help prints usage and exits 0
+ok 62 - branch unknown flag exits RETURN_ERROR
+ok 63 - branch -d without name argument exits RETURN_ERROR
+ok 64 - branch outside repo exits RETURN_ERROR
+ok 65 - branch foo creates new branch at HEAD and exits 0
+ok 66 - branch -l after branch foo shows foo in list
+ok 67 - checkout --help prints usage and exits 0
+ok 68 - checkout unknown flag exits RETURN_ERROR
+ok 69 - checkout nonexistent ref exits RETURN_ERROR
+ok 70 - checkout foo switches to foo branch and exits 0
+ok 71 - branch -d foo while on foo exits RETURN_ERROR (cannot delete HEAD)
+ok 72 - checkout master switches back to master and exits 0
+ok 73 - branch -d foo after checkout master exits 0
+ok 74 - branch -d foo again exits RETURN_ERROR (branch no longer exists)
+ok 75 - tag --help prints usage and exits 0
+ok 76 - tag unknown flag exits RETURN_ERROR
+ok 77 - tag v0.1 in repo with unborn HEAD exits RETURN_ERROR
+ok 78 - tag v0.1 creates lightweight tag at HEAD and exits 0
+ok 79 - tag -l after tag v0.1 shows v0.1
+ok 80 - tag v0.1 again exits RETURN_ERROR (duplicate tag name)
+ok 81 - add second file world.txt stages it and exits 0
+ok 82 - diff --cached after staging world.txt shows new file additions
+ok 83 - commit second commit with parent exits 0 and shows message
+ok 84 - log after two commits shows most recent commit on first line
+ok 85 - commit -F from file delivers multi-word message (the whole point of -F)
+ok 86 - log after -F commit shows the full multi-word message (-F roundtrip)
+ok 87 - init friendly-error fires for bare-CWD AND explicit-mc-volume cases
+# passed: 87 failed: 0 total: 87
 ```
 
 ### Breakdown
@@ -159,34 +164,39 @@ ok 82 - init friendly-error fires for bare-CWD AND explicit-mc-volume cases
 | 52 | commit unknown flag exits RETURN_ERROR | PASS | |
 | 53 | commit without -m exits RETURN_ERROR (missing message) | PASS | |
 | 54 | commit outside repo exits RETURN_ERROR | PASS | |
-| 55 | commit with nothing staged exits RETURN_ERROR (empty repo, no index) | PASS | |
-| 56 | commit -m after add creates first commit and exits 0 | PASS | |
-| 57 | second commit with no new staged changes exits RETURN_ERROR | PASS | |
-| 58 | branch --help prints usage and exits 0 | PASS | |
-| 59 | branch unknown flag exits RETURN_ERROR | PASS | |
-| 60 | branch -d without name argument exits RETURN_ERROR | PASS | |
-| 61 | branch outside repo exits RETURN_ERROR | PASS | |
-| 62 | branch foo creates new branch at HEAD and exits 0 | PASS | |
-| 63 | branch -l after branch foo shows foo in list | PASS | |
-| 64 | checkout --help prints usage and exits 0 | PASS | |
-| 65 | checkout unknown flag exits RETURN_ERROR | PASS | |
-| 66 | checkout nonexistent ref exits RETURN_ERROR | PASS | |
-| 67 | checkout foo switches to foo branch and exits 0 | PASS | |
-| 68 | branch -d foo while on foo exits RETURN_ERROR (cannot delete HEAD) | PASS | |
-| 69 | checkout master switches back to master and exits 0 | PASS | |
-| 70 | branch -d foo after checkout master exits 0 | PASS | |
-| 71 | branch -d foo again exits RETURN_ERROR (branch no longer exists) | PASS | |
-| 72 | tag --help prints usage and exits 0 | PASS | |
-| 73 | tag unknown flag exits RETURN_ERROR | PASS | |
-| 74 | tag v0.1 in repo with unborn HEAD exits RETURN_ERROR | PASS | |
-| 75 | tag v0.1 creates lightweight tag at HEAD and exits 0 | PASS | |
-| 76 | tag -l after tag v0.1 shows v0.1 | PASS | |
-| 77 | tag v0.1 again exits RETURN_ERROR (duplicate tag name) | PASS | |
-| 78 | add second file world.txt stages it and exits 0 | PASS | |
-| 79 | diff --cached after staging world.txt shows new file additions | PASS | |
-| 80 | commit second commit with parent exits 0 and shows message | PASS | |
-| 81 | log after two commits shows most recent commit on first line | PASS | |
-| 82 | init friendly-error fires for bare-CWD AND explicit-mc-volume cases | PASS | |
+| 55 | commit -F without file argument exits RETURN_ERROR | PASS | |
+| 56 | commit -F with nonexistent file exits RETURN_ERROR | PASS | |
+| 57 | commit -m and -F together exits RETURN_ERROR (mutually exclusive) | PASS | |
+| 58 | commit with nothing staged exits RETURN_ERROR (empty repo, no index) | PASS | |
+| 59 | commit -m after add creates first commit and exits 0 | PASS | |
+| 60 | second commit with no new staged changes exits RETURN_ERROR | PASS | |
+| 61 | branch --help prints usage and exits 0 | PASS | |
+| 62 | branch unknown flag exits RETURN_ERROR | PASS | |
+| 63 | branch -d without name argument exits RETURN_ERROR | PASS | |
+| 64 | branch outside repo exits RETURN_ERROR | PASS | |
+| 65 | branch foo creates new branch at HEAD and exits 0 | PASS | |
+| 66 | branch -l after branch foo shows foo in list | PASS | |
+| 67 | checkout --help prints usage and exits 0 | PASS | |
+| 68 | checkout unknown flag exits RETURN_ERROR | PASS | |
+| 69 | checkout nonexistent ref exits RETURN_ERROR | PASS | |
+| 70 | checkout foo switches to foo branch and exits 0 | PASS | |
+| 71 | branch -d foo while on foo exits RETURN_ERROR (cannot delete HEAD) | PASS | |
+| 72 | checkout master switches back to master and exits 0 | PASS | |
+| 73 | branch -d foo after checkout master exits 0 | PASS | |
+| 74 | branch -d foo again exits RETURN_ERROR (branch no longer exists) | PASS | |
+| 75 | tag --help prints usage and exits 0 | PASS | |
+| 76 | tag unknown flag exits RETURN_ERROR | PASS | |
+| 77 | tag v0.1 in repo with unborn HEAD exits RETURN_ERROR | PASS | |
+| 78 | tag v0.1 creates lightweight tag at HEAD and exits 0 | PASS | |
+| 79 | tag -l after tag v0.1 shows v0.1 | PASS | |
+| 80 | tag v0.1 again exits RETURN_ERROR (duplicate tag name) | PASS | |
+| 81 | add second file world.txt stages it and exits 0 | PASS | |
+| 82 | diff --cached after staging world.txt shows new file additions | PASS | |
+| 83 | commit second commit with parent exits 0 and shows message | PASS | |
+| 84 | log after two commits shows most recent commit on first line | PASS | |
+| 85 | commit -F from file delivers multi-word message (the whole point of -F) | PASS | |
+| 86 | log after -F commit shows the full multi-word message (-F roundtrip) | PASS | |
+| 87 | init friendly-error fires for bare-CWD AND explicit-mc-volume cases | PASS | |
 
 ## Environment
 
@@ -243,7 +253,7 @@ and compares against the expected output string.
 
 TEST: version prints amigit version on first line
 CMD: WORK:amigit version
-EXPECT: amigit 0.1-4 (built 2026-04-13)
+EXPECT: amigit 0.1-5 (built 2026-04-14)
 EXPECT_RC: 0
 
 TEST: version prints libgit2 version on second line
@@ -603,6 +613,20 @@ TEST: commit outside repo exits RETURN_ERROR
 CMD: WORK:amigit commit -m test
 EXPECT_RC: 10
 
+# commit -F <file> flag-parsing tests (0.2 -- no repo required)
+
+TEST: commit -F without file argument exits RETURN_ERROR
+CMD: WORK:amigit commit -F
+EXPECT_RC: 10
+
+TEST: commit -F with nonexistent file exits RETURN_ERROR
+CMD: WORK:amigit commit -F T:amigit-no-such-msg.txt
+EXPECT_RC: 10
+
+TEST: commit -m and -F together exits RETURN_ERROR (mutually exclusive)
+CMD: WORK:amigit commit -m hello -F T:anyfile.txt
+EXPECT_RC: 10
+
 # ======================================================================
 # commit command -- error paths in c3 repo (wrapper required)
 # ======================================================================
@@ -797,6 +821,32 @@ CMD: SYS:Rexxc/rx WORK:test-amigit-inrepo.rexx T:amigit-c3 log
 EXPECT_CONTAINS: worldadd
 EXPECT_RC: 0
 
+# [ordered-9] commit -F <file> happy path (0.1-5).
+#
+# THIS IS THE POINT of -F: it must deliver a message containing spaces
+# and (ideally) newlines that could NOT have been passed via -m because
+# AmigaDOS splits argv on whitespace. Single-word messages would not
+# prove -F works -- they would only prove it doesn't crash. The test
+# below uses "fix the broken parser in cmd_commit" as the message.
+# ARexx PARSE ARG with the last variable grabs the remainder of the
+# line verbatim (including internal spaces), so the wrapper receives
+# the full multi-word string and writes it to T:amigit_f_msg.txt.
+# amigit commit -F reads the file, passes the full string to
+# git_commit_create_v, and the success line `[<sha>] <msg>` then
+# contains the full multi-word message as a single commit summary.
+TEST: commit -F from file delivers multi-word message (the whole point of -F)
+CMD: SYS:Rexxc/rx WORK:test-amigit-inrepo-commit-f.rexx T:amigit-c3 readme.txt fix the broken parser in cmd_commit
+EXPECT_CONTAINS: fix the broken parser in cmd_commit
+EXPECT_RC: 0
+
+# [ordered-9b] After the commit above, log must show the full
+# multi-word message as the most recent commit. If -F wrote only a
+# truncated prefix (e.g. the first token) this will fail.
+TEST: log after -F commit shows the full multi-word message (-F roundtrip)
+CMD: SYS:Rexxc/rx WORK:test-amigit-inrepo.rexx T:amigit-c3 log -n 1
+EXPECT_CONTAINS: fix the broken parser in cmd_commit
+EXPECT_RC: 0
+
 # ======================================================================
 # Positional argument matrix: init from a CWD (real fix in 0.1-3)
 # ======================================================================
@@ -853,9 +903,9 @@ Written by the ARexx harness when all tests complete:
 
 ```
 TESTS_COMPLETE
-passed=82
+passed=87
 failed=0
-total=82
+total=87
 ```
 
 ---
