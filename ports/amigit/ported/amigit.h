@@ -15,7 +15,7 @@
 
 /* amigit version string. Keep in sync with the $VER tag in amigit.c
  * and the VERSION variable in the Makefile. */
-#define AMIGIT_VERSION "0.1-2"
+#define AMIGIT_VERSION "0.1-3"
 
 /*
  * Command function signature. argc/argv are the full program argv

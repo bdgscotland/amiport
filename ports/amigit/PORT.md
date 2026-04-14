@@ -5,18 +5,59 @@
 | Field | Value |
 |-------|-------|
 | Program | amigit |
-| Version | 0.1-2 |
+| Version | 0.1-3 |
 | Source | amiport-native (hand-written on libgit2 1.8.5) |
 | Category | 1 -- CLI tool |
 | License | GPL-2.0 (libgit2) + MIT (amiport code) |
 | Original Author | Duncan Bowring (amiport project) |
 | Port Date | 2026-04-13 |
-| Last Update | 2026-04-13 (revision 2) |
+| Last Update | 2026-04-13 (revision 3) |
 
 ## Status
 
-**0.1-2 (2026-04-13).** All 10 PDR-010a v1 commands shipping.
+**0.1-3 (2026-04-13).** All 10 PDR-010a v1 commands shipping.
 **82/82** FS-UAE functional tests passing.
+
+### What changed in 0.1-3 (since 0.1-2)
+
+User-visible: `amigit init WORK:foo` now produces the same friendly
+"libgit2 limitation" error as bare `amigit init` from a CWD on a
+multi-character volume name. Pre-0.1-3, only the bare-CWD case fired
+the friendly error -- explicit-path init on a multi-char volume
+(`amigit init WORK:playground` from a Shell at `WORK:`) fell through
+to libgit2's cryptic `failed to make directory './.'`.
+
+Engineering note (kept for future fix attempts): three approaches to
+making init *actually work* on multi-char volumes were tried in this
+session and rolled back:
+
+1. **Patch libgit2's `dos_drive_prefix_length`** to scan for the
+   first `:` on AmigaOS, plus an amigit-side rewrite that injects
+   `/` after the colon. Result: regressed 20 in-repo tests because
+   libnix doesn't treat `"Ram Disk:/foo"` the same as `"Ram Disk:foo"`
+   for `p_stat`/`p_open` operations. The deeper fix needs both
+   libgit2 path recognition AND libnix path normalization to agree.
+
+2. **chdir-then-init dance** -- `amiport_chdir` into the target,
+   then call `git_repository_init(repo, ".", is_bare)`. Result:
+   same `./.` mkdir error, because libgit2 absolutizes `.` early
+   via `realpath` and ends up with the same multi-char form. The
+   chdir doesn't bypass libgit2's path-root limitation.
+
+3. **Manual init bypass** -- create the `.git/` directory structure
+   directly via libnix `mkdir`+`fopen` (HEAD, config, refs/, objects/,
+   etc.), skipping `git_repository_init` entirely for the multi-char
+   case. Result: caused unrelated test 29 (`amigit show -h`) to hang
+   on FS-UAE. Root cause not diagnosed in-session -- possibly an
+   `<amiport/dirent.h>` header-include side-effect or a binary-size
+   pressure on the 4 MB test config. Reverted to friendly-error-only
+   for 0.1-3 to avoid shipping a regression.
+
+The friendly-error coverage in 0.1-3 is the correct compromise for
+this revision. The real fix (some combination of libgit2 patching,
+libnix path normalization, or a more careful manual-init bypass)
+is deferred to a future revision once the test-29 hang is understood
+and the libnix/libgit2 path-handling reconciliation is designed.
 
 ### What changed in 0.1-2 (since 0.1 first release)
 
