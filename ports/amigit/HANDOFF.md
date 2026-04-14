@@ -1,13 +1,26 @@
 # amigit -- post-v1 handoff and evolution roadmap
 
+> **2026-04-14 update:** Track A (CPU dual-flavor) is SHIPPED in
+> 0.1-6. The next committed direction is HTTPS networking, which is
+> now tracked as its own multi-session plan at
+> **[docs/pdr/012-amigit-https-networking.md](../../docs/pdr/012-amigit-https-networking.md)**.
+>
+> **A fresh session should open PDR-012 first**, jump to its
+> "Session checkpoint" section, and start from the current phase.
+> This HANDOFF.md remains the long-term evolution doc (roadmap,
+> effort estimates, historical context) but the day-to-day
+> networking execution plan lives in the PDR.
+
 **For:** the next session continuing amigit evolution after the 0.1 v1
 release (commit `8faf039`, 2026-04-13).
 **Replaces:** the prior Phase 3c handoff brief (kept in git history via
 `0ade298` and earlier).
 
-Read this file first in a fresh session, then the files it points to.
-The v1 release is shipped -- don't re-do it. This doc is a planning
-document for where to go next, with honest effort estimates.
+Read this file first in a fresh session for the roadmap overview, then
+open PDR-012 for the networking execution plan, then the files either
+points to. The v1 release and Track A are shipped -- don't re-do them.
+This doc is a planning document for where to go next, with honest
+effort estimates.
 
 ## Current state snapshot
 
@@ -529,22 +542,24 @@ section "Still-required local vamos monkey-patches" if
 `make -C tests/libgit2 run` fails with a stack trace involving
 LockManager or utime.
 
-Ask me what I want to tackle next. The honest options after Track A
-shipped, ranked by effort:
+**THE DEFAULT NEXT STEP IS PDR-012 HTTPS NETWORKING.** This is a
+committed multi-session direction as of 2026-04-14. Read
+docs/pdr/012-amigit-https-networking.md, find the "Session checkpoint"
+section, pick up the current phase, and execute. Don't ask me to
+pick -- the plan is already locked.
+
+If PDR-012 is not in scope for your session (e.g. a narrow bug fix
+or a hotfix revision), the other options ranked by effort are:
 
 - Genuine small wins (1-2 days each, no library rebuild): annotated
   tag support (tag -a -m AND tag -a -F in one go, ~1 day), log
   --grep, pager auto-detect. See HANDOFF "Genuine small wins left".
-  Each ships as a small 0.1.x or 0.2 revision.
-- Local-file clone (item #5, ~1 day -- requires lib/libgit2/ source
-  re-enable of clone.c + stub adjust; same dual-flavor library build
-  is fine, just needs more sources included in both the 000 and 020
-  archives).
-- Full Tier 1 HTTPS networking: custom git smart-HTTP transport
-  backend (libgit2 extension point) + AmiSSL integration (AmiSSL
-  already requires -m68020 so the CPU prerequisite is already met
-  by 0.1-6) + lib/libgit2 re-enable of clone.c/fetch.c/remote.c.
-  3-4 weeks of focused work. Ships as amigit 1.0.
+  Each ships as a small 0.1.x revision and is orthogonal to the
+  networking track.
+- PDR-012 Phase 1 overlap: local-file clone (file://) falls out
+  naturally after Phase 1 un-prunes libgit2's clone.c. Arguably
+  not worth doing separately -- do it as a free follow-up to
+  PDR-012 Phase 1 instead of a standalone "cheap win".
 
 Before starting any non-trivial work, verify the local vamos
 monkey-patches are still applied (run `make -C tests/libgit2 run`
@@ -553,6 +568,14 @@ untouched), and verify the amigit test suite still passes
 (`make test-fsemu TARGET=ports/amigit` should print 87/87 against
 the 020-linked binary). If either regresses, investigate before
 making changes.
+
+**Networking track specifically**: the default work unit is PDR-012
+Phase N, where N is the current phase listed in PDR-012's "Session
+checkpoint" section. Open PDR-012, scroll to the bottom, read the
+checkpoint, start the phase. Each phase is sized for 1-3 sessions.
+Update the checkpoint when you finish the phase, in the same commit
+as the phase's work, per the "strike done items in the same commit"
+rule (feedback_handoff_strike_done_items).
 ```
 
 ## Phase 3c session artifacts (historical record)
