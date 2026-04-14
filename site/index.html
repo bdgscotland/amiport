@@ -32,11 +32,8 @@
     <nav aria-label="Main navigation">
         <ul class="screen-bar__nav">
             <li><a href="packages.html">Packages</a></li>
-            <li><a href="catalog.html">Catalog</a></li>
             <li><a href="stats.html">Stats</a></li>
             <li><a href="news.html">News</a></li>
-            <li><a href="changelog.html">Changelog</a></li>
-            <li><a href="shims.html">Shims</a></li>
             <li><a href="amiga.html">Amiga</a></li>
             <li><a href="https://github.com/bdgscotland/amiport" target="_blank" rel="noopener">GitHub</a></li>
         </ul>
@@ -46,30 +43,32 @@
 <!-- Main Content -->
 <main id="main" class="content">
 
-    <h1 class="sr-only">amiport — Package Manager for Classic AmigaOS</h1>
+    <!-- Hero -->
+    <section class="hero" aria-labelledby="hero-headline">
+        <h1 class="hero-headline" id="hero-headline">The first package manager for classic AmigaOS.</h1>
+        <p class="hero-subhead">
+            For your A1200, A2000, A3000, A4000, or Vampire.
+            Requires AmigaOS 3.0+ and a TCP stack (Roadshow, Miami, AmiTCP).
+        </p>
 
-    <!-- Hero: Terminal Window (compact) -->
-    <div class="mui-window">
-        <div class="mui-window__title">AmigaShell</div>
-        <div class="mui-window__body terminal-anim" role="img" aria-label="Terminal showing amiport installing grep on AmigaOS">
-            <noscript>
-                <div><span class="shell-prompt">1.SYS:&gt; </span><span class="shell-cmd">amiport install grep</span></div>
-                <div class="shell-output">Downloading grep-1.68.lha... 45KB/45KB</div>
-                <div class="shell-output">Installed grep 1.68 to C:</div>
-                <div><span class="shell-prompt">1.SYS:&gt; </span><span class="shell-cmd">grep -i "hello" README</span></div>
-                <div class="shell-output">Hello, Amiga world!</div>
-                <div><span class="shell-prompt">1.SYS:&gt; </span><span class="shell-cursor"></span></div>
-            </noscript>
+        <div class="mui-window">
+            <div class="mui-window__title">AmigaShell</div>
+            <div class="mui-window__body terminal-anim" role="img" aria-label="Terminal showing amiport installing grep on AmigaOS">
+                <noscript>
+                    <div><span class="shell-prompt">1.SYS:&gt; </span><span class="shell-cmd">amiport install grep</span></div>
+                    <div class="shell-output">Downloading grep-1.68.lha... 45KB/45KB</div>
+                    <div class="shell-output">Installed grep 1.68 to C:</div>
+                    <div><span class="shell-prompt">1.SYS:&gt; </span><span class="shell-cmd">grep -i "hello" README</span></div>
+                    <div class="shell-output">Hello, Amiga world!</div>
+                    <div><span class="shell-prompt">1.SYS:&gt; </span><span class="shell-cursor"></span></div>
+                </noscript>
+            </div>
         </div>
-    </div>
 
-    <!-- Tagline -->
-    <div class="tagline">
-        The first package manager for classic AmigaOS.
-        <div class="tagline__sub">
-            AI-powered POSIX porting pipeline. Type a command, get a tool.
-        </div>
-    </div>
+        <p class="hero-kicker">
+            AI-powered POSIX porting pipeline. Type <code>amiport install grep</code>, get grep.
+        </p>
+    </section>
 
     <!-- Big Stats -->
     <section class="home-stats" role="status" aria-label="Project statistics">
@@ -84,10 +83,6 @@
         <div class="home-stats__card">
             <span class="home-stats__value" id="stats-downloads">...</span>
             <span class="home-stats__label">downloads</span>
-        </div>
-        <div class="home-stats__card">
-            <span class="home-stats__value">7</span>
-            <span class="home-stats__label">on Aminet</span>
         </div>
     </section>
 
@@ -109,68 +104,50 @@
             <div class="group-frame__title" id="popular-heading" role="heading" aria-level="2">Popular Ports</div>
             <div class="group-frame__body">
                 <div id="popular-ports">
-                    <ul class="popular-list">
-                        <li class="popular-list__item">
-                            <a href="packages/?name=grep" class="popular-list__name">grep</a>
-                            <span class="popular-list__meta">1.68 &middot; regex search</span>
-                        </li>
-                        <li class="popular-list__item">
-                            <a href="packages/?name=sed" class="popular-list__name">sed</a>
-                            <span class="popular-list__meta">1.47 &middot; stream editor</span>
-                        </li>
-                        <li class="popular-list__item">
-                            <a href="packages/?name=lua" class="popular-list__name">lua</a>
-                            <span class="popular-list__meta">5.4.7 &middot; scripting language</span>
-                        </li>
-                        <li class="popular-list__item">
-                            <a href="packages/?name=jq" class="popular-list__name">jq</a>
-                            <span class="popular-list__meta">1.7.1 &middot; JSON processor</span>
-                        </li>
-                        <li class="popular-list__item">
-                            <a href="packages/?name=mg" class="popular-list__name">mg</a>
-                            <span class="popular-list__meta">3.7 &middot; screen editor</span>
-                        </li>
-                    </ul>
-                    <p class="mt-sm"><a href="packages.html">Browse all <span id="pkg-count">...</span> packages &rarr;</a></p>
+                    <p class="text-muted" id="popular-ports-status">Loading popular ports...</p>
                 </div>
+                <p class="mt-sm"><a href="packages.html">Browse all <span id="pkg-count">...</span> packages &rarr;</a></p>
             </div>
         </section>
 
     </div>
 
-    <!-- amiport CLI -->
+    <!-- Get started -->
     <section class="group-frame" aria-labelledby="cli-heading">
-        <div class="group-frame__title" id="cli-heading" role="heading" aria-level="2">amiport CLI</div>
+        <div class="group-frame__title" id="cli-heading" role="heading" aria-level="2">Get started</div>
         <div class="group-frame__body">
-            <p class="mb-sm">The first package manager for classic AmigaOS. Install software directly on your Amiga:</p>
-            <div class="install-block">
-                <span class="install-block__prompt">1.SYS:&gt;</span>
-                <span class="install-block__cmd">amiport install grep</span>
-            </div>
-            <p class="mt-sm mb-sm">Downloads, verifies (SHA-256), and installs to C: automatically. 9 commands:</p>
-            <div class="install-block" style="font-size: 0.85em; line-height: 1.6">
-                <span class="install-block__cmd">amiport list</span> &mdash; browse all packages<br>
-                <span class="install-block__cmd">amiport search &lt;term&gt;</span> &mdash; find packages<br>
-                <span class="install-block__cmd">amiport install &lt;name&gt;</span> &mdash; download &amp; install<br>
-                <span class="install-block__cmd">amiport upgrade</span> &mdash; update outdated packages<br>
-                <span class="install-block__cmd">amiport doctor</span> &mdash; check network connectivity
-            </div>
-            <p class="mt-sm mb-sm"><strong>Requirements:</strong> AmigaOS 3.0+, TCP/IP stack (Roadshow, Miami, or AmiTCP), C:lha</p>
-            <p class="text-muted mt-sm">
-                <strong>Get started:</strong> Download <a href="packages.html?name=amiport">amiport.lha</a>, extract to C:, then use <code>amiport install</code> for everything else.
-            </p>
-        </div>
-    </section>
+            <ol class="steps-list">
+                <li>
+                    <strong>Install the amiport CLI on your Amiga.</strong>
+                    Download <a href="packages.html?name=amiport">amiport.lha</a> and extract to <code>C:</code>.
+                </li>
+                <li>
+                    <strong>Install any package by name.</strong>
+                    The CLI downloads the .lha, verifies the SHA-256, and copies the binary to <code>C:</code>.
+                    <div class="install-block mt-sm">
+                        <span class="install-block__prompt">1.SYS:&gt;</span>
+                        <span class="install-block__cmd">amiport install grep</span>
+                    </div>
+                </li>
+            </ol>
 
-    <!-- Manual Install -->
-    <section class="group-frame" aria-labelledby="install-heading">
-        <div class="group-frame__title" id="install-heading" role="heading" aria-level="2">Manual Install</div>
-        <div class="group-frame__body">
-            <p class="mb-sm">No network? Download .lha files from <a href="packages.html">Packages</a> and extract manually:</p>
-            <div class="install-block">
-                <span class="install-block__prompt">1.SYS:&gt;</span>
-                <span class="install-block__cmd">lha x grep-1.68.lha SYS:</span>
+            <p class="mt-md mb-sm"><strong>Core commands:</strong></p>
+            <div class="install-block" style="font-size: 0.85em; line-height: 1.6">
+                <span class="install-block__cmd">amiport list</span> &middot; browse all packages<br>
+                <span class="install-block__cmd">amiport search &lt;term&gt;</span> &middot; find packages by name or description<br>
+                <span class="install-block__cmd">amiport info &lt;name&gt;</span> &middot; package details<br>
+                <span class="install-block__cmd">amiport install &lt;name&gt;</span> &middot; download, verify, install<br>
+                <span class="install-block__cmd">amiport installed</span> &middot; show installed packages<br>
+                <span class="install-block__cmd">amiport upgrade [name]</span> &middot; update outdated packages<br>
+                <span class="install-block__cmd">amiport remove &lt;name&gt;</span> &middot; uninstall<br>
+                <span class="install-block__cmd">amiport doctor</span> &middot; check network connectivity<br>
+                <span class="install-block__cmd">amiport help</span> &middot; usage
             </div>
+
+            <p class="text-muted mt-md">
+                <strong>No network?</strong> Download .lha files from <a href="packages.html">Packages</a> and extract by hand:
+                <code>lha x grep-1.68.lha SYS:</code>
+            </p>
         </div>
     </section>
 
@@ -255,16 +232,18 @@
 
 // Fetch live download count for stats
 (function() {
+    var el = document.getElementById('stats-downloads');
+    function fail() { if (el) el.textContent = '\u2013'; }
     var xhr = new XMLHttpRequest();
     xhr.open('GET', 'api/v1/stats.php', true);
+    xhr.onerror = fail;
     xhr.onload = function() {
         try {
             var d = JSON.parse(xhr.responseText);
-            var el = document.getElementById('stats-downloads');
             if (el && d.total_downloads !== undefined) {
                 el.textContent = d.total_downloads.toLocaleString();
-            }
-        } catch(e) {}
+            } else { fail(); }
+        } catch(e) { fail(); }
     };
     xhr.send();
 })();
@@ -332,29 +311,84 @@
     });
 })();
 
-// Dynamic stats from API (same data source as stats.js)
+// Dynamic stats + popular ports from API (same data source as stats.js)
 (function() {
+    var statusEl = document.getElementById('popular-ports-status');
+    var listHost = document.getElementById('popular-ports');
+
+    function showError(msg) {
+        if (statusEl) statusEl.textContent = msg;
+    }
+
     var xhr = new XMLHttpRequest();
     xhr.open('GET', 'api/v1/packages.php?_=' + Date.now());
+    xhr.onerror = function() { showError('Could not load popular ports.'); };
     xhr.onload = function() {
-        try {
-            var data = JSON.parse(xhr.responseText);
-            var pkgs = data.packages || data;
-            if (!Array.isArray(pkgs)) return;
-            // Ports shipped
-            var portsEl = document.getElementById('stats-ports');
-            if (portsEl) portsEl.textContent = pkgs.length;
-            // Browse all N packages
-            var countEl = document.getElementById('pkg-count');
-            if (countEl) countEl.textContent = pkgs.length;
-            // Total tests passing
-            var totalTests = 0;
-            for (var i = 0; i < pkgs.length; i++) {
-                totalTests += (pkgs[i].test_pass || 0);
-            }
-            var testsEl = document.getElementById('stats-tests');
-            if (testsEl) testsEl.textContent = totalTests;
-        } catch(e) {}
+        var data;
+        try { data = JSON.parse(xhr.responseText); }
+        catch(e) { showError('Could not load popular ports.'); return; }
+
+        var pkgs = (data && data.packages) || data;
+        if (!Array.isArray(pkgs)) { showError('Could not load popular ports.'); return; }
+
+        // Ports shipped (excluding amiport itself, which is the installer)
+        var shippedCount = 0;
+        var totalTests = 0;
+        for (var i = 0; i < pkgs.length; i++) {
+            shippedCount++;
+            totalTests += (pkgs[i].test_pass || 0);
+        }
+        var portsEl = document.getElementById('stats-ports');
+        if (portsEl) portsEl.textContent = shippedCount;
+        var countEl = document.getElementById('pkg-count');
+        if (countEl) countEl.textContent = shippedCount;
+        var testsEl = document.getElementById('stats-tests');
+        if (testsEl) testsEl.textContent = totalTests;
+
+        // Popular Ports: stable status, ranked by downloads then vote_score
+        var popular = pkgs.filter(function(p) {
+            return (p.status === 'stable') && (p.name !== 'amiport');
+        });
+        popular.sort(function(a, b) {
+            var da = (a.downloads || 0), db = (b.downloads || 0);
+            if (db !== da) return db - da;
+            var va = (a.vote_score || 0), vb = (b.vote_score || 0);
+            return vb - va;
+        });
+        popular = popular.slice(0, 5);
+
+        if (popular.length === 0) {
+            showError('No packages yet.');
+            return;
+        }
+
+        var ul = document.createElement('ul');
+        ul.className = 'popular-list';
+        for (var j = 0; j < popular.length; j++) {
+            var p = popular[j];
+            var li = document.createElement('li');
+            li.className = 'popular-list__item';
+
+            var a = document.createElement('a');
+            a.className = 'popular-list__name';
+            a.href = 'packages.html?name=' + encodeURIComponent(p.name);
+            a.textContent = p.name;
+
+            var meta = document.createElement('span');
+            meta.className = 'popular-list__meta';
+            var desc = (p.description || '').toLowerCase();
+            // Trim long descriptions for the side panel
+            if (desc.length > 28) desc = desc.slice(0, 27) + '...';
+            meta.textContent = (p.version || '') + ' \u00b7 ' + desc;
+
+            li.appendChild(a);
+            li.appendChild(meta);
+            ul.appendChild(li);
+        }
+
+        if (statusEl && statusEl.parentNode) {
+            statusEl.parentNode.replaceChild(ul, statusEl);
+        }
     };
     xhr.send();
 })();

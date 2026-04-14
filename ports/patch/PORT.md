@@ -44,46 +44,116 @@ Verdict: MODERATE — 12 Tier 1 issues, 1 Tier 2 (mmap with graceful fallback), 
 
 ## Transformations Applied
 
-Multi-file port (7 .c files, 6 .h files + 2 vendored headers). Key transformations:
-- All POSIX file I/O replaced with amiport shim wrappers
-- `<getopt.h>` → `<amiport/getopt.h>` (libnix getopt_long broken)
-- `<sys/mman.h>` → `<amiport-emu/mmap.h>` for plan_a mmap
-- `<sys/queue.h>` → vendored `queue.h` (BSD LIST macros)
-- `<paths.h>` → vendored `amiga_paths.h` (T:, *, NIL:)
-- `fgetln()` → `fgets()` + static buffer in plan_b
-- `stdbool.h` → manual typedef
-- Temp file paths use `T:` with `RAM:` fallback
-- `dirname(filearg[0])` + unveil block removed (dead code on AmigaOS, dirname corrupts input)
-- `putc()` output loop → `fwrite()` in dump_line (3-5x perf improvement)
-- Tab stop bug fix: `% 7` → `% 8` in pgetline (upstream bug)
-- Exit codes: fatal errors → 10 (RETURN_ERROR)
+Multi-file port (7 .c files, 6 .h files + 2 vendored headers — common.h, ed.h,
+inp.h, pch.h, util.h, backupfile.h plus vendored queue.h and amiga_paths.h).
+Every transformation is annotated with an `/* amiport: ... */` comment in the
+source. Summary:
+
+| Site | File / Line | Original | Transformed | Reason |
+|------|-------------|----------|-------------|--------|
+| Stack cookie + $VER | patch.c:64-67 | (none) | `__stack = 65536`, verstag | Recursive parse, deep call chains |
+| `__progname` | patch.c:71 | weak symbol from libc | `char *__progname = "patch";` | crash-patterns "weak-symbol stripped" |
+| pledge/unveil | patch.c:74-75 | OpenBSD syscalls | `#define ... (0)` macros | Not on AmigaOS; calls become no-ops |
+| `__dead` attribute | patch.c:78 | OpenBSD `__dead` | `__attribute__((noreturn))` | bebbo-gcc convention |
+| `<getopt.h>` | patch.c:36 | system getopt | `<amiport/getopt.h>` | libnix `getopt_long` broken (crash-patterns #17 / known-pitfalls "libnix getopt_long Is Broken") |
+| `<paths.h>` | patch.c:42, util.c:34 | system paths.h | vendored `amiga_paths.h` | `_PATH_TMP` -> `T:`, `_PATH_TTY` -> `*`, `_PATH_DEVNULL` -> `NIL:` |
+| Temp file setup | patch.c:206-244 | `_PATH_TMP/patchXXXXXX` | `T:patch[oirp]XXXXXX` with RAM: fallback | Volume-name semantics: no `/` after `:`. Falls through tmpdir candidates if `T:` not assigned. |
+| `dirname()` removal | patch.c:292-301 | `unveil(dirname(filearg[0]),...)` | block removed (only the dirname call) | unveil is a no-op on AmigaOS so the whole block is dead; libnix `dirname()` corrupts input (crash-patterns #18 / known-pitfalls "dirname() Corrupts Its Input") |
+| usage exit code | patch.c (multiple `my_exit(10)` sites) | `exit(2)` | `exit(10)` | RETURN_ERROR |
+| `<sys/mman.h>` | inp.c:29-32 | mmap/munmap/madvise | `<amiport-emu/mmap.h>` | AllocMem+Read emulation, MAP_PRIVATE read-only, no lazy paging |
+| `madvise()` | inp.c:57 | mmap hint | `((void)0)` macro | Not available on AmigaOS |
+| `EXDEV` fallback | inp.c:60-62, util.c:54 | from errno.h | `#define EXDEV 18` | Some libnix errno.h omissions |
+| `SIZE_MAX` fallback | inp.c:44-47, pch.c:36 | from limits.h | `((size_t)-1)` | libnix limits.h omits SIZE_MAX |
+| `fgetln()` | inp.c:317-329 | BSD `fgetln(fp, &len)` | static `fgetln_buf[MAXHUNKSIZE+2]` + `fgets()` | Not in libnix |
+| `<sys/queue.h>` | ed.c:19, vendored | system LIST macros | local `queue.h` (LIST_HEAD/LIST_INIT/LIST_INSERT_HEAD/etc.) | Not on AmigaOS |
+| `<stdbool.h>` | common.h:32 | C99 bool | manual `typedef int bool; #define true 1` | C89 fallback |
+| `mode_t`/sig_t | common.h:39, util.c:37 | various typedefs | use libnix's `__mode_t` / amiport `sig_t` | libnix has `mode_t` but not `sig_t` |
+| `fstat(fileno(pfp))` | pch.c:128-132 | fd-based fstat | `amiport_stat(filename, &fs)` | crash-patterns #12: fstat crosses libnix/amiport fd namespaces |
+| `%lld`/`(long long)` | pch.c:456 | C99 `long long` | `%ld` + `(long)` cast | `off_t` is 32-bit `long` on 68k |
+| `d_namlen` | backupfile.c:113 | BSD dirent extension | `strlen(dp->d_name)` | dirent has no d_namlen on AmigaOS |
+| `concat()` rename | backupfile.c:44, 165 | `concat(...)` | `backup_concat(...)` | libnix exports `concat()` from string.h |
+| Backupfile mkdir | backupfile.c:20 | `<sys/stat.h>` mkdir | via `<amiport/dirent.h>` mkdir macro | Header consolidation |
+| `<unistd.h>` | every .c | system unistd | `<amiport/unistd.h>` | shim wrappers |
+| open/read/write/close | inp.c, util.c, ed.c | POSIX fd calls | `amiport_open/read/write/close` | Tier 1 shims |
+| `unlink/rename/mkdir/chdir/chmod` | util.c, patch.c, mkpath.c | POSIX | `amiport_*` | Tier 1 shims |
+| `lseek` | inp.c:436 | POSIX | `amiport_lseek` | Tier 1 shim |
+| `signal(SIGHUP)` | util.c:326-343 | POSIX | `amiport_signal` (no-op for SIGHUP) | Only SIGINT (Ctrl-C) is delivered on AmigaOS |
+| `getline()` | pch.c:45, patch.c:47 | BSD getline | `amiport_getline` via `<amiport/stdio_ext.h>` | Tier 1 shim |
+| `mkstemp()` | patch.c:47 | POSIX | `amiport_mkstemp` | Tier 1 shim |
+| `strtonum`, `warn`, `warnc`, `errc` | patch.c:49, util.c | OpenBSD err.h | via `<amiport/err.h>` | OpenBSD compat |
+| `recallocarray`, `reallocarray` | patch.c:53, inp.c:53 | OpenBSD libc | `amiport_*` | OpenBSD compat |
+| `strlcpy`/`strlcat` | patch.c:53, util.c:46 | BSD libc | via `<amiport/string.h>` | BSD compat |
+| `putc()` loop -> `fwrite()` | patch.c (dump_line) | per-char output | bulk fwrite | perf-optimizer: 2-3x speedup on output |
+| Tab stop bug | pch.c:1196 | `% 7` (upstream bug) | `% 8` for standard 8-col tabs | upstream defect, fixed in port |
+| ttyfd file-scope | util.c:63 | local in `ask()` | static `ask_ttyfd` | so `my_cleanup()` can close it on exit paths |
+| `my_cleanup` temp free | util.c:442-447 | (no cleanup) | `free(TMP[OIRP]NAME)` after unlink | -noixemul has no process cleanup |
+| `_exit()` -> `exit()` | util.c:473 | `_exit(10)` from sigexit | `exit(10)` | crash-patterns #9: `_exit` debunked, `exit()` is fine and runs atexit cleanup |
 
 ## Shim Functions Exercised
 
-- amiport_stat, amiport_fstat
-- amiport_open, amiport_read, amiport_write, amiport_close, amiport_lseek
-- amiport_unlink, amiport_rename, amiport_mkdir, amiport_chdir, amiport_chmod
-- amiport_signal
-- amiport_getline, amiport_mkstemp (stdio_ext)
-- amiport_getopt_long (amiport/getopt.h)
-- amiport_recallocarray
-- amiport_emu_mmap, amiport_emu_munmap
-- opendir/readdir/closedir (amiport_opendir etc.)
-- strtonum, warnc (via amiport/err.h)
+POSIX shim (`-lamiport`):
+- File I/O: `amiport_open`, `amiport_close`, `amiport_read`, `amiport_write`,
+  `amiport_lseek` (inp.c, util.c, ed.c)
+- Filesystem metadata: `amiport_stat` (filename-based; never `fstat(fileno())`
+  because of fd-namespace crossing -- see crash-patterns #12)
+- Filesystem ops: `amiport_unlink`, `amiport_rename`, `amiport_mkdir`,
+  `amiport_chdir`, `amiport_chmod`
+- Signal: `amiport_signal` (SIGHUP no-op, SIGINT delivers Ctrl-C only)
+- Stdio extensions: `amiport_getline`, `amiport_mkstemp` (via
+  `<amiport/stdio_ext.h>`)
+- getopt: `amiport_getopt_long` (via `<amiport/getopt.h>` -- libnix
+  `getopt_long` is broken, see crash-patterns #17)
+- BSD compat in `<amiport/string.h>`: `strlcpy`, `strlcat`, `recallocarray`,
+  `reallocarray`
+- BSD err.h compat in `<amiport/err.h>`: `strtonum`, `warn`, `warnc`, `errc`,
+  `err`
+- Directory ops: `opendir`/`readdir`/`closedir` (used by `backupfile.c` for
+  the numbered-backup search loop)
+
+POSIX emulation (`-lamiport-emu`):
+- `amiport_emu_mmap`, `amiport_emu_munmap` (used in inp.c plan_a path -- reads
+  entire input file into AllocMem upfront, MAP_PRIVATE read-only only, no
+  lazy paging). plan_b fgets-based fallback exists when allocation fails.
+- `madvise()` is a no-op macro -- not provided by amiport-emu.
 
 ## Build Configuration
 
 | Setting | Value |
 |---------|-------|
 | Compiler | m68k-amigaos-gcc (bebbo) |
-| Target | m68k-amigaos, 68020+ |
-| CFLAGS | `-O2 -noixemul -std=gnu99 -Wall` |
-| Libraries | `-lamiport` (posix-shim), `-lamiport-emu` (mmap) |
-| Binary size | 87,424 bytes |
+| Target | m68k-amigaos, 68000+ (`-m68000` inherited from `common.mk`) |
+| CFLAGS | `-O2 -noixemul -m68000 -Wall -std=gnu99 -I../../lib/posix-emu/include` |
+| Libraries | `-L../../lib/posix-emu -lamiport-emu -lamiport` |
+| Stack cookie | `__stack = 65536L` (recursive parse + memory-heavy) |
+| VAMOS_STACK | 256 KB |
+| Binary size | 90,148 bytes (88 KB) |
+| Sources (7 .c) | patch.c, pch.c, inp.c, util.c, ed.c, backupfile.c, mkpath.c |
+| Headers (5 + 2 vendored) | common.h, ed.h, inp.h, pch.h, util.h, backupfile.h + vendored queue.h, amiga_paths.h |
 
 ## Test Results
 
-FS-UAE testing: **42/42 passed** (100%)
+FS-UAE testing: **42/42 passed** (100%).
+
+Test breakdown (`test-fsemu-cases.txt`):
+
+| Category | Count | Coverage |
+|----------|-------|----------|
+| Functional (Cat 1) | 17 | Every accepted flag has at least one functional test: `-u`, `-c`, `-n`, `-e`, `-R`, `-C`, `-s`, `-i`, `-o`, `-p1`/`-p0`, `-f`, `-t`, `-l`, `-N`, `-F`, `-z`, `-b`, `-r`, `-E`, `--posix`, `-D` |
+| Error path (Cat 2) | 8 | Invalid flag (-Z), nonexistent input/patch files, malformed/empty patch, too many args, bad fuzz/strip count |
+| Exit code (Cat 3) | 3 | RC=0 success, RC=20 RETURN_FAIL on invalid patch, RC=10 RETURN_ERROR on bad args |
+| Edge case (Cat 4) | 7 | Empty target, verbose stdout, p0 exact match, auto-detect of unified/context/normal formats |
+| Amiga-specific (Cat 5) | 7 | WORK: volume paths, T: temp output, stdout `-o -` redirect, p1 path stripping with Amiga paths |
+
+Total: **42** TEST blocks. 0 ITEST (Category 1 CLI port -- non-interactive
+batch tool. The `-t` batch-mode test deliberately exercises the no-prompt code
+path without needing an interactive console.)
+
+Test inputs in port directory: `test-patch-base.txt` (5-line baseline file),
+`test-patch-{unified,context,normal,ed}.txt` (the four diff format variants),
+`test-patch-patched.txt` (post-patch content for `-R` reverse test),
+`test-patch-{p1,whitespace,bad,empty,reverse}.txt` (specialised inputs for
+the corresponding flag tests). All inputs live inside `ports/patch/` per
+test-hygiene rules.
 
 ## Known Limitations
 

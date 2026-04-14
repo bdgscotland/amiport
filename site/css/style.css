@@ -1455,8 +1455,82 @@ a:focus-visible {
 }
 
 /* ==========================================================================
-   Homepage — Big Stats + Two-Panel Layout
+   Homepage — Hero, Big Stats, Two-Panel Layout
    ========================================================================== */
+
+/* --- Hero --- */
+.hero {
+    padding: var(--sp-md) 0 var(--sp-lg);
+    text-align: center;
+}
+
+.hero-headline {
+    font-size: var(--fs-3xl);
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.15;
+    margin: 0 0 var(--sp-sm);
+}
+
+.hero-subhead {
+    font-size: var(--fs-base);
+    color: var(--text-muted);
+    max-width: 640px;
+    margin: 0 auto var(--sp-md);
+    line-height: 1.5;
+}
+
+.hero-kicker {
+    font-size: var(--fs-sm);
+    color: var(--text-muted);
+    margin: var(--sp-sm) 0 0;
+}
+
+.hero-kicker code {
+    color: var(--amber);
+    background: transparent;
+}
+
+@media (max-width: 600px) {
+    .hero-headline { font-size: var(--fs-2xl); }
+}
+
+/* --- Get started: numbered steps --- */
+.steps-list {
+    list-style: none;
+    counter-reset: step;
+    padding: 0;
+    margin: 0;
+}
+
+.steps-list > li {
+    counter-increment: step;
+    position: relative;
+    padding: 0 0 var(--sp-md) calc(26px + var(--sp-sm));
+    min-height: 26px;
+}
+
+.steps-list > li::before {
+    content: counter(step);
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 26px;
+    height: 26px;
+    background: var(--elevated);
+    color: var(--amber);
+    font-weight: 700;
+    text-align: center;
+    line-height: 26px;
+    border-top: 1px solid var(--bevel-shine);
+    border-left: 1px solid var(--bevel-shine);
+    border-right: 1px solid var(--bevel-shadow);
+    border-bottom: 1px solid var(--bevel-shadow);
+}
+
+.steps-list > li:last-child {
+    padding-bottom: 0;
+}
 
 /* --- Big Stats Row --- */
 .home-stats {
