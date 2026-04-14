@@ -5,17 +5,17 @@
 | Field | Value |
 |-------|-------|
 | Port | amigit |
-| Date | 2026-04-13 18:01:16 |
-| Duration | 131s |
+| Date | 2026-04-13 20:31:27 |
+| Duration | 133s |
 | Platform | FS-UAE 3.2.35 (A1200, Kickstart 3.1) |
 | Binary | `WORK:amigit` (1.0M) |
 | Test method | ARexx harness → TAP output |
-| Result | **PASS** — 81/81 passed |
+| Result | **PASS** — 82/82 passed |
 
 ## Test Results
 
 ```
-1..81
+1..82
 ok 1 - version prints amigit version on first line
 ok 2 - version prints libgit2 version on second line
 ok 3 - version prints shim availability on third line
@@ -97,7 +97,8 @@ ok 78 - add second file world.txt stages it and exits 0
 ok 79 - diff --cached after staging world.txt shows new file additions
 ok 80 - commit second commit with parent exits 0 and shows message
 ok 81 - log after two commits shows most recent commit on first line
-# passed: 81 failed: 0 total: 81
+ok 82 - init from multi-char-volume CWD emits helpful error RC=10
+# passed: 82 failed: 0 total: 82
 ```
 
 ### Breakdown
@@ -185,6 +186,7 @@ ok 81 - log after two commits shows most recent commit on first line
 | 79 | diff --cached after staging world.txt shows new file additions | PASS | |
 | 80 | commit second commit with parent exits 0 and shows message | PASS | |
 | 81 | log after two commits shows most recent commit on first line | PASS | |
+| 82 | init from multi-char-volume CWD emits helpful error RC=10 | PASS | |
 
 ## Environment
 
@@ -794,6 +796,35 @@ TEST: log after two commits shows most recent commit on first line
 CMD: SYS:Rexxc/rx WORK:test-amigit-inrepo.rexx T:amigit-c3 log
 EXPECT_CONTAINS: worldadd
 EXPECT_RC: 0
+
+# ======================================================================
+# Positional argument matrix: init from a CWD (known limitation)
+# ======================================================================
+# When amigit is invoked as "amigit init" with no positional args from
+# inside a working Shell, cmd_init resolves "." to the current dir via
+# NameFromLock(pr_CurrentDir), which on AmigaOS returns paths like
+# "Ram Disk:foo" or "WORK:playground" -- multi-character volume names.
+# libgit2's git_fs_path_root() only recognizes SINGLE-character ASCII
+# drive prefixes ("X:"), so it treats multi-char volume paths as
+# relative. For read-side commands (status, log, diff, etc.) this is
+# fine -- git_repository_open_ext() has a tolerant path handler. But
+# for INIT, libgit2's mkdir_canonicalize walks dirname back to "./."
+# and fails with "failed to make directory './.'".
+#
+# Until libgit2 gets a proper AmigaOS path root recognizer, amigit
+# detects this case in cmd_init.c and emits a helpful error telling
+# the user to use an explicit path. This test verifies the friendly
+# error path fires (RC=10) rather than letting libgit2's cryptic
+# './.' error through. Users should run "amigit init <path>" from a
+# Shell, not "amigit init" with no args.
+#
+# This is the zero-positional-arg cell of the init positional matrix
+# (section 1a of docs/test-coverage-standard.md). Its presence is
+# mandatory even though the current behavior is a documented error.
+
+TEST: init from multi-char-volume CWD emits helpful error RC=10
+CMD: SYS:Rexxc/rx WORK:test-amigit-cwd-init.rexx
+EXPECT_RC: 10
 ```
 
 ## Emulator Log
@@ -808,9 +839,9 @@ Written by the ARexx harness when all tests complete:
 
 ```
 TESTS_COMPLETE
-passed=81
+passed=82
 failed=0
-total=81
+total=82
 ```
 
 ---

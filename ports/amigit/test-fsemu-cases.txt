@@ -590,14 +590,30 @@ EXPECT_CONTAINS: worldadd
 EXPECT_RC: 0
 
 # ======================================================================
-# DIAG: reproduce CWD-relative init bug (user report, 2026-04-13)
+# Positional argument matrix: init from a CWD (known limitation)
 # ======================================================================
-# The user hit `WORK:amigit init` from inside a Shell whose CWD was
-# WORK:playground and got a stat error. Every existing init test uses
-# an explicit T:amigit-test path, so the "init from a user CWD" case
-# has never been exercised. This DIAG block proves it on FS-UAE and
-# will stay as a regression test after the fix.
+# When amigit is invoked as "amigit init" with no positional args from
+# inside a working Shell, cmd_init resolves "." to the current dir via
+# NameFromLock(pr_CurrentDir), which on AmigaOS returns paths like
+# "Ram Disk:foo" or "WORK:playground" -- multi-character volume names.
+# libgit2's git_fs_path_root() only recognizes SINGLE-character ASCII
+# drive prefixes ("X:"), so it treats multi-char volume paths as
+# relative. For read-side commands (status, log, diff, etc.) this is
+# fine -- git_repository_open_ext() has a tolerant path handler. But
+# for INIT, libgit2's mkdir_canonicalize walks dirname back to "./."
+# and fails with "failed to make directory './.'".
+#
+# Until libgit2 gets a proper AmigaOS path root recognizer, amigit
+# detects this case in cmd_init.c and emits a helpful error telling
+# the user to use an explicit path. This test verifies the friendly
+# error path fires (RC=10) rather than letting libgit2's cryptic
+# './.' error through. Users should run "amigit init <path>" from a
+# Shell, not "amigit init" with no args.
+#
+# This is the zero-positional-arg cell of the init positional matrix
+# (section 1a of docs/test-coverage-standard.md). Its presence is
+# mandatory even though the current behavior is a documented error.
 
-TEST: init from freshly created CWD with no args succeeds
+TEST: init from multi-char-volume CWD emits helpful error RC=10
 CMD: SYS:Rexxc/rx WORK:test-amigit-cwd-init.rexx
-EXPECT_RC: 0
+EXPECT_RC: 10

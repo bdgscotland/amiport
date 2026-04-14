@@ -49,27 +49,15 @@ int amigit_resolve_repo_path(const char *in, char *out, size_t outsize)
         return RETURN_ERROR;
     }
 
-    fprintf(stderr, "DIAG resolve: in=%s\n", in ? in : "(null)");
-
     /* Step 1: resolve "." / NULL / "" to an absolute CWD path. */
     if (src == NULL || src[0] == '\0' ||
         (src[0] == '.' && src[1] == '\0')) {
         struct Process *me = (struct Process *)FindTask(NULL);
         BPTR cwd_lock = me->pr_CurrentDir;
-        fprintf(stderr, "DIAG resolve: pr_CurrentDir=0x%08lx\n",
-                (unsigned long)cwd_lock);
-        if (cwd_lock == 0) {
-            fprintf(stderr, "DIAG resolve: NO CWD LOCK\n");
+        if (cwd_lock == 0 ||
+            !NameFromLock(cwd_lock, (STRPTR)tmp, sizeof(tmp) - 1)) {
             return RETURN_ERROR;
         }
-        tmp[0] = '\0';
-        if (!NameFromLock(cwd_lock, (STRPTR)tmp, sizeof(tmp) - 1)) {
-            fprintf(stderr,
-                "DIAG resolve: NameFromLock FAILED, IoErr=%ld\n",
-                (long)IoErr());
-            return RETURN_ERROR;
-        }
-        fprintf(stderr, "DIAG resolve: NameFromLock=%s\n", tmp);
         src = tmp;
     }
 
@@ -85,7 +73,6 @@ int amigit_resolve_repo_path(const char *in, char *out, size_t outsize)
         out[2] = '/';
         /* Copy from src[2] through trailing NUL (slen - 2 + 1 bytes). */
         memcpy(&out[3], &src[2], slen - 1);
-        fprintf(stderr, "DIAG resolve: out=%s (rewrite)\n", out);
         return RETURN_OK;
     }
 
@@ -94,7 +81,6 @@ int amigit_resolve_repo_path(const char *in, char *out, size_t outsize)
         return RETURN_ERROR;
     }
     strcpy(out, src);
-    fprintf(stderr, "DIAG resolve: out=%s (passthrough)\n", out);
     return RETURN_OK;
 }
 

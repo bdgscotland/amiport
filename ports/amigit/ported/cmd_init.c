@@ -82,6 +82,36 @@ int amigit_cmd_init(int argc, char **argv)
             return RETURN_ERROR;
         }
 
+        /*
+         * amiport: libgit2's git_fs_path_root() only recognizes
+         * single-character ASCII drive prefixes ("X:"). For multi-
+         * character AmigaOS volume names (e.g. "Ram Disk:foo",
+         * "WORK:playground", "System 3.1:bin") git_fs_path_root
+         * returns -1, which causes the mkdir walk in
+         * git_futils_mkdir() to strip everything back to "./." and
+         * fail with "failed to make directory './.': No such file or
+         * directory". This ONLY affects init (mkdir walk); status,
+         * log, add, commit, etc. use git_repository_open_ext() which
+         * has a more permissive path handler and works fine with
+         * multi-char volume names.
+         *
+         * Until libgit2 gets a proper AmigaOS path root recognizer,
+         * detect this case up front and emit a helpful error. The
+         * user can always run init with an explicit path.
+         */
+        if (path[0] == '.' && path[1] == '\0' &&
+            !(resolved[0] != '\0' && resolved[1] == ':')) {
+            fprintf(stderr,
+                "amigit: init: cannot initialize from this working directory\n"
+                "amigit: init: the AmigaOS volume name contains more than\n"
+                "amigit: init: one character, which libgit2 does not recognize\n"
+                "amigit: init: as a path root. Use an explicit path instead:\n"
+                "amigit: init:     amigit init <path>\n"
+                "amigit: init: e.g. amigit init %s\n",
+                resolved);
+            return RETURN_ERROR;
+        }
+
         /* Probe for "already a repo" using the resolved path so the
          * "Reinitialized" message fires correctly on repeat calls. */
         existed_before = 0;

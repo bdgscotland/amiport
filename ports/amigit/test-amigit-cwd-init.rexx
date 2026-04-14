@@ -35,7 +35,10 @@ IF OPEN('sf', scriptfile, 'W') THEN DO
     CALL WRITELN('sf', 'FailAt 21')
     CALL WRITELN('sf', 'Stack 262144')
     CALL WRITELN('sf', 'CD ' || testdir)
-    CALL WRITELN('sf', 'WORK:amigit init >' || outfile || ' 2>&1')
+    /* AmigaDOS does NOT parse `2>&1` -- it gets passed as a literal
+     * positional arg to amigit. Use plain `>` (stdout only). stderr
+     * goes to the ANSI-capture log via console.device for diagnostics. */
+    CALL WRITELN('sf', 'WORK:amigit init >' || outfile)
     CALL WRITELN('sf', 'Echo >' || rcfile || ' $RC')
     CALL CLOSE('sf')
 END
