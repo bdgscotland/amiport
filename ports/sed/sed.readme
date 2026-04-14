@@ -3,7 +3,7 @@ Type:         util/cli
 Architecture: m68k-amigaos >= 3.0
 Uploader:     duncan@bowring.us
 Author:       Diomidis Spinellis / University of California, Berkeley (ported by Duncan Bowring)
-Version:      1.47
+Version:      1.47-3
 
 sed — OpenBSD stream editor (sed) for AmigaOS
 
@@ -36,7 +36,12 @@ Exit codes (Amiga-native):
   0  = success (RETURN_OK)
   10 = error (RETURN_ERROR)
 
-Note: In-place editing (-i) is not supported on AmigaOS (no fdopen).
+Changes in 1.47-2:
+  - Re-enabled in-place editing (-i flag): replaced the fdopen stub with
+    the shim's real amiport_fdopen() (resolves pitfall #12, fd namespace
+    isolation). Files are edited in place using mkstemp + amiport_fdopen.
+
+Note: In-place editing (-i) is now supported via amiport_fdopen().
 
 Includes full source code (original POSIX and ported Amiga versions)
 and PORT.md documenting every transformation applied.

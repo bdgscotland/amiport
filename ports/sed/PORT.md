@@ -129,3 +129,9 @@ Reviewed with `/review-amiga`. Score: **READY**.
 Audited by `memory-checker` agent (2026-03-21). Verdict: **CLEAN**.
 
 No critical memory safety issues. All allocations either properly freed or acceptable as process-lifetime allocations (regex_t patterns, transtab, appends array). No double-frees, no use-after-free, no buffer overflows. File handle lifecycle correct (cfclose called before exit). Realloc patterns use intermediate pointers where needed.
+
+## Revision bookkeeping note (2026-04-14)
+
+The Makefile REVISION was bumped from 2 to 3 (and the `$VER` string + `sed.readme Version:` field updated to match) to reconcile a pre-existing drift surfaced by the new `check-port-metadata` Check 10. Before this bump, `site/data/packages/sed.json` advertised `revision: 3` and the live server shipped `sed-1.47-3.lha` (sha verified against the catalog), but `ports/sed/Makefile` was still at `REVISION = 2`. The Makefile was lagging behind the catalog and the deployed artifact.
+
+**Pre-existing inconsistency NOT resolved by this bump:** the binary inside the currently-shipped `sed-1.47-3.lha` was built before the bump and embeds `$VER: sed 1.47 (20.03.2026)` (rev 1, not rev 3). Running `Version sed FULL` on a real Amiga against the currently-installed binary will display the rev-1 string. The next clean `make package` will produce a binary that correctly embeds `$VER: sed 1.47-3 (14.04.2026)` -- at which point the local `ports/sed/sed-1.47-3.lha` will have a different sha than the one currently on the server. Operator should either (a) `make package`, refresh `sed.json` sha256, redeploy, or (b) accept the binary-vs-source $VER drift indefinitely.

@@ -56,7 +56,7 @@
 /* amiport: Amiga version string — __attribute__((used)) ensures the linker
  * retains this string for the AmigaOS Version command even with -O2.
  * Array form (not pointer) places the string in the data segment directly. */
-static const char verstag[] __attribute__((used)) = "$VER: sed 1.47 (20.03.2026)";
+static const char verstag[] __attribute__((used)) = "$VER: sed 1.47-3 (14.04.2026)";
 
 /* amiport: stack cookie — sed processes large files, especially with regex */
 long __stack = 65536;
@@ -322,6 +322,14 @@ finish_file(void)
 			if (outfile != NULL && outfile != stdout)
 				fclose(outfile);
 			outfile = NULL;
+#ifdef __AMIGA__
+			/* amiport: AmigaDOS Rename() does NOT overwrite an
+			 * existing target -- it fails with ERROR_OBJECT_EXISTS.
+			 * POSIX rename() must overwrite, so delete the target
+			 * first. Ignore unlink failure -- if fname is gone the
+			 * subsequent rename will still succeed. */
+			(void)unlink(fname);
+#endif
 			if (rename(tmpfname, fname) != 0) {
 				warn("rename %s to %s", tmpfname, fname);
 				unlink(tmpfname);
@@ -406,16 +414,35 @@ mf_getline(SPACE *sp, enum e_spflag spflag)
 			if (len >= sizeof(dirbuf))
 				/* amiport: errc(1, ...) -> errc(10, ...) */
 				errc(10, ENAMETOOLONG, "%s", fname);
-			/* amiport: replaced dirname-based tmpfname with T: temp dir.
-			 * AmigaOS has no /tmp; use T: assign instead. */
+			/* amiport: tmpfile MUST be on the same AmigaDOS volume
+			 * as the target file -- Rename() cannot cross volumes.
+			 * Previous version used T: which broke rename for any
+			 * file not on the T: volume. Append a suffix to the
+			 * target path instead so the tmpfile lives in the
+			 * same directory. */
 			len = snprintf(tmpfname, sizeof(tmpfname),
-			    "T:sedXXXXXXXXXX");
+			    "%s.sedtXXXXXX", fname);
 			if (len >= sizeof(tmpfname))
 				errc(10, ENAMETOOLONG, "%s", fname);
+#ifdef __AMIGA__
+			/* amiport: skip mkstemp()+fdopen() -- on AmigaOS the tmpfile
+			 * would hold an exclusive write lock from amiport_mkstemp()'s
+			 * Open(MODE_NEWFILE), which blocks fdopen()'s internal libnix
+			 * fopen(name, "w") (crash-patterns #19). Use a direct single
+			 * fopen() on a manually-generated unique name instead. The
+			 * helper sed_tmpname_fopen() is defined in compat.h. */
+			(void)fd; /* fd unused on AmigaOS path */
+			if ((outfile = sed_tmpname_fopen(tmpfname)) == NULL) {
+				warn("%s", fname);
+				unlink(tmpfname);
+				/* amiport: exit(1) -> exit(10) */
+				exit(10);
+			}
+#else
 			if ((fd = mkstemp(tmpfname)) == -1)
 				/* amiport: err(1, ...) -> err(10, ...) */
 				err(10, "%s", fname);
-			/* amiport: fchown/fchmod stubbed as no-op — no UNIX permissions on AmigaOS */
+			/* fchown/fchmod on the fd right after mkstemp */
 			(void)fchown(fd, sb.st_uid, sb.st_gid);
 			(void)fchmod(fd, sb.st_mode & ALLPERMS);
 			if ((outfile = fdopen(fd, "w")) == NULL) {
@@ -424,6 +451,7 @@ mf_getline(SPACE *sp, enum e_spflag spflag)
 				/* amiport: exit(1) -> exit(10) */
 				exit(10);
 			}
+#endif /* __AMIGA__ */
 			outfname = tmpfname;
 			linenum = 0;
 			resetstate();

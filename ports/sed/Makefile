@@ -1,11 +1,12 @@
 # Makefile for sed (amiport)
-include ../common.mk
-
 TARGET      = sed
 SOURCES     = ported/main.c ported/compile.c ported/misc.c ported/process.c
 VERSION     = 1.47
+REVISION    = 3
 DESCRIPTION = OpenBSD stream editor (sed) for AmigaOS
 AUTHOR      = Diomidis Spinellis / University of California, Berkeley
+
+include ../common.mk
 
 # Category 1 CLI tool — uses Tier 2 regex emulation and Tier 1 posix-shim
 CFLAGS += -I../../lib/posix-emu/include
