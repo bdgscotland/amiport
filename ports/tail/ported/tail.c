@@ -63,7 +63,7 @@
 #include "extern.h"
 
 /* amiport: AmigaOS version string — using upstream version 1.24 */
-static const char *verstag = "$VER: tail 1.24 (21.03.2026)";
+static const char *verstag = "$VER: tail 1.24-2 (13.04.2026)";
 
 /* amiport: AmigaOS stack cookie — 32KB for normal operation */
 long __stack = 32768;

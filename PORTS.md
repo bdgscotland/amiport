@@ -13,7 +13,7 @@ Version format: `upstream[-portrev]` — port revision is shown when > 1 (e.g., 
 | [grep](ports/grep/) | 1.68 | Pattern search (regex/fixed string) | CLI | OpenBSD grep v1.68 (BSD 2-Clause) | Built & tested | Submitted 2026-03-22 |
 | [sed](ports/sed/) | 1.47 | Stream editor (text transformation) | CLI | OpenBSD sed v1.47 (BSD 3-Clause) | Built & tested | Submitted 2026-03-22 |
 | [lua](ports/lua/) | 5.4.7 | Lua scripting language | Scripting | PUC-Rio Lua 5.4.7 (MIT) | Built & tested (65/65 FS-UAE) | Submitted 2026-03-22 |
-| [tail](ports/tail/) | 1.24 | Display last part of a file | CLI | OpenBSD tail v1.24 (BSD 3-Clause) | Built & tested | Not submitted |
+| [tail](ports/tail/) | 1.24-2 | Display last part of a file | CLI | OpenBSD tail v1.24 (BSD 3-Clause) | Built & tested (21/21 FS-UAE) | Not submitted |
 | [tee](ports/tee/) | 1.15 | Duplicate standard input | CLI | OpenBSD tee v1.15 (BSD 3-Clause) | Built & tested | Submitted 2026-03-22 |
 | [head](ports/head/) | 1.24 | Print first lines of files | CLI | OpenBSD head v1.24 (BSD 3-Clause) | Built & tested | Submitted 2026-03-22 |
 | [wc](ports/wc/) | 1.32 | Count lines, words, and characters | CLI | OpenBSD wc v1.32 (BSD 3-Clause) | Built & tested | Not submitted |

@@ -1,9 +1,11 @@
 # Makefile for tail (amiport)
-include ../common.mk
-
 TARGET      = tail
 SOURCES     = ported/tail.c ported/forward.c ported/reverse.c ported/read.c ported/misc.c
 VERSION     = 1.24
+REVISION    = 2
+
+include ../common.mk
+
 DESCRIPTION = Display the last part of a file
 AUTHOR      = Edward Sze-Tyan Wang / UC Berkeley
 

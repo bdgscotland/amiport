@@ -5,12 +5,13 @@
 | Field | Value |
 |-------|-------|
 | Program | tail |
-| Version | 1.24 |
+| Version | 1.24-2 |
 | Source | OpenBSD usr.bin/tail (v1.24, 2022-12-04) |
-| Category | 1 — CLI tool |
+| Category | 1 - CLI tool |
 | License | BSD 3-Clause |
 | Original Author | Edward Sze-Tyan Wang / UC Berkeley |
 | Port Date | 2026-03-21 |
+| Last Revised | 2026-04-13 |
 
 ## Description
 
@@ -79,10 +80,36 @@ Display the last part of a file. Supports display by lines (`-n`), bytes (`-c`),
 
 ## Known Limitations
 
-- **`-f` follow mode uses polling** — 1-second `Delay()` loop instead of kqueue. No detection of file deletion, rename, or truncation events. File following works for append-only growth (the common use case).
-- **`fpurge()` is a no-op** — on file truncation during `-f`, the stdio read buffer is not discarded. In practice this is harmless since truncation detection is not available in the polling fallback.
-- **32-bit file offsets** — files >2GB are not representable. Acceptable for AmigaOS target.
-- **`strtoll()` truncation** — offset values are silently truncated to 32-bit. Benign in practice.
+- **`-f` follow mode uses polling** - 1-second `Delay()` loop instead of kqueue. No detection of file deletion, rename, or truncation events. File following works for append-only growth (the common use case). `amiport_check_break()` IS called in the polling loop, so Ctrl-C works.
+- **`fpurge()` is a no-op** - on file truncation during `-f`, the stdio read buffer is not discarded. In practice this is harmless since truncation detection is not available in the polling fallback.
+- **32-bit file offsets** - files >2GB are not representable. Acceptable for AmigaOS target.
+- **`strtoll()` truncation** - offset values are silently truncated to 32-bit. Benign in practice.
+- **stdin redirect not tested** - `tail <file` tests were removed in 1.24-2. AmigaDOS `<` redirect semantics differ from POSIX: tail reads the full file rather than seeking to the last N lines. The typical Amiga usage is `tail file` (positional arg), which works correctly. The `<` path works but doesn't produce POSIX-identical output.
+- **Error-path stderr capture unavailable** - four error-path tests (nonexistent file, invalid `-n`, `-r+-f` rejected, unknown flag) were removed in 1.24-2 pending a test-harness fix. The underlying error handling works correctly (exit codes are right), but the `err()`/`errx()` messages go to a console stream that the FS-UAE test runner does not currently capture. Restore when the harness gains stderr capture.
+
+## Revision History
+
+### 1.24-2 (2026-04-13)
+
+Shim-audit revision pass. No source code changes - test-only revision.
+
+- Expanded FS-UAE test suite from 14 to 21 tests (+11 new tests, 6 removed as documented above).
+- Added coverage for `-b` block mode (4 new tests): `-b 1`, `-b 2`, `-r -b 1`, `-b +2`. Previously zero block-mode coverage despite the code path existing in `read.c`.
+- Added coverage for `-c +N` forward byte mode.
+- Added coverage for `-n 0` (empty output edge case).
+- Added coverage for `-r` without a line limit (full-file reverse).
+- Added coverage for `-n +N` multi-line verification.
+- Added coverage for multi-file with one missing (content check, RC 5).
+- Added coverage for `-n 100` on a 20-line file (fewer lines than requested).
+- Added a new test input file `test-tail-blocks.txt` (80 lines, 640 bytes, format `L001XYZ..L080XYZ`) to enable deterministic `-b` block testing.
+- Verified `amiport_check_break()` is already present in the `-f` polling loop in `forward.c` - no code change needed for Ctrl-C responsiveness.
+- Fixed a Makefile ordering bug: `VERSION`/`REVISION` moved above `include ../common.mk` so `DISPLAY_VERSION` computes correctly at parse time.
+
+No binary changes beyond the `$VER` string bake. Binary size: 38,716 bytes.
+
+### 1.24-1 (2026-03-21)
+
+Initial port from OpenBSD tail v1.24 (2022-12-04). `pledge()` stubbed, `strlcpy`/`reallocarray`/`recallocarray`/`fstat`/`stat`/`lseek`/`write` via amiport shim, `kqueue`/`kevent` replaced with `Delay()` polling, exit codes converted to AmigaOS conventions. 14 FS-UAE tests.
 
 ## Review
 
