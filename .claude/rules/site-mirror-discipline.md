@@ -29,11 +29,22 @@ When publishing or re-publishing any port, the order is:
 
 ## Enforcement
 
-### check-port-metadata.sh Check 9 (mandatory pre-commit gate)
+### check-port-metadata.sh Check 9 (mandatory pre-commit gate — file existence)
 
 For every `site/data/packages/<name>.json` that has a `download` field pointing into `/packages/`, Check 9 verifies the file exists at the corresponding `site/packages/<lha>` path. FAIL on any miss.
 
 If `ports/<name>/<lha>` exists locally but the staged copy at `site/packages/<lha>` does not, the failure message names the exact `cp` command needed to fix it.
+
+### check-port-metadata.sh Check 10 (mandatory pre-commit gate — revision consistency)
+
+For every `site/data/packages/<name>.json` whose `name` matches a `ports/<name>/Makefile`, Check 10 verifies that the catalog JSON's `revision` field equals the Makefile's `REVISION` value (defaulting to 1 if no `REVISION` line). Also verifies the `version` strings match.
+
+This catches **phantom revision drift**, where the catalog metadata invents a revision the port source never shipped, OR where the catalog ships a revision that the Makefile failed to record. Both directions are bugs:
+
+- **Phantom rev** (catalog ahead of Makefile): user clicks the advertised LHA and gets a 404 (or the previous build, which is wrong). 2026-04-14 incident: `lua.json` had `revision: 2` while `ports/lua/Makefile` had no `REVISION` line (= rev 1). No rev-2 work had ever been done. Rolled back catalog to rev 1.
+- **Lagging Makefile** (Makefile behind catalog): the artifact really shipped at rev N+1, the catalog correctly advertises it, but the port Makefile didn't get bumped. Means a future `make package` from clean checkout would silently produce a rev-N artifact, and any check-port-metadata-driven revision tracking would think the port is older than it is. 2026-04-14 incident: `sed.json` ships rev 3 (and `site/packages/sed-1.47-3.lha` exists with matching sha) but `ports/sed/Makefile` says `REVISION = 2`. Escalated.
+
+The failure message names BOTH possible fixes and asks the operator to pick whichever reflects the actual work done. There is no auto-fix because the script cannot distinguish between "phantom rev that should be removed from the catalog" and "real work that should be recorded in the Makefile."
 
 ### site-manager dry-run gate
 

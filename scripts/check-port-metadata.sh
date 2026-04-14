@@ -481,6 +481,67 @@ PY
     echo ""
 fi
 
+# ----------------------------------------------------------
+# Check 10: Catalog ↔ Makefile revision consistency
+#           Catches phantom revision drift where site/data/packages/<name>.json
+#           advertises a revision that the port source never actually shipped.
+#           Real incident (2026-04-14): lua.json had revision: 2 but
+#           ports/lua/Makefile said rev 1, no rev-2 work existed anywhere,
+#           and no rev-2 LHA was ever built.
+# ----------------------------------------------------------
+if [ -d "$SITE_DATA_DIR" ] && [ -d "$PORTS_DIR" ]; then
+    echo "--- Catalog revision consistency check ---"
+    rev_report=$(python3 - "$SITE_DATA_DIR" "$PORTS_DIR" <<'PY' || true
+import json, os, re, sys
+data_dir, ports_dir = sys.argv[1], sys.argv[2]
+fail = 0
+for entry in sorted(os.listdir(data_dir)):
+    if not entry.endswith('.json'):
+        continue
+    path = os.path.join(data_dir, entry)
+    try:
+        d = json.load(open(path))
+    except Exception:
+        continue
+    name = d.get('name') or os.path.splitext(entry)[0]
+    json_rev = int(d.get('revision', 1))
+    json_ver = d.get('version', '')
+
+    mf = os.path.join(ports_dir, name, 'Makefile')
+    if not os.path.exists(mf):
+        # Native artifact with no port directory -- skip silently
+        continue
+    mf_text = open(mf).read()
+
+    mf_ver_match = re.search(r'^VERSION\s*=\s*(\S+)', mf_text, re.M)
+    mf_rev_match = re.search(r'^REVISION\s*=\s*(\d+)', mf_text, re.M)
+    mf_ver = mf_ver_match.group(1) if mf_ver_match else ''
+    # No REVISION line means rev 1 (project convention)
+    mf_rev = int(mf_rev_match.group(1)) if mf_rev_match else 1
+
+    if mf_ver and json_ver and mf_ver != json_ver:
+        print(f"FAIL  {name}: catalog version drift -- json={json_ver} Makefile={mf_ver}")
+        fail += 1
+        continue
+    if json_rev != mf_rev:
+        print(f"FAIL  {name}: catalog revision drift -- json={json_rev} Makefile={mf_rev}")
+        print(f"      fix one of:")
+        print(f"        - {data_dir}/{name}.json: set \"revision\": {mf_rev}")
+        print(f"        - {ports_dir}/{name}/Makefile: set REVISION = {json_rev}")
+        print(f"        (whichever reflects the actual work that was done)")
+        fail += 1
+if fail == 0:
+    print(f"PASS  catalog revision consistency (json revision == Makefile REVISION for all ports)")
+sys.exit(1 if fail > 0 else 0)
+PY
+)
+    echo "$rev_report"
+    if echo "$rev_report" | grep -q '^FAIL'; then
+        failed=$((failed + 1))
+    fi
+    echo ""
+fi
+
 echo "Checked $checked ports: $((checked - failed - warned)) clean, $warned warnings, $failed failed"
 
 if [ "$failed" -gt 0 ]; then
