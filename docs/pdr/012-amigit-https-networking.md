@@ -628,6 +628,9 @@ registration.
 
 **Phase 2 summary (2026-04-14):**
 
+Commit: `f26842a` -- feat(amigit): PDR-012 Phase 2 -- HTTPS
+transport stub registration.
+
 Three new files in `ports/amigit/ported/`:
 
 - `transport_https.h` -- public interface:
