@@ -62,6 +62,26 @@ site/
 
 ## Deployment
 
+### MANDATORY pre-deploy gate — dry-run --delete first
+
+`site/packages/*.lha` is gitignored. Different working trees have different copies of the LHA files. A blind `rsync --delete` will silently nuke any LHA on the server that is not in the local working tree — including LHAs that other parallel sessions built and uploaded directly. **This has caused real data loss (2026-04-14 incident: jq-1.7.1-3, wget-1.20.3-2, tail-1.24-2, amiport-1.0 all silently deleted from the live server because they were not in the calling session's local mirror).**
+
+**Always dry-run first:**
+
+```bash
+rsync -avzn --delete --exclude '.env' --exclude 'data/counters/*.txt' \
+  -e ssh site/ amiport-deploy:amiport.platesteel.net/ | grep '^deleting'
+```
+
+If the dry-run output contains ANY `deleting packages/*.lha` lines that you did not expect, **ABORT** and:
+1. Report the proposed deletions to the user
+2. Investigate whether the to-be-deleted files exist in `ports/<name>/` and can be staged into `site/packages/` first (run `make check-port-metadata` — Check 9 catches this and prints the exact `cp` command to fix it)
+3. Only proceed with the deploy after the dry-run shows zero unexpected `deleting` lines, OR after explicit user approval
+
+Unexpected `deleting` lines for non-LHA files (e.g., html, css, js, json) are usually safe — those files are tracked in git and the local tree is authoritative. The hazard is specifically for `packages/*.lha` because they are gitignored build artifacts.
+
+### Standard deploy (after dry-run gate passes)
+
 ```bash
 # Standard deploy
 rsync -avz --delete --exclude '.env' --exclude 'data/counters/*.txt' \
@@ -70,6 +90,8 @@ rsync -avz --delete --exclude '.env' --exclude 'data/counters/*.txt' \
 # Upload .env (only when credentials change)
 scp site/.env amiport-deploy:amiport.platesteel.net/.env
 ```
+
+See `.claude/rules/site-mirror-discipline.md` for the full rule and recovery procedure.
 
 **Post-deploy verification:**
 ```bash

@@ -137,24 +137,42 @@ Both archives need SHA-256 checksums:
 - `sha256` — checksum of the full LHA
 - `machine_sha256` — checksum of the machine LHA
 
-### Deploy BOTH archives
+### Stage BOTH archives into the local site/packages/ mirror
+
+**DO NOT rsync LHAs directly to the server.** That bypasses `site/packages/` and the next
+unified deploy will silently delete the file (real incident: 2026-04-14, four LHAs nuked).
+Always stage into the local mirror first; the unified `rsync site/` deploy below handles
+the actual upload as one consistent operation.
+
 ```bash
-rsync -avz -e ssh ports/<name>/<name>-<DISPLAY_VERSION>.lha \
-  amiport-deploy:amiport.platesteel.net/packages/
-rsync -avz -e ssh ports/<name>/<name>-<VERSION>-machine.lha \
-  amiport-deploy:amiport.platesteel.net/packages/
+cp ports/<name>/<name>-<DISPLAY_VERSION>.lha       site/packages/
+cp ports/<name>/<name>-<VERSION>-machine.lha       site/packages/
 ```
 
-**GATE CHECK:** `amiport install <name>` will FAIL if the machine LHA is missing from the
+**GATE CHECK A:** `amiport install <name>` will FAIL if the machine LHA is missing from the
 server. This is a hard requirement, not optional.
 
-## Deployment — MANDATORY rsync
+**GATE CHECK B:** `make check-port-metadata` (Check 9, site mirror integrity) MUST pass
+after staging. Check 9 verifies that every advertised LHA in `site/data/packages/<name>.json`
+exists at the corresponding `site/packages/` path. If it fails, fix the staging before
+proceeding to deploy. The check prints the exact `cp` command to fix any miss.
 
-After LHA is built and package JSON is updated, you MUST run the rsync command directly.
-Do NOT rely on `git push` triggering the pre-push hook — if there are no new commits to push,
-the hook never runs and the site is never deployed. Always rsync explicitly:
+See `.claude/rules/site-mirror-discipline.md` for the full rule.
+
+## Deployment — MANDATORY unified rsync
+
+After the LHA is **staged into `site/packages/`** (above) and the package JSON is updated,
+you MUST run the unified rsync command directly. Do NOT rely on `git push` triggering the
+pre-push hook — if there are no new commits to push, the hook never runs and the site is
+never deployed. Always rsync explicitly. **And ALWAYS dry-run first** — see the dry-run gate
+in `.claude/agents/site-manager.md`:
 
 ```bash
+# Dry-run first — abort on any unexpected `deleting packages/*.lha` output
+rsync -avzn --delete --exclude '.env' --exclude 'data/counters/*.txt' \
+  -e ssh site/ amiport-deploy:amiport.platesteel.net/ | grep '^deleting'
+
+# If clean, run the real deploy
 rsync -avz --delete --exclude '.env' --exclude 'data/counters/*.txt' \
   -e ssh site/ amiport-deploy:amiport.platesteel.net/
 ```

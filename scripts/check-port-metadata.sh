@@ -428,6 +428,59 @@ if dupes == 0:
     echo ""
 fi
 
+# ----------------------------------------------------------
+# Check 9: Site mirror integrity — every advertised LHA must exist
+#          in site/packages/ before deploy can rsync --delete safely
+# ----------------------------------------------------------
+SITE_DATA_DIR="${SITE_DATA_DIR:-site/data/packages}"
+SITE_PKGS_DIR="${SITE_PKGS_DIR:-site/packages}"
+if [ -d "$SITE_DATA_DIR" ] && [ -d "$SITE_PKGS_DIR" ]; then
+    echo "--- Site mirror integrity check ---"
+    mirror_report=$(python3 - "$SITE_DATA_DIR" "$SITE_PKGS_DIR" "$PORTS_DIR" <<'PY' || true
+import json, os, sys
+data_dir, pkgs_dir, ports_dir = sys.argv[1], sys.argv[2], sys.argv[3]
+fail = 0
+warn = 0
+for entry in sorted(os.listdir(data_dir)):
+    if not entry.endswith('.json'):
+        continue
+    path = os.path.join(data_dir, entry)
+    try:
+        d = json.load(open(path))
+    except Exception as e:
+        print(f"WARN  {entry}: invalid JSON ({e})")
+        warn += 1
+        continue
+    name = d.get('name') or os.path.splitext(entry)[0]
+    download = d.get('download', '')
+    if not download or not download.startswith('/packages/'):
+        # No advertised LHA path -- skip silently (e.g. installer placeholder)
+        continue
+    lha = download[len('/packages/'):]
+    expected = os.path.join(pkgs_dir, lha)
+    if os.path.exists(expected):
+        continue
+    # Missing from site mirror -- can we recover from the port directory?
+    port_copy = os.path.join(ports_dir, name, lha)
+    if os.path.exists(port_copy):
+        print(f"FAIL  {name}: site mirror missing {lha}")
+        print(f"      fix: cp {port_copy} {expected}")
+    else:
+        print(f"FAIL  {name}: site mirror missing {lha} AND no copy in {ports_dir}/{name}/")
+        print(f"      this artifact may have been lost -- rebuild or roll back JSON")
+    fail += 1
+if fail == 0:
+    print(f"PASS  site mirror integrity (every advertised LHA exists in {pkgs_dir}/)")
+sys.exit(1 if fail > 0 else 0)
+PY
+)
+    echo "$mirror_report"
+    if echo "$mirror_report" | grep -q '^FAIL'; then
+        failed=$((failed + 1))
+    fi
+    echo ""
+fi
+
 echo "Checked $checked ports: $((checked - failed - warned)) clean, $warned warnings, $failed failed"
 
 if [ "$failed" -gt 0 ]; then
