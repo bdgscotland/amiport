@@ -6,9 +6,9 @@
     "category": "util/misc",
     "source": "Original code by Duncan Bowring",
     "license": "MIT",
-    "size": 43832,
-    "sha256": "",
-    "machine_sha256": "",
+    "size": 47064,
+    "sha256": "1f922443d26c8ac798f86676139cb126c430eb91d915549460792b1d3ed02892",
+    "machine_sha256": "6b3f0b8c2870659cfd2aa1655f7d33317d7a55be3499933f5d86fc683f780aa7",
     "download": "/packages/amiport-1.0.lha",
     "requires": [
         "bsdsocket.library"

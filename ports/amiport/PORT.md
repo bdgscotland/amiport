@@ -131,3 +131,7 @@ Pending memory-checker review.
 ## Performance
 
 Pending perf-optimizer review.
+
+## Re-stamp note (2026-04-14)
+
+The original `amiport-1.0.lha` was published with an empty `sha256` field in `site/data/packages/amiport.json` (the bootstrap commit never filled it in). On 2026-04-14 the local `ports/amiport/amiport-1.0.lha` (47064 bytes) was stamped as the canonical 1.0 build: `amiport.json` updated with the actual size and sha256, file staged into `site/packages/`, and re-deployed. No source changes — only the catalog metadata was reconciled with what the `make package` build actually produces. The earlier 43832-byte build had no integrity signature, so no integrity guarantee is broken by this reconciliation.
