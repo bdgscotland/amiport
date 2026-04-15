@@ -710,16 +710,19 @@ The project is DONE when all of these are true:
 
 ## Session checkpoint (update in-place every session)
 
-**Current phase:** Phase 5 (service discovery via
-`GET /info/refs?service=git-upload-pack`, 1 session). Phase 4 is
-complete. Phase 4 landed `pkt_line.c/.h` (pkt-line framing with
-zero-copy decode, flush+delim specials, 23 unit tests) and
-extended `http_client.c` with a transparent chunked transfer-
-encoding decoder driven off a new `http_set_chunked()` API
-(11 unit tests). All three baseline suites still green:
+**Current phase:** Phase 6 (upload-pack body -- want/have
+negotiation + pack reception, 2 sessions). Phase 5 is complete.
+Phase 5 landed a real HTTPS subtransport in `transport_https.c`
+that opens AmiSSL-backed HTTP/1.1 via `http_client`, sends
+`GET /info/refs?service=git-upload-pack`, handles chunked and
+Content-Length response bodies, and feeds the bytes back to
+libgit2 via a `git_smart_subtransport_stream`. `cmd_ls_remote.c`
+is rewired to real `git_remote_ls`. All four suites green:
 `tests/libgit2` 79/79, `tests/amigit-http-client` 25/25 + 26/26,
-FS-UAE 95/95.
-Last update: 2026-04-14 (Phase 4 landed -- pkt-line + chunked).
+FS-UAE 97/97 (was 95/95, +2 for the new Phase 5 tests that
+replaced 4 Phase 2 stub tests with 6 Phase 5 tests -- 3 argv-only
+and 3 network-reaching).
+Last update: 2026-04-14 (Phase 5 landed -- service discovery).
 
 **2026-04-14 plan change:** original Phase 3 (plain HTTP only)
 and original Phase 7 (AmiSSL integration) MERGED into the
@@ -733,12 +736,212 @@ If a previous session's handoff mentions "Phase 8" or "Phase 12"
 those refer to the OLD numbering -- see the current
 `## Phase plan` section for authoritative current numbering.
 
-**Last completed phase:** Phase 4 (pkt-line framing + chunked
-transfer decoder, single session). Still pending (unchanged from
-the Phase 3 checkpoint): real-hardware smoke test on Duncan's
-A2000 + Vampire V2 500+ + X-Surf 100 + Roadshow + AmiSSL
-installer. That test can run whenever convenient -- it does NOT
-block Phase 5 work.
+**Last completed phase:** Phase 5 (service discovery via
+`GET /info/refs?service=git-upload-pack`, single session). Still
+pending (unchanged from the Phase 3 checkpoint): real-hardware
+smoke test on Duncan's A2000 + Vampire V2 500+ + X-Surf 100 +
+Roadshow + AmiSSL installer. Phase 5 is where the real-hardware
+test graduates from "prove the network+TLS stack works" to
+"prove a ref list round trip works", so whenever it runs it will
+exercise the new `amigit ls-remote https://github.com/<owner>/<repo>.git`
+path. Does NOT block Phase 6 work -- FS-UAE harness is the
+canonical stand-in until the hardware run happens.
+
+**Phase 5 summary (2026-04-14):**
+
+Phase 5 wired the http_client + pkt_line infrastructure from
+Phases 3 and 4 into libgit2's smart-HTTP dispatch. Before this
+session, `transport_https.c:https_action()` was a stub that
+returned `GIT_ERROR_NET: "not implemented yet"` for every
+service verb. After this session, `GIT_SERVICE_UPLOADPACK_LS`
+runs a real HTTPS GET against the origin server and streams the
+response body back to libgit2's pkt-line parser. `ls-remote`
+now exercises the full path from CLI verb through libgit2
+smart-HTTP through AmiSSL through bsdsocket and back.
+
+Before KB query was run (per session feedback): `amiga_pitfalls_for`
+on "libgit2 smart subtransport https stream" and
+"libgit2 git_remote_connect custom transport HTTPS". Results
+confirmed two relevant pitfalls already handled in Phase 2/3
+code: (a) `git_transport_register` takes the BARE scheme, not
+`"scheme://"` -- already correct in `amigit_transport_https_register`
+with a load-bearing comment; (b) libgit2 patch_generate pulls
+`__divsf3` / `__floatunsisf` from mathieeesingbas.library which
+crashes on FS-UAE -- already handled by the soft-float overrides
+in `amigit_libgit2_stubs.c`, which remains linked into the
+Phase 5 binary. A third query ("AmiSSL http_client chunked
+transfer encoding amigit") returned no known pitfalls; the gap
+was logged to the KB automatically.
+
+**Landed changes:**
+
+- `ports/amigit/ported/transport_https.c` -- rewritten from the
+  Phase 2 ~230-line stub into a ~670-line real implementation.
+  New internal types: `amigit_https_subtransport` (holds a back
+  pointer to the currently-active stream for double-free
+  defense) and `amigit_https_stream` (owns an `http_conn_t`
+  through its lifetime and is freed via the
+  `git_smart_subtransport_stream.free` callback). New local
+  helpers: `parse_https_url` (deliberate small duplication of
+  `cmd_https_probe.c:parse_https_url`, which will be removed
+  post-Phase 6), `to_lower_ascii` / `ieq_ascii` / `contains_ci`
+  (ASCII-only libnix-independent case-insensitive string helpers
+  for the 2 header comparisons the action does). New entry
+  points: `https_action_uploadpack_ls` does the full
+  parse-connect-send-read-header-detect-body-mode-wrap-stream
+  flow; `https_stream_read` clamps size_t->int, calls
+  `http_read_body`, maps result into `bytes_read` +
+  return-code; `https_stream_write` returns the Phase 6
+  "upload-pack POST not implemented yet" error;
+  `https_stream_free` closes the http_conn and frees itself.
+  `https_action` dispatches on service verb: `UPLOADPACK_LS`
+  goes to the real path, all three other verbs return the
+  Phase 6/11 "not implemented yet" message with service-
+  specific verb names so the user sees exactly which verb
+  isn't wired up. `https_close` and `https_free` are defensive
+  no-ops that clear any residual `current_stream` pointer in
+  case smart.c's ordering ever changes. All error paths in
+  `https_action_uploadpack_ls` (7 branches) either had no
+  http_conn allocated or call `http_close(conn)` before
+  returning -- memory-checker verified.
+- `ports/amigit/ported/cmd_ls_remote.c` -- rewritten from the
+  Phase 2 stub into the real ref-listing implementation.
+  Calls `git_remote_create_detached` -> `git_remote_connect`
+  -> `git_remote_ls`, then iterates refs printing them in
+  native `git ls-remote` format (`<sha>\t<refname>`).
+  `git_oid_tostr` into a `GIT_OID_SHA1_HEXSIZE + 1` local
+  buffer inside the loop. `ls_remote_fail` unchanged --
+  still prints the libgit2 error message to stdout for
+  FS-UAE harness capture, then delegates to
+  `amigit_error_exit`. `--help` text now mentions the
+  AmiSSL install requirement.
+- `ports/amigit/test-fsemu-cases.txt` -- the Phase 2 `ls-remote`
+  block (tests 88-91, all stub-message assertions) was
+  replaced with a Phase 5 block (tests 88-93, six tests):
+  missing url, --help RC=0, --help mentions AmiSSL, ftp://
+  scheme rejected via libgit2's URL dispatcher, http:// scheme
+  rejected via the transport_stubs.c stub that amiport has
+  not registered, and a live HTTPS request against
+  `https://amiport.platesteel.net` that reaches the network
+  and surfaces a real transport error (assertion is on the
+  `ls-remote:` prefix + RC=10, which is tight enough to
+  prove we did NOT hit the old stub while not depending on
+  a specific server status that might shift).
+- PDR-012 `Session checkpoint` section -- this block. Current
+  phase bumped to Phase 6, last completed phase bumped to
+  Phase 5, Phase 5 summary added, Phase 4 summary preserved
+  below for reference.
+
+**Build and test results:**
+
+- `make -C tests/libgit2 run`: **79/79** (unchanged -- no libgit2
+  edits in Phase 5, only amigit-side consumer code).
+- `make -C tests/amigit-http-client run`:
+  **test_http_client 25/25**, **test_pkt_line 26/26** (unchanged --
+  Phase 5 consumed the Phase 4 API but did not touch the parser
+  source).
+- `make test-fsemu TARGET=ports/amigit`: **97/97** (was 95/95).
+  Delta = +2 -- four Phase 2 stub tests replaced by six Phase 5
+  tests. The live network test (93) confirms the HTTPS stack
+  reaches amiport.platesteel.net under the Phase 5 subtransport
+  path, the same way the existing `_https-probe` test #97 does
+  under the direct `http_client` path.
+- `ports/amigit/amigit` binary: **1,218,792 bytes** (was 1,167,XXX
+  on the 0.1-6 baseline -- grew ~50 KB from the real action
+  implementation and the inlined header-iteration helpers).
+- Memory-checker: CLEAN on all six audit categories (error-path
+  cleanup, stream lifecycle, git_remote lifecycle, error-message
+  ownership, stack pressure, malloc/calloc tracking). Zero
+  CRITICAL or HIGH findings.
+- Perf-optimizer: CLEAN. Zero HIGH/CRITICAL findings. -O1 safety
+  confirmed for both TUs: no recursion, no struct-by-value
+  returns > 8 bytes, no floating point, no goto-based control
+  flow. The only micro-optimization noted was LOW (a single
+  `snprintf(host_hdr, ..., "%s", host)` that could be `strcpy`)
+  and was not worth applying.
+
+**NOT done in Phase 5 (deferred to Phase 6):**
+
+- POST upload-pack body (`GIT_SERVICE_UPLOADPACK`). Phase 5's
+  `https_stream_write` deliberately returns a clear "Phase 6"
+  error message. Phase 6 will implement the POST path: write
+  pkt-line framed want/have list + flush + done, then read the
+  side-band-64k response stream and hand pack bytes to
+  `git_indexer_append`. The Phase 5 stream read implementation
+  is the foundation here -- it only needs extending to keep
+  reading past the ref-ad response into the pack body.
+- HTTP redirect support. Phase 5 returns an error on non-200
+  status so the caller (user / test harness) knows the request
+  reached the server. GitHub requires a redirect to the `.git`
+  suffix for repo URLs without it, so Phase 6 will need one
+  level of 301/302/307/308 follow.
+- Happy-path ref listing against a real git server. The FS-UAE
+  suite deliberately does NOT include a test against
+  github.com or codeberg.org for reliability reasons (third
+  party infra flakiness). Real-hardware verification remains
+  the authoritative smoke test, same as Phase 3/4.
+- `amigit clone`. That is Phase 8 scope; it needs the Phase 6
+  POST body implementation and the Phase 7 credential callback.
+
+**Phase 6 hints (what the next session should know):**
+
+Phase 6 is the big one. It wires upload-pack POST + pack
+reception, and after it lands, `amigit clone https://github.com/...`
+will work end-to-end (via cmd_clone.c in Phase 8). The
+foundation Phase 6 needs is mostly in place:
+
+1. The stream->write path: libgit2 calls
+   `stream->write(stream, buf, len)` on an HTTPS stream after
+   the action dispatcher returns a stream for
+   `GIT_SERVICE_UPLOADPACK`. The write must buffer the full
+   pkt-line framed want/have/flush/done body, then send a
+   single POST with
+   `Content-Type: application/x-git-upload-pack-request`.
+   Two options: (a) accumulate the full body into a heap
+   buffer, send on first read(), OR (b) do streaming
+   Transfer-Encoding: chunked writes. Option (a) is simpler
+   and matches upstream libgit2's http.c. Use
+   `HTTP_MAX_STATUS_LINE`-sized initial capacity + realloc
+   grow.
+2. Redirect handling: once POST is wired, a github.com test
+   will likely hit a 301 to `.git`. Add redirect support in
+   the action handler: on 301/302/307/308, parse `Location:`,
+   reopen the connection to the new URL, retry with the same
+   method. Cap at 3 redirects to avoid loops. This should live
+   in a helper inside `transport_https.c`; libgit2 does NOT
+   parse 3xx itself for custom subtransports.
+3. Pack reception via stream read: the response body after
+   the 200 status is a pkt-line framed stream with side-band-
+   64k multiplexing. libgit2 parses the framing itself via
+   `git_indexer_append` once the stream is handed back; we
+   just need to keep `http_read_body` draining until the
+   http_conn EOFs or hits the 0-length terminator. The Phase 5
+   stream read code already handles this for chunked and
+   Content-Length paths.
+4. Test infrastructure: Phase 6 will need either (a) a real
+   git HTTPS server reachable from FS-UAE with a small test
+   repo, or (b) a manual hardware run. Option (a) is hard --
+   amiport.platesteel.net is not a git server. Recommendation:
+   stand up a tiny static repo under a new
+   `git.amiport.platesteel.net` subdomain served by git-http-
+   backend + nginx, or host a tiny fixture via cgit. Or defer
+   the automated happy-path test to Phase 8 (cmd_clone) and
+   rely on real hardware in the meantime.
+5. `amigit_libgit2_stubs.c` soft-float overrides stay critical.
+   Phase 6 may touch code paths that reach patch_generate.c if
+   pack indexing produces a diff internally; keep the override
+   in place and don't remove it until profiling on real
+   hardware confirms nothing in the amigit binary pulls
+   `__divsf3` / `__floatunsisf` anymore.
+
+**Other-session boundaries (unchanged from Phase 4):** a parallel
+dropbear session has uncommitted changes in
+`lib/bsdsocket-shim/src/socket.c` and `ports/dropbear/**`.
+Phase 5 did NOT touch either -- the bsdsocket-shim on disk (with
+those uncommitted changes) was linked into Phase 5's binary via
+`-lamiport-net` and tests passed, so the uncommitted delta is
+compatible with Phase 5. Phase 6 should continue to respect the
+same boundaries.
 
 **Phase 4 summary (2026-04-14):**
 

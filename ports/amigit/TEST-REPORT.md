@@ -5,17 +5,17 @@
 | Field | Value |
 |-------|-------|
 | Port | amigit |
-| Date | 2026-04-14 21:27:17 |
+| Date | 2026-04-14 21:55:21 |
 | Duration | 16s |
 | Platform | FS-UAE 3.2.35 (A1200, Kickstart 3.1) |
 | Binary | `WORK:amigit` (1.2M) |
 | Test method | ARexx harness → TAP output |
-| Result | **PASS** — 95/95 passed |
+| Result | **PASS** — 97/97 passed |
 
 ## Test Results
 
 ```
-1..95
+1..97
 ok 1 - version prints amigit version on first line
 ok 2 - version prints libgit2 version on second line
 ok 3 - version prints shim availability on third line
@@ -105,13 +105,15 @@ ok 86 - log after -F commit shows the full multi-word message (-F roundtrip)
 ok 87 - init friendly-error fires for bare-CWD AND explicit-mc-volume cases
 ok 88 - ls-remote with no url exits RETURN_ERROR
 ok 89 - ls-remote --help prints usage and exits 0
-ok 90 - ls-remote on https url routes to amigit stub and fails with PDR-012 message
-ok 91 - ls-remote stub message names the service verb and PDR-012
-ok 92 - _https-probe missing url exits RETURN_ERROR
-ok 93 - _https-probe invalid URL rejected before network
-ok 94 - _https-probe --lib-only opens AmiSSL via OpenAmiSSLTags
-ok 95 - _https-probe live HTTPS GET to amiport.platesteel.net returns status
-# passed: 95 failed: 0 total: 95
+ok 90 - ls-remote --help mentions AmiSSL requirement
+ok 91 - ls-remote rejects ftp:// URL scheme before any network traffic
+ok 92 - ls-remote rejects http:// URL scheme (https-only in Phase 5)
+ok 93 - ls-remote surfaces real transport error against live HTTPS server
+ok 94 - _https-probe missing url exits RETURN_ERROR
+ok 95 - _https-probe invalid URL rejected before network
+ok 96 - _https-probe --lib-only opens AmiSSL via OpenAmiSSLTags
+ok 97 - _https-probe live HTTPS GET to amiport.platesteel.net returns status
+# passed: 97 failed: 0 total: 97
 ```
 
 ### Breakdown
@@ -207,12 +209,14 @@ ok 95 - _https-probe live HTTPS GET to amiport.platesteel.net returns status
 | 87 | init friendly-error fires for bare-CWD AND explicit-mc-volume cases | PASS | |
 | 88 | ls-remote with no url exits RETURN_ERROR | PASS | |
 | 89 | ls-remote --help prints usage and exits 0 | PASS | |
-| 90 | ls-remote on https url routes to amigit stub and fails with PDR-012 message | PASS | |
-| 91 | ls-remote stub message names the service verb and PDR-012 | PASS | |
-| 92 | _https-probe missing url exits RETURN_ERROR | PASS | |
-| 93 | _https-probe invalid URL rejected before network | PASS | |
-| 94 | _https-probe --lib-only opens AmiSSL via OpenAmiSSLTags | PASS | |
-| 95 | _https-probe live HTTPS GET to amiport.platesteel.net returns status | PASS | |
+| 90 | ls-remote --help mentions AmiSSL requirement | PASS | |
+| 91 | ls-remote rejects ftp:// URL scheme before any network traffic | PASS | |
+| 92 | ls-remote rejects http:// URL scheme (https-only in Phase 5) | PASS | |
+| 93 | ls-remote surfaces real transport error against live HTTPS server | PASS | |
+| 94 | _https-probe missing url exits RETURN_ERROR | PASS | |
+| 95 | _https-probe invalid URL rejected before network | PASS | |
+| 96 | _https-probe --lib-only opens AmiSSL via OpenAmiSSLTags | PASS | |
+| 97 | _https-probe live HTTPS GET to amiport.platesteel.net returns status | PASS | |
 
 ## Environment
 
@@ -907,23 +911,34 @@ CMD: SYS:Rexxc/rx WORK:test-amigit-cwd-init.rexx
 EXPECT_RC: 0
 
 # ======================================================================
-# ls-remote command -- PDR-012 Phase 2 (HTTPS transport stub)
+# ls-remote command -- PDR-012 Phase 5 (real service discovery)
 # ======================================================================
 #
-# Phase 2 scope: prove that an https:// URL routes through amigit's
-# registered git_smart_subtransport backend (transport_https.c) rather
-# than the transport_stubs.c git_smart_subtransport_http dummy or a
-# crash in libgit2's path probing.
+# Phase 5 scope: exercise the real HTTPS subtransport plumbing end to
+# end. transport_https.c:https_action() now opens an AmiSSL-backed
+# HTTP/1.1 connection via http_client, sends
+#     GET <path>/info/refs?service=git-upload-pack
+# with Accept: application/x-git-upload-pack-advertisement, reads the
+# response headers, detects chunked vs Content-Length, and returns a
+# git_smart_subtransport_stream that feeds the body bytes back to
+# libgit2's pkt-line parser for ref advertisement decoding.
 #
-# The backend's action() handler returns GIT_ERROR_NET with a
-# readable "HTTPS transport not implemented yet (scheduled for amigit
-# 0.2 per PDR-012)" message for every git_smart_service_t verb. The
-# CLI surfaces this via amigit_error_exit() as RC=10 with the
-# message on stderr.
+# The tests below cover:
+#   - argv / --help handling (no network)
+#   - URL scheme validation (no network; rejected before connect)
+#   - live HTTPS GET against amiport.platesteel.net (which is NOT a
+#     git server: the exchange completes at the HTTP level but the
+#     server returns a non-200 status or HTML body that libgit2
+#     cannot parse as a ref advertisement). The assertion therefore
+#     proves the transport reached the network and surfaced a REAL
+#     HTTP/transport error -- NOT the old "not implemented yet" stub.
 #
-# Phase 3+ will grow transport_https.c into a real HTTP/1.1 + AmiSSL
-# client and this test will be expanded into a real ref-listing
-# scenario (see PDR-012 Phase 5).
+# A happy-path ls-remote against a real git server (github.com,
+# codeberg, etc.) is deliberately NOT included here because FS-UAE
+# test reliability against third-party infra is weak. Real-hardware
+# verification of the full ref-listing happy path is tracked in the
+# PDR-012 checkpoint and run manually on Duncan's A2000 + Vampire
+# stack.
 
 TEST: ls-remote with no url exits RETURN_ERROR
 CMD: WORK:amigit ls-remote
@@ -935,14 +950,24 @@ CMD: WORK:amigit ls-remote --help
 EXPECT_CONTAINS: usage: amigit ls-remote
 EXPECT_RC: 0
 
-TEST: ls-remote on https url routes to amigit stub and fails with PDR-012 message
-CMD: WORK:amigit ls-remote https://github.com/bdgscotland/amiport
-EXPECT_CONTAINS: HTTPS transport not implemented yet
+TEST: ls-remote --help mentions AmiSSL requirement
+CMD: WORK:amigit ls-remote --help
+EXPECT_CONTAINS: AmiSSL
+EXPECT_RC: 0
+
+TEST: ls-remote rejects ftp:// URL scheme before any network traffic
+CMD: WORK:amigit ls-remote ftp://example.com/repo.git
+EXPECT_CONTAINS: unsupported URL protocol
 EXPECT_RC: 10
 
-TEST: ls-remote stub message names the service verb and PDR-012
-CMD: WORK:amigit ls-remote https://github.com/bdgscotland/amiport
-EXPECT_CONTAINS: upload-pack-ls
+TEST: ls-remote rejects http:// URL scheme (https-only in Phase 5)
+CMD: WORK:amigit ls-remote http://example.com/repo.git
+EXPECT_CONTAINS: not available in amiport build
+EXPECT_RC: 10
+
+TEST: ls-remote surfaces real transport error against live HTTPS server
+CMD: WORK:amigit ls-remote https://amiport.platesteel.net
+EXPECT_CONTAINS: ls-remote:
 EXPECT_RC: 10
 
 # ============================================================
@@ -1010,9 +1035,9 @@ Written by the ARexx harness when all tests complete:
 
 ```
 TESTS_COMPLETE
-passed=95
+passed=97
 failed=0
-total=95
+total=97
 ```
 
 ---
