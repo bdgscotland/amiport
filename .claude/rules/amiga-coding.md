@@ -18,6 +18,26 @@ A PreToolUse hook (`enforce-adcd-lookup.sh`) fires on every Edit/Write to C file
 
 This applies to: shim implementations, new library features (profiler, crash handler, etc.), code review of AmigaOS calls, design work involving AmigaOS APIs, and FS-UAE trap handlers that read emulated memory.
 
+## Library Consumer Pitfall Query — MANDATORY amiga-kb LOOKUP (ENFORCED BY HOOK)
+
+**HARD RULE: Before writing ANY code that includes `git2.h`, `<git2/...>`, `<amiport-net/...>`, `<amissl/...>`, or the amigit-internal `http_client.h` / `pkt_line.h` / `amissl_glue.h`:**
+
+1. **Query `amiga_pitfalls_for`** via the amiga-kb MCP with the relevant topic (e.g. "libgit2 smart subtransport https", "bsdsocket WaitSelect", "AmiSSL OpenAmiSSLTags")
+2. **Query `amiga_search`** for any 68k / libnix / bebbo concerns the TU touches (e.g. "libgit2 patch_generate mathieeesingbas", "bsdsocket fd 0 collision")
+3. **Act on the hits** — most returned pitfalls are load-bearing and already in the code; verify yours are still handled
+
+The same `enforce-adcd-lookup.sh` hook fires a second warning band when it detects any of the library consumer headers above. It is WARN not BLOCK so the pipeline keeps moving, but ignoring it has already shipped bugs -- PDR-012 Phase 5 was written without the query step until the user interrupted mid-session to flag it (2026-04-14). The query costs seconds. The KB contains known traps like:
+
+- `git_transport_register` takes the BARE scheme, not `"scheme://"` -- the public header and implementation disagree
+- libgit2's `patch_generate.c` pulls `__divsf3` / `__floatunsisf` which crash FS-UAE's `mathieeesingbas.library`
+- bsdsocket `socket()` returns fd 0/1/2 by default, colliding with libnix stdin/stdout/stderr in select() bitmaps
+- AmiSSL legacy `InitAmiSSLMaster` + `OpenAmiSSL` does not work on 68k -- must use `OpenAmiSSLTags` with `AmiSSL_SocketBase` and `AmiSSL_ErrNoPtr`
+- libnix `getpass()` opens `/dev/tty` which does not exist on AmigaOS
+
+Every single one of these is a session-killer if an agent writes code blind to it. None are discoverable from reading the upstream source. The query is not optional.
+
+**Why this is enforced:** The PDR-012 Phase 5 incident (2026-04-14) showed that agents skip the KB query even when handling libgit2 / bsdsocket / AmiSSL code. The existing ADCD rule only covers `<proto/*.h>` style headers. Library consumer headers needed their own explicit band. The hook is the deterministic backstop; this rule is the readable explanation of why the hook fires.
+
 ## Character Encoding — ASCII ONLY
 
 **ALL C source files (.c, .h) MUST be pure ASCII.** No UTF-8, no extended characters, not even inside comments. bebbo-gcc (GCC 6.5.0b) silently corrupts preprocessor output when it encounters multi-byte UTF-8 characters — entire functions vanish without any error or warning.
