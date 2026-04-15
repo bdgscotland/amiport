@@ -1042,3 +1042,90 @@ if (fd >= 0 && fd < 3) {
 ```
 
 Applied in both `amiport_socket()` and `amiport_accept()`. Discovered in Dropbear SSH client port (PDR-013 Phase 2, 2026-04-14).
+
+## AmiSSL 68k: Legacy InitAmiSSLMaster/OpenAmiSSL Returns NULL
+
+On 68k, the legacy two-step AmiSSL init pattern does NOT work:
+
+```c
+/* BROKEN on 68k -- OpenAmiSSL returns NULL with IoErr=0 */
+InitAmiSSLMaster(AMISSL_CURRENT_VERSION, FALSE);
+AmiSSLBase = OpenAmiSSL();
+```
+
+The backend library (`amissl_v362.library`) needs to bind its internal networking stack to the process's bsdsocket handle and errno slot. The legacy API has no way to pass those, so the backend's init silently fails.
+
+**Fix:** Use the modern tag-based API `OpenAmiSSLTags` with `AmiSSL_SocketBase` and `AmiSSL_ErrNoPtr` tags:
+
+```c
+#include <amissl/tags.h>
+extern struct Library *SocketBase;  /* from libamiport-net */
+
+LONG rc = OpenAmiSSLTags(AMISSL_CURRENT_VERSION,
+                         AmiSSL_UsesOpenSSLStructs, FALSE,
+                         AmiSSL_GetAmiSSLBase,    (ULONG)&AmiSSLBase,
+                         AmiSSL_GetAmiSSLExtBase, (ULONG)&AmiSSLExtBase,
+                         AmiSSL_SocketBase,       (ULONG)SocketBase,
+                         AmiSSL_ErrNoPtr,         (ULONG)&errno,
+                         TAG_DONE);
+/* 0 = success, 1 = master init failed, 2 = backend open failed,
+ * 3 = backend init failed */
+```
+
+**Preconditions:** `SocketBase` must already be set via `amiport_socket_init()` before calling `OpenAmiSSLTags`. In an HTTPS client this happens automatically because the TCP connect path (`amiport_getaddrinfo` -> `amiport_socket_init`) runs before the TLS glue.
+
+**Reference:** `jens-maus/amissl/src/autoinit_amissl_main.c` (the upstream auto-init pattern that libamisslauto wraps). Discovered in amigit (PDR-012 Phase 3 session 3, 2026-04-14).
+
+## AmiSSL 68k: Backend Path is Flat (No CPU Subdirectory)
+
+The AmiSSL 68k master library searches for its backend at a FLAT path:
+
+```
+LIBS:AmiSSL/amissl_v362.library
+```
+
+**NOT** at `LIBS:AmiSSL/68020-40/amissl_v362.library`. The AmiSSL installer package ships multiple CPU flavors (`68020-40/`, `68060/`) but the installer picks the right one at install time and copies it to the flat path. The master library only opens the flat path -- there is no runtime CPU detection inside the master for the 68k build.
+
+**Fix:** Any manual staging of AmiSSL (FS-UAE harness, CI runner, test fixture) must copy the right CPU flavor directly to `LIBS:AmiSSL/amissl_vNNN.library`, not preserve the installer package's flavor-subdir structure.
+
+**Reference:** `jens-maus/amissl/src/amisslmaster_library.c`:
+
+```c
+#define AMISSL_LIBNAME_V5 "LIBS:AmiSSL/amissl_v%ld.library"
+```
+
+Discovered in amigit (PDR-012 Phase 3 session 3, 2026-04-14).
+
+## AmiSSL Error Reporting: Don't Lump Failure Modes
+
+The error message `"HTTPS not available"` in amissl_glue code is easy to emit from multiple failure paths (OpenLibrary failed, InitAmiSSL failed, OpenAmiSSL failed, cert-verify failed). DON'T do that -- each failure mode needs a distinct message so a future debugger can triage without instrumenting from scratch.
+
+Also: `glue_errf`-style error helpers that write ONLY to stderr are invisible to the FS-UAE test harness (which captures stdout only). If you rely on stderr for diagnostics during a failing probe test, you will not see it in the TAP `# actual:` diagnostic and will misdiagnose. Either dual-write to stdout in debug paths, or make the probe call the error-returning function directly and print the rc inline.
+
+**Fix:** in `ensure_amissl_open`, emit distinct error reasons based on the OpenAmiSSLTags return code (1=master init, 2=backend open, 3=backend init) so next session sees exactly which step broke. Discovered in amigit session 3 (2026-04-14) where session 2's "OpenLibrary returns NULL" diagnosis was wrong -- the actual failure was OpenAmiSSL returning NULL, masked by the lumped error message.
+
+## FS-UAE A1200 Model Cannot Use Zorro III Memory — Use A3000 + A4000 Kickstart
+
+FS-UAE's `amiga_model = A1200` locks the CPU to 24-bit addressing even if you set `cpu_24bit_addressing = 0` explicitly. Adding `zorro_iii_memory = N` or `motherboard_ram = N` warns:
+
+```
+WARNING: Option zorro_iii_memory needs a CPU with 32-bit addressing
+```
+
+The Z3 memory is allocated but Workbench's `expansion.library` can't autoconfig it, so AvailMem() reports only the stock 8 MB Fast. Programs needing large contiguous allocations (AmiSSL's 3.25 MB backend hunk, for example) fail with no diagnostic.
+
+**Fix:** For test harnesses needing >8 MB contiguous memory, switch the model:
+
+```
+amiga_model = A3000
+kickstart_file = kick3.1-a4000.rom   # A4000 3.1.4 ROM works on A3000
+fast_memory = 8192
+zorro_iii_memory = 16384
+cpu_24bit_addressing = 0
+```
+
+The A3000 model gives 68030 + FPU + MMU + 32-bit addressing natively. The A4000 3.1.4 Kickstart is compatible with A3000 and properly initializes RAMSEY + Zorro III regions. The A4000 model remains blacklisted (see older pitfall) due to 68040 codegen issues, but A3000's 68030 is well-behaved.
+
+This is distinct from the earlier "A4000 JIT unreliable" pitfall -- the failure mode there was JIT/codegen; the failure mode here is address-bus width. A3000 avoids both.
+
+Discovered in amigit (PDR-012 Phase 3 session 3, 2026-04-14) while staging AmiSSL for FS-UAE testing.

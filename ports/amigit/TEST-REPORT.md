@@ -5,17 +5,17 @@
 | Field | Value |
 |-------|-------|
 | Port | amigit |
-| Date | 2026-04-14 17:30:54 |
-| Duration | 160s |
+| Date | 2026-04-14 20:53:22 |
+| Duration | 16s |
 | Platform | FS-UAE 3.2.35 (A1200, Kickstart 3.1) |
 | Binary | `WORK:amigit` (1.2M) |
 | Test method | ARexx harness → TAP output |
-| Result | **PASS** — 93/93 passed |
+| Result | **PASS** — 95/95 passed |
 
 ## Test Results
 
 ```
-1..93
+1..95
 ok 1 - version prints amigit version on first line
 ok 2 - version prints libgit2 version on second line
 ok 3 - version prints shim availability on third line
@@ -109,7 +109,9 @@ ok 90 - ls-remote on https url routes to amigit stub and fails with PDR-012 mess
 ok 91 - ls-remote stub message names the service verb and PDR-012
 ok 92 - _https-probe missing url exits RETURN_ERROR
 ok 93 - _https-probe invalid URL rejected before network
-# passed: 93 failed: 0 total: 93
+ok 94 - _https-probe --lib-only opens AmiSSL via OpenAmiSSLTags
+ok 95 - _https-probe live HTTPS GET to amiport.platesteel.net returns status
+# passed: 95 failed: 0 total: 95
 ```
 
 ### Breakdown
@@ -209,6 +211,8 @@ ok 93 - _https-probe invalid URL rejected before network
 | 91 | ls-remote stub message names the service verb and PDR-012 | PASS | |
 | 92 | _https-probe missing url exits RETURN_ERROR | PASS | |
 | 93 | _https-probe invalid URL rejected before network | PASS | |
+| 94 | _https-probe --lib-only opens AmiSSL via OpenAmiSSLTags | PASS | |
+| 95 | _https-probe live HTTPS GET to amiport.platesteel.net returns status | PASS | |
 
 ## Environment
 
@@ -982,6 +986,16 @@ EXPECT_RC: 10
 # (A2000 + Vampire + AmiSSL installer) is the authoritative test.
 # See docs/pdr/012-amigit-https-networking.md Phase 3 session 2
 # checkpoint.
+
+TEST: _https-probe --lib-only opens AmiSSL via OpenAmiSSLTags
+CMD: WORK:amigit _https-probe --lib-only
+EXPECT_CONTAINS: amissl_glue_probe: OK
+EXPECT_RC: 0
+
+TEST: _https-probe live HTTPS GET to amiport.platesteel.net returns status
+CMD: WORK:amigit _https-probe https://amiport.platesteel.net/
+EXPECT_CONTAINS: status=
+EXPECT_RC: 0
 ```
 
 ## Emulator Log
@@ -996,9 +1010,9 @@ Written by the ARexx harness when all tests complete:
 
 ```
 TESTS_COMPLETE
-passed=93
+passed=95
 failed=0
-total=93
+total=95
 ```
 
 ---

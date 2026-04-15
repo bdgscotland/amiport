@@ -752,3 +752,14 @@ EXPECT_RC: 10
 # (A2000 + Vampire + AmiSSL installer) is the authoritative test.
 # See docs/pdr/012-amigit-https-networking.md Phase 3 session 2
 # checkpoint.
+
+TEST: _https-probe --lib-only opens AmiSSL via OpenAmiSSLTags
+CMD: WORK:amigit _https-probe --lib-only
+EXPECT_CONTAINS: amissl_glue_probe: OK
+EXPECT_RC: 0
+
+TEST: _https-probe live HTTPS GET to amiport.platesteel.net returns status
+CMD: WORK:amigit _https-probe https://amiport.platesteel.net/
+EXPECT_CONTAINS: status=
+EXPECT_RC: 0
+

@@ -710,13 +710,14 @@ The project is DONE when all of these are true:
 
 ## Session checkpoint (update in-place every session)
 
-**Current phase:** Phase 3 (HTTPS client -- HTTP/1.1 + AmiSSL TLS
-from day one, 3 sessions). Session 1 of 3 landed the parser,
-socket backend, and AmiSSL glue in-tree. Remaining session work:
-install AmiSSL into the FS-UAE system.hdf, add a live-HTTPS
-TEST: block, and run a real-hardware smoke test on Duncan's
-A2000 + Vampire + X-Surf + Roadshow + AmiSSL stack.
-Last update: 2026-04-14 (Phase 3 session 1 landed).
+**Current phase:** Phase 4 (pkt-line framing + chunked transfer
+encoding, 1 session). Phase 3 sessions 1, 2, AND 3 all complete.
+Session 3 landed the OpenAmiSSLTags rewrite, the FS-UAE A3000 +
+A4000 kickstart + 16 MB Zorro III RAM harness upgrade, AmiSSL
+cert staging, and a live HTTPS TEST block that actually returns
+a status code from https://amiport.platesteel.net/.
+Last update: 2026-04-14 (Phase 3 session 3 landed -- 95/95
+FS-UAE, live HTTPS proven working).
 
 **2026-04-14 plan change:** original Phase 3 (plain HTTP only)
 and original Phase 7 (AmiSSL integration) MERGED into the
@@ -730,12 +731,159 @@ If a previous session's handoff mentions "Phase 8" or "Phase 12"
 those refer to the OLD numbering -- see the current
 `## Phase plan` section for authoritative current numbering.
 
-**Last completed phase:** Phase 2 + Phase 3 sessions 1 and 2.
-Phase 3 session 3 remaining work: debug OpenLibrary-returns-NULL
-on the FS-UAE harness (amisslmaster.library fails to load even
-with file verifiably accessible at multiple paths), add a live
-HTTPS TEST block once the load issue is resolved, and run the
-real-hardware smoke test on Duncan's A2000.
+**Last completed phase:** Phase 3 session 3 (final session of
+Phase 3). Still pending: real-hardware smoke test on Duncan's
+A2000 + Vampire V2 500+ + X-Surf 100 + Roadshow + AmiSSL
+installer. That test can run whenever convenient -- it does NOT
+block Phase 4 work because the FS-UAE harness now proves the
+AmiSSL glue layer end-to-end.
+
+**Phase 3 session 3 summary (2026-04-14):**
+
+Session 3 root-caused and fixed the Phase 3 session 2 blocker
+("OpenLibrary returns NULL") and landed live HTTPS testing on
+the FS-UAE harness. Three distinct problems were fused into one
+symptom; fixing each required removing the fog of the others.
+
+**Problem 1: Session 2's diagnosis was wrong.** The error
+message `"HTTPS not available"` in `amissl_glue.c` lumped three
+different failure modes into one message (OpenLibrary failed,
+InitAmiSSLMaster failed, OpenAmiSSL failed). Session 2 saw the
+message and concluded OpenLibrary was failing. Session 3 built
+two probes (a standalone `tests/amissl-probe/probe` with zero
+amiport deps, and an in-process `amissl_glue_probe()` function
+inside amigit reachable via `_https-probe --lib-only`). Both
+confirmed that OpenLibrary on `amisslmaster.library` **always
+worked**. The real failure was at `OpenAmiSSL()` returning NULL.
+Session 2 never saw this because `glue_errf()` writes to stderr
+and the test harness only captures stdout.
+
+**Problem 2: legacy InitAmiSSLMaster/OpenAmiSSL flow is broken
+on 68k.** Our Phase 3 session 1 glue used the legacy API:
+
+```c
+InitAmiSSLMaster(AMISSL_CURRENT_VERSION, FALSE);
+AmiSSLBase = OpenAmiSSL();
+```
+
+This does NOT work on 68k. The backend library needs to bind
+its internal networking to the process's bsdsocket handle and
+errno slot, and those can only be supplied via
+`AmiSSL_SocketBase` and `AmiSSL_ErrNoPtr` tags on the modern
+`OpenAmiSSLTags` call. Without them the backend fails to
+initialize and `OpenAmiSSL()` returns NULL with IoErr=0. The
+upstream reference pattern is in
+`jens-maus/amissl/src/autoinit_amissl_main.c`. Session 3
+rewrote `ensure_amissl_open` to use the tag-based flow:
+
+```c
+rc = OpenAmiSSLTags(AMISSL_CURRENT_VERSION,
+                    AmiSSL_UsesOpenSSLStructs, FALSE,
+                    AmiSSL_GetAmiSSLBase,    (ULONG)&AmiSSLBase,
+                    AmiSSL_GetAmiSSLExtBase, (ULONG)&AmiSSLExtBase,
+                    AmiSSL_SocketBase,       (ULONG)SocketBase,
+                    AmiSSL_ErrNoPtr,         (ULONG)&errno,
+                    TAG_DONE);
+```
+
+Return-code convention: 0=ok, 1=master init failed, 2=backend
+open failed, 3=backend init failed. Precondition: SocketBase
+must be set (amiport_socket_init must have been called). The
+normal HTTP path gets this via http_connect -> getaddrinfo ->
+amiport_socket_init. The `--lib-only` diagnostic path calls it
+explicitly.
+
+**Problem 3: memory fragmentation + wrong backend layout.**
+The backend library `amissl_v362.library` has a single 3.25 MB
+code hunk. FS-UAE's stock `amiga_model = A1200` + `fast_memory
+= 8192` provides only ~2.0 MB largest contiguous free block.
+LoadSeg silently returned NULL. Fix: switched harness to
+`amiga_model = A3000` + `kick3.1-a4000.rom` + `fast_memory =
+8192` + `zorro_iii_memory = 16384` + `cpu_24bit_addressing =
+0`. The A3000 model with A4000 kickstart gives 68030 + FPU +
+MMU + 32-bit addressing, and the kickstart's expansion.library
+properly initializes all three memory regions (8 MB Fast, 8 MB
+RAMSEY, 16 MB Zorro III). Memory at probe time is now ~28 MB
+free fast, ~16 MB largest contiguous.
+
+Additionally: the 68k master library searches for its backend
+at FLAT `LIBS:AmiSSL/amissl_vNNN.library` (NOT under a
+`LIBS:AmiSSL/68020-40/` subdirectory -- the upstream installer
+picks the right CPU flavor from the package and copies it to
+the flat path). Our harness had been staging it at
+`RAM:Libs/AmiSSL/68020-40/amissl_v362.library` which never
+matched the master's search. Session 3 updated the User-Startup
+to copy to `RAM:Libs/AmiSSL/amissl_v362.library` (flat). See
+`jens-maus/amissl/src/amisslmaster_library.c` `AMISSL_LIBNAME_V5
+= "LIBS:AmiSSL/amissl_v%ld.library"` for the upstream reference.
+
+**Problem 4: root CA certs missing.** Once the backend loaded
+correctly, the live HTTPS test hit `probe: TLS handshake failed`
+at SSL_connect. The glue calls `SSL_CTX_set_default_verify_paths()`
+which relies on AmiSSL's built-in cert-path convention:
+`AmiSSL:Certs/` via the `AmiSSL:` assign. Fix: session 3 staged
+all 290 root CA certs from the installer package
+(`build/amissl-install/ex/AmiSSL/Certs/*`) into
+`build/amiga/AmiSSL/Certs/`, and the User-Startup copies them
+to `RAM:AmiSSL/Certs/` + runs `Assign AmiSSL: RAM:AmiSSL`.
+
+**Landed changes:**
+
+- `ports/amigit/ported/amissl_glue.c`: replaced legacy
+  InitAmiSSLMaster/OpenAmiSSL with OpenAmiSSLTags + proper tag
+  list (+85 lines net after removing legacy). Added
+  `amissl_glue_probe()` public diagnostic function (~80 lines)
+  with `probe_mem()` helper for AvailMem dumps. Extern
+  references to `SocketBase` (from libamiport-net) and `errno`.
+- `ports/amigit/ported/cmd_https_probe.c`: added `--lib-only`
+  dispatch that calls `amissl_glue_probe()` directly (no
+  network) to isolate the AmiSSL layer for diagnostics.
+- `ports/amigit/ported/http_client.h`: declared
+  `amissl_glue_probe(void)` in the public API.
+- `ports/amigit/test-fsemu-cases.txt`: added two tests (94 and
+  95) exercising `_https-probe --lib-only` and live HTTPS to
+  amiport.platesteel.net.
+- `scripts/test-fsemu.sh`: switched both HDF and directory
+  branches to `amiga_model = A3000` + `cpu_24bit_addressing = 0`
+  + `zorro_iii_memory = 16384`. Switched `KICKSTART` to
+  `kick3.1-a4000.rom`. Updated User-Startup to copy
+  amisslmaster and the v362 backend to RAM:Libs (flat layout),
+  plus stage all root CA certs to RAM:AmiSSL/Certs and create
+  the `AmiSSL:` assign.
+- `tests/amissl-probe/probe.c` + `Makefile`: standalone
+  amisslmaster diagnostic binary (~110 lines C, 12 KB built).
+  Zero amiport deps -- isolates environment issues from
+  amigit-specific runtime state. Useful for future real-hardware
+  bring-up debugging.
+- `build/amiga/AmiSSL/Certs/`: 290 root CA cert files copied
+  from the AmiSSL installer package (gitignored).
+
+**Build and test results:**
+
+- `make -C tests/libgit2 run`: **79/79** (unchanged).
+- `make -C tests/amigit-http-client run`: **14/14** (unchanged).
+- `make test-fsemu TARGET=ports/amigit`: **95/95** (91 prior +
+  2 _https-probe parse tests from session 2 + the 2 new session 3
+  tests). The live test hits amiport.platesteel.net:443, does
+  a full TLS handshake with cert verification + hostname binding
+  (X509_VERIFY_PARAM_set1_host) + SNI, and reads the HTTP
+  response status line.
+- `ports/amigit/amigit` binary: grew to approximately the
+  Phase 3 session 2 baseline + the probe function + the tag
+  constants. No libgit2 / zlib / posix-shim churn.
+
+**NOT done in session 3 (deferred):**
+
+- Real-hardware smoke test on Duncan's A2000 + Vampire + X-Surf
+  + Roadshow. The FS-UAE harness now proves the glue layer
+  end-to-end, so the real-hardware test is a belt-and-suspenders
+  confirmation that amigit's AmiSSL integration works against
+  the installer-configured AmiSSL environment. Can run whenever
+  convenient -- does NOT block Phase 4.
+- Removal of the diagnostic `amissl_glue_probe()` function and
+  its `--lib-only` command. These are low-cost (~100 lines) and
+  provide real-world troubleshooting value -- kept in tree as
+  an internal `_https-probe` debug surface.
 
 **Phase 3 session 2 summary (2026-04-14):**
 

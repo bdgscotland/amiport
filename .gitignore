@@ -32,6 +32,7 @@ tests/console/test_*
 tests/net/test_*
 !tests/net/test_*.c
 !tests/net/test_*.h
+tests/amissl-probe/probe
 
 # Emulator staging directory (populated by make install-emu)
 build/amiga/

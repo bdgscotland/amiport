@@ -30,7 +30,7 @@ SYSTEM_HDF="$PROJECT_DIR/build/system.hdf"
 SYSTEM_DIR="$PROJECT_DIR/build/system"
 AMIGA_DIR="$PROJECT_DIR/build/amiga"
 TOOLCHAIN_DIR="$PROJECT_DIR/toolchain"
-KICKSTART="$HOME/Documents/FS-UAE/Kickstarts/kick3.1.rom"
+KICKSTART="$HOME/Documents/FS-UAE/Kickstarts/kick3.1-a4000.rom"
 TIMEOUT_SECONDS=600  # 10 minutes — generous fallback for crash detection. Normal runs
                       # exit via sentinel file + kill (see run_emulator), so this timeout
                       # only fires when a test actually hangs (Guru Meditation, infinite loop).
@@ -221,18 +221,27 @@ Run >NIL: WORK:SegTracker
 Run >NIL: WORK:MungWall
 Run >NIL: WORK:Enforcer STACKLINES=4 STACKCHECK DATESTAMP
 Wait 2
-; AmiSSL: add WORK:Libs to the LIBS: search path so manual
-; OpenLibrary("amisslmaster.library") hits amisslmaster.library
-; from build/amiga/Libs/. Also copy to RAM:Libs and assign
-; there (some AmigaOS versions have trouble with ADD on a
-; pre-existing LIBS: assign backed by a read-only root drive).
-; See PDR-012 Phase 3 session 2.
+; AmiSSL: stage amisslmaster.library and its backend into RAM:Libs
+; and add to the LIBS: search chain. The amissl master's 68k
+; search path for its backend is FLAT: LIBS:AmiSSL/amissl_v362.library
+; (no 68020-40/68060 subdirectory -- the installer chooses which
+; CPU variant to copy to that flat path, and the master opens
+; that one path). See PDR-012 Phase 3 session 3 for the 68k
+; master source-code reference. The 68020-40 variant is correct
+; for our A3000 + 68030 test config.
 MakeDir >NIL: RAM:Libs
 MakeDir >NIL: RAM:Libs/AmiSSL
-MakeDir >NIL: RAM:Libs/AmiSSL/68020-40
 Copy >NIL: WORK:Libs/amisslmaster.library RAM:Libs/
-Copy >NIL: WORK:Libs/AmiSSL/68020-40/amissl_v362.library RAM:Libs/AmiSSL/68020-40/
+Copy >NIL: WORK:Libs/AmiSSL/68020-40/amissl_v362.library RAM:Libs/AmiSSL/
 Assign LIBS: RAM:Libs ADD
+; Root CA certs for AmiSSL's SSL_CTX_set_default_verify_paths().
+; The AmiSSL: assign must point to a directory containing a Certs/
+; subdir. Copy the bundled certs from WORK:AmiSSL/Certs to RAM:AmiSSL/Certs
+; and create the AmiSSL: assign there.
+MakeDir >NIL: RAM:AmiSSL
+MakeDir >NIL: RAM:AmiSSL/Certs
+Copy >NIL: WORK:AmiSSL/Certs/#? RAM:AmiSSL/Certs/ QUIET
+Assign AmiSSL: RAM:AmiSSL
 SYS:System/RexxMast >NIL:
 Wait 2
 SYS:Rexxc/rx WORK:test-runner.rexx
@@ -240,18 +249,27 @@ AMIGA_SCRIPT
     else
         cat > "$startup_file" << 'AMIGA_SCRIPT'
 ; amiport FS-UAE test runner
-; AmiSSL: add WORK:Libs to the LIBS: search path so manual
-; OpenLibrary("amisslmaster.library") hits amisslmaster.library
-; from build/amiga/Libs/. Also copy to RAM:Libs and assign
-; there (some AmigaOS versions have trouble with ADD on a
-; pre-existing LIBS: assign backed by a read-only root drive).
-; See PDR-012 Phase 3 session 2.
+; AmiSSL: stage amisslmaster.library and its backend into RAM:Libs
+; and add to the LIBS: search chain. The amissl master's 68k
+; search path for its backend is FLAT: LIBS:AmiSSL/amissl_v362.library
+; (no 68020-40/68060 subdirectory -- the installer chooses which
+; CPU variant to copy to that flat path, and the master opens
+; that one path). See PDR-012 Phase 3 session 3 for the 68k
+; master source-code reference. The 68020-40 variant is correct
+; for our A3000 + 68030 test config.
 MakeDir >NIL: RAM:Libs
 MakeDir >NIL: RAM:Libs/AmiSSL
-MakeDir >NIL: RAM:Libs/AmiSSL/68020-40
 Copy >NIL: WORK:Libs/amisslmaster.library RAM:Libs/
-Copy >NIL: WORK:Libs/AmiSSL/68020-40/amissl_v362.library RAM:Libs/AmiSSL/68020-40/
+Copy >NIL: WORK:Libs/AmiSSL/68020-40/amissl_v362.library RAM:Libs/AmiSSL/
 Assign LIBS: RAM:Libs ADD
+; Root CA certs for AmiSSL's SSL_CTX_set_default_verify_paths().
+; The AmiSSL: assign must point to a directory containing a Certs/
+; subdir. Copy the bundled certs from WORK:AmiSSL/Certs to RAM:AmiSSL/Certs
+; and create the AmiSSL: assign there.
+MakeDir >NIL: RAM:AmiSSL
+MakeDir >NIL: RAM:AmiSSL/Certs
+Copy >NIL: WORK:AmiSSL/Certs/#? RAM:AmiSSL/Certs/ QUIET
+Assign AmiSSL: RAM:AmiSSL
 SYS:System/RexxMast >NIL:
 Wait 2
 SYS:Rexxc/rx WORK:test-runner.rexx
@@ -281,7 +299,11 @@ generate_config() {
         # Use HDF image (preferred — proper Workbench install)
         cat > "$config_file" << EOF
 # FS-UAE config for automated testing (generated)
-amiga_model = A1200
+# A3000 model: 68030 native + 32-bit addressing, required so
+# Zorro III memory is available for AmiSSL's 3.25MB backend
+# hunk (see PDR-012 Phase 3 session 3 -- amissl_v362.library
+# has a single code hunk > any contiguous block in A1200 + 8MB).
+amiga_model = A3000
 kickstart_file = $KICKSTART
 
 # System hard drive (bootable Workbench 3.1 HDF)
@@ -299,6 +321,16 @@ hard_drive_2_label = RESULTS
 # with 256KB stacks, which exhaust the A1200's 2MB Chip RAM
 fast_memory = 8192
 
+# 16MB Zorro III RAM — required for AmiSSL's ~3.3MB backend library
+# hunk (amissl_v362.library has a 3.25MB single code hunk, larger
+# than any contiguous block in the stock A1200 + 8MB Fast config).
+# Requires 32-bit CPU addressing (cpu_24bit_addressing = 0) since
+# Z3 memory is in the 32-bit address space. See PDR-012 Phase 3
+# session 3 for the hunk-size analysis. Without this, OpenAmiSSL
+# silently fails on the harness even though real hardware works.
+cpu_24bit_addressing = 0
+zorro_iii_memory = 16384
+
 # Headless settings
 window_width = 720
 window_height = 568
@@ -315,7 +347,11 @@ EOF
         # Fallback: directory mount
         cat > "$config_file" << EOF
 # FS-UAE config for automated testing (generated)
-amiga_model = A1200
+# A3000 model: 68030 native + 32-bit addressing, required so
+# Zorro III memory is available for AmiSSL's 3.25MB backend
+# hunk (see PDR-012 Phase 3 session 3 -- amissl_v362.library
+# has a single code hunk > any contiguous block in A1200 + 8MB).
+amiga_model = A3000
 kickstart_file = $KICKSTART
 
 # System hard drive (bootable Workbench 3.1 directory)
@@ -334,6 +370,16 @@ hard_drive_2_label = RESULTS
 # 8MB Fast RAM — interactive tests spawn multiple CLI processes
 # with 256KB stacks, which exhaust the A1200's 2MB Chip RAM
 fast_memory = 8192
+
+# 16MB Zorro III RAM — required for AmiSSL's ~3.3MB backend library
+# hunk (amissl_v362.library has a 3.25MB single code hunk, larger
+# than any contiguous block in the stock A1200 + 8MB Fast config).
+# Requires 32-bit CPU addressing (cpu_24bit_addressing = 0) since
+# Z3 memory is in the 32-bit address space. See PDR-012 Phase 3
+# session 3 for the hunk-size analysis. Without this, OpenAmiSSL
+# silently fails on the harness even though real hardware works.
+cpu_24bit_addressing = 0
+zorro_iii_memory = 16384
 
 # Headless settings
 window_width = 720
