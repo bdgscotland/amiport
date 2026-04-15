@@ -34,7 +34,7 @@ int tcgetattr(int fd, struct termios *t)
     } else {
         /* Default: cooked mode (ECHO + ICANON set) */
         t->c_iflag = ICRNL | IXON;
-        t->c_oflag = OPOST;
+        t->c_oflag = OPOST | ONLCR;
         t->c_cflag = CS8;
         t->c_lflag = ECHO | ICANON | ISIG | IEXTEN;
         memset(t->c_cc, 0, sizeof(t->c_cc));

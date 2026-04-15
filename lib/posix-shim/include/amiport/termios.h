@@ -43,8 +43,9 @@ struct termios {
 #define ICRNL   0x0040
 #define IXON    0x0080
 
-/* c_oflag bits (stubs) */
+/* c_oflag bits */
 #define OPOST   0x0001
+#define ONLCR   0x0004
 
 /* c_cflag bits (stubs) */
 #define CSIZE   0x0030

@@ -368,9 +368,10 @@ int amiport_select(int nfds, fd_set *readfds, fd_set *writefds,
                 FD_CLR(fd, exceptfds);
         }
 
-        /* If console write data is pending, use short timeout so we
-         * don't block in WaitSelect while output sits in the buffer */
-        if (extra > 0) {
+        /* amiport: WaitSelect doesn't detect console keystrokes.
+         * Use short timeout so the session loop polls stdin frequently
+         * via WaitForChar inside amiport_console_read(). */
+        if (extra > 0 || nfds <= 3) {
             struct timeval poll_tv;
             poll_tv.tv_sec = 0;
             poll_tv.tv_usec = 10000;

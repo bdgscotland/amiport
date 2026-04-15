@@ -10,6 +10,10 @@
 #include <stdlib.h>
 #include <errno.h>
 
+#ifdef __AMIGA__
+#include <proto/dos.h>
+#endif
+
 /* --- strlcat: libnix has strlcpy but not strlcat --- */
 size_t strlcat(char *dst, const char *src, size_t dsize)
 {
@@ -45,15 +49,32 @@ size_t strlcat(char *dst, const char *src, size_t dsize)
 static char getpass_buf[128];
 char *amiport_getpass(const char *prompt)
 {
+    int pos = 0;
+    char c;
+
     fprintf(stderr, "%s", prompt);
     fflush(stderr);
-    if (fgets(getpass_buf, sizeof(getpass_buf), stdin) != NULL) {
-        size_t len = strlen(getpass_buf);
-        if (len > 0 && getpass_buf[len - 1] == '\n')
-            getpass_buf[len - 1] = '\0';
-    } else {
-        getpass_buf[0] = '\0';
+
+#ifdef __AMIGA__
+    SetMode(Input(), 1);
+    while (pos < (int)sizeof(getpass_buf) - 1) {
+        if (Read(Input(), &c, 1) != 1) break;
+        if (c == '\r' || c == '\n') break;
+        if (c == '\b' || c == 127) {
+            if (pos > 0) pos--;
+            continue;
+        }
+        getpass_buf[pos++] = c;
     }
+    SetMode(Input(), 0);
+    fprintf(stderr, "\n");
+#else
+    if (fgets(getpass_buf, sizeof(getpass_buf), stdin) != NULL) {
+        pos = strlen(getpass_buf);
+        if (pos > 0 && getpass_buf[pos - 1] == '\n') pos--;
+    }
+#endif
+    getpass_buf[pos] = '\0';
     return getpass_buf;
 }
 

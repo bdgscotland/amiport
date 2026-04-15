@@ -214,7 +214,16 @@ void channelio(const fd_set *readfds, const fd_set *writefds) {
 		}
 
 		/* read data and send it over the wire */
-		if (channel->readfd >= 0 && FD_ISSET(channel->readfd, readfds)) {
+		if (channel->readfd >= 0 &&
+#ifdef __AMIGA__
+			/* amiport: WaitSelect doesn't detect console keystrokes.
+			 * Always try reading stdin — amiport_console_read uses
+			 * WaitForChar internally and returns EAGAIN if nothing. */
+			(channel->readfd == STDIN_FILENO || FD_ISSET(channel->readfd, readfds))
+#else
+			FD_ISSET(channel->readfd, readfds)
+#endif
+			) {
 			TRACE(("send normal readfd"))
 			send_msg_channel_data(channel, 0);
 			do_check_close = 1;

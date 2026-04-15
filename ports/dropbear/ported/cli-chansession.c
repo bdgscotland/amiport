@@ -164,6 +164,17 @@ static void put_termcodes() {
 
 	if (tcgetattr(STDIN_FILENO, &tio) == -1) {
 		dropbear_log(LOG_WARNING, "Failed reading termmodes");
+#ifdef __AMIGA__
+	} else {
+		/* amiport: tcgetattr uses amiport/termios.h bit values which
+		 * DIFFER from amigaos_stubs.h values used by termcodes.c.
+		 * Override with the correct constants so put_termcodes sends
+		 * valid flags to the server (especially ICRNL for CR→NL). */
+		tio.c_iflag = ICRNL | IXON;
+		tio.c_oflag = OPOST | ONLCR;
+		tio.c_lflag = ECHO | ICANON | ISIG | IEXTEN;
+		tio.c_cflag = CS8;
+#endif
 		buf_putint(ses.writepayload, 1); /* Just the terminator */
 		buf_putbyte(ses.writepayload, 0); /* TTY_OP_END */
 		return;
