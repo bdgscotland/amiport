@@ -34,4 +34,30 @@ int amigit_transport_https_register(void);
  */
 void amigit_transport_https_cleanup(void);
 
+/*
+ * PDR-012 Phase 6 debug entry point: drive the upload-pack POST
+ * path directly (bypassing libgit2's smart transport dispatch) so
+ * `amigit _https-probe --pack <url>` can manually exercise the
+ * helper that action(GIT_SERVICE_UPLOADPACK) uses for real fetches.
+ *
+ * `url` must be an https://host[:port]/basepath URL. The helper
+ * internally appends the "/git-upload-pack" path suffix and POSTs
+ * the supplied body bytes with the standard x-git-upload-pack-
+ * request Content-Type. A minimal body of "0000" (a single pkt-line
+ * flush frame) is sufficient to exercise the transport -- most
+ * servers will reject it at the protocol level with 400/500, which
+ * is still a success signal for this probe: it proves the HTTPS +
+ * POST flow reached the origin server.
+ *
+ * Prints progress / status / errbuf to stdout. Returns 0 if the
+ * POST completed with a 200 status and the response body drained
+ * cleanly; returns -1 on any transport failure OR non-2xx status.
+ *
+ * This function goes away post-Phase 7 along with the rest of
+ * _https-probe.
+ */
+int amigit_transport_https_debug_post(const char *url,
+                                      const char *body,
+                                      int         body_len);
+
 #endif /* AMIGIT_TRANSPORT_HTTPS_H */

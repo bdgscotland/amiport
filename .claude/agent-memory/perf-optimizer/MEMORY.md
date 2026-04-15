@@ -41,3 +41,4 @@
 - [port_logname_touch_rm_pr_sponge_perf.md](port_logname_touch_rm_pr_sponge_perf.md) - Performance findings for ports/logname 1.10, touch 1.27, rm 1.45, pr 1.46, sponge 0.1 — batch review 2026-04-11
 - [port_libgit2_perf.md](port_libgit2_perf.md) - Performance findings for lib/libgit2 1.8.5 — SHA1DC + xdiff -O1 promotion, GIT_LEGACY_HASH unaligned-cast fix reviewed 2026-04-13
 - [port_libtomcrypt_perf.md](port_libtomcrypt_perf.md) - Performance findings for lib/libtomcrypt 1.18.2 — AES/ChaCha20/SHA-256/Poly1305/CTR/Fortuna -O1 promotion, 68k big-endian fast-path already enabled, struct-safe audit reviewed 2026-04-14
+- [port_amigit_perf.md](port_amigit_perf.md) - Performance findings for ports/amigit transport_https.c Phase 6 delta — CLEAN, I/O-bound, one LOW strcpy fix applied reviewed 2026-04-14

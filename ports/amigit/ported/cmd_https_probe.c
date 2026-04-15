@@ -29,6 +29,7 @@
 
 #include "amigit.h"
 #include "http_client.h"
+#include "transport_https.h"
 
 #include <dos/dos.h>  /* RETURN_OK / RETURN_ERROR */
 
@@ -113,6 +114,27 @@ amigit_cmd_https_probe(int argc, char **argv)
     if (strcmp(argv[2], "--lib-only") == 0) {
         int rc = amissl_glue_probe();
         return rc == 0 ? RETURN_OK : RETURN_ERROR;
+    }
+
+    /* --pack: PDR-012 Phase 6 diagnostic. Exercise the upload-pack
+     * POST path directly via amigit_transport_https_debug_post(),
+     * bypassing libgit2's smart-transport dispatch. Sends a minimal
+     * "0000" flush-only body so any HTTPS origin server will
+     * respond with a 400/405 error (which still proves the flow
+     * reached the server). Real git servers are authoritative via
+     * real-hardware smoke testing. */
+    if (strcmp(argv[2], "--pack") == 0) {
+        static const char pack_body[] = "0000";
+        int prc;
+
+        if (argc < 4 || argv[3] == NULL) {
+            printf("pack-probe: usage: amigit _https-probe --pack <url>\n");
+            return RETURN_ERROR;
+        }
+        prc = amigit_transport_https_debug_post(argv[3],
+                                                pack_body,
+                                                (int)sizeof(pack_body) - 1);
+        return prc == 0 ? RETURN_OK : RETURN_ERROR;
     }
 
     url = argv[2];

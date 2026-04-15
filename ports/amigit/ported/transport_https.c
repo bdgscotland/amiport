@@ -1,21 +1,31 @@
 /*
  * transport_https.c -- amigit custom smart-HTTP(S) transport backend
  *
- * PDR-012 Phase 5: service discovery.
+ * PDR-012 Phase 5: service discovery (UPLOADPACK_LS) via
+ *                  GET /info/refs?service=git-upload-pack.
+ * PDR-012 Phase 6: upload-pack POST body (UPLOADPACK) via
+ *                  POST /git-upload-pack with a buffered want/have
+ *                  negotiation, plus one-level HTTPS redirect
+ *                  support shared by both the LS and POST paths.
  *
  * What this file does:
  *   - Implements a git_smart_subtransport whose action() speaks real
  *     HTTP/1.1 over AmiSSL via the http_client layer.
- *   - Handles GIT_SERVICE_UPLOADPACK_LS (the initial discovery GET at
- *     /info/refs?service=git-upload-pack). libgit2 calls action() with
- *     this verb during git_remote_connect(FETCH) on an https:// URL.
- *   - Returns a git_smart_subtransport_stream whose read() streams the
- *     response body bytes back to libgit2 so it can parse the pkt-line
- *     framed ref advertisement. The stream wraps an http_conn_t and
- *     owns its lifecycle through free().
+ *   - Handles GIT_SERVICE_UPLOADPACK_LS: opens the connection, issues
+ *     the discovery GET, and returns a read-only stream whose read()
+ *     feeds ref-advertisement bytes to libgit2's pkt-line parser.
+ *   - Handles GIT_SERVICE_UPLOADPACK: returns a deferred stream whose
+ *     write() appends libgit2-generated pkt-line frames (want/have/
+ *     flush/done) to an internal heap buffer, and whose first read()
+ *     flushes that buffer as a single HTTP POST, then streams the
+ *     pack response body bytes back to libgit2's indexer.
  *   - Returns GIT_ERROR_NET with a clear "not implemented yet" message
- *     for GIT_SERVICE_UPLOADPACK (Phase 6), GIT_SERVICE_RECEIVEPACK_LS,
- *     and GIT_SERVICE_RECEIVEPACK (Phase 11).
+ *     for GIT_SERVICE_RECEIVEPACK_LS and GIT_SERVICE_RECEIVEPACK, which
+ *     are Phase 11 scope (git push).
+ *   - Follows up to 3 HTTPS redirects (301/302/307/308) on either verb.
+ *     Location headers must be absolute https:// URLs. GitHub's common
+ *     "https://github.com/foo/bar -> https://github.com/foo/bar.git"
+ *     redirect is the primary target.
  *
  * Registration is unchanged from Phase 2: git_transport_register takes
  * the BARE scheme "https" (not "https://") because libgit2's
@@ -39,10 +49,14 @@
  *   So by the time our https_close() fires, the stream is already gone
  *   and the http_conn_t has already been torn down. close() is a no-op.
  *
- * Memory discipline: the stream owns the http_conn_t, the subtransport
- * owns a back-pointer to the current stream (so free paths can clear
- * it). All error paths inside https_action_uploadpack_ls() MUST close
- * the http_conn_t before returning -1 if a stream was not yet built.
+ * Memory discipline: the stream owns the http_conn_t, and (for POST)
+ * the accumulated request body buffer. The subtransport owns a back-
+ * pointer to the current stream (so free paths can clear it). Every
+ * error path inside the action handlers either (a) has not yet
+ * allocated anything, (b) tears down the http_conn_t before returning
+ * if a stream was not yet built, or (c) returns -1 leaving the stream
+ * alive and expects libgit2 to call stream->free() which cleans up
+ * both the body buffer and the connection.
  */
 
 #include <stdio.h>
@@ -60,6 +74,14 @@
 /* ========================================================================
  * Types
  * ======================================================================== */
+
+#define AMIGIT_HTTPS_URL_MAX         1024
+#define AMIGIT_HTTPS_MAX_REDIRECTS   3
+#define AMIGIT_HTTPS_POST_INIT_CAP   8192
+/* Upper bound on the POST body we'll buffer. libgit2's want/have lists
+ * for a fresh clone are a handful of KB; a full history fetch with
+ * thousands of haves is typically < 256 KB. 8 MB is a defensive cap. */
+#define AMIGIT_HTTPS_POST_MAX_CAP    (8u * 1024u * 1024u)
 
 typedef struct amigit_https_subtransport amigit_https_subtransport;
 typedef struct amigit_https_stream       amigit_https_stream;
@@ -80,15 +102,53 @@ struct amigit_https_subtransport {
 
 /*
  * Same pattern for the stream: parent FIRST so libgit2 can cast.
- * The stream owns an http_conn_t that was opened in action() and is
- * torn down in free().
+ * The stream owns an http_conn_t that was opened in action() (for the
+ * GET LS path) or is opened lazily on first read() (for the POST path).
+ * For POST streams, the stream also owns body_buf during the accumulate
+ * phase; body_buf is free()'d once the POST has been dispatched.
  */
 struct amigit_https_stream {
     git_smart_subtransport_stream parent;
     amigit_https_subtransport    *owner;
     http_conn_t                  *conn;
-    int                           done;  /* 1 once body fully drained */
+    int                           done;         /* 1 once body fully drained */
+
+    /* PDR-012 Phase 6: POST body accumulation for upload-pack.
+     *
+     * is_post == 0 (GET LS path):
+     *   action() opens the connection, sends the GET, reads the status
+     *   line + headers, sets the body mode, and stores the live conn
+     *   on the stream. post_url / body_* fields are unused.
+     *
+     * is_post == 1 (POST path):
+     *   action() only stashes the URL in post_url and returns the stream
+     *   with conn == NULL. libgit2 then calls stream->write one or more
+     *   times to supply the pkt-line framed body, which accumulates
+     *   into body_buf (heap, grown via realloc). The first stream->read
+     *   triggers the actual http_connect + http_send_request, then
+     *   reads the response status + headers and flips conn to live.
+     *   body_buf is free()'d at that point since the bytes are out.
+     */
+    int    is_post;
+    char   post_url[AMIGIT_HTTPS_URL_MAX];
+    char  *body_buf;
+    size_t body_len;
+    size_t body_cap;
+    int    post_sent;
 };
+
+/*
+ * http_request_result_t -- output of open_request_with_redirects().
+ * The live http_conn_t has its body mode already set and is ready to
+ * drive through http_read_body(). On failure the caller receives an
+ * error message in errbuf and does NOT need to touch conn.
+ */
+typedef struct {
+    http_conn_t *conn;
+    int          status;
+    int          chunked;
+    long         content_length;  /* -1 if unset or read-to-EOF */
+} http_request_result_t;
 
 /* ========================================================================
  * Small local helpers -- no libnix string-case dependency
@@ -162,7 +222,7 @@ contains_ci(const char *haystack, const char *needle_lc)
  * Returns 0 on success, -1 on malformed input. path gets at least "/"
  * even if the caller omitted it. Parallels cmd_https_probe.c's
  * parse_https_url -- that file goes away once the _https-probe debug
- * command is removed post-Phase 6, so the small duplication is
+ * command is removed post-Phase 7, so the small duplication is
  * deliberate rather than shared through a header.
  * ======================================================================== */
 
@@ -232,6 +292,401 @@ parse_https_url(const char *url,
 }
 
 /* ========================================================================
+ * Shared request driver: connect, send, read status + headers, follow
+ * up to 3 HTTPS redirects. Leaves conn->body reader armed with
+ * chunked or Content-Length mode. PDR-012 Phase 6.
+ *
+ * initial_url   full https://host[:port]/basepath URL, no service suffix
+ * method        "GET" or "POST"
+ * path_suffix   e.g. "info/refs?service=git-upload-pack" for LS,
+ *               "git-upload-pack" for POST. No leading slash -- the
+ *               helper inserts one.
+ * accept_hdr    the application/x-git-*-advertisement or -result value
+ *               to send in the Accept: header
+ * content_type  the application/x-git-*-request value for Content-Type,
+ *               or NULL to skip (GET path)
+ * body          POST body bytes (may be NULL for GET)
+ * body_len      POST body byte count (0 for GET)
+ * out           filled with the live conn + status on success
+ * errbuf        filled with a human-readable error on failure
+ *
+ * Returns 0 on success, -1 on any failure (including 3xx without
+ * Location, too many redirects, non-200 final status, transport errors).
+ * ======================================================================== */
+
+static int
+open_request_with_redirects(
+    const char *initial_url,
+    const char *method,
+    const char *path_suffix,
+    const char *accept_hdr,
+    const char *content_type_hdr,
+    const void *body,
+    int         body_len,
+    http_request_result_t *out,
+    char       *errbuf,
+    size_t      errbuf_sz)
+{
+    char current_url[AMIGIT_HTTPS_URL_MAX];
+    int  redirects = 0;
+
+    if (out != NULL) {
+        memset(out, 0, sizeof(*out));
+        out->content_length = -1;
+    }
+    if (initial_url == NULL || method == NULL || path_suffix == NULL ||
+        accept_hdr == NULL || errbuf == NULL || errbuf_sz == 0) {
+        if (errbuf != NULL && errbuf_sz > 0) {
+            (void)snprintf(errbuf, errbuf_sz,
+                "amigit: internal: bad args to open_request_with_redirects");
+        }
+        return -1;
+    }
+
+    if (strlen(initial_url) + 1 > sizeof(current_url)) {
+        (void)snprintf(errbuf, errbuf_sz,
+            "amigit: URL too long (max %d bytes)",
+            AMIGIT_HTTPS_URL_MAX - 1);
+        return -1;
+    }
+    (void)strcpy(current_url, initial_url);
+
+    for (;;) {
+        char host[256];
+        char path[512];
+        char req_path[1024];
+        char host_hdr[320];
+        char headers[1536];
+        char redirect_target[AMIGIT_HTTPS_URL_MAX];
+        int  port = 443;
+        int  rc;
+        int  status = -1;
+        http_conn_t *conn = NULL;
+        int  chunked_seen = 0;
+        long content_length = -1;
+        int  is_redirect = 0;
+        int  hdrs_len;
+        size_t plen;
+        const char *path_sep;
+        const char *suffix_no_slash;
+
+        redirect_target[0] = '\0';
+
+        if (parse_https_url(current_url, host, sizeof(host), &port,
+                            path, sizeof(path)) != 0) {
+            (void)snprintf(errbuf, errbuf_sz,
+                "amigit: invalid URL %s "
+                "(expected https://host[:port]/path)",
+                current_url);
+            return -1;
+        }
+
+        /* Compose the request path: path + optional slash + suffix. */
+        suffix_no_slash = path_suffix;
+        if (suffix_no_slash[0] == '/') {
+            suffix_no_slash++;
+        }
+        plen = strlen(path);
+        path_sep = (plen > 0 && path[plen - 1] == '/') ? "" : "/";
+        rc = snprintf(req_path, sizeof(req_path), "%s%s%s",
+                      path, path_sep, suffix_no_slash);
+        if (rc < 0 || (size_t)rc >= sizeof(req_path)) {
+            (void)snprintf(errbuf, errbuf_sz,
+                "amigit: HTTPS request path too long");
+            return -1;
+        }
+
+        /* Host header: include :port only for non-default ports. Some
+         * origin servers reject "host:443" in the Host header for
+         * default-port TLS. */
+        if (port == 443) {
+            /* amiport: strcpy saves snprintf printf-machinery (hundreds of
+             * cycles) -- size already validated by parse_https_url above. */
+            (void)strcpy(host_hdr, host);
+        } else {
+            (void)snprintf(host_hdr, sizeof(host_hdr), "%s:%d", host, port);
+        }
+
+        /* Header block. We always send Host / User-Agent / Accept /
+         * Accept-Encoding / Pragma / Connection. For POST (when
+         * content_type_hdr is non-NULL), we also send Content-Type and
+         * Content-Length. http_send_request takes the body bytes
+         * directly but expects Content-Length to already be in the
+         * headers string -- see http_client.h. */
+        hdrs_len = snprintf(headers, sizeof(headers),
+            "Host: %s\r\n"
+            "User-Agent: git/amigit-%s\r\n"
+            "Accept: %s\r\n"
+            "Accept-Encoding: identity\r\n"
+            "Pragma: no-cache\r\n"
+            "Connection: close\r\n",
+            host_hdr, AMIGIT_VERSION, accept_hdr);
+        if (hdrs_len < 0 || (size_t)hdrs_len >= sizeof(headers)) {
+            (void)snprintf(errbuf, errbuf_sz,
+                "amigit: HTTPS request headers too long");
+            return -1;
+        }
+        if (content_type_hdr != NULL) {
+            int extra = snprintf(headers + hdrs_len,
+                sizeof(headers) - (size_t)hdrs_len,
+                "Content-Type: %s\r\n"
+                "Content-Length: %d\r\n",
+                content_type_hdr, body_len);
+            if (extra < 0 ||
+                (size_t)hdrs_len + (size_t)extra >= sizeof(headers)) {
+                (void)snprintf(errbuf, errbuf_sz,
+                    "amigit: HTTPS POST headers too long");
+                return -1;
+            }
+        }
+
+        /* Open the connection. AmiSSL + bsdsocket plumbing lives behind
+         * http_connect -- this fails gracefully with a typed error code
+         * if AmiSSL is missing or DNS/connect/TLS handshake fails. */
+        rc = http_connect(&conn, host, port, 1 /* use_tls */);
+        if (rc != HTTP_OK) {
+            const char *reason;
+            switch (rc) {
+            case HTTP_ERR_DNS:
+                reason = "DNS lookup failed";
+                break;
+            case HTTP_ERR_CONNECT:
+                reason = "TCP connect failed";
+                break;
+            case HTTP_ERR_TLS_MISSING:
+                reason = "AmiSSL not installed -- run `amiport install amissl`";
+                break;
+            case HTTP_ERR_TLS_HANDSHAKE:
+                reason = "TLS handshake failed";
+                break;
+            case HTTP_ERR_NOMEM:
+                reason = "out of memory";
+                break;
+            default:
+                reason = "http_client error";
+                break;
+            }
+            (void)snprintf(errbuf, errbuf_sz,
+                "amigit: HTTPS connect to %s:%d failed (%s)",
+                host, port, reason);
+            return -1;
+        }
+
+        /* Send the request (headers + optional body). */
+        rc = http_send_request(conn, method, req_path, headers,
+                               body, body_len);
+        if (rc != HTTP_OK) {
+            (void)snprintf(errbuf, errbuf_sz,
+                "amigit: HTTPS %s %s send failed (http_client rc=%d)",
+                method, req_path, rc);
+            http_close(conn);
+            return -1;
+        }
+
+        /* Read status line. */
+        rc = http_read_response_status(conn, &status);
+        if (rc != HTTP_OK) {
+            (void)snprintf(errbuf, errbuf_sz,
+                "amigit: HTTPS %s %s read status failed "
+                "(http_client rc=%d)",
+                method, req_path, rc);
+            http_close(conn);
+            return -1;
+        }
+
+        is_redirect = (status == 301 || status == 302 ||
+                       status == 307 || status == 308);
+
+        /* Iterate headers. Collect Transfer-Encoding, Content-Length,
+         * and (if this is a redirect status) Location. */
+        for (;;) {
+            const char *name = NULL;
+            const char *value = NULL;
+            int hr = http_read_response_header(conn, &name, &value);
+            if (hr < 0) {
+                (void)snprintf(errbuf, errbuf_sz,
+                    "amigit: HTTPS header parse failed "
+                    "(http_client rc=%d)", hr);
+                http_close(conn);
+                return -1;
+            }
+            if (hr == 1 || name == NULL) {
+                break;  /* end of headers */
+            }
+            if (ieq_ascii(name, "Transfer-Encoding")) {
+                if (contains_ci(value, "chunked")) {
+                    chunked_seen = 1;
+                }
+            } else if (ieq_ascii(name, "Content-Length")) {
+                content_length = atol(value);
+                if (content_length < 0) {
+                    content_length = -1;
+                }
+            } else if (is_redirect && ieq_ascii(name, "Location") &&
+                       redirect_target[0] == '\0') {
+                /* Copy immediately -- name/value point into
+                 * http_client's internal header line buffer and are
+                 * only valid until the next http_read_response_header
+                 * call. */
+                size_t vlen = strlen(value);
+                if (vlen + 1 > sizeof(redirect_target)) {
+                    (void)snprintf(errbuf, errbuf_sz,
+                        "amigit: HTTPS redirect Location too long "
+                        "(%lu bytes)", (unsigned long)vlen);
+                    http_close(conn);
+                    return -1;
+                }
+                memcpy(redirect_target, value, vlen + 1);
+            }
+        }
+
+        if (is_redirect) {
+            size_t rt_len;
+            size_t tail_len;
+            char tail[540];
+
+            if (redirect_target[0] == '\0') {
+                (void)snprintf(errbuf, errbuf_sz,
+                    "amigit: HTTPS %s %s returned status %d "
+                    "but no Location header",
+                    method, req_path, status);
+                http_close(conn);
+                return -1;
+            }
+            if (strncmp(redirect_target, "https://", 8) != 0) {
+                (void)snprintf(errbuf, errbuf_sz,
+                    "amigit: HTTPS redirect to non-https URL "
+                    "not supported: %s",
+                    redirect_target);
+                http_close(conn);
+                return -1;
+            }
+            if (++redirects > AMIGIT_HTTPS_MAX_REDIRECTS) {
+                (void)snprintf(errbuf, errbuf_sz,
+                    "amigit: too many HTTPS redirects (>%d)",
+                    AMIGIT_HTTPS_MAX_REDIRECTS);
+                http_close(conn);
+                return -1;
+            }
+
+            /* If the server's Location includes our service-specific
+             * suffix (as GitHub does -- it returns the full resolved
+             * URL including /info/refs?service=... or /git-upload-pack),
+             * strip it so the next iteration can re-append the suffix
+             * cleanly. Servers that redirect to the repo root without
+             * the suffix are handled transparently by leaving
+             * redirect_target as-is. */
+            rt_len = strlen(redirect_target);
+            (void)snprintf(tail, sizeof(tail), "/%s", suffix_no_slash);
+            tail_len = strlen(tail);
+            if (rt_len >= tail_len &&
+                strcmp(redirect_target + rt_len - tail_len, tail) == 0) {
+                redirect_target[rt_len - tail_len] = '\0';
+            }
+
+            /* Swap current_url for the redirect target and loop. */
+            if (strlen(redirect_target) + 1 > sizeof(current_url)) {
+                (void)snprintf(errbuf, errbuf_sz,
+                    "amigit: HTTPS redirect target too long");
+                http_close(conn);
+                return -1;
+            }
+            (void)strcpy(current_url, redirect_target);
+            http_close(conn);
+            conn = NULL;
+            continue;
+        }
+
+        /* Non-redirect path. Only 200 is acceptable as a final status
+         * for smart-HTTP -- the client does not follow 3xx to non-2xx
+         * or interpret 4xx/5xx as anything but failure. */
+        if (status != 200) {
+            (void)snprintf(errbuf, errbuf_sz,
+                "amigit: HTTPS %s %s returned status %d (expected 200)",
+                method, req_path, status);
+            http_close(conn);
+            return -1;
+        }
+
+        /* Wire the body-read mode. Chunked wins over Content-Length if
+         * both are (incorrectly) present; this matches RFC 7230 Section
+         * 3.3.3 bullet 3. If neither header was sent the server is
+         * HTTP/1.0-style -- read to EOF. */
+        if (chunked_seen) {
+            http_set_chunked(conn);
+        } else if (content_length >= 0) {
+            http_set_content_length(conn, content_length);
+        } else {
+            http_set_content_length(conn, -1);  /* read to EOF */
+        }
+
+        if (out != NULL) {
+            out->conn = conn;
+            out->status = status;
+            out->chunked = chunked_seen;
+            out->content_length = content_length;
+        }
+        return 0;
+    }
+}
+
+/* ========================================================================
+ * POST dispatch (Phase 6)
+ *
+ * Called from https_stream_read on the first read after action() built
+ * a deferred POST stream. Opens the connection, sends the buffered
+ * body, reads the status + headers, wires conn on the stream, and
+ * frees body_buf. After this runs, subsequent reads drain the body
+ * via the same path the GET LS stream uses.
+ * ======================================================================== */
+
+static int
+dispatch_post_if_needed(amigit_https_stream *st)
+{
+    http_request_result_t res;
+    char errbuf[384];
+    int rc;
+
+    if (st == NULL || !st->is_post || st->post_sent) {
+        return 0;
+    }
+
+    /* body_len is size_t -> int: clamp defensively. Our heap cap of
+     * 8 MB is well under INT_MAX on every 68k target so this clamp is
+     * belt-and-suspenders. */
+    if (st->body_len > 0x7FFFFFFFu) {
+        git_error_set_str(GIT_ERROR_NET,
+            "amigit: POST body exceeds 2 GB (unreachable)");
+        return -1;
+    }
+
+    rc = open_request_with_redirects(
+        st->post_url,
+        "POST",
+        "git-upload-pack",
+        "application/x-git-upload-pack-result",
+        "application/x-git-upload-pack-request",
+        st->body_buf, (int)st->body_len,
+        &res, errbuf, sizeof(errbuf));
+    if (rc != 0) {
+        git_error_set_str(GIT_ERROR_NET, errbuf);
+        return -1;
+    }
+
+    /* Connection is live and body mode is set. Hand it to the stream
+     * and release the accumulated body buffer -- bytes are out. */
+    st->conn = res.conn;
+    if (st->body_buf != NULL) {
+        free(st->body_buf);
+        st->body_buf = NULL;
+        st->body_len = 0;
+        st->body_cap = 0;
+    }
+    st->post_sent = 1;
+    return 0;
+}
+
+/* ========================================================================
  * Stream callbacks
  * ======================================================================== */
 
@@ -248,9 +703,24 @@ https_stream_read(git_smart_subtransport_stream *s,
     if (bytes_read != NULL) {
         *bytes_read = 0;
     }
-    if (st == NULL || st->conn == NULL || buffer == NULL) {
+    if (st == NULL || buffer == NULL) {
         git_error_set_str(GIT_ERROR_NET,
             "amigit: read on invalid HTTPS stream");
+        return -1;
+    }
+
+    /* POST streams defer the actual request until the first read --
+     * libgit2 must have finished supplying the body via stream->write
+     * before it starts reading. */
+    if (st->is_post && !st->post_sent) {
+        if (dispatch_post_if_needed(st) != 0) {
+            return -1;
+        }
+    }
+
+    if (st->conn == NULL) {
+        git_error_set_str(GIT_ERROR_NET,
+            "amigit: read on HTTPS stream with no connection");
         return -1;
     }
     if (st->done || buf_size == 0) {
@@ -286,17 +756,81 @@ https_stream_write(git_smart_subtransport_stream *s,
                    const char *buffer,
                    size_t len)
 {
-    (void)s;
-    (void)buffer;
-    (void)len;
-    /* POST bodies (the upload-pack want/have negotiation) are Phase 6.
-     * For Phase 5 we only need the initial GET, so write() is never
-     * called on a GIT_SERVICE_UPLOADPACK_LS stream. Return a clear
-     * error in case something goes wrong in the dispatcher. */
-    git_error_set_str(GIT_ERROR_NET,
-        "amigit: HTTPS POST (upload-pack body) not implemented yet "
-        "-- scheduled for amigit 0.2 per PDR-012 Phase 6");
-    return -1;
+    amigit_https_stream *st = (amigit_https_stream *)s;
+    size_t need;
+    size_t new_cap;
+    char *new_buf;
+
+    if (st == NULL || buffer == NULL) {
+        git_error_set_str(GIT_ERROR_NET,
+            "amigit: write on invalid HTTPS stream");
+        return -1;
+    }
+    if (!st->is_post) {
+        git_error_set_str(GIT_ERROR_NET,
+            "amigit: write on non-POST HTTPS stream "
+            "(libgit2 should never call this on a LS stream)");
+        return -1;
+    }
+    if (st->post_sent) {
+        /* RPC=1 stateless transports never re-enter write after read --
+         * if this fires it means libgit2's smart transport changed
+         * contract or our dispatcher routed the wrong stream. */
+        git_error_set_str(GIT_ERROR_NET,
+            "amigit: write after POST already dispatched "
+            "(libgit2 stream re-entry detected)");
+        return -1;
+    }
+    if (len == 0) {
+        return 0;
+    }
+
+    /* Grow body_buf geometrically. Start at 8 KB, double until we fit,
+     * cap at AMIGIT_HTTPS_POST_MAX_CAP (8 MB). */
+    need = st->body_len + len;
+    if (need < st->body_len) {
+        /* size_t wrap -- impossible with our 8 MB cap but guard anyway */
+        git_error_set_str(GIT_ERROR_NET,
+            "amigit: POST body size overflow");
+        return -1;
+    }
+    if (need > AMIGIT_HTTPS_POST_MAX_CAP) {
+        git_error_set_str(GIT_ERROR_NET,
+            "amigit: POST body exceeds 8 MB cap "
+            "(upload-pack request too large)");
+        return -1;
+    }
+
+    if (need > st->body_cap) {
+        new_cap = st->body_cap == 0 ? AMIGIT_HTTPS_POST_INIT_CAP
+                                    : st->body_cap;
+        while (new_cap < need) {
+            if (new_cap > AMIGIT_HTTPS_POST_MAX_CAP / 2) {
+                new_cap = AMIGIT_HTTPS_POST_MAX_CAP;
+                break;
+            }
+            new_cap *= 2;
+        }
+        if (new_cap < need) {
+            git_error_set_str(GIT_ERROR_NET,
+                "amigit: POST body cap reached before buffer fit");
+            return -1;
+        }
+        new_buf = (char *)realloc(st->body_buf, new_cap);
+        if (new_buf == NULL) {
+            /* realloc failure: original body_buf is still valid and
+             * still owned by the stream; free happens in stream_free. */
+            git_error_set_str(GIT_ERROR_NET,
+                "amigit: out of memory growing POST body buffer");
+            return -1;
+        }
+        st->body_buf = new_buf;
+        st->body_cap = new_cap;
+    }
+
+    memcpy(st->body_buf + st->body_len, buffer, len);
+    st->body_len += len;
+    return 0;
 }
 
 static void
@@ -314,6 +848,12 @@ https_stream_free(git_smart_subtransport_stream *s)
         http_close(st->conn);
         st->conn = NULL;
     }
+    if (st->body_buf != NULL) {
+        free(st->body_buf);
+        st->body_buf = NULL;
+        st->body_len = 0;
+        st->body_cap = 0;
+    }
     free(st);
 }
 
@@ -326,182 +866,32 @@ https_action_uploadpack_ls(amigit_https_subtransport *subt,
                            const char *url,
                            git_smart_subtransport_stream **out_stream)
 {
-    char host[256];
-    char path[512];
-    char req_path[1024];
-    char host_hdr[320];
-    char headers[1024];
+    http_request_result_t res;
     char errbuf[384];
-    int  port = 443;
-    int  rc;
-    int  status = -1;
-    http_conn_t *conn = NULL;
     amigit_https_stream *stream = NULL;
-    int  chunked_seen = 0;
-    long content_length = -1;
-    const char *path_sep;
-    size_t plen;
+    int rc;
 
-    if (parse_https_url(url, host, sizeof(host), &port,
-                        path, sizeof(path)) != 0) {
-        git_error_set_str(GIT_ERROR_NET,
-            "amigit: invalid URL (expected https://host[:port]/path)");
-        return -1;
-    }
-
-    /* Compose request path. libgit2 passes the user-supplied URL
-     * verbatim, so it may or may not end in a slash. */
-    plen = strlen(path);
-    path_sep = (plen > 0 && path[plen - 1] == '/') ? "" : "/";
-
-    rc = snprintf(req_path, sizeof(req_path),
-                  "%s%sinfo/refs?service=git-upload-pack",
-                  path, path_sep);
-    if (rc < 0 || (size_t)rc >= sizeof(req_path)) {
-        git_error_set_str(GIT_ERROR_NET,
-            "amigit: HTTPS request path too long");
-        return -1;
-    }
-
-    /* Host header: include :port only for non-default ports. This is
-     * the standard convention; some origin servers reject "host:443"
-     * in the Host header for default-port TLS. */
-    if (port == 443) {
-        (void)snprintf(host_hdr, sizeof(host_hdr), "%s", host);
-    } else {
-        (void)snprintf(host_hdr, sizeof(host_hdr), "%s:%d", host, port);
-    }
-
-    rc = snprintf(headers, sizeof(headers),
-        "Host: %s\r\n"
-        "User-Agent: git/amigit-%s\r\n"
-        "Accept: application/x-git-upload-pack-advertisement\r\n"
-        "Accept-Encoding: identity\r\n"
-        "Pragma: no-cache\r\n"
-        "Connection: close\r\n",
-        host_hdr, AMIGIT_VERSION);
-    if (rc < 0 || (size_t)rc >= sizeof(headers)) {
-        git_error_set_str(GIT_ERROR_NET,
-            "amigit: HTTPS request headers too long");
-        return -1;
-    }
-
-    /* Open the connection. AmiSSL + bsdsocket plumbing lives behind
-     * http_connect -- this fails gracefully with a typed error code
-     * if AmiSSL is missing or DNS/connect/TLS handshake fails. */
-    rc = http_connect(&conn, host, port, 1 /* use_tls */);
-    if (rc != HTTP_OK) {
-        const char *reason;
-        switch (rc) {
-        case HTTP_ERR_DNS:
-            reason = "DNS lookup failed";
-            break;
-        case HTTP_ERR_CONNECT:
-            reason = "TCP connect failed";
-            break;
-        case HTTP_ERR_TLS_MISSING:
-            reason = "AmiSSL not installed -- run `amiport install amissl`";
-            break;
-        case HTTP_ERR_TLS_HANDSHAKE:
-            reason = "TLS handshake failed";
-            break;
-        case HTTP_ERR_NOMEM:
-            reason = "out of memory";
-            break;
-        default:
-            reason = "http_client error";
-            break;
-        }
-        (void)snprintf(errbuf, sizeof(errbuf),
-            "amigit: HTTPS connect to %s:%d failed (%s)",
-            host, port, reason);
+    rc = open_request_with_redirects(
+        url,
+        "GET",
+        "info/refs?service=git-upload-pack",
+        "application/x-git-upload-pack-advertisement",
+        NULL /* content_type */,
+        NULL, 0 /* body */,
+        &res, errbuf, sizeof(errbuf));
+    if (rc != 0) {
         git_error_set_str(GIT_ERROR_NET, errbuf);
         return -1;
     }
 
-    /* Send the request. */
-    rc = http_send_request(conn, "GET", req_path, headers, NULL, 0);
-    if (rc != HTTP_OK) {
-        (void)snprintf(errbuf, sizeof(errbuf),
-            "amigit: HTTPS send failed for %s (http_client rc=%d)",
-            req_path, rc);
-        git_error_set_str(GIT_ERROR_NET, errbuf);
-        http_close(conn);
-        return -1;
-    }
-
-    /* Read status line. */
-    rc = http_read_response_status(conn, &status);
-    if (rc != HTTP_OK) {
-        (void)snprintf(errbuf, sizeof(errbuf),
-            "amigit: HTTPS read status failed for %s (http_client rc=%d)",
-            req_path, rc);
-        git_error_set_str(GIT_ERROR_NET, errbuf);
-        http_close(conn);
-        return -1;
-    }
-    if (status != 200) {
-        /* Non-200 is fatal at Phase 5 -- redirect support (301/302/
-         * 307/308) is Phase 6 scope. Surface the status code so the
-         * user understands it's not a transport bug. */
-        (void)snprintf(errbuf, sizeof(errbuf),
-            "amigit: HTTPS GET %s returned status %d (expected 200)",
-            req_path, status);
-        git_error_set_str(GIT_ERROR_NET, errbuf);
-        http_close(conn);
-        return -1;
-    }
-
-    /* Iterate headers. Pull out Transfer-Encoding and Content-Length.
-     * Any other header is ignored -- we don't care about content type
-     * because libgit2 parses the body pkt-line frames on its own. */
-    for (;;) {
-        const char *name = NULL;
-        const char *value = NULL;
-        int hr = http_read_response_header(conn, &name, &value);
-        if (hr < 0) {
-            (void)snprintf(errbuf, sizeof(errbuf),
-                "amigit: HTTPS header parse failed (http_client rc=%d)",
-                hr);
-            git_error_set_str(GIT_ERROR_NET, errbuf);
-            http_close(conn);
-            return -1;
-        }
-        if (hr == 1 || name == NULL) {
-            break;  /* end of headers */
-        }
-        if (ieq_ascii(name, "Transfer-Encoding")) {
-            if (contains_ci(value, "chunked")) {
-                chunked_seen = 1;
-            }
-        } else if (ieq_ascii(name, "Content-Length")) {
-            content_length = atol(value);
-            if (content_length < 0) {
-                content_length = -1;
-            }
-        }
-    }
-
-    /* Wire the body-read mode. Chunked wins over Content-Length if
-     * both are (incorrectly) present; this matches RFC 7230 Section
-     * 3.3.3 bullet 3. If neither header was sent the server is
-     * HTTP/1.0-style -- read to EOF. */
-    if (chunked_seen) {
-        http_set_chunked(conn);
-    } else if (content_length >= 0) {
-        http_set_content_length(conn, content_length);
-    } else {
-        http_set_content_length(conn, -1);  /* read to EOF */
-    }
-
-    /* All good -- wrap in a stream object. libgit2 now calls
-     * stream->read() repeatedly, parses pkt-line frames out of our
-     * body bytes, and eventually calls stream->free(). */
+    /* All good -- wrap the live conn in a stream object. libgit2 now
+     * calls stream->read() repeatedly, parses pkt-line frames out of
+     * our body bytes, and eventually calls stream->free(). */
     stream = (amigit_https_stream *)calloc(1, sizeof(*stream));
     if (stream == NULL) {
         git_error_set_str(GIT_ERROR_NET,
             "amigit: out of memory allocating HTTPS stream");
-        http_close(conn);
+        http_close(res.conn);
         return -1;
     }
     stream->parent.subtransport = &subt->parent;
@@ -509,8 +899,77 @@ https_action_uploadpack_ls(amigit_https_subtransport *subt,
     stream->parent.write = https_stream_write;
     stream->parent.free  = https_stream_free;
     stream->owner = subt;
-    stream->conn  = conn;
+    stream->conn  = res.conn;
     stream->done  = 0;
+    stream->is_post = 0;
+    stream->post_url[0] = '\0';
+    stream->body_buf = NULL;
+    stream->body_len = 0;
+    stream->body_cap = 0;
+    stream->post_sent = 0;
+
+    subt->current_stream = stream;
+    *out_stream = &stream->parent;
+    return 0;
+}
+
+/* ========================================================================
+ * Upload-pack POST action -- POST /git-upload-pack (Phase 6)
+ *
+ * Returns a DEFERRED stream: we do NOT touch the network here. libgit2
+ * calls stream->write() one or more times to supply the pkt-line
+ * framed want/have/flush/done body, then calls stream->read() to
+ * consume the response. The first read() is where we actually issue
+ * the HTTP POST (see dispatch_post_if_needed above).
+ *
+ * Deferring the POST lets us send a single HTTP request with a known
+ * Content-Length header, which matches upstream libgit2's http.c
+ * behavior and is simpler than streaming Transfer-Encoding: chunked
+ * requests. libgit2 upload-pack POST bodies for a typical clone are
+ * a handful of KB; a full history fetch is typically under 256 KB;
+ * the 8 MB hard cap in stream_write is more than enough.
+ * ======================================================================== */
+
+static int
+https_action_uploadpack_post(amigit_https_subtransport *subt,
+                             const char *url,
+                             git_smart_subtransport_stream **out_stream)
+{
+    amigit_https_stream *stream = NULL;
+    size_t ulen;
+
+    if (url == NULL) {
+        git_error_set_str(GIT_ERROR_NET,
+            "amigit: HTTPS POST dispatch given NULL URL");
+        return -1;
+    }
+    ulen = strlen(url);
+    if (ulen + 1 > AMIGIT_HTTPS_URL_MAX) {
+        git_error_set_str(GIT_ERROR_NET,
+            "amigit: HTTPS POST URL too long");
+        return -1;
+    }
+
+    stream = (amigit_https_stream *)calloc(1, sizeof(*stream));
+    if (stream == NULL) {
+        git_error_set_str(GIT_ERROR_NET,
+            "amigit: out of memory allocating HTTPS POST stream");
+        return -1;
+    }
+
+    stream->parent.subtransport = &subt->parent;
+    stream->parent.read  = https_stream_read;
+    stream->parent.write = https_stream_write;
+    stream->parent.free  = https_stream_free;
+    stream->owner = subt;
+    stream->conn  = NULL;    /* deferred until first read */
+    stream->done  = 0;
+    stream->is_post   = 1;
+    stream->post_sent = 0;
+    stream->body_buf  = NULL;
+    stream->body_len  = 0;
+    stream->body_cap  = 0;
+    memcpy(stream->post_url, url, ulen + 1);
 
     subt->current_stream = stream;
     *out_stream = &stream->parent;
@@ -540,8 +999,8 @@ https_action(git_smart_subtransport_stream **out,
         return https_action_uploadpack_ls(subt, url, out);
 
     case GIT_SERVICE_UPLOADPACK:
-        verb = "upload-pack POST (want/have negotiation)";
-        break;
+        return https_action_uploadpack_post(subt, url, out);
+
     case GIT_SERVICE_RECEIVEPACK_LS:
         verb = "receive-pack-ls";
         break;
@@ -555,7 +1014,7 @@ https_action(git_smart_subtransport_stream **out,
 
     (void)snprintf(buf, sizeof(buf),
         "amigit: HTTPS %s not implemented yet "
-        "(url=%s, scheduled per PDR-012 Phase 6/11)",
+        "(url=%s, scheduled per PDR-012 Phase 11)",
         verb, url ? url : "(null)");
     git_error_set_str(GIT_ERROR_NET, buf);
     return -1;
@@ -693,4 +1152,82 @@ void amigit_transport_https_cleanup(void)
 
     (void)git_transport_unregister("https");
     amigit_https_registered = 0;
+}
+
+/* ========================================================================
+ * Phase 6 debug probe -- amigit_transport_https_debug_post
+ *
+ * Driven by `amigit _https-probe --pack <url>`. Calls the shared
+ * open_request_with_redirects helper with method=POST and a caller-
+ * supplied body, drains the response (if 200), and prints results to
+ * stdout so the FS-UAE test harness can grep for success markers.
+ *
+ * This deliberately bypasses libgit2 so we can verify the Phase 6
+ * POST path works end-to-end even against a server that is NOT a git
+ * smart-HTTP origin: an HTML-returning server like
+ * amiport.platesteel.net will respond to the POST with a 400 or 405,
+ * and that 4xx status is the success signal for "the transport
+ * reached the origin server". Real git servers (which we reach only
+ * on real hardware) are the authoritative happy-path test.
+ *
+ * Note: this probe does NOT exercise the amigit_https_stream->write
+ * realloc growth path (the buffer lives inside libgit2's smart.c
+ * state machine for a real fetch, not inside this probe). The write
+ * path is covered by the memory-checker / perf-optimizer static
+ * audit on Phase 6 instead.
+ * ======================================================================== */
+
+int
+amigit_transport_https_debug_post(const char *url,
+                                  const char *body,
+                                  int         body_len)
+{
+    http_request_result_t res;
+    char errbuf[384];
+    char drain_buf[1024];
+    int rc;
+    long total = 0;
+
+    if (url == NULL) {
+        printf("pack-probe: missing URL\n");
+        return -1;
+    }
+    if (body == NULL && body_len != 0) {
+        printf("pack-probe: NULL body with non-zero length\n");
+        return -1;
+    }
+
+    rc = open_request_with_redirects(
+        url,
+        "POST",
+        "git-upload-pack",
+        "application/x-git-upload-pack-result",
+        "application/x-git-upload-pack-request",
+        body, body_len,
+        &res, errbuf, sizeof(errbuf));
+    if (rc != 0) {
+        /* Surface the error -- the harness greps for "pack-probe:" as
+         * the reached-transport marker. errbuf for a non-2xx final
+         * status already contains "returned status N", so the test
+         * can distinguish transport success from transport failure. */
+        printf("pack-probe: %s\n", errbuf);
+        return -1;
+    }
+
+    printf("pack-probe: status=%d\n", res.status);
+    for (;;) {
+        int n = http_read_body(res.conn, drain_buf, (int)sizeof(drain_buf));
+        if (n < 0) {
+            printf("pack-probe: read error after success status\n");
+            http_close(res.conn);
+            return -1;
+        }
+        if (n == 0) {
+            break;
+        }
+        total += n;
+    }
+    printf("pack-probe: body_size=%ld\n", total);
+    http_close(res.conn);
+    return 0;
 }

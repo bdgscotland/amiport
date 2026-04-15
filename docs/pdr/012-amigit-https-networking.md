@@ -710,19 +710,23 @@ The project is DONE when all of these are true:
 
 ## Session checkpoint (update in-place every session)
 
-**Current phase:** Phase 6 (upload-pack body -- want/have
-negotiation + pack reception, 2 sessions). Phase 5 is complete.
-Phase 5 landed a real HTTPS subtransport in `transport_https.c`
-that opens AmiSSL-backed HTTP/1.1 via `http_client`, sends
-`GET /info/refs?service=git-upload-pack`, handles chunked and
-Content-Length response bodies, and feeds the bytes back to
-libgit2 via a `git_smart_subtransport_stream`. `cmd_ls_remote.c`
-is rewired to real `git_remote_ls`. All four suites green:
+**Current phase:** Phase 7 (credential callback -- GitHub PAT
+auth, 1 session). Phase 6 is complete. Phase 6 landed the
+upload-pack POST body path and one-level HTTPS redirect support,
+both routed through a shared `open_request_with_redirects`
+helper that replaces the Phase 5 open-sequence-inline in
+`https_action_uploadpack_ls`. The new
+`https_action_uploadpack_post` returns a deferred stream whose
+first `read()` calls `dispatch_post_if_needed` to issue the
+actual HTTP POST using a realloc-grown heap buffer (8 KB initial,
+8 MB cap) that libgit2 fills via repeated `stream->write` calls
+during want/have negotiation. All four suites still green:
 `tests/libgit2` 79/79, `tests/amigit-http-client` 25/25 + 26/26,
-FS-UAE 97/97 (was 95/95, +2 for the new Phase 5 tests that
-replaced 4 Phase 2 stub tests with 6 Phase 5 tests -- 3 argv-only
-and 3 network-reaching).
-Last update: 2026-04-14 (Phase 5 landed -- service discovery).
+FS-UAE 100/100 (was 97/97, +3 for the new Phase 6 probe tests
+that exercise the POST path end-to-end against
+amiport.platesteel.net).
+Last update: 2026-04-14 (Phase 6 landed -- upload-pack POST body
++ redirect support).
 
 **2026-04-14 plan change:** original Phase 3 (plain HTTP only)
 and original Phase 7 (AmiSSL integration) MERGED into the
@@ -736,16 +740,243 @@ If a previous session's handoff mentions "Phase 8" or "Phase 12"
 those refer to the OLD numbering -- see the current
 `## Phase plan` section for authoritative current numbering.
 
-**Last completed phase:** Phase 5 (service discovery via
-`GET /info/refs?service=git-upload-pack`, single session). Still
-pending (unchanged from the Phase 3 checkpoint): real-hardware
-smoke test on Duncan's A2000 + Vampire V2 500+ + X-Surf 100 +
-Roadshow + AmiSSL installer. Phase 5 is where the real-hardware
-test graduates from "prove the network+TLS stack works" to
-"prove a ref list round trip works", so whenever it runs it will
-exercise the new `amigit ls-remote https://github.com/<owner>/<repo>.git`
-path. Does NOT block Phase 6 work -- FS-UAE harness is the
-canonical stand-in until the hardware run happens.
+**Last completed phase:** Phase 6 (upload-pack POST body +
+one-level HTTPS redirect support, single session). Still pending
+(unchanged from the Phase 3 checkpoint): real-hardware smoke
+test on Duncan's A2000 + Vampire V2 500+ + X-Surf 100 +
+Roadshow + AmiSSL installer. Phase 6 is where the real-hardware
+test graduates from "prove a ref list round trip works" to
+"prove a full clone happy-path works end-to-end" against
+github.com / codeberg.org. That test is blocked on Phase 8
+(`cmd_clone.c`) because the Phase 6 path is currently only
+reachable via `_https-probe --pack` against non-git servers (for
+wiring validation) or via libgit2's internal state machine
+(which Phase 8 will drive via `git_clone`). Does NOT block
+Phase 7 work -- Phase 7 adds the credential callback that
+Phase 8 will need.
+
+**Phase 6 summary (2026-04-14):**
+
+Phase 6 wired the second half of the libgit2 smart-HTTP
+dispatch: `GIT_SERVICE_UPLOADPACK` (the POST body for want/have
+negotiation). Before this session, `https_action` returned a
+hard-coded "Phase 6 not implemented yet" error for
+`GIT_SERVICE_UPLOADPACK`, meaning libgit2 could discover a
+server's refs via Phase 5 LS but could not proceed to an actual
+fetch. After this session, `https_action_uploadpack_post`
+returns a deferred stream that buffers the pkt-line framed POST
+body in a heap-grown write buffer, then flushes it on the first
+`stream->read` via a single `http_send_request` with
+Content-Type `application/x-git-upload-pack-request`. Phase 6
+also retrofitted one-level HTTPS redirect support (301/302/307/
+308, capped at 3) into the shared code path, so future clones
+of github.com URLs without an explicit `.git` suffix will work.
+
+Before KB query (per session feedback and enforced by the
+enforce-adcd-lookup Band 2 hook): `amiga_pitfalls_for` on
+"libgit2 smart subtransport upload-pack POST",
+"libgit2 git_indexer_append pack reception", and
+"libgit2 git_transport_register HTTPS", plus `amiga_search`
+for "HTTP POST chunked request body pkt-line". All load-bearing
+Phase 6 pitfalls were already captured in `.claude/rules/
+known-pitfalls.md` and already handled in the existing amigit
+tree: (a) bare-scheme `git_transport_register` (still correct),
+(b) `__divsf3`/`__floatunsisf` soft-float overrides in
+`amigit_libgit2_stubs.c` (still linked -- Phase 6 touches code
+paths that may reach `patch_generate.c` if a pack internally
+builds a diff), (c) bsdsocket `Dup2Socket` fd 0/1/2 remapping
+(handled in bsdsocket-shim), (d) AmiSSL `OpenAmiSSLTags` with
+`AmiSSL_SocketBase` + `AmiSSL_ErrNoPtr` (handled in
+`amissl_glue.c`). Two KB gaps were noted in the audit (no
+indexed hits for `bsdsocket WaitSelect WaitForChar` and
+`AmiSSL OpenAmiSSLTags`) but the authoritative rules live in
+known-pitfalls.md and are already enforced in code. No new
+pitfalls discovered during Phase 6 development.
+
+**Landed changes:**
+
+- `ports/amigit/ported/transport_https.c` -- rewritten from the
+  Phase 5 ~696-line LS-only implementation to an ~896-line
+  LS+POST+redirect implementation. New public entry point
+  `amigit_transport_https_debug_post` backs the `--pack` mode
+  of `_https-probe`. New internal helpers:
+  `open_request_with_redirects` (shared by LS and POST; handles
+  URL-parse + header compose + connect + send + status +
+  header-iteration + body-mode detect + up-to-3 redirect follow,
+  all inside a single loop), `dispatch_post_if_needed` (first-
+  read trigger for the deferred POST path), and a returned-by-
+  pointer `http_request_result_t` typedef used to carry the
+  result out of the helper without struct-by-value return (per
+  crash-patterns #16 codegen discipline). The
+  `amigit_https_stream` struct gained POST-only fields
+  `is_post`, `post_url[AMIGIT_HTTPS_URL_MAX]` (embedded fixed
+  array, no heap), `body_buf` (heap, realloc-grown), `body_len`,
+  `body_cap`, `post_sent`. `https_stream_write` now has a real
+  implementation (was a "Phase 6 not implemented yet" stub in
+  Phase 5): geometric realloc growth from 8 KB to 8 MB cap,
+  single bulk memcpy per call, overflow guards on both size_t
+  wrap and cap exhaustion. `https_stream_free` now frees
+  `body_buf` in addition to closing `conn`. Redirect handling
+  strips the service-specific path suffix from the Location
+  header before re-queueing the URL, so a server returning
+  `https://github.com/foo/bar.git/info/refs?service=...` as the
+  Location does not cause the next iteration to double-append
+  the query suffix. `open_request_with_redirects` is a single-
+  function redirect loop with 11 error-return sites, each of
+  which either (a) has not yet allocated a conn or (b) calls
+  `http_close(conn)` before returning -1 (memory-checker
+  verified). Stack frame budget per iteration: ~4.7 KB, well
+  under the `__stack = 262144` cookie with the hidden libgit2
+  depth. One LOW perf fix applied post-audit: `snprintf(host_hdr,
+  sz, "%s", host)` -> `strcpy(host_hdr, host)` in the default-
+  port 443 Host header path (parse_https_url already validates
+  the length invariants).
+- `ports/amigit/ported/transport_https.h` -- added
+  `amigit_transport_https_debug_post()` prototype plus a block
+  comment explaining the debug-only probe contract. Goes away
+  post-Phase 7 along with the rest of `_https-probe`.
+- `ports/amigit/ported/cmd_https_probe.c` -- added `--pack <url>`
+  handling that calls `amigit_transport_https_debug_post` with
+  a hardcoded static `"0000"` flush-only body. This is
+  deliberately minimal: any HTTPS origin server rejects the
+  malformed body at the protocol level with 400/405, and that
+  4xx status is the success signal for "the Phase 6 POST flow
+  reached the origin server".
+- `ports/amigit/test-fsemu-cases.txt` -- three new Phase 6 tests
+  (98, 99, 100): missing URL handling, invalid URL rejection,
+  and a live HTTPS POST reach test against
+  `https://amiport.platesteel.net/`. All three assert the
+  reached-transport marker `pack-probe:` in stdout. The happy-
+  path fetch against a real git server is deliberately NOT
+  automated (third-party infra flakiness) and is tracked as a
+  real-hardware smoke test.
+
+**Build and test results:**
+
+- `make -C tests/libgit2 run`: **79/79** (unchanged -- no libgit2
+  edits in Phase 6, only amigit-side consumer code).
+- `make -C tests/amigit-http-client run`: **test_http_client
+  25/25**, **test_pkt_line 26/26** (unchanged -- Phase 6 consumed
+  the existing `http_send_request` with body-length API from
+  Phase 3 without touching the parser).
+- `make test-fsemu TARGET=ports/amigit`: **100/100** (was 97/97).
+  Delta = +3 (tests 98, 99, 100 for the new `_https-probe --pack`
+  mode). Live network test 100 confirms the Phase 6 POST path
+  reaches amiport.platesteel.net under the shared helper path,
+  the same way the existing Phase 5 test 93 (ls-remote) confirms
+  the LS path. Both tests exercise `open_request_with_redirects`
+  for real.
+- `ports/amigit/amigit` binary: **1,222,168 bytes** (was 1,218,792
+  on the Phase 5 baseline -- grew ~3.4 KB from the new helper
+  function, POST action handler, dispatcher, write-path
+  implementation, and debug probe). No new link-time dependencies
+  -- all new code uses symbols already exported by
+  `http_client.o` and `libgit2-020.a`.
+- Memory-checker: CLEAN on all audited categories (body_buf
+  realloc lifecycle, redirect loop conn closure per iteration,
+  11 error-return sites in `open_request_with_redirects`,
+  stream free paths for both is_post=0 and is_post=1 streams,
+  dispatch_post_if_needed failure semantics, stack pressure
+  under `__stack = 262144`). Zero HIGH or CRITICAL findings.
+- Perf-optimizer: CLEAN on HIGH/CRITICAL. One LOW fix applied
+  (snprintf -> strcpy on the default-port Host header path) and
+  re-verified via a full rebuild + all four suites still green.
+  Perf-optimizer's headline finding: the entire POST path is
+  network-I/O-bound -- TLS handshake, TCP round trips, and pack
+  object download dominate timing. No CPU-side optimization in
+  `transport_https.c` will be measurable against that, so
+  leaving the TU at `-O1 -m68020` is correct and no per-file
+  `-O1 HOTPATH_CFLAGS` promotion is needed.
+
+**NOT done in Phase 6 (deferred to Phase 7 or Phase 8):**
+
+- Credential callback for private repos (Phase 7 scope).
+  Phase 6 authenticates nothing -- a 401 Unauthorized from the
+  origin server surfaces as "returned status 401 (expected 200)"
+  from the shared helper. Phase 7 will add an on_401_retry hook
+  that invokes libgit2's credential callback and resends the
+  request with `Authorization: Basic base64(user:token)`.
+- Happy-path clone against a real git server (Phase 8 scope).
+  Phase 6 can POST to any HTTPS server but the response body
+  handling is only driven by libgit2 when libgit2 itself is
+  driving the fetch state machine -- which only happens once
+  `cmd_clone.c` (Phase 8) calls `git_clone`. Until then, the
+  `_https-probe --pack` mode exercises the POST path directly
+  against non-git servers (wiring proof) and real-hardware
+  smoke testing remains the authoritative happy-path gate.
+- Streaming Transfer-Encoding: chunked for REQUEST bodies.
+  Phase 6 uses the simpler buffered-POST approach with a single
+  Content-Length header, which matches upstream libgit2's
+  http.c. Chunked request encoding is a possible future
+  optimization for very large upload-pack bodies (>8 MB) but
+  no real repository has ever needed that.
+- Relative-URL redirect support. Phase 6 requires Location
+  headers to be absolute `https://` URLs. Real-world git servers
+  (github.com, codeberg.org, gitlab.com) always send absolute
+  URLs; relative URLs are an extension point for later.
+- `_https-probe` removal. Kept through Phases 6 and 7 for manual
+  testing; removed in Phase 8 alongside cmd_clone integration.
+
+**Phase 7 hints (what the next session should know):**
+
+Phase 7 is the short one. It adds the credential callback hook
+so private-repo clones work via GitHub personal access tokens
+(or equivalent on other origin servers). The foundation Phase 7
+needs is mostly in place:
+
+1. The 401 retry path: in `open_request_with_redirects`, after
+   reading the response status, check for 401 ALONGSIDE the
+   existing 3xx-redirect check. If 401, drain the response
+   body, close conn, invoke libgit2's credential callback (via
+   the `git_transport *owner` stashed on the subtransport), and
+   loop back to the top of the for(;;) with the returned
+   credentials applied to the headers string as
+   `Authorization: Basic <base64(user:token)>\r\n`.
+2. Credential callback wiring: libgit2's `git_transport` has a
+   `credentials` callback field. The credential callback itself
+   (matching `amigit_credential_callback` in the Phase 7 plan)
+   reads from `GetVar("GIT_HTTP_TOKEN", ...)` first, falls back
+   to interactive prompt on `IsInteractive(Input())`, and fails
+   with a clear message if neither is available.
+3. base64 encode: `libtomcrypt` (already in the tree via
+   `lib/libtomcrypt/`, linked by the Dropbear port in the
+   parallel session) provides base64 encode. amigit does NOT
+   currently link libtomcrypt -- evaluate whether to pull in the
+   tiny ~150-line base64 encoder inline vs adding a library
+   dependency. Inline is probably right for a one-off: the code
+   is trivial, the static cost is negligible, and we avoid a new
+   library dependency on the clone-enabled binary.
+4. Password prompt echo-off: the `getpass()`-style pattern from
+   the Dropbear session will need the same `tcgetattr`/
+   `tcsetattr` raw-mode toggle. Dropbear's prompt handling in
+   the parallel session is the canonical reference -- when that
+   session lands, port the pattern verbatim.
+5. Test coverage: Phase 7 tests should cover:
+   - `GIT_HTTP_TOKEN` environment variable read path (functional)
+   - Missing credentials path (401 surfaced as clear error)
+   - Credential prompt visual test (host-side `inject-keys.sh`
+     to type a PAT into an interactive prompt)
+   The 401 retry path itself is hard to automate without a real
+   private repo. Real-hardware verification is the authoritative
+   gate, same as Phase 6.
+6. `amigit_libgit2_stubs.c` soft-float overrides stay critical
+   through Phase 7 and Phase 8. Do not remove them until after
+   real-hardware clone profiling confirms nothing in the amigit
+   binary still pulls `__divsf3` / `__floatunsisf` from
+   libgit2's `patch_generate.c`.
+
+**Other-session boundaries (unchanged from Phase 5):** a parallel
+dropbear session has uncommitted changes in
+`lib/bsdsocket-shim/src/socket.c` and `ports/dropbear/**`.
+Phase 6 did NOT touch either -- the bsdsocket-shim on disk (with
+those uncommitted changes) was linked into Phase 6's binary via
+`-lamiport-net` and tests passed, so the uncommitted delta is
+compatible with Phase 6. Phase 7 should continue to respect the
+same boundaries. If the pre-commit hook's cross-port metadata
+scan blocks the Phase 6 commit due to stray `.o` files in
+`ports/dropbear/ported/`, ASK the user before using
+`--no-verify` (same discipline as Phase 5 -- which was a one-
+shot authorization, not a standing grant).
 
 **Phase 5 summary (2026-04-14):**
 

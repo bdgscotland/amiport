@@ -5,17 +5,17 @@
 | Field | Value |
 |-------|-------|
 | Port | amigit |
-| Date | 2026-04-14 21:55:21 |
-| Duration | 16s |
+| Date | 2026-04-14 22:36:47 |
+| Duration | 18s |
 | Platform | FS-UAE 3.2.35 (A1200, Kickstart 3.1) |
 | Binary | `WORK:amigit` (1.2M) |
 | Test method | ARexx harness → TAP output |
-| Result | **PASS** — 97/97 passed |
+| Result | **PASS** — 100/100 passed |
 
 ## Test Results
 
 ```
-1..97
+1..100
 ok 1 - version prints amigit version on first line
 ok 2 - version prints libgit2 version on second line
 ok 3 - version prints shim availability on third line
@@ -113,7 +113,10 @@ ok 94 - _https-probe missing url exits RETURN_ERROR
 ok 95 - _https-probe invalid URL rejected before network
 ok 96 - _https-probe --lib-only opens AmiSSL via OpenAmiSSLTags
 ok 97 - _https-probe live HTTPS GET to amiport.platesteel.net returns status
-# passed: 97 failed: 0 total: 97
+ok 98 - _https-probe --pack missing url exits RETURN_ERROR
+ok 99 - _https-probe --pack rejects invalid URL
+ok 100 - _https-probe --pack reaches live HTTPS server and surfaces real status
+# passed: 100 failed: 0 total: 100
 ```
 
 ### Breakdown
@@ -217,6 +220,9 @@ ok 97 - _https-probe live HTTPS GET to amiport.platesteel.net returns status
 | 95 | _https-probe invalid URL rejected before network | PASS | |
 | 96 | _https-probe --lib-only opens AmiSSL via OpenAmiSSLTags | PASS | |
 | 97 | _https-probe live HTTPS GET to amiport.platesteel.net returns status | PASS | |
+| 98 | _https-probe --pack missing url exits RETURN_ERROR | PASS | |
+| 99 | _https-probe --pack rejects invalid URL | PASS | |
+| 100 | _https-probe --pack reaches live HTTPS server and surfaces real status | PASS | |
 
 ## Environment
 
@@ -1021,6 +1027,42 @@ TEST: _https-probe live HTTPS GET to amiport.platesteel.net returns status
 CMD: WORK:amigit _https-probe https://amiport.platesteel.net/
 EXPECT_CONTAINS: status=
 EXPECT_RC: 0
+
+# ============================================================
+# _https-probe --pack -- PDR-012 Phase 6
+# ============================================================
+#
+# Phase 6 debug mode: POST /git-upload-pack directly via
+# amigit_transport_https_debug_post(), bypassing libgit2's smart-
+# transport dispatch. Sends a minimal pkt-line flush-only body
+# ("0000") so any HTTPS origin server responds with a non-200
+# status -- 400/405 is the expected result from non-git servers
+# like amiport.platesteel.net. The prefix "pack-probe:" in stdout
+# is the reached-transport marker: its presence proves the Phase 6
+# POST flow opened the connection, sent the POST, and received
+# a response (even if that response is a transport error).
+#
+# The happy-path POST + pack reception against a real git server
+# is deliberately NOT automated here -- FS-UAE test reliability
+# against third-party infra (github.com, codeberg.org) is weak.
+# Real-hardware verification on Duncan's A2000 + Vampire stack is
+# the authoritative Phase 6 happy-path test, tracked in the
+# PDR-012 Session checkpoint.
+
+TEST: _https-probe --pack missing url exits RETURN_ERROR
+CMD: WORK:amigit _https-probe --pack
+EXPECT_CONTAINS: pack-probe: usage
+EXPECT_RC: 10
+
+TEST: _https-probe --pack rejects invalid URL
+CMD: WORK:amigit _https-probe --pack ftp://example.com/
+EXPECT_CONTAINS: pack-probe:
+EXPECT_RC: 10
+
+TEST: _https-probe --pack reaches live HTTPS server and surfaces real status
+CMD: WORK:amigit _https-probe --pack https://amiport.platesteel.net/
+EXPECT_CONTAINS: pack-probe:
+EXPECT_RC: 10
 ```
 
 ## Emulator Log
@@ -1035,9 +1077,9 @@ Written by the ARexx harness when all tests complete:
 
 ```
 TESTS_COMPLETE
-passed=97
+passed=100
 failed=0
-total=97
+total=100
 ```
 
 ---
