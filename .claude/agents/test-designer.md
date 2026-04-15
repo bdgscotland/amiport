@@ -70,11 +70,15 @@ Each test in `test-fsemu-cases.txt` uses this format. Blank lines separate tests
     EXPECT: expected first-line output (exact match)
     EXPECT_RC: expected Amiga return code (0, 5, 10, or 20)
 
-Assertion types (can combine multiple on same test):
+Assertion types (can combine multiple on same test). **This list is EXHAUSTIVE — do not invent other directives. The canonical parser is `toolchain/templates/test-runner.rexx`. Check it before writing a new EXPECT form.**
 - `EXPECT:` — exact match of first line of stdout
 - `EXPECT_LINE: N,text` — exact match of line N (1-indexed) of stdout
 - `EXPECT_CONTAINS:` — substring match anywhere in output
 - `EXPECT_RC:` — expected Amiga return code
+
+**Negative assertions are NOT supported.** There is no `EXPECT_NOT_CONTAINS`, no `EXPECT_NOT`, no regex. If you need "assert the output does NOT contain X", re-express as a POSITIVE assertion on what the output SHOULD contain under the scenario you are testing. Example: to prove an error message is NOT the old stub "not implemented yet", assert that the output DOES contain a substring from the new implementation's error path (e.g. `EXPECT_CONTAINS: HTTPS GET` or `EXPECT_CONTAINS: ls-remote:`). If no such positive substring exists, you are not actually testing what you think you are testing — reframe the test.
+
+(Visual pass directives `EXPECT_AT`, `EXPECT_CURSOR`, `EXPECT_TRAP_CURSOR` + `SCRAPE` / `SCREEN_READ` / `CLEANUP` are separate; they only appear in `test-fsemu-visual-cases.txt` under VISUAL=1 passes. See the visual-test-expert agent for those.)
 
 `WORK:` is the FS-UAE volume where binaries and test files are mounted. All paths in CMD must use `WORK:` prefix.
 
