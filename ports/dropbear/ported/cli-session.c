@@ -103,6 +103,7 @@ void cli_connected(int result, int sock, void* userdata, const char *errstring)
 		dropbear_exit("Connect failed: %s", errstring);
 	}
 	myses->sock_in = myses->sock_out = sock;
+	fprintf(stderr, "[dbclient] Socket fd=%d\n", sock);
 	DEBUG1(("cli_connected"))
 	ses.socket_prio = DROPBEAR_PRIO_NORMAL;
 	/* switches to lowdelay */
@@ -272,6 +273,7 @@ static void cli_sessionloop() {
 			return;
 
 		case USERAUTH_SUCCESS_RCVD:
+			fprintf(stderr, "[dbclient] Auth OK\n");
 #ifndef DISABLE_SYSLOG
 			if (opts.usingsyslog) {
 				dropbear_log(LOG_INFO, "Authentication succeeded.");
@@ -310,12 +312,14 @@ static void cli_sessionloop() {
 			setup_remotetcp();
 #endif
 
+			fprintf(stderr, "[dbclient] Session starting (chancount=%d)\n", ses.chancount);
 			TRACE(("leave cli_sessionloop: running"))
 			cli_ses.state = SESSION_RUNNING;
 			return;
 
 		case SESSION_RUNNING:
 			if (ses.chancount < 1 && !cli_opts.no_cmd) {
+				fprintf(stderr, "[dbclient] chancount=0, finishing\n");
 				cli_finished();
 			}
 

@@ -166,6 +166,18 @@ http_io_t *http_conn_io(http_conn_t *conn);
  */
 void amissl_glue_free_cached(void);
 
+/*
+ * amissl_glue_probe -- PDR-012 Phase 3 session 3 diagnostic. Runs
+ * the same OpenLibrary sequence as ensure_amissl_open() but with
+ * heavy per-call instrumentation (AvailMem before/after, IoErr on
+ * failure, explicit path fallbacks). Prints results to stdout.
+ * Returns 0 on any successful open, nonzero on all-fail. Used by
+ * `amigit _https-probe --lib-only` to isolate the OpenLibrary
+ * failure inside amigit's runtime environment. NO network calls.
+ * Defined in amissl_glue.c.
+ */
+int amissl_glue_probe(void);
+
 #ifdef __cplusplus
 }
 #endif

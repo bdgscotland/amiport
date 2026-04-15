@@ -423,6 +423,12 @@ static int writechannel_fallback(struct Channel* channel, int fd, circbuffer *cb
 
 	/* Write the first portion of the circular buffer */
 	cbuf_readptrs(cbuf, &circ_p1, &circ_len1, &circ_p2, &circ_len2);
+#ifdef __AMIGA__
+	/* amiport: use AmigaDOS Write(Output()) for console output */
+	if (fd == STDOUT_FILENO || fd == STDERR_FILENO)
+		written = amiport_console_write(circ_p1, circ_len1);
+	else
+#endif
 	written = write(fd, circ_p1, circ_len1);
 	if (written < 0) {
 		if (errno != EINTR && errno != EAGAIN) {
@@ -735,6 +741,13 @@ static void send_msg_channel_data(struct Channel *channel, int isextended) {
 	buf_putint(ses.writepayload, 0);
 
 	/* read the data */
+#ifdef __AMIGA__
+	/* amiport: bsdsocket fd 0 hijacks libc read(0,...). Use AmigaDOS
+	 * Read(Input()) for console stdin to avoid reading from socket. */
+	if (fd == STDIN_FILENO)
+		len = amiport_console_read(buf_getwriteptr(ses.writepayload, maxlen), maxlen);
+	else
+#endif
 	len = read(fd, buf_getwriteptr(ses.writepayload, maxlen), maxlen);
 
 	if (len <= 0) {

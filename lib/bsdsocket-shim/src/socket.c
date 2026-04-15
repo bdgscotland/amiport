@@ -115,7 +115,6 @@ int amiport_socket(int domain, int type, int protocol)
 #ifdef __AMIGA__
     fd = socket(domain, type, protocol);
 #else
-    /* Host fallback — would use native socket() */
     (void)domain; (void)type; (void)protocol;
     fd = -1;
     errno = ENOSYS;
@@ -343,7 +342,19 @@ int amiport_select(int nfds, fd_set *readfds, fd_set *writefds,
     if (ensure_init() != 0) return -1;
 
 #ifdef __AMIGA__
-    return WaitSelect(nfds, readfds, writefds, exceptfds, timeout, NULL);
+    /* amiport: strip non-socket fds before passing to WaitSelect.
+     * Console I/O is handled at the application level via AmigaDOS
+     * Read(Input())/Write(Output()) — see Dropbear's common-channel.c. */
+    {
+        int fd;
+        for (fd = 0; fd < nfds; fd++) {
+            if (amiport_is_socket(fd)) continue;
+            if (readfds) FD_CLR(fd, readfds);
+            if (writefds) FD_CLR(fd, writefds);
+            if (exceptfds) FD_CLR(fd, exceptfds);
+        }
+        return WaitSelect(nfds, readfds, writefds, exceptfds, timeout, NULL);
+    }
 #else
     (void)nfds; (void)readfds; (void)writefds;
     (void)exceptfds; (void)timeout;

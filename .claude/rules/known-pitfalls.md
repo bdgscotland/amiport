@@ -999,3 +999,46 @@ Discovered in LibTomCrypt 1.18.2 + LibTomMath 1.3.0 (PDR-013 Phase 1b, 2026-04-1
 `tomcrypt_math.h` defines macros redirecting ALL `mp_*` names to `ltc_mp.*` dispatch entries. Including `tommath.h` after causes declaration conflicts. **Fix:** Use `#define DESC_DEF_ONLY` before `tomcrypt.h` (disables redirects), or declare LTM functions via `extern` without the header, or put LTM-direct code in a separate `.c` file.
 
 Discovered in LibTomCrypt 1.18.2 test implementation (PDR-013 Phase 1b, 2026-04-14).
+
+## WaitSelect Only Handles Socket fds — Console stdin Invisible to select()
+
+bsdsocket.library's `WaitSelect()` only monitors socket file descriptors. Libnix file descriptors (stdin=0, stdout=1, stderr=2) are NOT sockets and are invisible to WaitSelect. Any program that uses `select()` to multiplex between a socket and stdin (SSH clients, IRC clients, interactive network tools) will never detect stdin readability — keystrokes are silently lost.
+
+**Symptom:** Interactive network program connects fine, receives data from server, but typed input is never sent. The `select()` loop blocks on WaitSelect because stdin is never reported as readable.
+
+**Fix (applied in bsdsocket-shim `amiport_select()`, 2026-04-14):** Split the fd_set before calling WaitSelect. Remove file fds, poll them separately with `WaitForChar(Input(), 0)` for stdin readability (0 = non-blocking poll). Files are always write-ready. When file fds are present but not ready, limit WaitSelect timeout to 50ms for responsive stdin polling. After WaitSelect returns, re-poll pending file fds and merge results.
+
+**Important:** `WaitForChar` on console handles only detects individual characters when the console is in RAW mode (`SetMode(fh, 1)`). In COOKED mode, it may only trigger on complete lines. Ensure `tcsetattr`/`SetMode` has been called before the select loop.
+
+Discovered in Dropbear SSH interactive terminal debugging (PDR-013 Phase 2, 2026-04-14).
+
+## libnix getpass() Opens /dev/tty — Fails Silently on AmigaOS
+
+libnix's `getpass()` tries to `open("/dev/tty")` for reading the password without echo. On AmigaOS there is no `/dev/tty` — the open fails and getpass() returns NULL or an empty string silently. If a port provides its own `getpass()` stub, libnix's version may win at link time due to archive symbol resolution order.
+
+**Fix:** Rename to `amiport_getpass()` and redirect via macro in a force-included header:
+```c
+char *amiport_getpass(const char *prompt);
+#define getpass(p) amiport_getpass(p)
+```
+
+Discovered in Dropbear SSH port (PDR-013 Phase 2, 2026-04-14).
+
+## bsdsocket.library socket() fd 0 Collides With libnix stdin
+
+bsdsocket.library's `socket()` assigns fd numbers starting from 0. These collide with libnix's pre-allocated stdin(0)/stdout(1)/stderr(2) in fd_set bitmaps. When `FD_SET(0, &readfds)` is used for both a socket and stdin, the same bit fires for both. The program's packet reader and channel I/O both respond, causing raw protocol data to be written to stdout as garbled output.
+
+**Symptom:** Network protocol client displays raw binary data mixed with readable protocol text (algorithm names, headers) on the console. The protocol breaks because packets are consumed by the wrong reader.
+
+**Fix (applied in bsdsocket-shim, 2026-04-14):** Remap socket fds 0/1/2 to 3+ immediately after creation using `Dup2Socket()` (bsdsocket.library offset 0x108):
+```c
+if (fd >= 0 && fd < 3) {
+    int new_fd = Dup2Socket(fd, fd + 3);
+    if (new_fd >= 0) {
+        CloseSocket(fd);
+        fd = new_fd;
+    }
+}
+```
+
+Applied in both `amiport_socket()` and `amiport_accept()`. Discovered in Dropbear SSH client port (PDR-013 Phase 2, 2026-04-14).

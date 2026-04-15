@@ -56,4 +56,15 @@
 /* /dev/urandom path -- will be intercepted by our seedrandom() rewrite */
 #define DROPBEAR_URANDOM_DEV "T:dropbear-entropy"
 
+/* amiport: override libnix getpass() which opens /dev/tty and fails.
+ * Our amiport_getpass() reads from stdin directly. */
+char *amiport_getpass(const char *prompt);
+#define getpass(p) amiport_getpass(p)
+
+/* amiport: console I/O bypassing libnix fd table.
+ * bsdsocket fd 0 hijacks libc read(0,...) to the socket on FS-UAE.
+ * These use AmigaDOS Read(Input())/Write(Output()) directly. */
+int amiport_console_read(void *buf, int len);
+int amiport_console_write(const void *buf, int len);
+
 #endif /* DROPBEAR_AMIGAOS_COMPAT_H */

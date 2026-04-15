@@ -47,7 +47,9 @@
 
 #include <exec/types.h>
 #include <exec/libraries.h>
+#include <exec/memory.h>
 #include <proto/exec.h>
+#include <proto/dos.h>
 
 /* AmiSSL master: the thin dispatcher that opens the real backend. */
 #include <libraries/amisslmaster.h>
@@ -61,9 +63,33 @@
 /* AmiSSL-specific helpers (AmiSSLBase, etc.). */
 #include <libraries/amissl.h>
 
-/* bsdsocket-shim for amiport_closesocket + errno. */
+/* AmiSSL tag definitions for OpenAmiSSLTags (the modern init API). */
+#include <amissl/tags.h>
+
+/* bsdsocket-shim for amiport_closesocket + errno + SocketBase. */
 #define AMIPORT_NET_MACROS
 #include <amiport-net/socket.h>
+
+/* SocketBase is defined as a global in lib/bsdsocket-shim/src/socket.c.
+ * We reference it externally so we can pass it to OpenAmiSSLTags via
+ * the AmiSSL_SocketBase tag -- AmiSSL's backend needs to route its
+ * internal networking through the same bsdsocket.library handle the
+ * rest of amigit uses (otherwise errno gets wedged and SSL_connect
+ * sees nonsense). */
+extern struct Library *SocketBase;
+
+/* errno is libnix's thread-local (single-threaded on 68k) errno. We
+ * pass &errno via AmiSSL_ErrNoPtr so AmiSSL can write through to the
+ * same slot our amiport_* socket wrappers read from. */
+#include <errno.h>
+
+/* AmiSSLExtBase is the extension library base, filled in by OpenAmiSSLTags
+ * via AmiSSL_GetAmiSSLExtBase. We don't call anything from it but the
+ * tag must be present for the backend to complete initialization
+ * (matches the autoinit_amissl_main.c pattern in upstream AmiSSL).
+ * NOTE: <proto/amissl.h> already declares AmiSSLExtBase as an extern
+ * struct Library*, so we provide the definition (no static). */
+struct Library *AmiSSLExtBase = NULL;
 
 /* ============================================================
  * Cached globals (opened once per process)
@@ -103,36 +129,62 @@ glue_errf(const char *fmt, ...)
  * Ensure AmiSSL is opened. Returns HTTP_OK on success or
  * HTTP_ERR_TLS_MISSING if AmiSSL isn't installed.
  * Safe to call repeatedly -- no-ops after first success.
+ *
+ * Uses the modern OpenAmiSSLTags flow (matches upstream
+ * src/autoinit_amissl_main.c in jens-maus/amissl). The legacy
+ * InitAmiSSLMaster + OpenAmiSSL pair that our Phase 3 session 1
+ * glue started from DOES NOT WORK on 68k -- the backend needs
+ * SocketBase and ErrNoPtr tags to bind its internal networking
+ * to the process's bsdsocket handle and errno slot, otherwise
+ * OpenAmiSSL returns NULL with no diagnostic.
+ *
+ * Precondition: SocketBase must be set (amiport_socket_init
+ * must have been called). The normal HTTPS call path satisfies
+ * this because http_connect calls amiport_getaddrinfo before
+ * reaching us. The _https-probe --lib-only diagnostic path
+ * calls amiport_socket_init() explicitly.
+ *
+ * Return-code convention for OpenAmiSSLTags (from upstream
+ * autoinit_amissl_main.c):
+ *   0 -- success
+ *   1 -- couldn't initialise amisslmaster.library
+ *   2 -- couldn't open AmiSSL backend
+ *   3 -- couldn't initialise AmiSSL
  */
 static int
 ensure_amissl_open(void)
 {
+    LONG rc;
+
     if (AmiSSLMasterBase != NULL && AmiSSLBase != NULL) {
         return HTTP_OK;
     }
 
+    if (SocketBase == NULL) {
+        /* Our precondition isn't met -- the caller forgot to
+         * initialize bsdsocket before reaching us. Fail cleanly
+         * rather than letting OpenAmiSSLTags silently wedge. */
+        glue_errf("SocketBase is NULL -- amiport_socket_init not called");
+        return HTTP_ERR_TLS_MISSING;
+    }
+
     if (AmiSSLMasterBase == NULL) {
-        /* Try LIBS: chain first (standard path). If OpenLibrary's
-         * LIBS: walk doesn't reach ADD'd entries on some AmigaOS
-         * versions, fall back to explicit paths the harness knows
-         * about. Passing version 0 here is deliberate -- let the
-         * subsequent InitAmiSSLMaster() call reject if the version
-         * is too old. This lets us diagnose "can't find the
-         * library file" separately from "found it but too old". */
+        /* Try LIBS: chain first (standard path). Version 5 is
+         * AMISSLMASTER_MIN_VERSION -- matches upstream convention
+         * for 68k builds. Fall back to explicit paths for the
+         * FS-UAE harness which stages libs into WORK:Libs / RAM:Libs
+         * rather than the real LIBS: assign. */
         AmiSSLMasterBase = OpenLibrary(
-            (CONST_STRPTR)"amisslmaster.library", 0);
+            (CONST_STRPTR)"amisslmaster.library", AMISSLMASTER_MIN_VERSION);
         if (AmiSSLMasterBase == NULL) {
-            /* Explicit path fallback: try the harness staging
-             * location first (WORK:Libs under the FS-UAE harness)
-             * and the real-hardware canonical location second.
-             * Either resolving via LIBS: chain or via full path is
-             * acceptable. */
             AmiSSLMasterBase = OpenLibrary(
-                (CONST_STRPTR)"WORK:Libs/amisslmaster.library", 0);
+                (CONST_STRPTR)"WORK:Libs/amisslmaster.library",
+                AMISSLMASTER_MIN_VERSION);
         }
         if (AmiSSLMasterBase == NULL) {
             AmiSSLMasterBase = OpenLibrary(
-                (CONST_STRPTR)"RAM:Libs/amisslmaster.library", 0);
+                (CONST_STRPTR)"RAM:Libs/amisslmaster.library",
+                AMISSLMASTER_MIN_VERSION);
         }
         if (AmiSSLMasterBase == NULL) {
             /* Not installed -- caller should print a friendly hint. */
@@ -140,29 +192,165 @@ ensure_amissl_open(void)
         }
     }
 
-    /* Tell the master which OpenSSL API version we want. We use
-     * the latest supported at compile time. Pass FALSE for
-     * UsesOpenSSLStructs because we don't embed AmiSSL struct
-     * fields in our own types. */
-    if (InitAmiSSLMaster(AMISSL_CURRENT_VERSION, FALSE) != 0) {
-        glue_errf("InitAmiSSLMaster failed");
+    /* Modern flow: OpenAmiSSLTags does version negotiation,
+     * backend load, and init in one call. We pass the process's
+     * SocketBase (from libamiport-net) and &errno so the backend
+     * shares networking/errno state with our existing bsdsocket
+     * handle. AmiSSL_GetAmiSSLBase / AmiSSL_GetAmiSSLExtBase
+     * fill in our base-pointer globals. */
+    rc = OpenAmiSSLTags(AMISSL_CURRENT_VERSION,
+                        AmiSSL_UsesOpenSSLStructs, FALSE,
+                        AmiSSL_GetAmiSSLBase,    (ULONG)&AmiSSLBase,
+                        AmiSSL_GetAmiSSLExtBase, (ULONG)&AmiSSLExtBase,
+                        AmiSSL_SocketBase,       (ULONG)SocketBase,
+                        AmiSSL_ErrNoPtr,         (ULONG)&errno,
+                        TAG_DONE);
+    if (rc != 0) {
+        const char *reason = "unknown";
+        switch (rc) {
+        case 1: reason = "master init failed"; break;
+        case 2: reason = "backend open failed"; break;
+        case 3: reason = "backend init failed"; break;
+        }
+        glue_errf("OpenAmiSSLTags failed rc=%ld (%s)", (long)rc, reason);
         CloseLibrary(AmiSSLMasterBase);
         AmiSSLMasterBase = NULL;
-        return HTTP_ERR_TLS_MISSING;
-    }
-
-    /* Open the actual backend library. OpenAmiSSL() returns the
-     * library handle which the amissl.h inline stubs use as the
-     * base for SSL_* dispatch. */
-    AmiSSLBase = OpenAmiSSL();
-    if (AmiSSLBase == NULL) {
-        glue_errf("OpenAmiSSL failed");
-        CloseLibrary(AmiSSLMasterBase);
-        AmiSSLMasterBase = NULL;
+        AmiSSLBase = NULL;
+        AmiSSLExtBase = NULL;
         return HTTP_ERR_TLS_MISSING;
     }
 
     return HTTP_OK;
+}
+
+/*
+ * amissl_glue_probe -- PDR-012 Phase 3 session 3 diagnostic.
+ * Runs the same sequence as ensure_amissl_open() but with heavy
+ * per-call instrumentation. Prints AvailMem before every attempt
+ * and IoErr after every failure. Exercises both name-only LIBS:
+ * walk and explicit path fallbacks. Used by `amigit _https-probe
+ * --lib-only` to isolate why OpenLibrary returns NULL inside
+ * amigit's runtime environment while the standalone amissl-probe
+ * binary (zero amiport deps) succeeds at the same calls.
+ *
+ * Returns 0 on any successful open (with CloseLibrary of the
+ * probed handle); returns -1 if ALL open variants fail.
+ * Deliberately does NOT cache or chain through InitAmiSSLMaster
+ * -- we only want to know if OpenLibrary on the master works.
+ */
+static void
+probe_mem(const char *label)
+{
+    printf("  mem %s: fast=%lu public=%lu largest=%lu\n",
+           label,
+           (unsigned long)AvailMem(MEMF_FAST),
+           (unsigned long)AvailMem(MEMF_PUBLIC),
+           (unsigned long)AvailMem(MEMF_LARGEST));
+    fflush(stdout);
+}
+
+static struct Library *
+probe_open(const char *path, unsigned long version)
+{
+    struct Library *base;
+    printf("  OpenLibrary(%s, v%lu): ", path, version);
+    fflush(stdout);
+    base = OpenLibrary((CONST_STRPTR)path, version);
+    if (base == NULL) {
+        printf("NULL ioerr=%ld\n", (long)IoErr());
+    } else {
+        printf("ok v%ld.%ld\n",
+               (long)base->lib_Version,
+               (long)base->lib_Revision);
+    }
+    fflush(stdout);
+    return base;
+}
+
+int
+amissl_glue_probe(void)
+{
+    LONG rc;
+
+    printf("amissl_glue_probe: OpenAmiSSLTags verification\n");
+    probe_mem("start");
+
+    /* ensure_amissl_open needs SocketBase set. Normal HTTPS
+     * path gets it from http_connect calling amiport_getaddrinfo
+     * first; the --lib-only path skips networking, so we must
+     * trigger bsdsocket open explicitly. */
+    printf("  amiport_socket_init(): ");
+    fflush(stdout);
+    if (amiport_socket_init() != 0) {
+        printf("FAIL -- bsdsocket.library not available\n");
+        return -1;
+    }
+    printf("ok SocketBase=0x%08lx\n", (unsigned long)SocketBase);
+    probe_mem("after-socket-init");
+
+    /* Open the master library explicitly so we can report the result. */
+    printf("  OpenLibrary(amisslmaster.library, %d): ",
+           AMISSLMASTER_MIN_VERSION);
+    fflush(stdout);
+    AmiSSLMasterBase = OpenLibrary((CONST_STRPTR)"amisslmaster.library",
+                                   AMISSLMASTER_MIN_VERSION);
+    if (AmiSSLMasterBase == NULL) {
+        AmiSSLMasterBase = OpenLibrary(
+            (CONST_STRPTR)"WORK:Libs/amisslmaster.library",
+            AMISSLMASTER_MIN_VERSION);
+    }
+    if (AmiSSLMasterBase == NULL) {
+        AmiSSLMasterBase = OpenLibrary(
+            (CONST_STRPTR)"RAM:Libs/amisslmaster.library",
+            AMISSLMASTER_MIN_VERSION);
+    }
+    if (AmiSSLMasterBase == NULL) {
+        printf("NULL -- master library not found at any path\n");
+        return -1;
+    }
+    printf("ok v%ld.%ld\n",
+           (long)AmiSSLMasterBase->lib_Version,
+           (long)AmiSSLMasterBase->lib_Revision);
+    probe_mem("after-master-open");
+
+    /* Now do the actual OpenAmiSSLTags call with the production tag
+     * list, visibly reporting rc. 0=ok, 1=master init, 2=backend open,
+     * 3=backend init. */
+    printf("  OpenAmiSSLTags(APIVer=%d, UsesStructs=FALSE, ...): ",
+           AMISSL_CURRENT_VERSION);
+    fflush(stdout);
+    rc = OpenAmiSSLTags(AMISSL_CURRENT_VERSION,
+                        AmiSSL_UsesOpenSSLStructs, FALSE,
+                        AmiSSL_GetAmiSSLBase,    (ULONG)&AmiSSLBase,
+                        AmiSSL_GetAmiSSLExtBase, (ULONG)&AmiSSLExtBase,
+                        AmiSSL_SocketBase,       (ULONG)SocketBase,
+                        AmiSSL_ErrNoPtr,         (ULONG)&errno,
+                        TAG_DONE);
+    if (rc == 0) {
+        printf("ok AmiSSLBase=0x%08lx AmiSSLExtBase=0x%08lx\n",
+               (unsigned long)AmiSSLBase,
+               (unsigned long)AmiSSLExtBase);
+        probe_mem("after-tags");
+        CloseAmiSSL();
+        AmiSSLBase = NULL;
+        AmiSSLExtBase = NULL;
+    } else {
+        const char *reason = "unknown";
+        switch (rc) {
+        case 1: reason = "master init failed"; break;
+        case 2: reason = "backend open failed"; break;
+        case 3: reason = "backend init failed"; break;
+        }
+        printf("FAIL rc=%ld (%s)\n", (long)rc, reason);
+        probe_mem("after-tags-fail");
+    }
+
+    CloseLibrary(AmiSSLMasterBase);
+    AmiSSLMasterBase = NULL;
+    probe_mem("end");
+    printf("amissl_glue_probe: %s\n", rc == 0 ? "OK" : "FAIL");
+    fflush(stdout);
+    return rc == 0 ? 0 : -1;
 }
 
 /*
@@ -173,9 +361,14 @@ ensure_amissl_open(void)
 void
 amissl_glue_free_cached(void)
 {
+    /* Modern teardown: CloseAmiSSL releases both AmiSSLBase and
+     * AmiSSLExtBase if they were set up via OpenAmiSSLTags. Then
+     * we close the master library. Order matches upstream
+     * autoinit_amissl_main.c. */
     if (AmiSSLBase != NULL) {
         CloseAmiSSL();
         AmiSSLBase = NULL;
+        AmiSSLExtBase = NULL;
     }
     if (AmiSSLMasterBase != NULL) {
         CloseLibrary(AmiSSLMasterBase);
@@ -399,6 +592,12 @@ amissl_glue_open_io(struct http_io *io, int sockfd, const char *host)
 void
 amissl_glue_free_cached(void)
 {
+}
+
+int
+amissl_glue_probe(void)
+{
+    return -1;
 }
 
 #endif /* __AMIGA__ */

@@ -105,6 +105,16 @@ amigit_cmd_https_probe(int argc, char **argv)
         printf("probe: usage: amigit _https-probe <https-url>\n");
         return RETURN_ERROR;
     }
+
+    /* --lib-only: PDR-012 Phase 3 session 3 diagnostic. Call
+     * amissl_glue_probe() directly -- no URL parsing, no network,
+     * no bsdsocket. Isolates OpenLibrary behavior inside amigit's
+     * runtime environment from the HTTP/TLS plumbing. */
+    if (strcmp(argv[2], "--lib-only") == 0) {
+        int rc = amissl_glue_probe();
+        return rc == 0 ? RETURN_OK : RETURN_ERROR;
+    }
+
     url = argv[2];
 
     if (parse_https_url(url, host, sizeof(host), &port,

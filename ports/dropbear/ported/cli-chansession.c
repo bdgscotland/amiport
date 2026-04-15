@@ -360,15 +360,19 @@ static int cli_initchansess(struct Channel *channel) {
 		cli_setup_agent(channel);
 	}
 #endif
+	fprintf(stderr, "[dbclient] Channel open, wantpty=%d\n", cli_opts.wantpty);
 	if (cli_opts.wantpty) {
 		send_chansess_pty_req(channel);
+		fprintf(stderr, "[dbclient] PTY request sent\n");
 		channel->prio = DROPBEAR_PRIO_LOWDELAY;
 	}
 
 	send_chansess_shell_req(channel);
+	fprintf(stderr, "[dbclient] Shell request sent\n");
 
 	if (cli_opts.wantpty) {
 		cli_tty_setup();
+		fprintf(stderr, "[dbclient] TTY raw mode set\n");
 		channel->read_mangler = cli_escape_handler;
 		cli_ses.last_char = '\r';
 	}

@@ -37,11 +37,14 @@ size_t strlcat(char *dst, const char *src, size_t dsize)
     return dlen + (src - osrc);
 }
 
-/* --- getpass: read password from console without echo --- */
+/* --- getpass: read password from console without echo ---
+ * amiport: renamed to amiport_getpass to avoid libnix's __stdargs
+ * getpass() which tries to open /dev/tty and fails silently.
+ * The #define getpass amiport_getpass in amigaos_compat.h ensures
+ * all callers use this version. */
 static char getpass_buf[128];
-char *getpass(const char *prompt)
+char *amiport_getpass(const char *prompt)
 {
-    /* amiport: simple getpass -- no echo suppression on AmigaOS */
     fprintf(stderr, "%s", prompt);
     fflush(stderr);
     if (fgets(getpass_buf, sizeof(getpass_buf), stdin) != NULL) {
@@ -111,3 +114,21 @@ int getnameinfo(const struct sockaddr *sa, socklen_t salen,
 }
 
 /* base64_encode/decode: provided by LibTomCrypt (LTC_BASE64 enabled) */
+
+#ifdef __AMIGA__
+#include <proto/dos.h>
+
+/* amiport: On FS-UAE, bsdsocket fd 0 hijacks libc read(0, ...) to read
+ * from the socket, making stdin inaccessible via read(). Bypass libnix's
+ * fd table and use AmigaDOS Read(Input())/Write(Output()) directly for
+ * console I/O. See known-pitfalls: bsdsocket fd 0 collision. */
+int amiport_console_read(void *buf, int len)
+{
+    return Read(Input(), buf, len);
+}
+
+int amiport_console_write(const void *buf, int len)
+{
+    return Write(Output(), buf, len);
+}
+#endif
