@@ -297,9 +297,13 @@ static void send_chansess_pty_req(const struct Channel *channel) {
 	encrypt_packet();
 
 	/* Set up a window-change handler */
+#ifndef __AMIGA__
+	/* amiport: libnix doesn't support SIGWINCH (28). Window resize
+	 * detection not available on AmigaOS. */
 	if (signal(SIGWINCH, sigwinch_handler) == SIG_ERR) {
 		dropbear_exit("Signal error");
 	}
+#endif
 	TRACE(("leave send_chansess_pty_req"))
 }
 
@@ -360,6 +364,8 @@ static int cli_initchansess(struct Channel *channel) {
 		cli_setup_agent(channel);
 	}
 #endif
+	{ FILE *dbg = fopen("WORK:dbclient.log", "a");
+	  if (dbg) { fprintf(dbg, "Channel open wantpty=%d\n", cli_opts.wantpty); fclose(dbg); } }
 	fprintf(stderr, "[dbclient] Channel open, wantpty=%d\n", cli_opts.wantpty);
 	if (cli_opts.wantpty) {
 		send_chansess_pty_req(channel);
@@ -372,7 +378,9 @@ static int cli_initchansess(struct Channel *channel) {
 
 	if (cli_opts.wantpty) {
 		cli_tty_setup();
-		fprintf(stderr, "[dbclient] TTY raw mode set\n");
+		{ FILE *dbg = fopen("WORK:dbclient.log", "a");
+	  if (dbg) { fprintf(dbg, "TTY raw mode set\n"); fclose(dbg); } }
+	fprintf(stderr, "[dbclient] TTY raw mode set\n");
 		channel->read_mangler = cli_escape_handler;
 		cli_ses.last_char = '\r';
 	}

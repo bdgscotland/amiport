@@ -229,14 +229,29 @@ void channelio(const fd_set *readfds, const fd_set *writefds) {
 		}
 
 		/* write to program/pipe stdin */
-		if (channel->writefd >= 0 && FD_ISSET(channel->writefd, writefds)) {
+		if (channel->writefd >= 0 &&
+#ifdef __AMIGA__
+			/* amiport: console fds are always writable. Data arrives
+			 * mid-iteration via process_packet but fd 1 wasn't in
+			 * writefds (set at loop top when cbuf was empty). */
+			(cbuf_getused(channel->writebuf) > 0 || FD_ISSET(channel->writefd, writefds))
+#else
+			FD_ISSET(channel->writefd, writefds)
+#endif
+			) {
 			writechannel(channel, channel->writefd, channel->writebuf, NULL, NULL);
 			do_check_close = 1;
 		}
-		
+
 		/* stderr for client mode */
 		if (ERRFD_IS_WRITE(channel)
-				&& channel->errfd >= 0 && FD_ISSET(channel->errfd, writefds)) {
+				&& channel->errfd >= 0 &&
+#ifdef __AMIGA__
+				(cbuf_getused(channel->extrabuf) > 0 || FD_ISSET(channel->errfd, writefds))
+#else
+				FD_ISSET(channel->errfd, writefds)
+#endif
+				) {
 			writechannel(channel, channel->errfd, channel->extrabuf, NULL, NULL);
 			do_check_close = 1;
 		}
@@ -751,10 +766,11 @@ static void send_msg_channel_data(struct Channel *channel, int isextended) {
 	len = read(fd, buf_getwriteptr(ses.writepayload, maxlen), maxlen);
 
 	if (len <= 0) {
-		if (len == 0 || errno != EINTR) {
-			/* This will also get hit in the case of EAGAIN. The only
-			time we expect to receive EAGAIN is when we're flushing a FD,
-			in which case it can be treated the same as EOF */
+		if (len == 0 || (errno != EINTR
+#ifdef __AMIGA__
+			&& errno != EAGAIN
+#endif
+			)) {
 			close_chan_fd(channel, fd, SHUT_RD);
 		}
 		buf_setpos(ses.writepayload, 0);

@@ -124,7 +124,16 @@ int getnameinfo(const struct sockaddr *sa, socklen_t salen,
  * console I/O. See known-pitfalls: bsdsocket fd 0 collision. */
 int amiport_console_read(void *buf, int len)
 {
-    return Read(Input(), buf, len);
+    BPTR fh = Input();
+    if (!fh || !IsInteractive(fh)) {
+        errno = EAGAIN;
+        return -1;
+    }
+    if (!WaitForChar(fh, 0)) {
+        errno = EAGAIN;
+        return -1;
+    }
+    return Read(fh, buf, len);
 }
 
 int amiport_console_write(const void *buf, int len)

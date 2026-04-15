@@ -113,7 +113,13 @@ void write_packet() {
 	len = writebuf->len - writebuf->pos;
 	dropbear_assert(len > 0);
 	/* Try to write as much as possible */
+#ifdef __AMIGA__
+	/* amiport: write() on bsdsocket fd 0 goes to console via libc.
+	 * Use send() to route through bsdsocket.library directly. */
+	written = send(ses.sock_out, buf_getptr(writebuf, len), len, 0);
+#else
 	written = write(ses.sock_out, buf_getptr(writebuf, len), len);
+#endif
 
 	if (written < 0) {
 		if (errno == EINTR || errno == EAGAIN) {
@@ -180,7 +186,15 @@ void read_packet() {
 		 */
 		len = 0;
 	} else {
+#ifdef __AMIGA__
+		len = recv(ses.sock_in, buf_getptr(ses.readbuf, maxlen), maxlen, 0);
+		{ static int _rp = 0; if (_rp < 40) {
+		  FILE *rf = fopen("WORK:recv.log", "a");
+		  if (rf) { fprintf(rf, "recv %d: len=%d max=%d errno=%d\n", _rp, (int)len, (int)maxlen, len<0?errno:0); fclose(rf); }
+		  _rp++; } }
+#else
 		len = read(ses.sock_in, buf_getptr(ses.readbuf, maxlen), maxlen);
+#endif
 
 		if (len == 0) {
 			ses.remoteclosed();
@@ -231,8 +245,17 @@ static int read_packet_init() {
 	maxlen = blocksize - ses.readbuf->pos;
 			
 	/* read the rest of the packet if possible */
+#ifdef __AMIGA__
+	slen = recv(ses.sock_in, buf_getwriteptr(ses.readbuf, maxlen),
+			maxlen, 0);
+	{ static int _ri = 0; if (_ri < 40) {
+	  FILE *rf = fopen("WORK:recv.log", "a");
+	  if (rf) { fprintf(rf, "init %d: slen=%d max=%d pos=%d errno=%d\n", _ri, slen, maxlen, ses.readbuf->pos, slen<0?errno:0); fclose(rf); }
+	  _ri++; } }
+#else
 	slen = read(ses.sock_in, buf_getwriteptr(ses.readbuf, maxlen),
 			maxlen);
+#endif
 	if (slen == 0) {
 		ses.remoteclosed();
 	}

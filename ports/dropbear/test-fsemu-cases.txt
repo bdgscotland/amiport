@@ -17,3 +17,12 @@ TEST: help flag
 CMD: WORK:dbclient --help
 EXPECT_CONTAINS: -y
 EXPECT_RC: 0
+
+TEST: set SSH password env
+CMD: SetEnv DROPBEAR_PASSWORD Zimacs501482
+EXPECT_RC: 0
+
+TEST: SSH echo hello (non-interactive)
+CMD: WORK:dbclient -y duncan@127.0.0.1 echo hello
+EXPECT_CONTAINS: hello
+EXPECT_RC: 0

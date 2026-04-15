@@ -219,6 +219,13 @@ void session_loop(void(*loophandler)(void)) {
 
 		val = select(ses.maxfd+1, &readfd, &writefd, NULL, &timeout);
 
+		{ static int _lp = 0;
+		  FILE *lf = fopen("WORK:dbclient.log", "a");
+		  if (lf) { fprintf(lf, "L%d: v=%d si=%d rb=%d pl=%d cc=%d\n",
+		    _lp, val, ses.sock_in, ses.readbuf?1:0, ses.payload?1:0, ses.chancount);
+		    fclose(lf); }
+		  _lp++; }
+
 		if (ses.exitflag) {
 			dropbear_exit("Terminated by signal");
 		}
@@ -256,18 +263,24 @@ void session_loop(void(*loophandler)(void)) {
 		if (ses.sock_in != -1) {
 			if (FD_ISSET(ses.sock_in, &readfd)) {
 				if (!ses.remoteident) {
-					/* blocking read of the version string */
 					read_session_identification();
 				} else {
 					read_packet();
 				}
 			}
-			
-			/* Process the decrypted packet. After this, the read buffer
-			 * will be ready for a new packet */
+
 			if (ses.payload != NULL) {
+				{ static int _pp = 0; if (_pp < 30) {
+				  FILE *pf = fopen("WORK:pkt.log", "a");
+				  if (pf) { fprintf(pf, "pkt %d: type=%d beg=%d\n", _pp, (int)(unsigned char)ses.payload->data[ses.payload_beginning], ses.payload_beginning); fclose(pf); }
+				  _pp++; } }
 				process_packet();
 			}
+		} else {
+			{ static int _sk = 0; if (_sk == 0) {
+			  FILE *sf = fopen("WORK:pkt.log", "a");
+			  if (sf) { fprintf(sf, "sock_in=-1!\n"); fclose(sf); }
+			  _sk = 1; } }
 		}
 
 		/* if required, flush out any queued reply packets that
@@ -472,7 +485,11 @@ static int ident_readln(int fd, char* buf, int count) {
 		 * the end, and have to somehow shove bytes back into the normal
 		 * packet reader */
 		if (FD_ISSET(fd, &fds)) {
+#ifdef __AMIGA__
+			num = recv(fd, &in, 1, 0);
+#else
 			num = read(fd, &in, 1);
+#endif
 			/* a "\n" is a newline, "\r" we want to read in and keep going
 			 * so that it won't be read as part of the next line */
 			if (num < 0) {

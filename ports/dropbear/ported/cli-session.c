@@ -273,6 +273,8 @@ static void cli_sessionloop() {
 			return;
 
 		case USERAUTH_SUCCESS_RCVD:
+			{ FILE *dbg = fopen("WORK:dbclient.log", "a");
+			  if (dbg) { fprintf(dbg, "Auth OK\n"); fclose(dbg); } }
 			fprintf(stderr, "[dbclient] Auth OK\n");
 #ifndef DISABLE_SYSLOG
 			if (opts.usingsyslog) {
@@ -312,6 +314,8 @@ static void cli_sessionloop() {
 			setup_remotetcp();
 #endif
 
+			{ FILE *dbg = fopen("WORK:dbclient.log", "a");
+			  if (dbg) { fprintf(dbg, "Session starting chancount=%d\n", ses.chancount); fclose(dbg); } }
 			fprintf(stderr, "[dbclient] Session starting (chancount=%d)\n", ses.chancount);
 			TRACE(("leave cli_sessionloop: running"))
 			cli_ses.state = SESSION_RUNNING;
@@ -393,6 +397,8 @@ static void cli_remoteclosed() {
 	 * already sent/received disconnect message(s) ??? */
 	m_close(ses.sock_in);
 	m_close(ses.sock_out);
+	{ FILE *dbg = fopen("WORK:dbclient.log", "a");
+	  if (dbg) { fprintf(dbg, "Remote closed connection\n"); fclose(dbg); } }
 	ses.sock_in = -1;
 	ses.sock_out = -1;
 	dropbear_exit("Remote closed the connection");

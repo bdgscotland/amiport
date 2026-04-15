@@ -34,7 +34,7 @@
 #include "fuzz.h"
 
 #ifdef __AMIGA__
-long __stack = 65536;
+long __stack = 262144;
 /* amiport: libnix default malloc pool is 4MB which exceeds vamos memory.
  * Reduce to 256KB steps. Real AmigaOS handles this fine. */
 unsigned long __MEMORY_STEP = 262144;

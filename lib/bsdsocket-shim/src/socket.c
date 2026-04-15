@@ -336,24 +336,71 @@ int amiport_getpeername(int sockfd, struct sockaddr *addr, socklen_t *addrlen)
 
 /* --- select() --- */
 
+static int _sel_trace = 0;
+
 int amiport_select(int nfds, fd_set *readfds, fd_set *writefds,
                    fd_set *exceptfds, struct timeval *timeout)
 {
     if (ensure_init() != 0) return -1;
 
 #ifdef __AMIGA__
-    /* amiport: strip non-socket fds before passing to WaitSelect.
-     * Console I/O is handled at the application level via AmigaDOS
-     * Read(Input())/Write(Output()) — see Dropbear's common-channel.c. */
+    /* amiport: WaitSelect only handles socket fds. Strip non-socket fds
+     * before WaitSelect, then restore write fds after (console is always
+     * writable). This prevents WaitSelect from failing on unknown fds
+     * while ensuring the caller's channel I/O fires for stdout/stderr. */
     {
-        int fd;
+        int fd, result;
+        int extra = 0;
+        unsigned char saved_write[FD_SETSIZE / 8];
+
+        memset(saved_write, 0, sizeof(saved_write));
+
         for (fd = 0; fd < nfds; fd++) {
             if (amiport_is_socket(fd)) continue;
-            if (readfds) FD_CLR(fd, readfds);
-            if (writefds) FD_CLR(fd, writefds);
-            if (exceptfds) FD_CLR(fd, exceptfds);
+            if (readfds && FD_ISSET(fd, readfds))
+                FD_CLR(fd, readfds);
+            if (writefds && FD_ISSET(fd, writefds)) {
+                saved_write[fd / 8] |= (1 << (fd % 8));
+                FD_CLR(fd, writefds);
+                extra++;
+            }
+            if (exceptfds && FD_ISSET(fd, exceptfds))
+                FD_CLR(fd, exceptfds);
         }
-        return WaitSelect(nfds, readfds, writefds, exceptfds, timeout, NULL);
+
+        /* If console write data is pending, use short timeout so we
+         * don't block in WaitSelect while output sits in the buffer */
+        if (extra > 0) {
+            struct timeval poll_tv;
+            poll_tv.tv_sec = 0;
+            poll_tv.tv_usec = 10000;
+            result = WaitSelect(nfds, readfds, writefds, exceptfds, &poll_tv, NULL);
+        } else {
+            result = WaitSelect(nfds, readfds, writefds, exceptfds, timeout, NULL);
+        }
+        _sel_trace++;
+        if (_sel_trace > 25 && _sel_trace < 85) {
+            FILE *tf = fopen("WORK:sel.log", "a");
+            if (tf) {
+                fprintf(tf, "%d: n=%d ex=%d r0=%d w0=%d w1=%d res=%d\n",
+                    _sel_trace, nfds, extra,
+                    readfds ? FD_ISSET(0, readfds) : -1,
+                    writefds ? FD_ISSET(0, writefds) : -1,
+                    writefds ? FD_ISSET(1, writefds) : -1,
+                    result);
+                fclose(tf);
+            }
+        }
+
+        if (result < 0) return result;
+
+        for (fd = 0; fd < nfds; fd++) {
+            if ((saved_write[fd / 8] >> (fd % 8)) & 1) {
+                if (writefds) FD_SET(fd, writefds);
+            }
+        }
+
+        return result + extra;
     }
 #else
     (void)nfds; (void)readfds; (void)writefds;

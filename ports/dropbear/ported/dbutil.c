@@ -591,15 +591,24 @@ void setnonblocking(int fd) {
 #endif
 	fl = fcntl(fd, F_GETFL, 0);
 	if (fl == -1) {
-		/* F_GETFL shouldn't fail */
+#ifdef __AMIGA__
+		/* amiport: fcntl fails for console fds (stdin/stdout/stderr)
+		 * because amiport_fcntl only handles socket fds. Console I/O
+		 * is handled via AmigaDOS Read(Input())/Write(Output()). */
+		TRACE(("ignoring fcntl failure for fd %d on AmigaOS", fd))
+		return;
+#else
 		dropbear_exit("Couldn't set nonblocking");
+#endif
 	}
 
 	if (fcntl(fd, F_SETFL, fl | O_NONBLOCK) == -1) {
 		if (errno == ENODEV) {
-			/* Some devices (like /dev/null redirected in)
-			 * can't be set to non-blocking */
 			TRACE(("ignoring ENODEV for setnonblocking"))
+#ifdef __AMIGA__
+		} else if (errno == EINVAL) {
+			TRACE(("ignoring EINVAL for setnonblocking on AmigaOS"))
+#endif
 		} else {
 			dropbear_exit("Couldn't set nonblocking");
 		}
