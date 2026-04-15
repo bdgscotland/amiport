@@ -45,17 +45,20 @@ VAMOS = $(TOOLCHAIN_BIN)/vamos -C 68020 -s $(VAMOS_STACK)
 SHIM_LIB = ../../lib/posix-shim/libamiport.a
 
 HTTP_SRCS = ../../ports/amigit/ported/http_client.c \
-            ../../ports/amigit/ported/amissl_glue.c
+            ../../ports/amigit/ported/amissl_glue.c \
+            ../../ports/amigit/ported/pkt_line.c
 
 HEADERS = test_http_client.c \
+          test_pkt_line.c \
           ../shim/test_framework.h \
-          ../../ports/amigit/ported/http_client.h
+          ../../ports/amigit/ported/http_client.h \
+          ../../ports/amigit/ported/pkt_line.h
 
 .PHONY: all build run clean
 
 all: build run
 
-build: test_http_client
+build: test_http_client test_pkt_line
 
 $(SHIM_LIB):
 	$(MAKE) -C ../../lib/posix-shim
@@ -63,8 +66,12 @@ $(SHIM_LIB):
 test_http_client: test_http_client.c $(HTTP_SRCS) $(HEADERS) $(SHIM_LIB)
 	$(CC) $(CFLAGS) -o $@ test_http_client.c $(HTTP_SRCS) $(LDFLAGS)
 
-run: test_http_client
+test_pkt_line: test_pkt_line.c $(HTTP_SRCS) $(HEADERS) $(SHIM_LIB)
+	$(CC) $(CFLAGS) -o $@ test_pkt_line.c $(HTTP_SRCS) $(LDFLAGS)
+
+run: test_http_client test_pkt_line
 	VAMOS_MEM=$(VAMOS_MEM) $(VAMOS) ./test_http_client
+	VAMOS_MEM=$(VAMOS_MEM) $(VAMOS) ./test_pkt_line
 
 clean:
-	rm -f test_http_client
+	rm -f test_http_client test_pkt_line

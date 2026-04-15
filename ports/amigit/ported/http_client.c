@@ -68,6 +68,13 @@ struct http_conn {
 
     long   content_length;    /* -1 = unknown (read to EOF) */
     long   body_consumed;     /* bytes of body already returned */
+
+    /* Chunked transfer encoding state. Enabled by http_set_chunked.
+     * Mutually exclusive with content_length > 0. */
+    int    chunked;                 /* 1 = chunked decode active */
+    int    chunked_done;            /* 1 = terminator + trailers consumed */
+    int    chunk_needs_trailing_crlf; /* 1 = drain "\r\n" after chunk body */
+    long   chunk_remaining;         /* bytes left in current chunk */
 };
 
 http_io_t *
@@ -81,6 +88,23 @@ http_set_content_length(http_conn_t *conn, long length)
 {
     if (conn != NULL) {
         conn->content_length = length;
+        conn->body_consumed = 0;
+        conn->chunked = 0;
+        conn->chunked_done = 0;
+        conn->chunk_needs_trailing_crlf = 0;
+        conn->chunk_remaining = 0;
+    }
+}
+
+void
+http_set_chunked(http_conn_t *conn)
+{
+    if (conn != NULL) {
+        conn->chunked = 1;
+        conn->chunked_done = 0;
+        conn->chunk_needs_trailing_crlf = 0;
+        conn->chunk_remaining = 0;
+        conn->content_length = -1;
         conn->body_consumed = 0;
     }
 }
@@ -271,19 +295,188 @@ http_read_response_header(http_conn_t *conn,
     return HTTP_OK;
 }
 
+/* Return up to max bytes, draining rbuf residue first or pulling
+ * directly from the io. 0 == EOF, negative == error. */
+static int
+drain_or_read(http_conn_t *conn, void *buf, int max)
+{
+    int available;
+    int want;
+    int rc;
+
+    available = conn->rlen - conn->rpos;
+    if (available > 0) {
+        want = (available < max) ? available : max;
+        memcpy(buf, conn->rbuf + conn->rpos, (size_t)want);
+        conn->rpos += want;
+        return want;
+    }
+    rc = conn->io->read(conn->io, buf, max);
+    if (rc < 0) {
+        return HTTP_ERR_RECV;
+    }
+    return rc;
+}
+
+/* Read exactly n bytes. EOF before n is HTTP_ERR_EOF. */
+static int
+read_exact(http_conn_t *conn, void *buf, int n)
+{
+    char *out = (char *)buf;
+    int got = 0;
+    while (got < n) {
+        int r = drain_or_read(conn, out + got, n - got);
+        if (r < 0) {
+            return r;
+        }
+        if (r == 0) {
+            return HTTP_ERR_EOF;
+        }
+        got += r;
+    }
+    return n;
+}
+
+/* Parse a hex-size chunk header line (with optional ;extension).
+ * Returns the decoded size >= 0 on success, HTTP_ERR_PROTOCOL on
+ * malformed input or integer overflow. The size is clamped to the
+ * signed 32-bit range so long-chunk state can track it without
+ * unsigned/signed conversion hazards. */
+static long
+parse_chunk_size(const char *line, int len)
+{
+    unsigned long size = 0;
+    int i;
+    int digits = 0;
+
+    for (i = 0; i < len; i++) {
+        int c = (unsigned char)line[i];
+        int d;
+
+        if (c == ';' || c == ' ' || c == '\t') {
+            /* End of size field -- remainder is chunk-ext or
+             * lax server trailing whitespace, ignore. */
+            break;
+        }
+        if (c >= '0' && c <= '9') {
+            d = c - '0';
+        } else if (c >= 'a' && c <= 'f') {
+            d = 10 + (c - 'a');
+        } else if (c >= 'A' && c <= 'F') {
+            d = 10 + (c - 'A');
+        } else {
+            return HTTP_ERR_PROTOCOL;
+        }
+        /* Cap at 0x7FFFFFFF (INT32_MAX). Reject anything larger
+         * so downstream buffers can use signed 32-bit counters. */
+        if (size > 0x07FFFFFFUL) {
+            return HTTP_ERR_PROTOCOL;
+        }
+        size = size * 16UL + (unsigned long)d;
+        digits++;
+    }
+    if (digits == 0) {
+        return HTTP_ERR_PROTOCOL;
+    }
+    if (size > 0x7FFFFFFFUL) {
+        return HTTP_ERR_PROTOCOL;
+    }
+    return (long)size;
+}
+
+/* Chunked transfer decoder. Lazily advances the chunk state
+ * machine and returns up to max bytes of decoded body content.
+ * Returns 0 at end-of-body, negative on error. */
+static int
+read_body_chunked(http_conn_t *conn, void *buf, int max)
+{
+    char line[HTTP_MAX_HEADER_LINE];
+    char crlf[2];
+    long size;
+    int rc;
+    int want;
+
+    if (conn->chunked_done) {
+        return 0;
+    }
+
+    for (;;) {
+        /* Serve data from the current chunk if we have any. */
+        if (conn->chunk_remaining > 0) {
+            want = ((long)max < conn->chunk_remaining)
+                   ? max : (int)conn->chunk_remaining;
+            rc = drain_or_read(conn, buf, want);
+            if (rc < 0) {
+                return rc;
+            }
+            if (rc == 0) {
+                /* Peer closed mid-chunk. */
+                return HTTP_ERR_EOF;
+            }
+            conn->chunk_remaining -= rc;
+            conn->body_consumed += rc;
+            return rc;
+        }
+
+        /* Consume the mandatory CRLF that follows each chunk body. */
+        if (conn->chunk_needs_trailing_crlf) {
+            rc = read_exact(conn, crlf, 2);
+            if (rc < 0) {
+                return rc;
+            }
+            if (crlf[0] != '\r' || crlf[1] != '\n') {
+                return HTTP_ERR_PROTOCOL;
+            }
+            conn->chunk_needs_trailing_crlf = 0;
+        }
+
+        /* Read the next chunk-size line. */
+        rc = conn_read_line(conn, line, (int)sizeof(line));
+        if (rc < 0) {
+            return rc;
+        }
+
+        size = parse_chunk_size(line, rc);
+        if (size < 0) {
+            return (int)size;
+        }
+
+        if (size == 0) {
+            /* Terminator. Consume any trailer headers followed by
+             * the final empty CRLF line. */
+            for (;;) {
+                rc = conn_read_line(conn, line, (int)sizeof(line));
+                if (rc < 0) {
+                    return rc;
+                }
+                if (rc == 0) {
+                    break;
+                }
+            }
+            conn->chunked_done = 1;
+            return 0;
+        }
+
+        conn->chunk_remaining = size;
+        conn->chunk_needs_trailing_crlf = 1;
+        /* loop back to serve data */
+    }
+}
+
 int
 http_read_body(http_conn_t *conn, void *buf, int max)
 {
-    char *out;
-    int available;
-    int want;
     int rc;
 
     if (conn == NULL || buf == NULL || max <= 0) {
         return HTTP_ERR_INVAL;
     }
 
-    /* Clamp by Content-Length if known. */
+    if (conn->chunked) {
+        return read_body_chunked(conn, buf, max);
+    }
+
+    /* Content-Length / read-to-EOF path. */
     if (conn->content_length >= 0) {
         long remaining = conn->content_length - conn->body_consumed;
         if (remaining <= 0) {
@@ -294,22 +487,9 @@ http_read_body(http_conn_t *conn, void *buf, int max)
         }
     }
 
-    out = (char *)buf;
-
-    /* Drain any residue still in rbuf first. */
-    available = conn->rlen - conn->rpos;
-    if (available > 0) {
-        want = (available < max) ? available : max;
-        memcpy(out, conn->rbuf + conn->rpos, (size_t)want);
-        conn->rpos += want;
-        conn->body_consumed += want;
-        return want;
-    }
-
-    /* Otherwise go straight to the io. */
-    rc = conn->io->read(conn->io, out, max);
+    rc = drain_or_read(conn, buf, max);
     if (rc < 0) {
-        return HTTP_ERR_RECV;
+        return rc;
     }
     if (rc == 0 && conn->content_length > 0) {
         /* Unexpected EOF before Content-Length reached. */

@@ -11,7 +11,7 @@
  * without touching bsdsocket.library or amisslmaster.library.
  *
  * Phase 3 owns: Content-Length body reader only.
- * Phase 4 will extend: chunked transfer encoding.
+ * Phase 4 extends: chunked transfer encoding (this file).
  * Phase 5 will consume: transport_https.c https_action() wires
  *                        http_client into the libgit2 dispatch.
  */
@@ -138,10 +138,10 @@ int http_read_response_header(http_conn_t *conn,
 
 /*
  * http_read_body -- read up to max bytes of response body into buf.
- * Respects Content-Length seen during header iteration.
+ * Respects Content-Length seen during header iteration, or chunked
+ * transfer encoding if http_set_chunked() was called.
  * Returns the number of bytes read (0 at end-of-body), or negative
- * on error. Chunked transfer encoding is NOT supported in Phase 3
- * (Phase 4 adds it).
+ * on error.
  */
 int http_read_body(http_conn_t *conn, void *buf, int max);
 
@@ -152,6 +152,19 @@ int http_read_body(http_conn_t *conn, void *buf, int max);
  * use this directly; production code reads it from the headers.
  */
 void http_set_content_length(http_conn_t *conn, long length);
+
+/*
+ * http_set_chunked -- put the connection into HTTP/1.1 chunked
+ * transfer-encoding mode. Caller invokes this instead of
+ * http_set_content_length() when header iteration observes a
+ * "Transfer-Encoding: chunked" header. Subsequent http_read_body()
+ * calls transparently strip chunk size prefixes, CRLF separators,
+ * consume the terminating "0\r\n" chunk and any trailer headers.
+ *
+ * Chunked mode and Content-Length are mutually exclusive. Setting
+ * one overrides the other.
+ */
+void http_set_chunked(http_conn_t *conn);
 
 /* Low-level accessor for testing: expose the io vtable so tests
  * can verify the connection is plumbed correctly. */

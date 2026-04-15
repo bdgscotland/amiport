@@ -51,6 +51,7 @@ OBJECTS = ported/amigit.o \
           ported/transport_https.o \
           ported/http_client.o \
           ported/amissl_glue.o \
+          ported/pkt_line.o \
           ported/amigit_libgit2_stubs.o
 
 # Override SOURCES so common.mk's default single-file rule is bypassed.

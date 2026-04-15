@@ -710,14 +710,16 @@ The project is DONE when all of these are true:
 
 ## Session checkpoint (update in-place every session)
 
-**Current phase:** Phase 4 (pkt-line framing + chunked transfer
-encoding, 1 session). Phase 3 sessions 1, 2, AND 3 all complete.
-Session 3 landed the OpenAmiSSLTags rewrite, the FS-UAE A3000 +
-A4000 kickstart + 16 MB Zorro III RAM harness upgrade, AmiSSL
-cert staging, and a live HTTPS TEST block that actually returns
-a status code from https://amiport.platesteel.net/.
-Last update: 2026-04-14 (Phase 3 session 3 landed -- 95/95
-FS-UAE, live HTTPS proven working).
+**Current phase:** Phase 5 (service discovery via
+`GET /info/refs?service=git-upload-pack`, 1 session). Phase 4 is
+complete. Phase 4 landed `pkt_line.c/.h` (pkt-line framing with
+zero-copy decode, flush+delim specials, 23 unit tests) and
+extended `http_client.c` with a transparent chunked transfer-
+encoding decoder driven off a new `http_set_chunked()` API
+(11 unit tests). All three baseline suites still green:
+`tests/libgit2` 79/79, `tests/amigit-http-client` 25/25 + 26/26,
+FS-UAE 95/95.
+Last update: 2026-04-14 (Phase 4 landed -- pkt-line + chunked).
 
 **2026-04-14 plan change:** original Phase 3 (plain HTTP only)
 and original Phase 7 (AmiSSL integration) MERGED into the
@@ -731,12 +733,104 @@ If a previous session's handoff mentions "Phase 8" or "Phase 12"
 those refer to the OLD numbering -- see the current
 `## Phase plan` section for authoritative current numbering.
 
-**Last completed phase:** Phase 3 session 3 (final session of
-Phase 3). Still pending: real-hardware smoke test on Duncan's
+**Last completed phase:** Phase 4 (pkt-line framing + chunked
+transfer decoder, single session). Still pending (unchanged from
+the Phase 3 checkpoint): real-hardware smoke test on Duncan's
 A2000 + Vampire V2 500+ + X-Surf 100 + Roadshow + AmiSSL
 installer. That test can run whenever convenient -- it does NOT
-block Phase 4 work because the FS-UAE harness now proves the
-AmiSSL glue layer end-to-end.
+block Phase 5 work.
+
+**Phase 4 summary (2026-04-14):**
+
+Phase 4 added the two protocol layers that sit between raw HTTP
+byte I/O and libgit2's smart-HTTP state machine. Both layers were
+implemented, unit-tested, and verified without touching the
+transport_https.c stub or amissl_glue.c. Phase 5 will wire
+http_client + pkt_line + chunked into `https_action()`.
+
+**Landed changes:**
+
+- `ports/amigit/ported/pkt_line.h` + `ports/amigit/ported/pkt_line.c`
+  (~170 lines total). Pure-C pkt-line framing encoder/decoder.
+  `pkt_line_encode` writes a 4-byte lowercase hex prefix +
+  payload. `pkt_line_encode_flush` / `pkt_line_encode_delim`
+  write the special `"0000"` / `"0001"` frames. `pkt_line_decode`
+  is zero-copy: the `*out_payload` pointer lands inside the
+  caller's input buffer. Reserved lengths (0x0002, 0x0003) and
+  overlength prefixes (> 0xFFF0) are rejected with
+  `PKT_ERR_INVALID`. All error paths use negative return codes
+  (`PKT_ERR_TRUNCATED`, `PKT_ERR_INVALID`, `PKT_ERR_TOO_LONG`,
+  `PKT_ERR_INVAL`). No malloc, no I/O, no globals.
+- `ports/amigit/ported/http_client.h`: added `http_set_chunked()`
+  declaration, renamed the "Phase 3 owns / Phase 4 will extend"
+  comment to reflect that chunked is now landed.
+- `ports/amigit/ported/http_client.c`: extended `struct http_conn`
+  with 4 new chunked state fields (`chunked`, `chunked_done`,
+  `chunk_needs_trailing_crlf`, `chunk_remaining`). New
+  `http_set_chunked()` setter that mutually excludes
+  `http_set_content_length()`. Refactored the old inline
+  drain-or-read logic in `http_read_body()` into a static
+  `drain_or_read()` helper, plus a new `read_exact()` helper for
+  the fixed-length trailing CRLF after each chunk body.
+  `parse_chunk_size()` hex-decodes the chunk-size line, stops at
+  `;` / space / tab (for extensions), and rejects values
+  exceeding `0x7FFFFFFF` (prevents signed overflow when assigning
+  to `chunk_remaining`). The main state machine lives in
+  `read_body_chunked()` which loops over chunk boundaries until
+  either a byte is ready, clean EOS is hit (`0\r\n` + optional
+  trailer headers + final CRLF), or an error occurs.
+  `http_read_body()` branches on `conn->chunked` and dispatches
+  to the chunked path or the existing Content-Length path.
+- `ports/amigit/Makefile`: added `ported/pkt_line.o` to the
+  OBJECTS list so the amigit binary links the new module. Phase 5
+  will reference `pkt_line_encode`/`pkt_line_decode` from the
+  smart-HTTP subtransport callbacks.
+- `tests/amigit-http-client/test_pkt_line.c` (new, 26 tests).
+  Covers encode happy path (6), encode error path (4), decode
+  happy path (7), decode error path (6), and stress (3: max-
+  payload round trip, ref-advertisement-stream walk, max-payload
+  encode). Exercises the zero-byte-data-packet vs flush
+  distinction (the most likely semantic bug per test-designer's
+  note), the reserved-length rejection at 0x0002/0x0003, the
+  overlength-prefix rejection at 0xFFF1, and the NUL-in-payload
+  round trip. Static-allocated 65-KB scratch buffers keep the
+  stress test off the stack.
+- `tests/amigit-http-client/test_http_client.c`: appended 11 new
+  Phase 4 chunked decoder tests plus a `drain_chunked()` helper.
+  Covers single-chunk, zero-byte body, two-chunk sequencing,
+  partial reads (caller buffer smaller than chunk), uppercase hex
+  size, chunk extensions, trailer headers, invalid hex rejection,
+  unexpected-EOF-mid-chunk detection, 4-GB-chunk overflow
+  rejection, and a 65-KB stress test with 128 x 512-byte chunks
+  (rebuilt via `sprintf` into a static 70-KB scratch buffer).
+- `tests/amigit-http-client/Makefile`: now builds and runs TWO
+  test binaries, `test_http_client` and `test_pkt_line`. Shares
+  the same TOOLCHAIN_BIN/CFLAGS/LDFLAGS as before. `HTTP_SRCS`
+  gained `pkt_line.c` so both binaries link the new module.
+
+**Build and test results:**
+
+- `make -C tests/libgit2 run`: **79/79** (unchanged).
+- `make -C tests/amigit-http-client run`:
+  **test_http_client 25/25** (14 prior + 11 new chunked),
+  **test_pkt_line 26/26** (all new).
+- `make test-fsemu TARGET=ports/amigit`: **95/95** (unchanged --
+  amigit binary picks up `pkt_line.o` without any changes to
+  existing commands or the test-fsemu-cases.txt suite).
+- `ports/amigit/amigit` binary: linked against the new
+  `pkt_line.o`, no regression in the existing commands.
+
+**NOT done in Phase 4 (deferred to Phase 5):**
+
+- Wiring http_client + pkt_line + chunked into
+  `transport_https.c`'s `https_action()`. That is the sole goal
+  of Phase 5 and will replace the current
+  `GIT_ERROR_NOT_IMPLEMENTED` stub with a real
+  `git_smart_subtransport_stream.read()` implementation that
+  drives the io vtable through http_client and hands parsed
+  pkt-line frames back to libgit2.
+- Real-hardware smoke test (same as Phase 3). Still unblocking
+  for whenever convenient -- not a Phase 5 prerequisite.
 
 **Phase 3 session 3 summary (2026-04-14):**
 
