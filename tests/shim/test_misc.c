@@ -5,6 +5,7 @@
 #include "test_framework.h"
 #include <amiport/unistd.h>
 #include <amiport/sys/time.h>
+#include <amiport/compat.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -167,6 +168,37 @@ TEST(usleep_returns_zero)
     ASSERT_EQ(amiport_usleep(1), 0);
 }
 
+/* --- alloca tests (from compat.h) --- */
+
+TEST(alloca_basic)
+{
+    char *buf;
+    buf = (char *)alloca(64);
+    ASSERT_NOT_NULL(buf);
+    memset(buf, 'A', 64);
+    ASSERT_EQ(buf[0], 'A');
+    ASSERT_EQ(buf[63], 'A');
+}
+
+TEST(alloca_small)
+{
+    int *p;
+    p = (int *)alloca(sizeof(int));
+    ASSERT_NOT_NULL(p);
+    *p = 42;
+    ASSERT_EQ(*p, 42);
+}
+
+TEST(amiport_align_macro)
+{
+    ASSERT_EQ(AMIPORT_ALIGN(1), 4);
+    ASSERT_EQ(AMIPORT_ALIGN(2), 4);
+    ASSERT_EQ(AMIPORT_ALIGN(3), 4);
+    ASSERT_EQ(AMIPORT_ALIGN(4), 4);
+    ASSERT_EQ(AMIPORT_ALIGN(8), 8);
+    ASSERT_EQ(AMIPORT_ALIGN(16), 16);
+}
+
 int main(void)
 {
     (void)verstag;
@@ -183,6 +215,9 @@ int main(void)
     RUN_TEST(usleep_zero);
     RUN_TEST(usleep_small);
     RUN_TEST(usleep_returns_zero);
+    RUN_TEST(alloca_basic);
+    RUN_TEST(alloca_small);
+    RUN_TEST(amiport_align_macro);
 
     return test_summary();
 }

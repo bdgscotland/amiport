@@ -86,6 +86,41 @@ TEST(check_break_no_pending)
     ASSERT_EQ(amiport_check_break(), 0);
 }
 
+TEST(kill_returns_zero)
+{
+    ASSERT_EQ(amiport_kill(1, SIGINT), 0);
+    ASSERT_EQ(amiport_kill(0, SIGTERM), 0);
+    ASSERT_EQ(amiport_kill(99, 0), 0);
+}
+
+TEST(strsignal_known_signals)
+{
+    ASSERT_STR_EQ(amiport_strsignal(SIGHUP), "Hangup");
+    ASSERT_STR_EQ(amiport_strsignal(SIGINT), "Interrupt");
+    ASSERT_STR_EQ(amiport_strsignal(SIGQUIT), "Quit");
+    ASSERT_STR_EQ(amiport_strsignal(SIGPIPE), "Broken pipe");
+    ASSERT_STR_EQ(amiport_strsignal(SIGTERM), "Terminated");
+}
+
+TEST(strsignal_unknown_signal)
+{
+    ASSERT_STR_EQ(amiport_strsignal(99), "Unknown signal");
+    ASSERT_STR_EQ(amiport_strsignal(0), "Unknown signal");
+}
+
+TEST(kill_macro_works)
+{
+    /* Test that the convenience macro maps correctly */
+    ASSERT_EQ(kill(1, SIGINT), 0);
+}
+
+TEST(strsignal_macro_works)
+{
+    const char *s;
+    s = strsignal(SIGINT);
+    ASSERT_STR_EQ(s, "Interrupt");
+}
+
 int main(void)
 {
     (void)verstag;
@@ -98,6 +133,11 @@ int main(void)
     RUN_TEST(raise_sig_dfl);
     RUN_TEST(raise_invalid);
     RUN_TEST(check_break_no_pending);
+    RUN_TEST(kill_returns_zero);
+    RUN_TEST(strsignal_known_signals);
+    RUN_TEST(strsignal_unknown_signal);
+    RUN_TEST(kill_macro_works);
+    RUN_TEST(strsignal_macro_works);
 
     return test_summary();
 }

@@ -82,6 +82,28 @@ int amiport_sigprocmask(int how, const amiport_sigset_t *set,
 int amiport_nanosleep(const struct timespec *req,
                       struct timespec *rem);
 
+/* kill() -- AmigaOS has no POSIX process signals.
+ * Always returns 0 (success) as a no-op. */
+static inline int amiport_kill(int pid, int sig)
+{
+    (void)pid;
+    (void)sig;
+    return 0;
+}
+
+/* strsignal() -- return human-readable signal name */
+static inline const char *amiport_strsignal(int sig)
+{
+    switch (sig) {
+    case AMIPORT_SIGHUP:  return "Hangup";
+    case AMIPORT_SIGINT:  return "Interrupt";
+    case AMIPORT_SIGQUIT: return "Quit";
+    case AMIPORT_SIGPIPE: return "Broken pipe";
+    case AMIPORT_SIGTERM: return "Terminated";
+    default:              return "Unknown signal";
+    }
+}
+
 /* Convenience macros for drop-in replacement */
 #ifndef AMIPORT_NO_SIGNAL_MACROS
 #define SIGHUP    AMIPORT_SIGHUP
@@ -111,6 +133,8 @@ int amiport_nanosleep(const struct timespec *req,
  * but redefining would cause conflicts. Ports use struct timespec
  * from system headers or struct amiport_timespec from this header. */
 #define nanosleep(r, m)  amiport_nanosleep(r, m)
+#define kill(p, s)       amiport_kill(p, s)
+#define strsignal(s)     amiport_strsignal(s)
 #endif
 
 #endif /* AMIPORT_SIGNAL_H */

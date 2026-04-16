@@ -1,4 +1,4 @@
-Paths: ports/**/*.c, ports/**/*.h, lib/**/*.c, lib/**/*.h, examples/**/*.c, examples/**/*.h
+Paths: ports/**/*.c, ports/**/*.h, ports/**/*.cpp, ports/**/*.hpp, lib/**/*.c, lib/**/*.h, lib/**/*.cpp, lib/**/*.hpp, examples/**/*.c, examples/**/*.h
 
 # Known Pitfalls — Hard-Won Lessons
 
@@ -1180,3 +1180,83 @@ for (i = 0; i < n && out < len; i++) {
 Read into a temp buffer at half the requested size to leave room for expansion. This is specific to programs that forward raw bytes to a remote terminal -- local console programs (mg, less, nano) handle CSI 0x9B natively and don't need translation.
 
 Discovered in Dropbear SSH port (PDR-013 Phase 2, 2026-04-15).
+
+## bebbo-gcc 13.3 std::mutex/condition_variable Missing Without Gthreads
+
+bebbo-gcc 13.3 built with `--enable-threads=no` (the standard AmigaOS configuration) provides `std::thread`, `std::lock_guard`, and `std::unique_lock` from `<bits/std_thread.h>` and `<bits/std_mutex.h>`. However, `std::mutex`, `std::recursive_mutex`, and `std::condition_variable` are gated behind `_GLIBCXX_HAS_GTHREADS` and are NOT defined. Any C++ codebase that uses these types will fail to compile with `error: 'mutex' in namespace 'std' does not name a type`.
+
+**Fix:** Provide a stub header with no-op implementations:
+```cpp
+#ifndef _GLIBCXX_HAS_GTHREADS
+namespace std {
+    class mutex {
+    public:
+        void lock() {}
+        void unlock() {}
+        bool try_lock() { return true; }
+    };
+    class recursive_mutex {
+    public:
+        void lock() {}
+        void unlock() {}
+        bool try_lock() { return true; }
+    };
+    class condition_variable {
+    public:
+        void notify_one() {}
+        void notify_all() {}
+        template<typename Lock> void wait(Lock&) {}
+        template<typename Lock, typename Pred> void wait(Lock& lk, Pred p) { while (!p()) {} }
+    };
+}
+#endif
+```
+
+Include via `-include amiga_thread_stubs.h` before any source file. Do NOT define `std::thread` — it already exists in `bits/std_thread.h`. Do NOT define `std::lock_guard` or `std::unique_lock` — they exist in `bits/std_mutex.h` and `bits/unique_lock.h`.
+
+This is safe for any C++ port built with `-DNO_THREADS` or equivalent threading-disabled mode. On AmigaOS (single-process, no preemptive multitasking), the no-op stubs are functionally correct.
+
+Discovered in OpenTTD 13.4 feasibility spike (PDR-015, 2026-04-16). 123 of 455 files failed on this before the stub was added.
+
+## alloca() Missing from libnix
+
+libnix does not provide `alloca()`. Any code using `alloca()` (common in GNU projects, Squirrel scripting engine, etc.) fails with `'alloca' was not declared in this scope`.
+
+**Fix:** Add `-Dalloca=__builtin_alloca` to CFLAGS/CXXFLAGS. GCC's `__builtin_alloca` is always available and allocates on the stack identically to the standard `alloca()`.
+
+**Warning:** `alloca()` on AmigaOS is especially dangerous because stacks are small and non-growable. A `alloca(large_value)` will silently corrupt memory below the stack — no segfault, no guard page. Combine with `__stack = 65536` or higher if the codebase uses alloca extensively.
+
+Discovered in OpenTTD 13.4 feasibility spike (PDR-015, 2026-04-16).
+
+## kill() and strsignal() Missing from libnix
+
+libnix does not provide `kill()` (POSIX signal sending) or `strsignal()` (signal name lookup). These are referenced by crashlog implementations, signal handlers, and error reporting code.
+
+**Fix:** Stub both as no-ops:
+```c
+#ifdef __AMIGA__
+#define kill(pid, sig) (0)
+static const char *strsignal(int sig) { return "unknown signal"; }
+#endif
+```
+
+AmigaOS has no POSIX signals. `SetSignal()`/`CheckSignal()` exist but are a completely different mechanism (exec.library task signals, not process signals). Do not attempt to map `kill()` to AmigaOS signals — they are conceptually unrelated.
+
+Discovered in OpenTTD 13.4 feasibility spike (PDR-015, 2026-04-16).
+
+## bsdsocket-shim Has No SOCKET Typedef for C++ Consumers
+
+The bsdsocket-shim (`lib/bsdsocket-shim/`) provides socket functions via AmigaOS bsdsocket.library but does not define the `SOCKET` typedef expected by cross-platform C++ code. Many C++ network abstractions (OpenTTD, CURL wrappers, game engines) use `SOCKET` as a type alias for the socket file descriptor.
+
+**Fix:** Add to the bsdsocket-shim public header:
+```c
+#ifndef SOCKET
+typedef int SOCKET;
+#define INVALID_SOCKET -1
+#define SOCKET_ERROR -1
+#endif
+```
+
+This is the POSIX convention (`SOCKET` = `int`). Windows defines `SOCKET` as `UINT_PTR` but cross-platform code treats it as an opaque integer type.
+
+Discovered in OpenTTD 13.4 feasibility spike (PDR-015, 2026-04-16).

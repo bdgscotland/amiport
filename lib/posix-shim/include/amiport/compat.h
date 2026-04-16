@@ -68,5 +68,19 @@
  * Helps agents and reviewers identify affected functions. */
 #define AMIPORT_LARGE_STRUCT_RETURN /* requires -O0 on bebbo-gcc */
 
+/*
+ * alloca() shim
+ *
+ * libnix does not provide alloca(). GCC's __builtin_alloca is always
+ * available and is the standard implementation on all GCC targets.
+ *
+ * Warning: alloca() on AmigaOS is dangerous -- stacks are small
+ * (default 4KB) and non-growable. No guard page, no segfault on
+ * overflow. Always pair with adequate __stack cookie value.
+ */
+#ifndef alloca
+#define alloca(sz) __builtin_alloca(sz)
+#endif
+
 #endif /* __AMIGA__ */
 #endif /* AMIPORT_COMPAT_H */

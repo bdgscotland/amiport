@@ -23,7 +23,8 @@ The porting pipeline has 4 stages, each backed by a Claude skill:
 - `.claude/agents/` — 20 agent definitions (see agent table below for full list)
 - `lib/posix-shim/` — Tier 1: Direct POSIX-to-AmigaOS wrappers (`amiport_*` functions)
 - `lib/posix-emu/` — Tier 2: Approximate POSIX emulation with documented caveats (`amiport_emu_*` functions)
-- `lib/posix-shim/include/amiport/compat.h` — Platform compatibility fixes for 68k quirks (alignment, byte order). Not a function library — a header with macros for issues that break correct C on 68k. See crash-patterns #15, #16.
+- `lib/posix-shim/include/amiport/compat.h` — Platform compatibility fixes for 68k quirks (alignment, byte order, alloca). Not a function library — a header with macros for issues that break correct C on 68k. Includes `AMIPORT_ALIGN()` (crash-patterns #15, #16) and `alloca` → `__builtin_alloca` shim.
+- `lib/posix-shim/include/amiport/thread_stubs.h` — C++ threading stubs for bebbo-gcc 13.3 (`--enable-threads=no`). Provides no-op `std::mutex`, `std::recursive_mutex`, `std::condition_variable`. Use via `-include amiport/thread_stubs.h` for C++ ports with `-DNO_THREADS`. Safe on AmigaOS (no preemptive multitasking).
 - `lib/console-shim/` — Minimal ncurses + termcap API mapped to Amiga console.device ANSI escapes (ADR-009). Includes termcap (tgetent/tgetstr/tgoto/tparm) for programs like less, and curses (initscr/getch/addch) for ncurses programs.
 - `lib/posix-shim/include/amiport/termios.h` — Minimal termios shim mapping tcgetattr/tcsetattr to AmigaOS SetMode() for raw/cooked console mode. Used by terminal programs (less, nano, vim).
 - `lib/bsdsocket-shim/` — BSD socket API via bsdsocket.library with auto lifecycle (ADR-010). Includes getaddrinfo/freeaddrinfo (wraps gethostbyname), inet_ntop/inet_pton (pure C, IPv4), fcntl non-blocking sockets (IoctlSocket FIONBIO). Extended for PDR-013 Dropbear SSH.

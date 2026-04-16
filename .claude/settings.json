@@ -37,26 +37,26 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash scripts/hooks/block-original-edits.sh"
+            "command": "cd /Users/duncan/Developer/amiport && bash scripts/hooks/block-original-edits.sh"
           },
           {
             "type": "command",
-            "command": "bash scripts/hooks/block-root-files.sh",
+            "command": "cd /Users/duncan/Developer/amiport && bash scripts/hooks/block-root-files.sh",
             "statusMessage": "Checking file location..."
           },
           {
             "type": "command",
-            "command": "bash scripts/hooks/enforce-agents.sh",
+            "command": "cd /Users/duncan/Developer/amiport && bash scripts/hooks/enforce-agents.sh",
             "statusMessage": "Checking agent usage..."
           },
           {
             "type": "command",
-            "command": "bash scripts/hooks/enforce-adcd-lookup.sh",
+            "command": "cd /Users/duncan/Developer/amiport && bash scripts/hooks/enforce-adcd-lookup.sh",
             "statusMessage": "Checking ADCD requirements..."
           },
           {
             "type": "command",
-            "command": "bash scripts/hooks/check-c89-comments.sh",
+            "command": "cd /Users/duncan/Developer/amiport && bash scripts/hooks/check-c89-comments.sh",
             "statusMessage": "Checking C89 compliance..."
           }
         ]
@@ -66,16 +66,16 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash scripts/hooks/block-direct-gcc.sh"
+            "command": "cd /Users/duncan/Developer/amiport && bash scripts/hooks/block-direct-gcc.sh"
           },
           {
             "type": "command",
-            "command": "bash scripts/hooks/warn-direct-port-build.sh",
+            "command": "cd /Users/duncan/Developer/amiport && bash scripts/hooks/warn-direct-port-build.sh",
             "statusMessage": "Checking build pipeline..."
           },
           {
             "type": "command",
-            "command": "bash scripts/hooks/check-batch-completion.sh",
+            "command": "cd /Users/duncan/Developer/amiport && bash scripts/hooks/check-batch-completion.sh",
             "statusMessage": "Checking batch completion..."
           }
         ]
@@ -87,7 +87,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash scripts/hooks/capture-fsemu-learnings.sh",
+            "command": "cd /Users/duncan/Developer/amiport && bash scripts/hooks/capture-fsemu-learnings.sh",
             "timeout": 5,
             "statusMessage": "Checking for test learnings..."
           }
@@ -98,7 +98,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash scripts/hooks/auto-sync-catalog.sh",
+            "command": "cd /Users/duncan/Developer/amiport && bash scripts/hooks/auto-sync-catalog.sh",
             "timeout": 5,
             "statusMessage": "Syncing catalog..."
           }
@@ -110,7 +110,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash scripts/hooks/verify-before-stop.sh",
+            "command": "cd /Users/duncan/Developer/amiport && bash scripts/hooks/verify-before-stop.sh",
             "timeout": 10,
             "statusMessage": "Checking completion..."
           }
@@ -123,7 +123,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash scripts/hooks/save-port-context.sh",
+            "command": "cd /Users/duncan/Developer/amiport && bash scripts/hooks/save-port-context.sh",
             "statusMessage": "Preserving porting context..."
           }
         ]
@@ -134,7 +134,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash scripts/hooks/check-toolchain.sh",
+            "command": "cd /Users/duncan/Developer/amiport && bash scripts/hooks/check-toolchain.sh",
             "timeout": 15,
             "statusMessage": "Checking toolchain..."
           }
