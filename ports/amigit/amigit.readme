@@ -3,10 +3,10 @@ Type:         dev/misc
 Architecture: m68k-amigaos >= 68020
 Uploader:     duncan@bowring.us
 Author:       Duncan Bowring (amiport, built on libgit2)
-Version:      0.1-6
+Version:      0.1-7
 URL:          https://github.com/bdgscotland/amiport
 
-amigit 0.1-6 -- DEVELOPER PREVIEW
+amigit 0.1-7 -- DEVELOPER PREVIEW
 
 This is an early developer preview, NOT a stable git client.
 Suitable for early testers and feedback. Not yet suitable for
@@ -53,12 +53,22 @@ The init friction:
   the 0.1.x line and rolled back.
 
 Roadmap:
-  0.1-6 (this release) -- bundled libgit2 / zlib / posix-shim
+  0.1-7 (this release) -- development snapshot for the networking
+        track. HTTPS transport plumbing (PDR-012) progresses: HTTP
+        Basic auth sourcing from ENV:GIT_HTTP_TOKEN and ENV:
+        GIT_HTTP_USERNAME (with interactive raw-mode token prompt
+        fallback) and a 1-shot 401 retry inside the HTTPS
+        transport. Not yet user-visible because cmd_clone is still
+        a Phase 8 deliverable -- the 401 retry path only activates
+        when a libgit2 fetch state machine drives a credentialed
+        request, which needs cmd_clone to exist. 0.1-7 builds on
+        the 0.1-6 -m68020 library baseline; no perf regression.
+  0.1-6 (2026-04-14) -- bundled libgit2 / zlib / posix-shim
         rebuilt at -m68020 alongside the amigit binary itself.
         0.1-5 was a -m68020 binary linked against -m68000
         libraries, so the hot work (libgit2 pack/diff, zlib
         inflate, POSIX shims) was still running 68000 code.
-        0.1-6 fixes that: every code path in the final image
+        0.1-6 fixed that: every code path in the final image
         uses the 68020 instruction set. Noticeable on diff,
         log, and status over larger histories.
   0.2 -- init works from any volume + annotated tag messages

@@ -68,6 +68,7 @@
 #include "git2/sys/errors.h"
 
 #include "amigit.h"            /* AMIGIT_VERSION */
+#include "credential.h"        /* Phase 7: HTTP Basic auth sourcing */
 #include "http_client.h"
 #include "transport_https.h"
 
@@ -330,6 +331,16 @@ open_request_with_redirects(
     char current_url[AMIGIT_HTTPS_URL_MAX];
     int  redirects = 0;
 
+    /* Phase 7: 401 retry state. auth_header is either empty (no
+     * auth attempted yet) or holds the full "Authorization: Basic
+     * <base64>\r\n" line to append to the headers string on the
+     * next iteration. auth_attempted caps the retry at 1 so we do
+     * not loop forever on a server that persistently returns 401
+     * (e.g. wrong PAT). */
+    char auth_header[512];
+    int  auth_attempted = 0;
+    auth_header[0] = '\0';
+
     if (out != NULL) {
         memset(out, 0, sizeof(*out));
         out->content_length = -1;
@@ -425,6 +436,24 @@ open_request_with_redirects(
             (void)snprintf(errbuf, errbuf_sz,
                 "amigit: HTTPS request headers too long");
             return -1;
+        }
+        /* Phase 7: append the Authorization header if a prior 401
+         * retry populated it. The full "Authorization: Basic <b64>
+         * \r\n" line is already assembled in auth_header -- we just
+         * concatenate. Update hdrs_len so the POST Content-Type
+         * block below appends at the new position. */
+        if (auth_header[0] != '\0') {
+            int ah_extra = snprintf(headers + hdrs_len,
+                sizeof(headers) - (size_t)hdrs_len,
+                "%s", auth_header);
+            if (ah_extra < 0 ||
+                (size_t)hdrs_len + (size_t)ah_extra >= sizeof(headers)) {
+                (void)snprintf(errbuf, errbuf_sz,
+                    "amigit: HTTPS request headers too long "
+                    "after appending Authorization");
+                return -1;
+            }
+            hdrs_len += ah_extra;
         }
         if (content_type_hdr != NULL) {
             int extra = snprintf(headers + hdrs_len,
@@ -597,6 +626,98 @@ open_request_with_redirects(
             continue;
         }
 
+        /* Phase 7: 401 Unauthorized -> fetch credentials and retry.
+         *
+         * We cap the retry at 1: if the server still returns 401
+         * after we sent Authorization: Basic, fall through to the
+         * `status != 200` branch below with a clear error. This
+         * avoids an infinite auth loop when a stored PAT is wrong
+         * or expired.
+         *
+         * We deliberately do NOT drain the response body. The
+         * server was told Connection: close, so it will not reuse
+         * the connection; closing without draining is the same
+         * thing every redirect-retry already does (see the
+         * is_redirect branch above). TCP layer handles the cleanup.
+         *
+         * Security: all credential buffers are stack-local and are
+         * scrubbed via amigit_credential_zero before this block
+         * returns -- including on every error-return path. The
+         * only thing that survives into the retry iteration is
+         * auth_header, which holds the already-base64-encoded
+         * "Authorization: Basic <b64>\r\n" line. The plaintext
+         * credential never leaves this block.
+         */
+        if (status == 401 && !auth_attempted) {
+            char cred_user[128];
+            char cred_token[512];
+            char cred_pair[640];
+            char cred_b64[1024];
+            char cred_errbuf[256];
+            int  cred_pair_len;
+            int  cred_b64_len;
+            int  ah_built_len;
+
+            http_close(conn);
+            conn = NULL;
+
+            if (amigit_credential_get(cred_user, sizeof(cred_user),
+                                      cred_token, sizeof(cred_token),
+                                      cred_errbuf,
+                                      sizeof(cred_errbuf)) != 0) {
+                amigit_credential_zero(cred_user,  sizeof(cred_user));
+                amigit_credential_zero(cred_token, sizeof(cred_token));
+                (void)snprintf(errbuf, errbuf_sz,
+                    "amigit: HTTPS %s %s returned 401 and %s",
+                    method, req_path, cred_errbuf);
+                amigit_credential_zero(cred_errbuf, sizeof(cred_errbuf));
+                return -1;
+            }
+
+            cred_pair_len = snprintf(cred_pair, sizeof(cred_pair),
+                                     "%s:%s", cred_user, cred_token);
+            amigit_credential_zero(cred_user,  sizeof(cred_user));
+            amigit_credential_zero(cred_token, sizeof(cred_token));
+
+            if (cred_pair_len < 0 ||
+                (size_t)cred_pair_len >= sizeof(cred_pair)) {
+                amigit_credential_zero(cred_pair, sizeof(cred_pair));
+                (void)snprintf(errbuf, errbuf_sz,
+                    "amigit: credential pair exceeds buffer "
+                    "(username + token too long)");
+                return -1;
+            }
+
+            cred_b64_len = amigit_base64_encode(cred_pair,
+                                                (size_t)cred_pair_len,
+                                                cred_b64,
+                                                sizeof(cred_b64));
+            amigit_credential_zero(cred_pair, sizeof(cred_pair));
+
+            if (cred_b64_len < 0) {
+                amigit_credential_zero(cred_b64, sizeof(cred_b64));
+                (void)snprintf(errbuf, errbuf_sz,
+                    "amigit: base64 encoder overflow "
+                    "(credential pair too long)");
+                return -1;
+            }
+
+            ah_built_len = snprintf(auth_header, sizeof(auth_header),
+                "Authorization: Basic %s\r\n", cred_b64);
+            amigit_credential_zero(cred_b64, sizeof(cred_b64));
+
+            if (ah_built_len < 0 ||
+                (size_t)ah_built_len >= sizeof(auth_header)) {
+                amigit_credential_zero(auth_header, sizeof(auth_header));
+                (void)snprintf(errbuf, errbuf_sz,
+                    "amigit: Authorization header exceeds buffer");
+                return -1;
+            }
+
+            auth_attempted = 1;
+            continue;  /* resend with the Authorization header set */
+        }
+
         /* Non-redirect path. Only 200 is acceptable as a final status
          * for smart-HTTP -- the client does not follow 3xx to non-2xx
          * or interpret 4xx/5xx as anything but failure. */
@@ -605,6 +726,10 @@ open_request_with_redirects(
                 "amigit: HTTPS %s %s returned status %d (expected 200)",
                 method, req_path, status);
             http_close(conn);
+            /* Phase 7: scrub auth_header on this error path -- after
+             * a failed auth retry this holds a base64-encoded
+             * credential that could otherwise linger on the stack. */
+            amigit_credential_zero(auth_header, sizeof(auth_header));
             return -1;
         }
 
@@ -626,6 +751,10 @@ open_request_with_redirects(
             out->chunked = chunked_seen;
             out->content_length = content_length;
         }
+        /* Phase 7: scrub auth_header on the success path too. It
+         * held a base64-encoded credential; even though the stack
+         * frame will be reused, the volatile wipe is discipline. */
+        amigit_credential_zero(auth_header, sizeof(auth_header));
         return 0;
     }
 }

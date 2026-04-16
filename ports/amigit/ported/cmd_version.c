@@ -32,7 +32,7 @@ int amigit_cmd_version(int argc, char **argv)
      * call before git_libgit2_init (no allocation, no state). */
     (void)git_libgit2_version(&major, &minor, &patch);
 
-    printf("amigit %s (built 2026-04-14)\n", AMIGIT_VERSION);
+    printf("amigit %s (built 2026-04-15)\n", AMIGIT_VERSION);
     printf("libgit2 %d.%d.%d\n", major, minor, patch);
     printf("amiport posix-shim available\n");
 

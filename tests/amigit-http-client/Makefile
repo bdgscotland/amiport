@@ -48,17 +48,23 @@ HTTP_SRCS = ../../ports/amigit/ported/http_client.c \
             ../../ports/amigit/ported/amissl_glue.c \
             ../../ports/amigit/ported/pkt_line.c
 
+# Phase 7: credential.c stands alone (no http_client dependency) so
+# it gets its own source list. test_credential is built separately.
+CRED_SRCS = ../../ports/amigit/ported/credential.c
+
 HEADERS = test_http_client.c \
           test_pkt_line.c \
+          test_credential.c \
           ../shim/test_framework.h \
           ../../ports/amigit/ported/http_client.h \
-          ../../ports/amigit/ported/pkt_line.h
+          ../../ports/amigit/ported/pkt_line.h \
+          ../../ports/amigit/ported/credential.h
 
 .PHONY: all build run clean
 
 all: build run
 
-build: test_http_client test_pkt_line
+build: test_http_client test_pkt_line test_credential
 
 $(SHIM_LIB):
 	$(MAKE) -C ../../lib/posix-shim
@@ -69,9 +75,13 @@ test_http_client: test_http_client.c $(HTTP_SRCS) $(HEADERS) $(SHIM_LIB)
 test_pkt_line: test_pkt_line.c $(HTTP_SRCS) $(HEADERS) $(SHIM_LIB)
 	$(CC) $(CFLAGS) -o $@ test_pkt_line.c $(HTTP_SRCS) $(LDFLAGS)
 
-run: test_http_client test_pkt_line
+test_credential: test_credential.c $(CRED_SRCS) $(HEADERS) $(SHIM_LIB)
+	$(CC) $(CFLAGS) -o $@ test_credential.c $(CRED_SRCS) $(LDFLAGS)
+
+run: test_http_client test_pkt_line test_credential
 	VAMOS_MEM=$(VAMOS_MEM) $(VAMOS) ./test_http_client
 	VAMOS_MEM=$(VAMOS_MEM) $(VAMOS) ./test_pkt_line
+	VAMOS_MEM=$(VAMOS_MEM) $(VAMOS) ./test_credential
 
 clean:
-	rm -f test_http_client test_pkt_line
+	rm -f test_http_client test_pkt_line test_credential

@@ -710,23 +710,25 @@ The project is DONE when all of these are true:
 
 ## Session checkpoint (update in-place every session)
 
-**Current phase:** Phase 7 (credential callback -- GitHub PAT
-auth, 1 session). Phase 6 is complete. Phase 6 landed the
-upload-pack POST body path and one-level HTTPS redirect support,
-both routed through a shared `open_request_with_redirects`
-helper that replaces the Phase 5 open-sequence-inline in
-`https_action_uploadpack_ls`. The new
-`https_action_uploadpack_post` returns a deferred stream whose
-first `read()` calls `dispatch_post_if_needed` to issue the
-actual HTTP POST using a realloc-grown heap buffer (8 KB initial,
-8 MB cap) that libgit2 fills via repeated `stream->write` calls
-during want/have negotiation. All four suites still green:
-`tests/libgit2` 79/79, `tests/amigit-http-client` 25/25 + 26/26,
-FS-UAE 100/100 (was 97/97, +3 for the new Phase 6 probe tests
-that exercise the POST path end-to-end against
-amiport.platesteel.net).
-Last update: 2026-04-14 (Phase 6 landed -- upload-pack POST body
-+ redirect support).
+**Current phase:** Phase 8 (cmd_clone.c + amigit 0.2 release, 1
+session). Phase 7 is complete. Phase 7 landed the HTTP Basic auth
+path -- GitHub PAT sourcing via `ENV:GIT_HTTP_TOKEN` /
+`ENV:GIT_HTTP_USERNAME` with an interactive raw-mode prompt
+fallback, a 1-shot 401 retry wired into the shared
+`open_request_with_redirects` helper, an inline RFC 4648 base64
+encoder (no libtomcrypt dependency), and a volatile-wipe
+credential scrub helper used on every exit path. All four suites
+still green: `tests/libgit2` 79/79, `tests/amigit-http-client`
+25/25 + 26/26 + **17/17 (new test_credential vamos binary)**,
+FS-UAE `ports/amigit` 100/100 (unchanged -- Phase 7 does not add
+new FS-UAE tests because the 401-retry path needs a real 401
+responder, which the harness does not have; real-hardware
+verification is the authoritative Phase 7 gate, unblocked by
+Phase 8's `cmd_clone`). amigit binary is 1,225,036 bytes (was
+1,222,168 on Phase 6 -- +2,868 bytes for credential.c plus the
+401 retry block in transport_https.c).
+Last update: 2026-04-15 (Phase 7 landed -- credential callback +
+401 retry).
 
 **2026-04-14 plan change:** original Phase 3 (plain HTTP only)
 and original Phase 7 (AmiSSL integration) MERGED into the
@@ -740,20 +742,253 @@ If a previous session's handoff mentions "Phase 8" or "Phase 12"
 those refer to the OLD numbering -- see the current
 `## Phase plan` section for authoritative current numbering.
 
-**Last completed phase:** Phase 6 (upload-pack POST body +
-one-level HTTPS redirect support, single session). Still pending
-(unchanged from the Phase 3 checkpoint): real-hardware smoke
-test on Duncan's A2000 + Vampire V2 500+ + X-Surf 100 +
-Roadshow + AmiSSL installer. Phase 6 is where the real-hardware
-test graduates from "prove a ref list round trip works" to
-"prove a full clone happy-path works end-to-end" against
-github.com / codeberg.org. That test is blocked on Phase 8
-(`cmd_clone.c`) because the Phase 6 path is currently only
-reachable via `_https-probe --pack` against non-git servers (for
-wiring validation) or via libgit2's internal state machine
-(which Phase 8 will drive via `git_clone`). Does NOT block
-Phase 7 work -- Phase 7 adds the credential callback that
-Phase 8 will need.
+**Last completed phase:** Phase 7 (credential callback + 401
+retry, single session, 2026-04-15). Still pending (unchanged
+from the Phase 3 checkpoint, now newly valuable with Phase 7
+credentials available): real-hardware smoke test on Duncan's
+A2000 + Vampire V2 500+ + X-Surf 100 + Roadshow + AmiSSL
+installer. Phase 7 makes the first credentialed clone attempt
+possible -- with `SetEnv GIT_HTTP_TOKEN <pat>` the 401-retry path
+is now wired end-to-end. Real authentication verification
+requires a real server that actually sends 401; the FS-UAE
+harness cannot reliably provide one, so that gate still lives on
+real hardware. Blocked on Phase 8 (`cmd_clone.c`) because the
+Phase 6+7 paths are currently reachable only via `_https-probe`
+(which does not issue authenticated requests) or via libgit2's
+internal state machine (which Phase 8 will drive via `git_clone`
+and which will be the first consumer of the new credential code
+path in the real use case).
+
+**Phase 7 summary (2026-04-15):**
+
+Phase 7 wired HTTP Basic auth into the amigit HTTPS transport.
+Before this session, a 401 Unauthorized response from an origin
+server fell through to the "returned status 401 (expected 200)"
+error branch in `open_request_with_redirects`, meaning private
+repos were unreachable entirely. After this session, a 401
+triggers a 1-shot credential fetch + retry: amigit reads
+`ENV:GIT_HTTP_TOKEN` and (optionally) `ENV:GIT_HTTP_USERNAME`
+directly via AmigaDOS `Open/Read/Close`, falls back to an
+interactive prompt (cooked-mode username + raw-mode echo-off
+token via `SetMode(fh, 1)`) when stdin is a TTY, base64-encodes
+`user:token`, composes the `Authorization: Basic <b64>\r\n`
+header, and re-runs the request loop once. If the retry still
+returns 401 (bad PAT) the error surfaces cleanly with a
+user-actionable "HTTPS auth required but no credentials
+available" message naming both env vars.
+
+Architectural decision: Phase 7 does NOT route through libgit2's
+credential subsystem. The audit at the start of Phase 7 found
+that `lib/libgit2/src/libgit2/credential.c` is pruned in the
+amiport build and `git_credential_userpass_plaintext_new` does
+not link (only the wrapper `git_transport_smart_credentials` in
+`transports/smart.c` survives, and it has no callers anywhere in
+the un-pruned source). Rather than un-prune the credential
+subsystem (~1.5 KB additional link cost plus the risk of
+cascading un-prune requirements), Phase 7 wires the 401 retry
+entirely inside amigit's own transport layer. The credential
+callback is a plain C function (`amigit_credential_get`) called
+directly from `open_request_with_redirects`; libgit2 never
+learns there was a 401. Phase 8 `cmd_clone` can add a second
+pathway that honors `git_clone_options.fetch_opts.callbacks.
+credentials` if the un-prune cost is worth it; until then, the
+two supported credential sources are env vars and interactive
+prompt.
+
+Before KB query (enforced by `enforce-adcd-lookup.sh` Band 2):
+`amiga_pitfalls_for` on "libgit2 credential callback 401 retry",
+"libgit2 http basic authorization base64",
+"GetVar GIT_HTTP_TOKEN environment variable", and
+`amiga_search` for "getpass echo-off AmigaOS tcsetattr raw mode
+SetMode". Results confirmed three load-bearing pitfalls already
+captured in `known-pitfalls.md`: (a) `libnix getpass()` opens
+`/dev/tty` which does not exist on AmigaOS, so we must NOT call
+it -- Phase 7 uses `SetMode(Input(), 1)` + `Read()` directly;
+(b) `libnix getenv()` and `GetVar()` don't reliably read `ENV:`
+files in some process contexts (notably Execute script
+launches), so Phase 7 reads `ENV:<name>` via `Open/Read/Close`
+directly; (c) `vamos GetVar()` returns 0 for missing variables
+rather than -1, so any size check must be `len <= 0` not
+`len < 0` -- Phase 7's `read_env_var` returns -1 on both missing
+file AND empty file, and the vamos unit test exercises the
+not-set path. KB gap: no existing pitfall for
+"libgit2 credential callback 401 retry" -- logged automatically,
+and the audit finding (credential.c is pruned; direct internal
+wiring is the Phase 7 architecture) was captured as a project
+memory note for the next session.
+
+**Landed changes:**
+
+- `ports/amigit/ported/credential.h` (NEW, ~80 lines) -- public
+  API: `amigit_credential_get`, `amigit_base64_encode`,
+  `amigit_credential_zero`. Header-only declarations; all bodies
+  in credential.c.
+- `ports/amigit/ported/credential.c` (NEW, ~350 lines) -- three
+  public functions plus two static helpers (`read_env_var`,
+  `prompt_interactive`). `read_env_var` opens `ENV:<name>` via
+  AmigaDOS `Open(CONST_STRPTR, MODE_OLDFILE)` and trims trailing
+  CR/LF. `prompt_interactive` uses `fgets(stdin)` for the
+  username (cooked mode, echo visible) and `SetMode(fh, 1)` +
+  per-byte `Read(fh, &c, 1)` for the token (raw mode, no echo),
+  with backspace handling and a fallback echoed-read path if
+  SetMode fails. `amigit_credential_get` tries env vars first,
+  falls back to interactive prompt if stdin is a TTY, fails with
+  a clear "HTTPS auth required" error naming both env vars if
+  neither source produces a token. `amigit_base64_encode` is a
+  ~35-line inline RFC 4648 section 4 encoder with `=` padding
+  and explicit dst_sz bounds checking (no libtomcrypt
+  dependency). `amigit_credential_zero` is a volatile byte-loop
+  scrub that the optimizer cannot eliminate.
+- `ports/amigit/ported/transport_https.c` -- adds
+  `#include "credential.h"`, adds `char auth_header[512]` +
+  `int auth_attempted = 0` at the top of
+  `open_request_with_redirects`, conditionally appends
+  `auth_header` to the headers string when non-empty (cold path;
+  one byte-compare per request when empty), and adds a new
+  `if (status == 401 && !auth_attempted)` branch between the
+  `is_redirect` block and the `status != 200` error branch. The
+  new branch closes the connection, calls
+  `amigit_credential_get`, builds the Authorization header,
+  scrubs all plaintext buffers on every exit path, and
+  `continue`s the loop with `auth_attempted = 1` to cap the
+  retry at 1. Two defensive `amigit_credential_zero(auth_header,
+  sizeof(auth_header))` calls were added on the success return
+  and the final-status error return (the other error returns
+  from inside the loop happen before `auth_header` is set).
+- `ports/amigit/ported/amigit.h` / `amigit.c` / `cmd_version.c`
+  -- version strings bumped 0.1-6 -> 0.1-7, build date
+  2026-04-14 -> 2026-04-15.
+- `ports/amigit/Makefile` -- `REVISION` bumped 6 -> 7,
+  `ported/credential.o` added to `OBJECTS` right after
+  `transport_https.o`.
+- `ports/amigit/test-fsemu-cases.txt` -- version test updated
+  from "amigit 0.1-6 (built 2026-04-14)" to "amigit 0.1-7 (built
+  2026-04-15)" to match the new `$VER` tag. Still an exact
+  `EXPECT:` match (not `EXPECT_CONTAINS`) -- no test weakening.
+- `tests/amigit-http-client/test_credential.c` (NEW, ~250 lines)
+  -- 17 vamos unit tests covering: 7 RFC 4648 base64 vectors
+  (empty, "f", "fo", "foo", "foob", "fooba", "foobar"), a
+  realistic GitHub PAT shape ("git:<40-hex>"), base64 dst-too-
+  small rejection, base64 dst-exactly-fits success, base64
+  null-dst rejection, credential_zero full-wipe / partial-wipe /
+  zero-length-noop, and `amigit_credential_get` error paths
+  (no-creds returns -1 with GIT_HTTP_TOKEN in errbuf, tiny user
+  buffer rejected, null errbuf rejected). The interactive prompt
+  path is NOT covered here -- vamos has no console so
+  `IsInteractive(Input())` returns 0 and `prompt_interactive`
+  short-circuits. That path is reachable only on FS-UAE or real
+  hardware.
+- `tests/amigit-http-client/Makefile` -- new `test_credential`
+  target, new `CRED_SRCS` variable (just credential.c), test
+  added to `build` and `run` targets. credential.c is built
+  standalone without the http_client source set (no dependency).
+
+**Build and test results:**
+
+- `make -C tests/libgit2 run`: **79/79** (unchanged -- no
+  libgit2 edits in Phase 7).
+- `make -C tests/amigit-http-client run`: **test_http_client
+  25/25**, **test_pkt_line 26/26** (both unchanged -- Phase 7
+  does not touch http_client.c or pkt_line.c), **test_credential
+  17/17** (new Phase 7 coverage).
+- `make test-fsemu TARGET=ports/amigit`: **100/100** (unchanged
+  -- Phase 7 does not add FS-UAE tests for the 401 retry path
+  because the harness has no 401 responder). The one diff in
+  `test-fsemu-cases.txt` was a version-string update from 0.1-6
+  to 0.1-7 to match the new `$VER` tag; still an exact `EXPECT:`
+  match.
+- `ports/amigit/amigit` binary: **1,225,036 bytes** (was
+  1,222,168 on the Phase 6 baseline -- grew 2,868 bytes for
+  credential.c + the 401 retry block in transport_https.c). No
+  new link-time dependencies; credential.c uses only `proto/dos.h`
+  symbols that amigit already pulls in via libamiport.
+- Memory-checker: applied two defensive `amigit_credential_zero`
+  calls to `credential.c` on the fgets fallback paths (username
+  fgets failure and token fgets fallback EOF -- both rare but
+  the severity of a plaintext PAT on the stack makes defensive
+  scrubbing non-negotiable). All other concerns CLEAN:
+  auth_header scrub on success + final-status error paths,
+  token-in-errors audit CLEAN (no interpolation into errbuf),
+  base64 bounds CLEAN, stack pressure acceptable (~6.5 KB frame
+  vs 256 KB `__stack`), retry loop cap correct, reentrancy
+  CLEAN.
+- Perf-optimizer: CLEAN on HIGH/CRITICAL. Headline finding: the
+  credential path is entirely cold (runs once per 401, which is
+  a rare event) and the TLS handshake + TCP round-trips dominate
+  any CPU cost by 4-6 orders of magnitude. The happy-path
+  overhead for requests that never hit 401 is exactly one byte
+  load + one compare (`auth_header[0] != '\0'`) per loop
+  iteration -- about 4 cycles, invisible in any profiling trace.
+  One MEDIUM stack-frame observation (~6.5 KB `open_request_
+  with_redirects` frame) is bookkeeping only: `__stack` is 256
+  KB and the function is iterative, not recursive. No per-file
+  CFLAGS changes recommended; -O1 -m68020 stays.
+
+**NOT done in Phase 7 (deferred to Phase 8 or later):**
+
+- Real-hardware smoke test with a real PAT against a private
+  GitHub repo. Needs Phase 8's `cmd_clone` to exist. Phase 7 has
+  wired the path but it is only reachable via libgit2's internal
+  state machine, which only fires when `git_clone` is called
+  with a credentialed remote -- which Phase 8 provides.
+- Routing libgit2's own `git_remote_callbacks.credentials`
+  callback through amigit's credential helper. This would need
+  un-pruning `lib/libgit2/src/libgit2/credential.c` (~1.5 KB
+  link cost) or writing a small shim that fakes the credential
+  API surface. Phase 8 can evaluate this if cmd_clone needs to
+  honor a `-u user:token` flag or similar. For now the env var
+  + prompt sourcing is sufficient.
+- Removing the diagnostic `_https-probe` debug subcommand. Kept
+  through Phase 7 for manual testing; removed in Phase 8
+  alongside cmd_clone integration.
+- Credential caching across multiple requests in the same
+  process. Phase 7 calls `amigit_credential_get` once per 401,
+  which means an interactive prompt would re-prompt for each
+  retry. In practice amigit makes at most 2-3 requests per
+  invocation (LS-remote discovery + upload-pack POST) and a
+  single clone is a single process, so this is not a problem in
+  the real use case. Phase 8 may cache if cmd_clone's work
+  patterns warrant it.
+
+**Phase 8 hints (what the next session should know):**
+
+Phase 8 implements `amigit clone <url> [path]` and cuts the 0.2
+release. The foundation is complete:
+1. Transport layer handles GET, POST, and 401 retry.
+2. Credentials come from env vars or interactive prompt.
+3. All four test suites are green.
+
+Phase 8 work:
+- `ports/amigit/ported/cmd_clone.c` -- URL parsing, path
+  resolution, `git_clone_options` setup, transport registration
+  (via the existing `amigit_transport_https_register`), progress
+  callback wiring, error handling.
+- Register `amigit_transport_https_register` early in main()
+  BEFORE the `cmd_clone` dispatch runs so the transport is
+  active for `git_clone`.
+- Remove `cmd_https_probe.c` and the `_https-probe` dispatch
+  table entries. The diagnostic probe has served its purpose.
+- Decide whether to pull libgit2's credential subsystem via an
+  un-prune or keep the direct-internal wiring. Recommendation:
+  keep direct-internal. Phase 7's architecture has zero libgit2
+  coupling and the env var + prompt paths cover every practical
+  use case.
+- Version bump to 0.2 (not 0.1-8). This is the "can I use git
+  on my Amiga" threshold -- it's a real feature release.
+- Full metadata sweep: PORTS.md, README.md, data/catalog.json,
+  site catalogs, amigit.readme, PORT.md.
+
+**Other-session boundaries (unchanged from Phase 6):** a
+parallel dropbear session has uncommitted changes in
+`lib/bsdsocket-shim/src/socket.c` and `ports/dropbear/**`. Phase
+7 did NOT touch either -- the bsdsocket-shim on disk (with
+those uncommitted changes) was linked into Phase 7's binary via
+`-lamiport-net` and all test suites passed, so the uncommitted
+delta is compatible with Phase 7. The `amiport_libgit2_stubs.c`
+soft-float overrides (`__divsf3`, `__floatunsisf`) stay critical
+through Phases 7 and 8; do not remove them until after real-
+hardware clone profiling confirms nothing still pulls them from
+libgit2's `patch_generate.c`.
 
 **Phase 6 summary (2026-04-14):**
 

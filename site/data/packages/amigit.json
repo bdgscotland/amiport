@@ -1,7 +1,7 @@
 {
     "name": "amigit",
     "version": "0.1",
-    "revision": 6,
+    "revision": 7,
     "description": "Local git CLI for AmigaOS 3.x (preview)",
     "category": "dev/misc",
     "source": "amiport-native (libgit2 1.8.5)",
