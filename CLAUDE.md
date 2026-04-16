@@ -50,6 +50,7 @@ The porting pipeline has 4 stages, each backed by a Claude skill:
   - `site/js/terminal-anim.js` — Hero typing animation (respects prefers-reduced-motion)
   - `site/api/v1/` — PHP API endpoints (packages, stats, download, vote, request, activity — the activity endpoint merges news.json entries into the feed)
 - `toolchain/` — Cross-compiler Docker images, build scripts, target profiles
+- `toolchain/docker/Dockerfile.bebbo-gcc13` — GCC 13.3.0 C++17 cross-compiler image (builds on Linux, includes `reent.h` patch for libnix)
 - `toolchain/keyinject/` — KeyInject: keyboard event injector for functional interactive testing via AddIEvents() (ADR-023)
 - `toolchain/screenread/` — ScreenRead: ConUnit cursor reader for visual test cursor verification (ADR-025)
 - `scripts/inject-keys.sh` — Host-side key injection via macOS osascript for visual tests (ADR-025). Batches all keystrokes into a single osascript call (~1.7s overhead)
@@ -162,6 +163,10 @@ Revision 1 is implicit — never shown. Run `make check-port-metadata` to valida
 Primary: **bebbo/amiga-gcc** (`m68k-amigaos-gcc`) in Docker
 Secondary: **VBCC** (`vc`) in Docker
 
+**Two Docker images available:**
+- `ghcr.io/bdgscotland/amiport-toolchain:latest` — GCC 6.5.0b (C89/C99/C++14). Default for all C ports.
+- `ghcr.io/bdgscotland/amiport-toolchain-gcc13:latest` — GCC 13.3.0 (full C++17). For OpenTTD and modern C++ ports. Built from `toolchain/docker/Dockerfile.bebbo-gcc13`. Includes `reent.h` patch for libnix/libstdc++ compatibility.
+
 The toolchain scripts in `toolchain/scripts/` handle detection and invocation. Always use these scripts rather than calling compilers directly.
 
 ## Testing
@@ -243,7 +248,7 @@ The amiga-kb MCP server must be running (`docker compose up -d` in the amiga-kb 
 
 **ADRs:** `docs/adr/008` (tiers), `009` (console), `010` (bsdsocket), `011` (categories), `014` (FS-UAE testing), `015` (CI/quality), `016` (debug agent), `017` (hooks enforcement), `018` (ADCD knowledge base), `019` (agent persona matrix), `020` (git hooks validation), `021` (design system — MUI warm gray), `022` (C99 compiler support), `023` (automated interactive testing), `024` (visual verification), `025` (screen read trap — interactive cursor verification), `026` (CPython port)
 
-**PDRs:** `docs/pdr/001` (target audience), `002` (MVP wc port), `003` (ports directory + Aminet), `004` (Aminet research first), `005` (committed binaries), `006` (FS-UAE mandatory for all categories), `007` (design system redesign), `008` (SDL2 AmigaOS3 vision), `009` (hardware expansion + SDL), `013` (Dropbear SSH client)
+**PDRs:** `docs/pdr/001` (target audience), `002` (MVP wc port), `003` (ports directory + Aminet), `004` (Aminet research first), `005` (committed binaries), `006` (FS-UAE mandatory for all categories), `007` (design system redesign), `008` (SDL2 AmigaOS3 vision — delivered, partially superseded by PDR-014), `009` (hardware expansion + SDL), `013` (Dropbear SSH client), `014` (fold SDL game ports into amiport as Category 5)
 
 **Shim references (in amiga-kb):** Use `amiga_search "bsd socket mapping"`, `amiga_search "newlib availability"` etc. ADCD FUNCTIONS.md and TYPES.md still local at `docs/references/adcd/`.
 

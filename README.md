@@ -170,6 +170,8 @@ Most porting failures come from the POSIX gap. amiport bridges it with a three-t
 | [oniguruma](lib/oniguruma/) | Perl-compatible regex engine (for jq) | `-loniguruma` |
 | [zlib](lib/zlib/) | DEFLATE/gzip/zlib compression (zlib 1.3.1, for libgit2) | `-lz` |
 | [libgit2](lib/libgit2/) | Embedded git library (libgit2 1.8.5, pruned, for amigit) | `-lgit2 -lz -lamiport -lm` |
+| [libtommath](lib/libtommath/) | Big integer arithmetic (for LibTomCrypt/Dropbear) | `-ltommath` |
+| [libtomcrypt](lib/libtomcrypt/) | Cryptographic primitives (for Dropbear SSH) | `-ltomcrypt` |
 
 **Tier 1** (posix-shim) covers functions where POSIX and AmigaOS semantics map cleanly: `open`, `read`, `stat`, `opendir`, `getopt`, `glob`, `fnmatch`, `scandir`, etc. Drop-in replacements, no caveats.
 
@@ -273,9 +275,24 @@ Release announcements and project updates are published via the `/post-news` ski
 
 See [CLAUDE.md](CLAUDE.md) for coding conventions, pipeline rules, and the full contributor guide.
 
+## Toolchain
+
+Two cross-compiler Docker images are available:
+
+| Image | GCC | C++ | Use Case |
+|-------|-----|-----|----------|
+| `ghcr.io/bdgscotland/amiport-toolchain:latest` | 6.5.0b | C++14 | Default for all C ports |
+| `ghcr.io/bdgscotland/amiport-toolchain-gcc13:latest` | 13.3.0 | **C++17** | OpenTTD, game ports, modern C++ |
+
+Build the GCC 13.3 image locally:
+```bash
+docker build -t ghcr.io/bdgscotland/amiport-toolchain-gcc13:latest \
+  -f toolchain/docker/Dockerfile.bebbo-gcc13 toolchain/docker/
+```
+
 ## Acknowledgments
 
-- [bebbo/amiga-gcc](https://codeberg.org/bebbo/amiga-gcc) — m68k cross-compiler (GCC 6.5.0b)
+- [bebbo/amiga-gcc](https://codeberg.org/bebbo/amiga-gcc) — m68k cross-compiler (GCC 6.5.0b + 13.3.0)
 - [amigadev/m68k-amigaos-gcc](https://hub.docker.com/r/amigadev/m68k-amigaos-gcc) — pre-built cross-compiler Docker image
 - [amitools/vamos](https://github.com/cnvogelg/amitools) — virtual AmigaOS runtime for headless testing
 - [FS-UAE](https://fs-uae.net) — Amiga emulator for full-system testing
