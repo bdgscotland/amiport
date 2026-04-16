@@ -9,7 +9,11 @@ DESCRIPTION = SSH client for AmigaOS (68020+)
 
 include ../common.mk
 
-PROGRAM = dbclient
+TARGET = dbclient
+PROGRAM = $(TARGET)
+
+# Override LHA_CMD because port directory (dropbear) != TARGET (dbclient)
+LHA_CMD = docker run --rm -v $(shell cd ../.. && pwd):/work -w /work/ports/dropbear/.pkg amigadev/crosstools:m68k-amigaos lha
 
 TOOLCHAIN_BIN = ../../toolchain/scripts
 CC = $(TOOLCHAIN_BIN)/m68k-amigaos-gcc
@@ -98,8 +102,17 @@ CLI_SRCS = \
 AMIGA_SRCS = \
     ported/dropbear_stubs.c
 
+# dropbearkey-specific objects
+KEY_SRCS = \
+    ported/dropbearkey.c \
+    ported/keyimport.c \
+    ported/signkey_ossh.c
+
 ALL_SRCS = $(COMMON_SRCS) $(CLISVRCOMMON_SRCS) $(CLI_SRCS) $(AMIGA_SRCS)
 OBJS = $(ALL_SRCS:.c=.o)
+
+KEY_ALL_SRCS = $(COMMON_SRCS) $(KEY_SRCS) $(AMIGA_SRCS)
+KEY_OBJS = $(KEY_ALL_SRCS:.c=.o)
 
 LDFLAGS = -noixemul -m68020
 LIBS = -L../../lib/libtomcrypt -ltomcrypt \
@@ -113,14 +126,18 @@ VAMOS_CPU = 68020
 
 .PHONY: all clean
 
-all: $(PROGRAM)
+all: $(PROGRAM) dropbearkey
 
 $(PROGRAM): $(OBJS)
 	$(CC) $(LDFLAGS) -o $@ $(OBJS) $(LIBS)
+	@ls -la $@
+
+dropbearkey: $(KEY_OBJS)
+	$(CC) $(LDFLAGS) -o $@ $(KEY_OBJS) $(LIBS)
 	@ls -la $@
 
 ported/%.o: ported/%.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-	rm -f ported/*.o $(PROGRAM)
+	rm -f ported/*.o $(PROGRAM) dropbearkey

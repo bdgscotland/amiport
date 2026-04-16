@@ -5,18 +5,18 @@
 | Field | Value |
 |-------|-------|
 | Program | amigit |
-| Version | 0.1-7 |
+| Version | 0.2 |
 | Source | amiport-native (hand-written on libgit2 1.8.5) |
 | Category | 1 -- CLI tool |
 | License | GPL-2.0 (libgit2) + MIT (amiport code) |
 | Original Author | Duncan Bowring (amiport project) |
 | Port Date | 2026-04-13 |
-| Last Update | 2026-04-15 (revision 7) |
+| Last Update | 2026-04-15 (0.2 release) |
 | Maturity | **Developer preview** -- not yet stable for daily use |
 
 ## Status
 
-**0.1-7 (2026-04-15) -- DEVELOPER PREVIEW.** PDR-012 Phase 7
+**0.2 (2026-04-15) -- DEVELOPER PREVIEW.** PDR-012 Phase 7
 landed: HTTP Basic auth sourcing via `ENV:GIT_HTTP_TOKEN` /
 `ENV:GIT_HTTP_USERNAME` with interactive raw-mode token prompt
 fallback, plus a 1-shot 401 retry inside the HTTPS transport.
@@ -25,7 +25,7 @@ All four test suites green: libgit2 79/79, amigit-http-client
 FS-UAE `ports/amigit` 100/100. Binary 1.17 MB (up 3 KB from
 0.1-6). The credential code is reachable only when libgit2's
 fetch state machine drives a credentialed request, which needs
-`cmd_clone` (Phase 8) to exist -- so 0.1-7 is a development
+`cmd_clone` (Phase 8) to exist -- so 0.2 is a development
 snapshot, not a user-visible feature release. The 0.2 release
 will ship Phase 7+Phase 8 together with cmd_clone as the entry
 point.

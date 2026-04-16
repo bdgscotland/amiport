@@ -149,6 +149,16 @@ int signkey_generate(enum signkey_type keytype, int bits, const char* filename, 
 	key = NULL;
 	buf_setpos(buf, 0);
 
+	/* amiport: write directly to final filename. AmigaOS is single-process,
+	 * no race condition to protect against. libnix link() is a no-op that
+	 * silently returns 0 without creating a hard link, causing the temp
+	 * file to be deleted and the final file to never exist. */
+#ifdef __AMIGA__
+	ret = buf_writefile(buf, filename, skip_exist);
+	if (ret == DROPBEAR_FAILURE) {
+		goto out;
+	}
+#else
 	fn_temp = m_malloc(strlen(filename) + 30);
 	snprintf(fn_temp, strlen(filename)+30, "%s.tmp%d", filename, getpid());
 	ret = buf_writefile(buf, fn_temp, 0);
@@ -158,11 +168,8 @@ int signkey_generate(enum signkey_type keytype, int bits, const char* filename, 
 	}
 
 	if (link(fn_temp, filename) < 0) {
-		/* If generating keys on connection (skipexist) it's OK to get EEXIST 
-		- we probably just lost a race with another connection to generate the key */
 		if (!(skip_exist && errno == EEXIST)) {
 			if (errno == EPERM || errno == EACCES || errno == ENOSYS) {
-				/* Non-atomic fallback when hard-links not allowed or unsupported */
 				buf_setpos(buf, 0);
 				ret = buf_writefile(buf, filename, skip_exist);
 			} else {
@@ -174,6 +181,7 @@ int signkey_generate(enum signkey_type keytype, int bits, const char* filename, 
 			goto out;
 		}
 	}
+#endif
 
 	/* ensure directory update is flushed to disk, otherwise we can end up
 	with zero-byte hostkey files if the power goes off */

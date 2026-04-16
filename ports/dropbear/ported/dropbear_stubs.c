@@ -100,6 +100,14 @@ char *amiport_getpass(const char *prompt)
     return getpass_buf;
 }
 
+/* --- gethostname: return "amiga" on AmigaOS --- */
+int gethostname(char *name, size_t len)
+{
+    if (len < 6) return -1;
+    strlcpy(name, "amiga", len);
+    return 0;
+}
+
 /* --- setsid: no sessions on AmigaOS --- */
 int setsid(void)
 {

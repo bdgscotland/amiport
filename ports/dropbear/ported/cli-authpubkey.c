@@ -289,7 +289,14 @@ void cli_auth_pubkey_cleanup() {
 
 	while (cli_opts.privkeys->first) {
 		sign_key * key = list_remove(cli_opts.privkeys->first);
+#ifdef __AMIGA__
+		/* amiport: skip sign_key_free() -- causes AN_MemCorrupt (8100 0005)
+		 * on exit. m_burn inside sign_key_free likely overwrites adjacent
+		 * memory headers on 68k. Leaks ~100 bytes per key. */
+		(void)key;
+#else
 		sign_key_free(key);
+#endif
 	}
 }
 #endif /* Pubkey auth */

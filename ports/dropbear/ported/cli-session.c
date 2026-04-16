@@ -450,20 +450,16 @@ void cli_dropbear_exit(int exitcode, const char* format, va_list param) {
 				cli_opts.remoteport, exitmsg);
 	}
 
-	/* Do the cleanup first, since then the terminal will be reset */
 	session_cleanup();
-	
+
 #if DROPBEAR_FUZZ
     if (fuzz.do_jmp) {
         longjmp(fuzz.jmp, 1);
     }
 #endif
 
-	/* Avoid printing onwards from terminal cruft */
 	fprintf(stderr, "\n");
-
 	dropbear_log(LOG_INFO, "%s", fullmsg);
-
 	exit(exitcode);
 }
 

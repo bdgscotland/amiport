@@ -24,13 +24,9 @@ struct group {
     char **gr_mem;
 };
 
-/* amiport: return a static passwd struct so callers don't warn.
- * AmigaOS is single-user; home dir is S: (system directory). */
-static struct passwd _amiga_pw = {
-    "amiga", "*", 0, 0, "S:", "/bin/sh"
-};
-static inline struct passwd *getpwuid(int uid) { (void)uid; return &_amiga_pw; }
-static inline struct passwd *getpwnam(const char *n) { (void)n; return &_amiga_pw; }
+/* getpwuid/getpwnam: return NULL (no user database) */
+static inline struct passwd *getpwuid(int uid) { (void)uid; return 0; }
+static inline struct passwd *getpwnam(const char *n) { (void)n; return 0; }
 
 /* libnix unistd.h declares getuid, geteuid, getgid, getegid,
  * getgroups, fork, pipe, daemon -- don't redefine.

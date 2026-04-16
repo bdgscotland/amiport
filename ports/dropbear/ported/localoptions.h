@@ -79,7 +79,11 @@
 #define DEFAULT_IDLE_TIMEOUT 0
 
 /* === AMIGAOS PATHS === */
-#define DROPBEAR_DEFAULT_CLI_AUTHKEY "S:.ssh/id_dropbear"
+/* amiport: no default key path -- user must pass -i explicitly.
+ * Auto-loading a key triggers sign_key_free() on exit which causes
+ * AN_MemCorrupt (8100 0005). Explicit -i avoids the cleanup path
+ * when no key is used (password auth). */
+#define DROPBEAR_DEFAULT_CLI_AUTHKEY ""
 #define DEFAULT_PATH "C:"
 
 /* === NO ENTROPY DEVICE === */

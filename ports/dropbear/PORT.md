@@ -5,6 +5,7 @@
 | Field | Value |
 |-------|-------|
 | **Upstream** | Dropbear SSH 2025.89 |
+| Version | 2025.89 |
 | **Port binary** | `dbclient` |
 | **Category** | 4 (Network) |
 | **CPU target** | 68020+ (Vampire V2, A1200+030/040/060) |

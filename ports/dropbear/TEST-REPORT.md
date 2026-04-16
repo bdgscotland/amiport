@@ -5,8 +5,8 @@
 | Field | Value |
 |-------|-------|
 | Port | dropbear |
-| Date | 2026-04-15 20:05:44 |
-| Duration | 83s |
+| Date | 2026-04-15 21:18:20 |
+| Duration | 85s |
 | Platform | FS-UAE 3.2.35 (A1200, Kickstart 3.1) |
 | Binary | `WORK:dropbear` (unknown) |
 | Test method | ARexx harness → TAP output |
