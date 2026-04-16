@@ -56,6 +56,18 @@ function sanitize_package(array $raw): array
     } else {
         $pkg['requires'] = [];
     }
+    if (isset($raw['screenshots']) && is_array($raw['screenshots'])) {
+        $pkg['screenshots'] = $raw['screenshots'];
+    }
+    if (isset($raw['roadmap']) && is_array($raw['roadmap'])) {
+        $pkg['roadmap'] = $raw['roadmap'];
+    }
+    if (isset($raw['hardware_requirements']) && is_array($raw['hardware_requirements'])) {
+        $pkg['hardware_requirements'] = $raw['hardware_requirements'];
+    }
+    if (isset($raw['gameplay_info']) && is_array($raw['gameplay_info'])) {
+        $pkg['gameplay_info'] = $raw['gameplay_info'];
+    }
     return $pkg;
 }
 
