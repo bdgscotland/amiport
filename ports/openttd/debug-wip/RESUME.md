@@ -88,3 +88,38 @@ If `NetworkStartUp()` blocks because bsdsocket isn't open: could either
 (a) ensure bsdsocket-shim's auto-init runs at startup, (b) compile with
 `-DENABLE_NETWORK=0` (likely a CMake option) to skip network entirely
 for the first runnable build.
+
+---
+
+## UPDATE 2026-04-16 (continuation)
+
+Bisection continued past `OTTD: L8 after BaseGraphics::FindSets`. Now reaching `OTTD: N3 before NetworkStartUp` — past 11 more init steps:
+- BaseGraphics::SetSet ✓
+- GfxInitPalettes ✓
+- Debug(misc, 1, "Loading blitter...") ✓ (not formatted because misc level=0, filtered out)
+- BlitterFactory::SelectBlitter ✓
+- DriverFactoryBase::SelectDriver(videodriver) ✓ ("dedicated" driver)
+- InitializeSpriteSorter ✓
+- _screen.zoom assignment ✓
+- AdjustGUIZoom — CRASHED, **bypassed** (dedicated server doesn't need GUI zoom)
+
+Next blocker: **NetworkStartUp()** — almost certainly needs bsdsocket.library
+auto-open. Either:
+1. Wire bsdsocket-shim's auto-init into the openttd binary (preferred — production)
+2. Compile with -DENABLE_NETWORK=0 to skip (faster but loses dedicated server functionality)
+
+For a "first runnable" milestone, option 2 may be cleaner.
+
+## fmt::format observation
+
+Debug(misc, 1, "...") works because misc debug level=0 (default), so the
+log is filtered out before formatting. The earlier Debug(net, 3, ...) crashed
+because we had `-D` which set net debug level=4, so 3<4 triggered formatting.
+This means **fmt::format itself is broken at -O1** (or at least when called
+with `_openttd_revision` as argument). This will bite us repeatedly as openttd
+loads more code with active debug categories.
+
+Possible workarounds:
+- Try -O2 (different codegen for templates)
+- Replace OpenTTD's fmt::format with snprintf wrappers (large patch)
+- Set ALL debug categories to 0 in cli args (no Debug() output at all)

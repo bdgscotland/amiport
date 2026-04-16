@@ -743,7 +743,9 @@ int openttd_main(int argc, char *argv[])
 	BaseGraphics::FindSets();
 	diaglog("OTTD: L8 after BaseGraphics::FindSets");
 	if (graphics_set.empty() && !BaseGraphics::ini_set.empty()) graphics_set = BaseGraphics::ini_set;
+	diaglog("OTTD: M1 before BaseGraphics::SetSet");
 	if (!BaseGraphics::SetSet(graphics_set)) {
+		diaglog("OTTD: M2 in SetSet failed branch");
 		if (!graphics_set.empty()) {
 			BaseGraphics::SetSet({});
 
@@ -754,9 +756,13 @@ int openttd_main(int argc, char *argv[])
 	}
 
 	/* Initialize game palette */
+	diaglog("OTTD: M3 before GfxInitPalettes");
 	GfxInitPalettes();
+	diaglog("OTTD: M4 after GfxInitPalettes");
 
+	diaglog("OTTD: M5 before blitter Debug");
 	Debug(misc, 1, "Loading blitter...");
+	diaglog("OTTD: M6 after blitter Debug");
 	if (blitter.empty() && !_ini_blitter.empty()) blitter = _ini_blitter;
 	_blitter_autodetected = blitter.empty();
 	/* Activate the initial blitter.
@@ -768,7 +774,9 @@ int openttd_main(int argc, char *argv[])
 	if (!_blitter_autodetected ||
 			(_support8bpp != S8BPP_NONE && (BaseGraphics::GetUsedSet() == nullptr || BaseGraphics::GetUsedSet()->blitter == BLT_8BPP)) ||
 			BlitterFactory::SelectBlitter("32bpp-anim") == nullptr) {
+	diaglog("OTTD: M7 after BlitterFactory::SelectBlitter");
 		if (BlitterFactory::SelectBlitter(blitter) == nullptr) {
+	diaglog("OTTD: M7 after BlitterFactory::SelectBlitter");
 			blitter.empty() ?
 				usererror("Failed to autoprobe blitter") :
 				usererror("Failed to select requested blitter '%s'; does it exist?", blitter.c_str());
@@ -776,23 +784,34 @@ int openttd_main(int argc, char *argv[])
 	}
 
 	if (videodriver.empty() && !_ini_videodriver.empty()) videodriver = _ini_videodriver;
+	diaglog("OTTD: M8 before SelectDriver VIDEO");
 	DriverFactoryBase::SelectDriver(videodriver, Driver::DT_VIDEO);
+	diaglog("OTTD: M9 after SelectDriver VIDEO");
 
+	diaglog("OTTD: N1 before InitializeSpriteSorter");
 	InitializeSpriteSorter();
+	diaglog("OTTD: N2 after InitializeSpriteSorter");
 
 	/* Initialize the zoom level of the screen to normal */
 	_screen.zoom = ZOOM_LVL_NORMAL;
+	diaglog("OTTD: N2a after _screen.zoom assign");
 
 	/* The video driver is now selected, now initialise GUI zoom */
-	AdjustGUIZoom(false);
+	diaglog("OTTD: N2b SKIPPING AdjustGUIZoom (dedicated server doesn't need it)");
+	/* AdjustGUIZoom(false); */
+	diaglog("OTTD: N2c after AdjustGUIZoom-skip");
 
+	diaglog("OTTD: N3 before NetworkStartUp");
 	NetworkStartUp(); // initialize network-core
+	diaglog("OTTD: N4 after NetworkStartUp");
 
 	if (debuglog_conn != nullptr && _network_available) {
 		NetworkStartDebugLog(debuglog_conn);
 	}
 
+	diaglog("OTTD: N5 before HandleBootstrap");
 	if (!HandleBootstrap()) {
+		diaglog("OTTD: N6 HandleBootstrap returned false");
 		ShutdownGame();
 		return ret;
 	}
