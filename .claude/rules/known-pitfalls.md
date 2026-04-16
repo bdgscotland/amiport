@@ -1260,3 +1260,22 @@ typedef int SOCKET;
 This is the POSIX convention (`SOCKET` = `int`). Windows defines `SOCKET` as `UINT_PTR` but cross-platform code treats it as an opaque integer type.
 
 Discovered in OpenTTD 13.4 feasibility spike (PDR-015, 2026-04-16).
+
+## libgcc `___di3` Is 64-bit Integer -- Do NOT Conflate With Soft-Float `__sf3`/`__df3`
+
+When auditing a static library archive for soft-float pulls (the amigit / mathieeesingbas crash family, crash-patterns #2 variant documented earlier as "libgit2 patch_generate Triggers FS-UAE mathieeesingbas Crash"), it is easy to misread `nm` output. bebbo-gcc libgcc contains TWO distinct families of helper symbols, named confusingly:
+
+- **`___divsi3`, `___mulsi3`, `___udivsi3`, `___modsi3`** -- 32-bit **integer** helpers (software DIVU/MULS). Present in almost every non-trivial object. Execute via libgcc. No `mathieeesingbas.library` interaction. **Zero crash risk.**
+- **`___muldi3`, `___divdi3`, `___udivdi3`, `___moddi3`** -- 64-bit **integer** (`long long`) helpers. Pulled by any code using `long long` arithmetic or `FT_Int64`-style 64-bit fixed-point. Execute via libgcc. **Zero crash risk.**
+- **`__divsf3`, `__mulsf3`, `__addsf3`, `__floatunsisf`** -- 32-bit **single-precision float** helpers. Route through ROM `mathieeesingbas.library`. **These are the crash family** -- FS-UAE's mathieeesingbas implementation is broken and crashes with Guru `8000 000B` (ACPU_LineF) on real non-FPU 68k code paths.
+- **`__divdf3`, `__muldf3`, `__adddf3`** -- 64-bit **double-precision float** helpers. Route through ROM `mathieeesingdoubbas.library`. Same crash risk.
+
+**The mnemonic:** `si` = single integer (32-bit), `di` = double integer (64-bit), `sf` = single float (32-bit), `df` = double float (64-bit). The FIRST letter tells you width; the SECOND letter tells you integer vs float. `di3` and `sf3` look almost identical in `nm` output but are completely different code paths.
+
+**For library perf audits:** when you run `m68k-amigaos-nm <library.a> | grep -E '__(div|mul|add|sub|flo|fix)'`, flag only the `_sf3`/`_df3`/`_floatunsisf`/`_fixunssfsi` patterns as crash-risk soft-float. Treat `_si3` and `_di3` patterns as benign — they are integer libgcc helpers, not ROM math library calls.
+
+**Tooling note:** macOS native `nm` cannot read the m68k ELF / Amiga HUNK format produced by bebbo-gcc. Any audit script must use `docker run amigadev/crosstools:m68k-amigaos m68k-amigaos-nm` instead. A macOS-side `nm <archive.a>` will either fail silently or report garbage, hiding real soft-float pulls from the audit.
+
+**Also:** `FT_TRACE` style debug macros (FreeType, other libraries) containing `float` / `double` format specifiers compile to `do {} while(0)` in production builds when the corresponding `FT_DEBUG_LEVEL_TRACE` / `FT_DEBUG_LEVEL_ERROR` preprocessor define is OFF. Seeing `float` in source is NOT evidence of a soft-float pull -- verify the macro expansion in the project's debug-level header first. For FreeType specifically, the release configuration (ftoption.h) disables both debug levels, and all `FT_TRACE4`/`FT_TRACE6` / `FT_ERROR` calls become no-ops.
+
+Discovered in FreeType 2.13.3 port, Stage 7 perf audit (2026-04-16). The audit initially flagged `___muldi3` in `ftbase.o` and `smooth.o` as a potential crash risk before recognizing the `di3` suffix as 64-bit integer (used for `FT_Int64` fixed-point), not single-precision float. The library is crash-free — all arithmetic is integer.

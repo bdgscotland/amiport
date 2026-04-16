@@ -9,7 +9,7 @@
 #   clean            Remove build artifacts
 #   fetch-ndk        Download AmigaOS NDK 3.2 R4
 
-.PHONY: setup setup-toolchain setup-debug-tools build-shim build-emu build-console build-net build-http build-zlib build-libtommath build-libtomcrypt build-libgit2 test-libtomcrypt build test test-shim test-emu test-console test-net test-zlib test-libtommath test-libgit2 test-ports package clean fetch-ndk help doctor smoke-test compare list-ports build-ports install-emu setup-emu emu publish check-aminet build-uaequit build-keyinject test-fsemu check-docs check-agents check-test-coverage check-fix-propagation check-port-metadata check-arexx scrape-adcd
+.PHONY: setup setup-toolchain setup-debug-tools build-shim build-emu build-console build-net build-http build-zlib build-libtommath build-libtomcrypt build-libgit2 build-freetype test-libtomcrypt build test test-shim test-emu test-console test-net test-zlib test-libtommath test-libgit2 test-freetype test-ports package clean fetch-ndk help doctor smoke-test compare list-ports build-ports install-emu setup-emu emu publish check-aminet build-uaequit build-keyinject test-fsemu check-docs check-agents check-test-coverage check-fix-propagation check-port-metadata check-arexx scrape-adcd
 
 help:
 	@echo "amiport — AI-powered Amiga porting toolkit"
@@ -27,6 +27,7 @@ help:
 	@echo "  build-libtommath Cross-compile the LibTomMath big integer library"
 	@echo "  build-libtomcrypt Cross-compile the LibTomCrypt crypto library"
 	@echo "  build-libgit2    Cross-compile the libgit2 embedded git library"
+	@echo "  build-freetype   Cross-compile the FreeType font rendering library"
 	@echo "  build            Build a port (TARGET=examples/wc)"
 	@echo "  test             Test a build via vamos (TARGET=examples/wc)"
 	@echo "  test-shim        Run POSIX shim library tests via vamos"
@@ -37,6 +38,7 @@ help:
 	@echo "  test-libtommath  Run LibTomMath tests via vamos (68020)"
 	@echo "  test-libtomcrypt Run LibTomCrypt tests via vamos (68020)"
 	@echo "  test-libgit2     Run libgit2 tests via vamos (vamos-limited, 79/79)"
+	@echo "  test-freetype    Run FreeType tests via vamos (26/26)"
 	@echo "  package          Create LHA archive (TARGET=examples/wc)"
 	@echo "  fetch-ndk        Download AmigaOS NDK 3.2 R4"
 	@echo "  clean            Remove build artifacts"
@@ -105,6 +107,9 @@ build-libtomcrypt: build-libtommath
 build-libgit2: build-zlib build-shim
 	$(MAKE) -C lib/libgit2
 
+build-freetype:
+	$(MAKE) -C lib/freetype
+
 build:
 ifndef TARGET
 	$(error TARGET is required. Usage: make build TARGET=examples/wc)
@@ -140,6 +145,9 @@ test-libtomcrypt: build-libtomcrypt
 
 test-libgit2: build-libgit2
 	$(MAKE) -C tests/libgit2
+
+test-freetype: build-freetype
+	$(MAKE) -C tests/freetype
 
 package:
 ifndef TARGET
