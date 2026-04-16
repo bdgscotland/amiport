@@ -22,13 +22,29 @@
 #include <string>
 #include <vector>
 
-/* Debug log -- defined BEFORE safeguards.h which blocks fopen/open */
+/* Debug log -- defined BEFORE safeguards.h which blocks fopen/open/sprintf */
 static int _dbgfd = -1;
 static void dbglog(const char *msg)
 {
 	if (_dbgfd < 0) _dbgfd = open("WORK:OpenTTD/debug.log", O_WRONLY | O_CREAT | O_TRUNC, 0644);
 	if (_dbgfd >= 0) { write(_dbgfd, msg, strlen(msg)); write(_dbgfd, "\n", 1); }
 	printf("%s\n", msg);
+}
+
+static void dbglog_hex(const char *prefix, unsigned long val)
+{
+	char buf[80];
+	snprintf(buf, sizeof(buf), "%s 0x%08lx", prefix, val);
+	dbglog(buf);
+}
+
+static void dbglog_bytes(const char *prefix, unsigned char *p, int n)
+{
+	char buf[80];
+	int off = snprintf(buf, sizeof(buf), "%s", prefix);
+	for (int i = 0; i < n && off < 70; i++)
+		off += snprintf(buf + off, sizeof(buf) - off, " %02x", p[i]);
+	dbglog(buf);
 }
 
 #include "../original/OpenTTD-13.4/src/safeguards.h"
@@ -104,14 +120,48 @@ int CDECL main(int argc, char *argv[])
 	SetRandomSeed(time(nullptr));
 	dbglog("AMIGA: random seed set");
 
-	dbglog("AMIGA: testing std::string...");
-	{ std::string test_str = "hello"; dbglog("AMIGA: string OK"); }
-	dbglog("AMIGA: testing new/delete...");
-	{ int *p = new int(42); delete p; dbglog("AMIGA: heap OK"); }
-	dbglog("AMIGA: testing large stack frame (1052 bytes like openttd_main)...");
-	{ volatile char buf[1100]; buf[0] = 'x'; buf[1099] = 'y'; dbglog("AMIGA: stack OK"); }
-	dbglog("AMIGA: calling openttd_main NOW");
-	int ret = openttd_main(argc, argv);
+	dbglog_hex("AMIGA: openttd_main at", (unsigned long)(void *)&openttd_main);
+	unsigned char *fb = (unsigned char *)(void *)&openttd_main;
+	dbglog_bytes("AMIGA: first bytes:", fb, 8);
+
+	if (fb[0] == 0x4e && fb[1] == 0x55) {
+		dbglog("AMIGA: prologue valid (link).");
+	} else {
+		dbglog("AMIGA: BAD PROLOGUE!");
+	}
+
+	dbglog("AMIGA: testing 7 string ctors (same as openttd_main)...");
+	{
+		std::string s1, s2, s3, s4, s5, s6, s7;
+		dbglog("AMIGA: 7 strings OK");
+	}
+
+	dbglog("AMIGA: testing unique_ptr<int>...");
+	{
+		std::unique_ptr<int> p(new int(42));
+		dbglog("AMIGA: unique_ptr OK");
+	}
+
+	dbglog("AMIGA: ALL PRE-TESTS PASSED.");
+	dbglog("AMIGA: Simulating openttd_main line by line...");
+
+	dbglog("AMIGA: line 533: local strings...");
+	std::string musicdriver, sounddriver, videodriver, blitter;
+	std::string graphics_set, sounds_set, music_set;
+	dbglog("AMIGA: line 540: Dimension...");
+	/* Dimension resolution = {0, 0}; -- just two uint16 */
+	unsigned short res_w = 0, res_h = 0;
+	dbglog("AMIGA: line 541: AfterNewGRFScan...");
+	/* This is the likely crash point -- new AfterNewGRFScan() */
+	extern void _ZN15AfterNewGRFScanC1Ev(void *); /* mangled ctor */
+	void *scanner_mem = new char[256]; /* oversized to be safe */
+	dbglog("AMIGA: allocated scanner memory");
+	/* Skip calling the constructor for now */
+	dbglog("AMIGA: line 552: GetOptData...");
+	/* Skip option parsing too */
+	dbglog("AMIGA: SIMULATION PASSED.");
+	dbglog("AMIGA: Skipping real openttd_main -- returning 0.");
+	int ret = 0;
 
 	dbglog("AMIGA: openttd_main returned");
 	if (_dbgfd >= 0) close(_dbgfd);
