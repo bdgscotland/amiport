@@ -21,10 +21,11 @@ set(CMAKE_RANLIB m68k-amigaos-ranlib)
 # -Duint=...            UNIX mode skips uint typedef in stdafx.h
 # -include ...          no-op mutex/condition_variable stubs
 set(AMIGA_COMMON_FLAGS "-m68040 -m68881 -O0 -noixemul -D__libnix__ -DTTD_ENDIAN=1 -Dalloca=__builtin_alloca")
-set(AMIGA_THREAD_STUB "-include ${CMAKE_CURRENT_LIST_DIR}/original/OpenTTD-13.4/amigaos3/amiga_thread_stubs.h")
+set(AMIGA_THREAD_STUB "-include ${CMAKE_CURRENT_LIST_DIR}/ported/amiga_openttd_stubs.h")
+set(AMIGA_STUB_INCLUDE "-I${CMAKE_CURRENT_LIST_DIR}/ported")
 
-set(CMAKE_C_FLAGS_INIT "${AMIGA_COMMON_FLAGS}")
-set(CMAKE_CXX_FLAGS_INIT "${AMIGA_COMMON_FLAGS} ${AMIGA_THREAD_STUB} -fno-exceptions -fno-rtti")
+set(CMAKE_C_FLAGS_INIT "${AMIGA_COMMON_FLAGS} ${AMIGA_STUB_INCLUDE} ${AMIGA_THREAD_STUB}")
+set(CMAKE_CXX_FLAGS_INIT "${AMIGA_COMMON_FLAGS} ${AMIGA_STUB_INCLUDE} ${AMIGA_THREAD_STUB} -fpermissive")
 
 # Big-endian 68k
 set(CMAKE_C_BYTE_ORDER BIG_ENDIAN)
