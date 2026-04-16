@@ -14,6 +14,28 @@
 #include <proto/dos.h>
 #endif
 
+/* --- amiga_getenv: read ENV: variables by opening the file directly ---
+ * libnix getenv() may not read from ENV: filesystem at runtime.
+ * GetVar() also fails in some contexts despite GetEnv working.
+ * This version opens ENV:<name> directly via AmigaDOS Open(). */
+static char getenv_buf[256];
+char *amiga_getenv(const char *name)
+{
+    char path[300];
+    BPTR fh;
+    LONG n;
+
+    snprintf(path, sizeof(path), "ENV:%s", name);
+    fh = Open((CONST_STRPTR)path, MODE_OLDFILE);
+    if (!fh) return NULL;
+    n = Read(fh, getenv_buf, sizeof(getenv_buf) - 1);
+    Close(fh);
+    if (n <= 0) return NULL;
+    if (n > 0 && getenv_buf[n - 1] == '\n') n--;
+    getenv_buf[n] = '\0';
+    return getenv_buf;
+}
+
 /* --- strlcat: libnix has strlcpy but not strlcat --- */
 size_t strlcat(char *dst, const char *src, size_t dsize)
 {
@@ -142,10 +164,19 @@ int getnameinfo(const struct sockaddr *sa, socklen_t salen,
 /* amiport: On FS-UAE, bsdsocket fd 0 hijacks libc read(0, ...) to read
  * from the socket, making stdin inaccessible via read(). Bypass libnix's
  * fd table and use AmigaDOS Read(Input())/Write(Output()) directly for
- * console I/O. See known-pitfalls: bsdsocket fd 0 collision. */
+ * console I/O. See known-pitfalls: bsdsocket fd 0 collision.
+ *
+ * amiport: Translates AmigaOS CSI (0x9B) to VT100 ESC-[ (0x1B 0x5B).
+ * Console.device sends arrow/function keys as 0x9B+params+letter, but
+ * remote SSH servers expect ESC-[ sequences (TERM=vt100). Without this,
+ * arrow keys are silently ignored by the remote terminal. */
 int amiport_console_read(void *buf, int len)
 {
+    unsigned char tmp[512];
+    int maxread, n, i, out;
+    unsigned char *dst = (unsigned char *)buf;
     BPTR fh = Input();
+
     if (!fh || !IsInteractive(fh)) {
         errno = EAGAIN;
         return -1;
@@ -154,7 +185,25 @@ int amiport_console_read(void *buf, int len)
         errno = EAGAIN;
         return -1;
     }
-    return Read(fh, buf, len);
+
+    /* Read into temp buffer; halve request to leave room for CSI expansion
+     * (each 0x9B becomes two bytes: 0x1B 0x5B) */
+    maxread = len / 2;
+    if (maxread < 1) maxread = 1;
+    if (maxread > (int)sizeof(tmp)) maxread = (int)sizeof(tmp);
+    n = Read(fh, tmp, maxread);
+    if (n <= 0) return n;
+
+    out = 0;
+    for (i = 0; i < n && out < len; i++) {
+        if (tmp[i] == 0x9B && out + 1 < len) {
+            dst[out++] = 0x1B;
+            dst[out++] = 0x5B;
+        } else {
+            dst[out++] = tmp[i];
+        }
+    }
+    return out;
 }
 
 int amiport_console_write(const void *buf, int len)

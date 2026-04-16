@@ -1129,3 +1129,54 @@ The A3000 model gives 68030 + FPU + MMU + 32-bit addressing natively. The A4000 
 This is distinct from the earlier "A4000 JIT unreliable" pitfall -- the failure mode there was JIT/codegen; the failure mode here is address-bus width. A3000 avoids both.
 
 Discovered in amigit (PDR-012 Phase 3 session 3, 2026-04-14) while staging AmiSSL for FS-UAE testing.
+
+## libnix getenv() and GetVar() Don't Reliably Read ENV: Files
+
+libnix's `getenv()` does NOT read from the `ENV:` filesystem at runtime. It appears to use an internal table populated at process startup. Additionally, `GetVar()` with flags=0 also fails to find `ENV:` variables in some process contexts (e.g., processes launched via `Execute` script), despite the AmigaDOS `GetEnv` command finding the same variable correctly.
+
+**Symptom:** `SetEnv VARNAME value` succeeds; `GetEnv VARNAME` returns the value; but C code calling `getenv("VARNAME")` or `GetVar("VARNAME", buf, size, 0)` returns NULL/-1.
+
+**Fix:** Read the file at `ENV:<name>` directly via AmigaDOS `Open()`/`Read()`/`Close()`:
+```c
+static char getenv_buf[256];
+char *amiga_getenv(const char *name) {
+    char path[300];
+    BPTR fh;
+    LONG n;
+    snprintf(path, sizeof(path), "ENV:%s", name);
+    fh = Open((CONST_STRPTR)path, MODE_OLDFILE);
+    if (!fh) return NULL;
+    n = Read(fh, getenv_buf, sizeof(getenv_buf) - 1);
+    Close(fh);
+    if (n <= 0) return NULL;
+    if (n > 0 && getenv_buf[n - 1] == '\n') n--;
+    getenv_buf[n] = '\0';
+    return getenv_buf;
+}
+```
+
+Redirect via `#define getenv(n) amiga_getenv(n)` in a force-included header. Note: returns a static buffer (not malloc'd), matching libnix getenv() semantics.
+
+Discovered in Dropbear SSH port (PDR-013 Phase 2, 2026-04-15).
+
+## CSI 0x9B Must Be Translated to ESC-[ for Remote Terminal Forwarding
+
+AmigaOS console.device in RAW mode sends arrow and function keys as CSI sequences: 0x9B followed by parameters and a letter (e.g., arrow UP = 0x9B 0x41). When a program forwards raw keyboard input to a remote terminal over SSH (or telnet), the remote side expects VT100 sequences: ESC (0x1B) + `[` (0x5B) + letter. Without translation, the remote shell receives 0x9B as a non-printable byte, displays it as `?`, and the key is not interpreted.
+
+**Symptom:** Arrow keys in an interactive SSH session produce `zsh: no matches found: ?A` or similar garbage instead of cursor movement / command recall.
+
+**Fix:** In the console read function that feeds the SSH channel, translate 0x9B to the two-byte ESC-[ sequence:
+```c
+for (i = 0; i < n && out < len; i++) {
+    if (tmp[i] == 0x9B && out + 1 < len) {
+        dst[out++] = 0x1B;
+        dst[out++] = 0x5B;
+    } else {
+        dst[out++] = tmp[i];
+    }
+}
+```
+
+Read into a temp buffer at half the requested size to leave room for expansion. This is specific to programs that forward raw bytes to a remote terminal -- local console programs (mg, less, nano) handle CSI 0x9B natively and don't need translation.
+
+Discovered in Dropbear SSH port (PDR-013 Phase 2, 2026-04-15).

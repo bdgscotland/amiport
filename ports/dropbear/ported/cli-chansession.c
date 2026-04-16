@@ -375,23 +375,15 @@ static int cli_initchansess(struct Channel *channel) {
 		cli_setup_agent(channel);
 	}
 #endif
-	{ FILE *dbg = fopen("WORK:dbclient.log", "a");
-	  if (dbg) { fprintf(dbg, "Channel open wantpty=%d\n", cli_opts.wantpty); fclose(dbg); } }
-	fprintf(stderr, "[dbclient] Channel open, wantpty=%d\n", cli_opts.wantpty);
 	if (cli_opts.wantpty) {
 		send_chansess_pty_req(channel);
-		fprintf(stderr, "[dbclient] PTY request sent\n");
 		channel->prio = DROPBEAR_PRIO_LOWDELAY;
 	}
 
 	send_chansess_shell_req(channel);
-	fprintf(stderr, "[dbclient] Shell request sent\n");
 
 	if (cli_opts.wantpty) {
 		cli_tty_setup();
-		{ FILE *dbg = fopen("WORK:dbclient.log", "a");
-	  if (dbg) { fprintf(dbg, "TTY raw mode set\n"); fclose(dbg); } }
-	fprintf(stderr, "[dbclient] TTY raw mode set\n");
 		channel->read_mangler = cli_escape_handler;
 		cli_ses.last_char = '\r';
 	}

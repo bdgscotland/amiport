@@ -219,13 +219,6 @@ void session_loop(void(*loophandler)(void)) {
 
 		val = select(ses.maxfd+1, &readfd, &writefd, NULL, &timeout);
 
-		{ static int _lp = 0;
-		  FILE *lf = fopen("WORK:dbclient.log", "a");
-		  if (lf) { fprintf(lf, "L%d: v=%d si=%d rb=%d pl=%d cc=%d\n",
-		    _lp, val, ses.sock_in, ses.readbuf?1:0, ses.payload?1:0, ses.chancount);
-		    fclose(lf); }
-		  _lp++; }
-
 		if (ses.exitflag) {
 			dropbear_exit("Terminated by signal");
 		}
@@ -270,17 +263,9 @@ void session_loop(void(*loophandler)(void)) {
 			}
 
 			if (ses.payload != NULL) {
-				{ static int _pp = 0; if (_pp < 30) {
-				  FILE *pf = fopen("WORK:pkt.log", "a");
-				  if (pf) { fprintf(pf, "pkt %d: type=%d beg=%d\n", _pp, (int)(unsigned char)ses.payload->data[ses.payload_beginning], ses.payload_beginning); fclose(pf); }
-				  _pp++; } }
 				process_packet();
 			}
 		} else {
-			{ static int _sk = 0; if (_sk == 0) {
-			  FILE *sf = fopen("WORK:pkt.log", "a");
-			  if (sf) { fprintf(sf, "sock_in=-1!\n"); fclose(sf); }
-			  _sk = 1; } }
 		}
 
 		/* if required, flush out any queued reply packets that

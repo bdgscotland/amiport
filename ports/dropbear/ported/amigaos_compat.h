@@ -56,6 +56,12 @@
 /* /dev/urandom path -- will be intercepted by our seedrandom() rewrite */
 #define DROPBEAR_URANDOM_DEV "T:dropbear-entropy"
 
+/* amiport: override libnix getenv() which may not read ENV: at runtime.
+ * Our version uses GetVar() to read AmigaDOS environment variables
+ * set by SetEnv (ENV: filesystem). Returns static buffer like libnix. */
+char *amiga_getenv(const char *name);
+#define getenv(n) amiga_getenv(n)
+
 /* amiport: override libnix getpass() which opens /dev/tty and fails.
  * Our amiport_getpass() reads from stdin directly. */
 char *amiport_getpass(const char *prompt);

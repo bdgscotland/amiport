@@ -313,10 +313,12 @@ static FILE* open_known_hosts_file(int * readonly)
 
 	if (hostsfile == NULL) {
 		TRACE(("hostsfile didn't open: %s", strerror(errno)))
+#ifndef __AMIGA__
 		dropbear_log(LOG_WARNING, "Failed to open %s/.ssh/known_hosts",
 				homedir);
+#endif
 		goto out;
-	}	
+	}
 
 out:
 	m_free(filename);

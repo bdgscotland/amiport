@@ -188,10 +188,6 @@ void read_packet() {
 	} else {
 #ifdef __AMIGA__
 		len = recv(ses.sock_in, buf_getptr(ses.readbuf, maxlen), maxlen, 0);
-		{ static int _rp = 0; if (_rp < 40) {
-		  FILE *rf = fopen("WORK:recv.log", "a");
-		  if (rf) { fprintf(rf, "recv %d: len=%d max=%d errno=%d\n", _rp, (int)len, (int)maxlen, len<0?errno:0); fclose(rf); }
-		  _rp++; } }
 #else
 		len = read(ses.sock_in, buf_getptr(ses.readbuf, maxlen), maxlen);
 #endif
@@ -248,10 +244,6 @@ static int read_packet_init() {
 #ifdef __AMIGA__
 	slen = recv(ses.sock_in, buf_getwriteptr(ses.readbuf, maxlen),
 			maxlen, 0);
-	{ static int _ri = 0; if (_ri < 40) {
-	  FILE *rf = fopen("WORK:recv.log", "a");
-	  if (rf) { fprintf(rf, "init %d: slen=%d max=%d pos=%d errno=%d\n", _ri, slen, maxlen, ses.readbuf->pos, slen<0?errno:0); fclose(rf); }
-	  _ri++; } }
 #else
 	slen = read(ses.sock_in, buf_getwriteptr(ses.readbuf, maxlen),
 			maxlen);

@@ -103,7 +103,6 @@ void cli_connected(int result, int sock, void* userdata, const char *errstring)
 		dropbear_exit("Connect failed: %s", errstring);
 	}
 	myses->sock_in = myses->sock_out = sock;
-	fprintf(stderr, "[dbclient] Socket fd=%d\n", sock);
 	DEBUG1(("cli_connected"))
 	ses.socket_prio = DROPBEAR_PRIO_NORMAL;
 	/* switches to lowdelay */
@@ -273,9 +272,6 @@ static void cli_sessionloop() {
 			return;
 
 		case USERAUTH_SUCCESS_RCVD:
-			{ FILE *dbg = fopen("WORK:dbclient.log", "a");
-			  if (dbg) { fprintf(dbg, "Auth OK\n"); fclose(dbg); } }
-			fprintf(stderr, "[dbclient] Auth OK\n");
 #ifndef DISABLE_SYSLOG
 			if (opts.usingsyslog) {
 				dropbear_log(LOG_INFO, "Authentication succeeded.");
@@ -314,16 +310,12 @@ static void cli_sessionloop() {
 			setup_remotetcp();
 #endif
 
-			{ FILE *dbg = fopen("WORK:dbclient.log", "a");
-			  if (dbg) { fprintf(dbg, "Session starting chancount=%d\n", ses.chancount); fclose(dbg); } }
-			fprintf(stderr, "[dbclient] Session starting (chancount=%d)\n", ses.chancount);
 			TRACE(("leave cli_sessionloop: running"))
 			cli_ses.state = SESSION_RUNNING;
 			return;
 
 		case SESSION_RUNNING:
 			if (ses.chancount < 1 && !cli_opts.no_cmd) {
-				fprintf(stderr, "[dbclient] chancount=0, finishing\n");
 				cli_finished();
 			}
 
@@ -397,8 +389,6 @@ static void cli_remoteclosed() {
 	 * already sent/received disconnect message(s) ??? */
 	m_close(ses.sock_in);
 	m_close(ses.sock_out);
-	{ FILE *dbg = fopen("WORK:dbclient.log", "a");
-	  if (dbg) { fprintf(dbg, "Remote closed connection\n"); fclose(dbg); } }
 	ses.sock_in = -1;
 	ses.sock_out = -1;
 	dropbear_exit("Remote closed the connection");

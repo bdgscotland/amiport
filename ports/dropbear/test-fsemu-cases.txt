@@ -1,28 +1,117 @@
 # Dropbear SSH client (dbclient) -- FS-UAE test cases
 # Category 4 (Network) -- uses FS-UAE bsdsocket passthrough
 #
-# Password auth uses DROPBEAR_PASSWORD env var (bypasses getpass).
-# Host key auto-accepted via -y flag.
+# Password auth uses DROPBEAR_PASSWORD env var via test-dbclient-run.rexx
+# wrapper (SetEnv + dbclient in same ARexx context). Host key auto-accepted
+# via -y flag. Version/help output goes to stderr (not captured by harness).
+#
+# All network tests assume a live SSH server at 127.0.0.1 with user duncan,
+# password Zimacs501482. Non-interactive commands only.
 
-TEST: version flag
+# === ARGUMENT PARSING (no network required) ===
+
+TEST: version flag exits cleanly
 CMD: WORK:dbclient -V
-EXPECT_CONTAINS: Dropbear v2025.89
+EXPECT_RC: 0
+
+TEST: help flag exits cleanly
+CMD: WORK:dbclient --help
 EXPECT_RC: 0
 
 TEST: no args shows usage
 CMD: WORK:dbclient
 EXPECT_RC: 1
 
-TEST: help flag
-CMD: WORK:dbclient --help
-EXPECT_CONTAINS: -y
-EXPECT_RC: 0
+TEST: bad flag returns error
+CMD: WORK:dbclient -Z
+EXPECT_RC: 1
 
-TEST: set SSH password env
-CMD: SetEnv DROPBEAR_PASSWORD Zimacs501482
-EXPECT_RC: 0
+TEST: missing host argument
+CMD: WORK:dbclient -l duncan
+EXPECT_RC: 1
 
-TEST: SSH echo hello (non-interactive)
-CMD: WORK:dbclient -y duncan@127.0.0.1 echo hello
+TEST: missing host entirely (command treated as host)
+CMD: WORK:dbclient echo hello
+EXPECT_RC: 1
+
+TEST: invalid user@host syntax
+CMD: WORK:dbclient -y @127.0.0.1 echo hello
+EXPECT_RC: 1
+
+# === NON-INTERACTIVE COMMAND EXECUTION (SSH required) ===
+
+TEST: SSH echo hello
+CMD: SYS:Rexxc/rx WORK:test-dbclient-run.rexx Zimacs501482 127.0.0.1 echo hello
 EXPECT_CONTAINS: hello
+EXPECT_RC: 0
+
+TEST: SSH uname returns OS name
+CMD: SYS:Rexxc/rx WORK:test-dbclient-run.rexx Zimacs501482 127.0.0.1 uname
+EXPECT_CONTAINS: Darwin
+EXPECT_RC: 0
+
+TEST: SSH cat /etc/hosts returns localhost
+CMD: SYS:Rexxc/rx WORK:test-dbclient-run.rexx Zimacs501482 127.0.0.1 cat /etc/hosts
+EXPECT_CONTAINS: localhost
+EXPECT_RC: 0
+
+TEST: SSH pwd returns home directory
+CMD: SYS:Rexxc/rx WORK:test-dbclient-run.rexx Zimacs501482 127.0.0.1 pwd
+EXPECT_CONTAINS: /Users/duncan
+EXPECT_RC: 0
+
+TEST: SSH whoami returns username
+CMD: SYS:Rexxc/rx WORK:test-dbclient-run.rexx Zimacs501482 127.0.0.1 whoami
+EXPECT_CONTAINS: duncan
+EXPECT_RC: 0
+
+TEST: SSH date produces current year
+CMD: SYS:Rexxc/rx WORK:test-dbclient-run.rexx Zimacs501482 127.0.0.1 date
+EXPECT_CONTAINS: 202
+EXPECT_RC: 0
+
+TEST: SSH multi-word echo preserved
+CMD: SYS:Rexxc/rx WORK:test-dbclient-run.rexx Zimacs501482 127.0.0.1 echo hello world from amiga
+EXPECT_CONTAINS: hello world from amiga
+EXPECT_RC: 0
+
+TEST: SSH very long command line (200 chars)
+CMD: SYS:Rexxc/rx WORK:test-dbclient-run.rexx Zimacs501482 127.0.0.1 echo 12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
+EXPECT_CONTAINS: 1234567890
+EXPECT_RC: 0
+
+# === EXIT CODE PROPAGATION ===
+
+TEST: remote exit 0 propagates
+CMD: SYS:Rexxc/rx WORK:test-dbclient-run.rexx Zimacs501482 127.0.0.1 exit 0
+EXPECT_RC: 0
+
+TEST: remote exit 1 propagates
+CMD: SYS:Rexxc/rx WORK:test-dbclient-run.rexx Zimacs501482 127.0.0.1 exit 1
+EXPECT_RC: 1
+
+TEST: remote exit 5 propagates
+CMD: SYS:Rexxc/rx WORK:test-dbclient-run.rexx Zimacs501482 127.0.0.1 exit 5
+EXPECT_RC: 5
+
+TEST: remote true returns 0
+CMD: SYS:Rexxc/rx WORK:test-dbclient-run.rexx Zimacs501482 127.0.0.1 true
+EXPECT_RC: 0
+
+TEST: remote false returns nonzero
+CMD: SYS:Rexxc/rx WORK:test-dbclient-run.rexx Zimacs501482 127.0.0.1 false
+EXPECT_RC: 1
+
+# === ERROR HANDLING (network errors) ===
+
+TEST: connection to bad port fails
+CMD: WORK:dbclient -y -p 1 duncan@127.0.0.1 echo hello
+EXPECT_RC: 1
+
+TEST: command producing no output still exits cleanly
+CMD: SYS:Rexxc/rx WORK:test-dbclient-run.rexx Zimacs501482 127.0.0.1 true
+EXPECT_RC: 0
+
+TEST: exit command terminates session cleanly
+CMD: SYS:Rexxc/rx WORK:test-dbclient-run.rexx Zimacs501482 127.0.0.1 exit
 EXPECT_RC: 0
