@@ -21,5 +21,9 @@
     "porting_notes": "Original code, not a port. Written in C89 for bebbo-gcc. Uses lib/http-shim (HTTP/1.0 client), lib/bsdsocket-shim (BSD socket API), and lib/posix-shim. SHA-256 from Brad Conte's public domain crypto-algorithms. JSON parser scoped to amiport manifest schema. All static buffers, no dynamic allocation for I/O.",
     "test_count": 8,
     "test_pass": 8,
-    "known_limitations": "No HTTPS (plain HTTP/1.0 only). No proxy support. Maximum 128 packages in manifest. No self-update (download manually). No multi-file packages. Dependency checking is warn-only."
+    "known_limitations": "No HTTPS (plain HTTP/1.0 only). No proxy support. Maximum 128 packages in manifest. No self-update (download manually). No multi-file packages. Dependency checking is warn-only.",
+    "screenshots": [
+        { "url": "/packages/amiport-screenshot-1.png", "caption": "amiport list + vim + amiport doctor on Workbench 3.1" },
+        { "url": "/packages/amiport-screenshot-2.png", "caption": "amiget install jq — downloading and installing via FS-UAE" }
+    ]
 }

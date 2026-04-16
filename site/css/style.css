@@ -495,6 +495,21 @@ body {
     border-color: var(--warning-border);
 }
 
+.badge--game {
+    background: #88AACC;
+    color: var(--text);
+    border-color: #446688;
+}
+
+.badge--screenshots {
+    background: var(--elevated);
+    color: var(--text-muted);
+    border-color: var(--bevel-shadow);
+    font-size: 8px;
+    padding: 1px 3px;
+    vertical-align: middle;
+}
+
 /* --- Form Inputs --- */
 .wb-input {
     font-family: var(--font);
@@ -1033,6 +1048,104 @@ a:focus-visible {
     font-size: var(--fs-sm);
     color: var(--text-muted);
     line-height: 1.6;
+}
+
+/* --- Hardware Requirements --- */
+.pkg-detail__hw-grid {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: var(--sp-xs) var(--sp-md);
+    font-size: var(--fs-sm);
+}
+
+.pkg-detail__hw-label {
+    font-weight: 600;
+    color: var(--brown);
+    white-space: nowrap;
+}
+
+.pkg-detail__hw-value {
+    color: var(--text);
+}
+
+/* --- Gameplay Info --- */
+.pkg-detail__gameplay-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-sm) var(--sp-lg);
+    font-size: var(--fs-sm);
+}
+
+.pkg-detail__gameplay-item {
+    display: flex;
+    gap: var(--sp-xs);
+}
+
+.pkg-detail__gameplay-label {
+    font-weight: 600;
+    color: var(--brown);
+}
+
+/* --- Screenshots --- */
+.pkg-detail__screenshots {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-sm);
+}
+
+.pkg-detail__screenshot-frame {
+    border-top: 1px solid var(--bevel-shine);
+    border-left: 1px solid var(--bevel-shine);
+    border-bottom: 1px solid var(--bevel-dark);
+    border-right: 1px solid var(--bevel-dark);
+    padding: var(--sp-2xs);
+    background: var(--bg);
+}
+
+.pkg-detail__screenshot-frame img {
+    display: block;
+    width: 100%;
+    height: auto;
+    image-rendering: pixelated;
+}
+
+.pkg-detail__screenshot-caption {
+    font-size: var(--fs-xs);
+    color: var(--text-muted);
+    margin-top: var(--sp-2xs);
+    text-align: center;
+}
+
+.pkg-detail__screenshot-nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--sp-md);
+    margin-top: var(--sp-xs);
+}
+
+.pkg-detail__screenshot-nav button {
+    background: var(--surface);
+    border-top: 1px solid var(--bevel-shine);
+    border-left: 1px solid var(--bevel-shine);
+    border-bottom: 1px solid var(--bevel-dark);
+    border-right: 1px solid var(--bevel-dark);
+    padding: var(--sp-xs) var(--sp-sm);
+    font-size: var(--fs-sm);
+    cursor: pointer;
+    color: var(--text);
+}
+
+.pkg-detail__screenshot-nav button:active {
+    border-top: 1px solid var(--bevel-dark);
+    border-left: 1px solid var(--bevel-dark);
+    border-bottom: 1px solid var(--bevel-shine);
+    border-right: 1px solid var(--bevel-shine);
+}
+
+.pkg-detail__screenshot-counter {
+    font-size: var(--fs-xs);
+    color: var(--text-muted);
 }
 
 /* --- Package Count --- */

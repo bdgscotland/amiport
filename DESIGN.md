@@ -146,6 +146,26 @@ Primary content container (replaces the old "Window" component):
   - Published: green-tinted bg, green text, green border
   - Popular: amber-tinted bg, dark text, amber border
   - Archived: elevated bg, muted text, gray border
+  - Game: info-blue bg (`#88AACC`), dark text, blue-gray border (`#446688`) — applied to `game/*` and `sdl-graphical` categories
+
+### Hardware Requirements Card (Game Ports)
+- Group-frame section in package detail view
+- 2-column grid: label (brown, bold) | value
+- Fields: CPU, RAM, Video, Audio
+- Rendered when package JSON includes `hardware_requirements` object
+
+### Gameplay Info (Game Ports)
+- Horizontal flex layout with label:value pairs
+- Fields: Genre, Players, Controls, Target FPS
+- Rendered when package JSON includes `gameplay_info` object
+
+### Screenshot Carousel (Game Ports)
+- MUI-beveled frame (shine top-left, dark bottom-right) around screenshot
+- `image-rendering: pixelated` for authentic pixel art display
+- Caption below image in xs muted text
+- Prev/Next navigation buttons (MUI XEN style, 0 border-radius)
+- Counter: "1 / 3" between nav buttons
+- Rendered when package JSON includes `screenshots` array
 
 ### Form Inputs
 - White background

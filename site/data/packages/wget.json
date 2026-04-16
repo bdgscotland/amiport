@@ -25,5 +25,8 @@
         {"phase": 2, "title": "HTTPS via AmiSSL", "status": "shipped", "description": "TLS 1.2/1.3 via AmiSSL 5.26. Tested with Google HTTPS at 967 KB/s."},
         {"phase": 3, "title": "gzip transfer encoding", "status": "planned", "description": "Cross-compile zlib, enable compressed HTTP transfers"},
         {"phase": 4, "title": "Aminet submission", "status": "planned", "description": "Upload to comm/tcp on Aminet"}
+    ],
+    "screenshots": [
+        { "url": "/packages/wget-screenshot-1.png", "caption": "wget downloading google.com via HTTPS on AmigaOS 3.1" }
     ]
 }

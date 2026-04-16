@@ -251,6 +251,15 @@
                 tdName.appendChild(testBadge);
             }
 
+            if (pkg.screenshots && pkg.screenshots.length > 0) {
+                var imgBadge = document.createElement('span');
+                imgBadge.className = 'badge badge--screenshots';
+                imgBadge.textContent = 'IMG';
+                imgBadge.setAttribute('aria-label', pkg.screenshots.length + ' screenshot(s)');
+                tdName.appendChild(document.createTextNode(' '));
+                tdName.appendChild(imgBadge);
+            }
+
             tr.appendChild(tdName);
 
             var tdVer = document.createElement('td');
@@ -316,7 +325,9 @@
 
             var tdCat = document.createElement('td');
             var badge = document.createElement('span');
-            badge.className = 'badge';
+            var rowCat = (pkg.category || '').toLowerCase();
+            var rowIsGame = rowCat.indexOf('game/') === 0 || rowCat === 'sdl-graphical';
+            badge.className = 'badge' + (rowIsGame ? ' badge--game' : '');
             badge.textContent = pkg.category || '';
             tdCat.appendChild(badge);
             tr.appendChild(tdCat);
@@ -373,6 +384,125 @@
 
     function renderRichDetail(pkg) {
         while (detailRich.firstChild) detailRich.removeChild(detailRich.firstChild);
+
+        // Hardware requirements (game ports)
+        var hw = pkg.hardware_requirements;
+        if (hw) {
+            var hwSection = document.createElement('div');
+            hwSection.className = 'pkg-detail__section';
+            var hwTitle = document.createElement('div');
+            hwTitle.className = 'pkg-detail__section-title';
+            hwTitle.textContent = 'Hardware Requirements';
+            hwSection.appendChild(hwTitle);
+            var hwGrid = document.createElement('div');
+            hwGrid.className = 'pkg-detail__hw-grid';
+            var hwFields = [
+                ['CPU', hw.cpu], ['RAM', hw.ram],
+                ['Video', hw.video], ['Audio', hw.audio]
+            ];
+            for (var hi = 0; hi < hwFields.length; hi++) {
+                if (hwFields[hi][1]) {
+                    var lbl = document.createElement('span');
+                    lbl.className = 'pkg-detail__hw-label';
+                    lbl.textContent = hwFields[hi][0];
+                    hwGrid.appendChild(lbl);
+                    var val = document.createElement('span');
+                    val.className = 'pkg-detail__hw-value';
+                    val.textContent = hwFields[hi][1];
+                    hwGrid.appendChild(val);
+                }
+            }
+            hwSection.appendChild(hwGrid);
+            detailRich.appendChild(hwSection);
+        }
+
+        // Gameplay info (game ports)
+        var gp = pkg.gameplay_info;
+        if (gp) {
+            var gpSection = document.createElement('div');
+            gpSection.className = 'pkg-detail__section';
+            var gpTitle = document.createElement('div');
+            gpTitle.className = 'pkg-detail__section-title';
+            gpTitle.textContent = 'Gameplay';
+            gpSection.appendChild(gpTitle);
+            var gpGrid = document.createElement('div');
+            gpGrid.className = 'pkg-detail__gameplay-grid';
+            var gpFields = [
+                ['Genre', gp.genre], ['Players', gp.players],
+                ['Controls', gp.controls], ['Target FPS', gp.framerate_target]
+            ];
+            for (var gi = 0; gi < gpFields.length; gi++) {
+                if (gpFields[gi][1]) {
+                    var gpItem = document.createElement('div');
+                    gpItem.className = 'pkg-detail__gameplay-item';
+                    var gpLbl = document.createElement('span');
+                    gpLbl.className = 'pkg-detail__gameplay-label';
+                    gpLbl.textContent = gpFields[gi][0] + ':';
+                    gpItem.appendChild(gpLbl);
+                    var gpVal = document.createElement('span');
+                    gpVal.textContent = gpFields[gi][1];
+                    gpItem.appendChild(gpVal);
+                    gpGrid.appendChild(gpItem);
+                }
+            }
+            gpSection.appendChild(gpGrid);
+            detailRich.appendChild(gpSection);
+        }
+
+        // Screenshots (game ports)
+        var shots = pkg.screenshots || [];
+        if (shots.length > 0) {
+            var ssSection = document.createElement('div');
+            ssSection.className = 'pkg-detail__section';
+            var ssTitle = document.createElement('div');
+            ssTitle.className = 'pkg-detail__section-title';
+            ssTitle.textContent = 'Screenshots';
+            ssSection.appendChild(ssTitle);
+            var ssContainer = document.createElement('div');
+            ssContainer.className = 'pkg-detail__screenshots';
+            var ssFrame = document.createElement('div');
+            ssFrame.className = 'pkg-detail__screenshot-frame';
+            var ssImg = document.createElement('img');
+            ssImg.src = shots[0].url;
+            ssImg.alt = shots[0].caption || pkg.name;
+            ssFrame.appendChild(ssImg);
+            var ssCaption = document.createElement('div');
+            ssCaption.className = 'pkg-detail__screenshot-caption';
+            ssCaption.textContent = shots[0].caption || '';
+            ssFrame.appendChild(ssCaption);
+            ssContainer.appendChild(ssFrame);
+            if (shots.length > 1) {
+                var ssNav = document.createElement('div');
+                ssNav.className = 'pkg-detail__screenshot-nav';
+                var ssPrev = document.createElement('button');
+                ssPrev.textContent = 'Prev';
+                var ssNext = document.createElement('button');
+                ssNext.textContent = 'Next';
+                var ssCounter = document.createElement('span');
+                ssCounter.className = 'pkg-detail__screenshot-counter';
+                ssCounter.textContent = '1 / ' + shots.length;
+                ssNav.appendChild(ssPrev);
+                ssNav.appendChild(ssCounter);
+                ssNav.appendChild(ssNext);
+                ssContainer.appendChild(ssNav);
+                var ssIdx = 0;
+                function updateScreenshot(idx) {
+                    ssIdx = idx;
+                    ssImg.src = shots[idx].url;
+                    ssImg.alt = shots[idx].caption || pkg.name;
+                    ssCaption.textContent = shots[idx].caption || '';
+                    ssCounter.textContent = (idx + 1) + ' / ' + shots.length;
+                }
+                ssPrev.addEventListener('click', function() {
+                    updateScreenshot((ssIdx - 1 + shots.length) % shots.length);
+                });
+                ssNext.addEventListener('click', function() {
+                    updateScreenshot((ssIdx + 1) % shots.length);
+                });
+            }
+            ssSection.appendChild(ssContainer);
+            detailRich.appendChild(ssSection);
+        }
 
         // Porting notes
         var notes = pkg.porting_notes || '';
@@ -498,7 +628,7 @@
         }
 
         // Empty state
-        if (!notes && testCount === 0 && !limitations) {
+        if (!notes && testCount === 0 && !limitations && !hw && !gp && shots.length === 0) {
             var emptySection = document.createElement('div');
             emptySection.className = 'pkg-detail__section';
             var emptyP = document.createElement('p');
@@ -539,6 +669,9 @@
         }
         detailVersion.textContent = verText;
         detailCategory.textContent = pkg.category || '';
+        var cat = (pkg.category || '').toLowerCase();
+        var isGame = cat.indexOf('game/') === 0 || cat === 'sdl-graphical';
+        detailCategory.className = 'badge' + (isGame ? ' badge--game' : '');
         detailInstall.textContent = 'amiget install ' + pkg.name + '  (coming soon)';
 
         // Show readme if available, otherwise just description

@@ -15,12 +15,14 @@ PDRs capture product-level decisions — what we build, who it's for, and why. T
 | [PDR-005](005-compiled-binaries-as-committed-artifacts.md) | Compiled binaries as committed artifacts | Accepted | 2026-03-21 |
 | [PDR-006](006-fs-uae-testing-mandatory-for-all-categories.md) | FS-UAE testing mandatory for all port categories | Accepted | 2026-03-21 |
 | [PDR-007](007-design-system-redesign.md) | Website design system redesign — MUI on warm gray | Accepted | 2026-03-22 |
-| [PDR-008](008-sdl2-amigaos3-vision.md) | SDL2 for AmigaOS 3.x — vision and feasibility | Proposed | 2026-03-27 |
+| [PDR-008](008-sdl2-amigaos3-vision.md) | SDL2 for AmigaOS 3.x — vision and feasibility | Accepted (delivered in sibling repo; superseded in part by PDR-014) | 2026-03-27 |
 | [PDR-009](009-hardware-expansion-and-sdl.md) | Hardware expansion, SDL, and WHDLoad — exploration notes | Proposed | 2026-03-27 |
 | [PDR-010](010-amigit-on-libgit2.md) | amigit — a local-only git for AmigaOS 3.x via libgit2 | Proposed | 2026-04-12 |
 | [PDR-010a](010a-amigit-cli-spec.md) | amigit v1 CLI specification (10-command scope, Category 1) | Proposed | 2026-04-13 |
 | [PDR-012](012-amigit-https-networking.md) | amigit HTTPS networking — clone / fetch / pull / push to GitHub (multi-session plan) | Proposed | 2026-04-14 |
 | [PDR-013](013-dropbear-ssh-client.md) | Dropbear SSH client for AmigaOS 3.x — phased port with crypto libs | Accepted | 2026-04-14 |
+| [PDR-014](014-fold-sdl-games-into-amiport.md) | Fold SDL game ports into amiport as Category 5 (library stays external) | Accepted | 2026-04-15 |
+| [PDR-015](015-openttd-amigaos3.md) | OpenTTD 13.4 for AmigaOS 3.x -- C++17 game port targeting Vampire 68080 | Proposed | 2026-04-15 |
 
 ## Template
 

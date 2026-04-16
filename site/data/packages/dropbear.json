@@ -1,0 +1,26 @@
+{
+  "name": "dropbear",
+  "version": "2025.89",
+  "revision": 1,
+  "description": "SSH client for AmigaOS (68020+)",
+  "category": "comm/tcp",
+  "source": "Dropbear SSH 2025.89 upstream",
+  "license": "MIT",
+  "size": 734208,
+  "sha256": "d218aea3292a2aeed5ad29f2ded5a7490ed232acc3c3c896c4bed7008a05d0d7",
+  "machine_sha256": "c9469e9483f71a1d54747ac3515b60c83c71c5fb27d7a9b1cd48584d6cbb846c",
+  "download": "/packages/dbclient-2025.89.lha",
+  "requires": ["68020+ CPU", "Roadshow/AmiTCP/Miami TCP/IP stack", "256 KB stack"],
+  "aminet": null,
+  "stack": 262144,
+  "status": "stable",
+  "published_at": "2026-04-15T20:14:00Z",
+  "test_count": 23,
+  "test_pass": 23,
+  "porting_notes": "Built on LibTomCrypt 1.18.2 and LibTomMath 1.3.0. Features ChaCha20-Poly1305 (preferred for 68020 - no data cache issues) and AES-128/256-CTR. Supports Ed25519, RSA, ECDSA host keys. Interactive terminal with arrow keys, tab completion, Ctrl-C support via CSI 0x9B translation. Password authentication via DROPBEAR_PASSWORD environment variable or interactive prompt. Entropy from DateStamp + clock + stack address (not cryptographically secure without seed file). Exit code propagation from remote commands. 23/23 FS-UAE automated tests passing. Memory audit: CLEAN. Performance audit: applied. Binary 306 KB at -O0 -m68020.",
+  "known_limitations": "No ProxyCommand (no fork), no SSH agent forwarding (no AF_UNIX), no X11 forwarding, IPv4 only, no zlib compression, no SCP (future release), public key auth compiled but needs dropbearkey utility (not yet ported)",
+  "screenshots": [
+    { "url": "/packages/dbclient-screenshot-1.png", "caption": "SSH session from AmigaOS to macOS -- uname, uptime, and last login" }
+  ],
+  "readme": "Short:        SSH client for AmigaOS (68020+)\nUploader:     duncan (at) example (dot) com\nAuthor:       Matt Johnston (upstream), Duncan Bowring (port)\nType:         comm/net\nVersion:      2025.89\nArchitecture: m68k-amigaos >= 3.0\nDistribution: Aminet\nRequires:     68020+, Roadshow/AmiTCP/Miami TCP/IP stack\n\nDropbear SSH client (dbclient) for AmigaOS 3.x.\n\nConnects to SSH servers using modern ciphers (ChaCha20-Poly1305,\nAES-CTR) and key types (Ed25519, RSA, ECDSA). Interactive terminal\nwith arrow keys, tab completion, and Ctrl-C support.\n\nRequires a TCP/IP stack (Roadshow, AmiTCP, or Miami) and a 68020+\nCPU with 256 KB stack. Tested on A3000/030 via FS-UAE.\n\nUsage:\n  ; Set password (optional -- will prompt if not set)\n  SetEnv DROPBEAR_PASSWORD mypassword\n\n  ; Connect (auto-accept host key)\n  dbclient -y user (at) hostname\n\n  ; Run a single command\n  dbclient -y user (at) hostname echo hello\n\n  ; Custom port\n  dbclient -y -p 2222 user (at) hostname\n\nFeatures:\n  - ChaCha20-Poly1305 (preferred -- no data cache on 68020)\n  - AES-128/256-CTR (compatibility)\n  - Ed25519, RSA, ECDSA host keys and signatures\n  - Curve25519, DH group14 key exchange\n  - Password auth (interactive prompt or DROPBEAR_PASSWORD env)\n  - Arrow keys work in remote shells (CSI translation)\n  - Tab completion, Ctrl-C, backspace, tilde-dot disconnect\n  - Exit code propagation from remote commands\n\nLimitations:\n  - No ProxyCommand (-J) -- AmigaOS has no fork()\n  - No SSH agent forwarding -- no AF_UNIX sockets\n  - No X11 forwarding\n  - IPv4 only (no IPv6)\n  - No zlib compression (saves RAM)\n  - No SCP (separate binary, future release)\n  - Public key auth compiled in but needs dropbearkey\n    utility (not yet ported) for key generation\n\nBuilt with LibTomCrypt 1.18.2 + LibTomMath 1.3.0.\n309 KB binary, 23 automated tests passing.\n\nThis is an amiport project port. See https://amiport.platesteel.net\n"
+}
