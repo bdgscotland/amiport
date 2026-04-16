@@ -184,3 +184,44 @@ The "first runnable" milestone is HIT. To turn this into a "first playable":
    - Manifests in range-based for over std::map<>
    - Workaround: explicit empty check (but empty() may also be unreliable)
    - Need narrower repro to file upstream — TODO
+
+## UPDATE: Base data installed, ScanPath hangs
+
+Base data sets installed in `build/amiga/OpenTTD/baseset/` (18MB total):
+- OpenGFX 7.1: `ogfx*.grf`, `opengfx.obg`
+- OpenSFX 1.0.3: `opensfx.cat`, `opensfx.obs`
+- OpenMSX 0.4.2: 50+ MIDI files, `*.obm`
+
+Source archives at `/tmp/openttd-data/`:
+- `opengfx-7.1-all.zip` (3.5MB)
+- `opensfx-1.0.3-all.zip` (11.5MB)
+- `openmsx-0.4.2-all.zip` (140KB)
+
+Direct CDN URLs (https):
+- `cdn.openttd.org/opengfx-releases/7.1/opengfx-7.1-all.zip`
+- `cdn.openttd.org/opensfx-releases/1.0.3/opensfx-1.0.3-all.zip`
+- `cdn.openttd.org/openmsx-releases/0.4.2/openmsx-0.4.2-all.zip`
+
+**Status: openttd hangs in `ScanPath()` (fileio.cpp:1197)** when iterating
+the populated baseset directory. Stops at "FS::Scan: 3 after FioGetDirectory"
+without printing "FS::Scan: 4 after ScanPath" -- ScanPath never returns.
+After 5 min wait, still hung.
+
+Possible causes:
+- libnix `readdir()` infinite loop on AmigaOS-mapped directory
+- libnix `stat()` blocking / hung
+- AmigaDOS Lock exhaustion (no obvious symptom though)
+- 38MB binary + 18MB baseset exceeds available memory
+- Some specific filename in baseset triggers crash (e.g. extension comparison
+  or `FS2OTTD()` charset conversion at line 1209)
+
+Next steps:
+1. Add diaglog INSIDE ScanPath at the readdir loop top to see how far it gets
+2. If readdir loop iterates many times without returning, maybe `S_ISDIR`
+   check is wrong (DT_UNKNOWN pitfall) and we recurse into ourselves
+3. Try smaller baseset (just `ogfx1_base.grf` + `opengfx.obg`) to isolate
+4. Try with `-DENABLE_NETWORK=0` removed AND only `.obg` files
+   to short-circuit the .obs / .obm scans
+
+This is a clean stopping point -- the openttd binary works, just needs
+ScanPath to be robust against AmigaOS file enumeration semantics.
