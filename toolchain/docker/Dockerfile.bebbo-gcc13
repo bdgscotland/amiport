@@ -1,0 +1,93 @@
+# Dockerfile for bebbo's amiga-gcc 13.3 cross-compiler (C++17 support)
+#
+# Provides m68k-amigaos-g++ with full C++17 (std::optional, string_view,
+# if constexpr, structured bindings, etc.) for AmigaOS 3.x / 68k targets.
+#
+# Based on https://codeberg.org/bebbo/amiga-gcc (amiga13.3 branch)
+#
+# Build (~30 min on 8-core):
+#   docker build -t ghcr.io/bdgscotland/amiport-toolchain-gcc13:latest \
+#     -f toolchain/docker/Dockerfile.bebbo-gcc13 toolchain/docker/
+#
+# Usage:
+#   docker run --rm -v $(pwd):/work ghcr.io/bdgscotland/amiport-toolchain-gcc13 \
+#     m68k-amigaos-g++ -std=c++17 -noixemul -m68040 -m68881 -O0 -o prog prog.cpp
+#
+# Why this exists:
+#   The default amigadev/crosstools:m68k-amigaos image ships GCC 6.5 (C++14 max).
+#   OpenTTD 13.4 and other modern C++ ports need C++17. The amiga13.3 branch of
+#   bebbo's toolchain provides GCC 13.3 with full C++17. This Dockerfile builds
+#   it on Linux (macOS has newlib multilib build failures) and includes a patch
+#   to sys/reent.h that fixes a circular include between newlib and libstdc++
+#   when using -noixemul (libnix).
+
+FROM ubuntu:22.04 AS builder
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && apt-get install -y \
+    autoconf \
+    bison \
+    flex \
+    g++ \
+    gcc \
+    gettext \
+    git \
+    lhasa \
+    libgmp-dev \
+    libmpc-dev \
+    libmpfr-dev \
+    libreadline-dev \
+    make \
+    ncurses-dev \
+    patch \
+    rsync \
+    texinfo \
+    wget \
+    && rm -rf /var/lib/apt/lists/*
+
+# Clone from Codeberg (canonical source since GitHub migration)
+RUN git clone https://codeberg.org/bebbo/amiga-gcc.git /opt/amiga-gcc-src
+
+WORKDIR /opt/amiga-gcc-src
+
+# Switch GCC to the 13.3 branch
+RUN make branch branch=amiga13.3 mod=gcc
+
+# Build the minimal toolchain: binutils + gcc + libnix + libgcc/libstdc++
+RUN make min -j$(nproc) PREFIX=/opt/amiga13
+
+# Patch reent.h: remove __libnix__ guard from struct __sFILE definition.
+# Without this, C++ headers that pull in <cwchar> -> <wchar.h> -> <sys/reent.h>
+# get an incomplete FILE type because libnix mode skips the struct definition
+# and tries a circular #include <stdio.h> instead.
+RUN sed -i 's/^#if !defined(__libnix__) && !defined(__SFILE_DEFINED__)$/#if !defined(__SFILE_DEFINED__)/' \
+    /opt/amiga13/m68k-amigaos/sys-include/sys/reent.h && \
+    sed -i '/^#if defined(__libnix__)/{N;s/#if defined(__libnix__)\n#include <stdio.h>/typedef struct __sFILE   __FILE;/}' \
+    /opt/amiga13/m68k-amigaos/sys-include/sys/reent.h
+
+# Verify C++17 compiles
+RUN echo '#include <optional>\n#include <string_view>\nstd::optional<int> f(std::string_view s) { return s == "x" ? 1 : std::optional<int>{}; }\nint main() { return f("x").value_or(10); }' > /tmp/test.cpp && \
+    /opt/amiga13/bin/m68k-amigaos-g++ -std=c++17 -noixemul -m68040 -O0 -c -o /tmp/test.o /tmp/test.cpp && \
+    echo "=== C++17 COMPILE TEST PASSED ==="
+
+# --- Slim runtime image ---
+FROM ubuntu:22.04
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    make \
+    git \
+    libmpc3 \
+    libmpfr6 \
+    libgmp10 \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --from=builder /opt/amiga13 /opt/amiga13
+
+ENV PATH="/opt/amiga13/bin:${PATH}"
+
+RUN m68k-amigaos-g++ --version
+
+WORKDIR /work
+
+CMD ["m68k-amigaos-g++", "--version"]
