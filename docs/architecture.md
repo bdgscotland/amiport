@@ -130,7 +130,8 @@ Categories 3-4 use an automated FS-UAE testing pipeline instead of manual intera
 
 Docker containers provide reproducible cross-compilation environments:
 
-- `toolchain/docker/Dockerfile.bebbo-gcc` — Primary: m68k-amigaos-gcc
+- `toolchain/docker/Dockerfile.bebbo-gcc` — Primary: m68k-amigaos-gcc (GCC 6.5.0b, C89/C99/C++14)
+- `toolchain/docker/Dockerfile.bebbo-gcc13` — C++17: m68k-amigaos-g++ (GCC 13.3.0, full C++17 for OpenTTD and game ports)
 - `toolchain/docker/Dockerfile.vbcc` — Secondary: VBCC
 - `toolchain/scripts/` — Setup, detection, and compilation wrappers
 - `toolchain/configs/target-profiles/` — CPU-specific compiler flags

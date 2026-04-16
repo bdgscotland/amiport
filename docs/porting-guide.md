@@ -65,6 +65,10 @@ Cross-compiles the ported source using the Docker toolchain. Handles:
 - Linking with posix-shim library (+ console-shim/bsdsocket-shim for Categories 3-4)
 - Iterative error fixing
 
+**Toolchain selection:**
+- C ports: `ghcr.io/bdgscotland/amiport-toolchain:latest` (GCC 6.5.0b, C89/C99/C++14)
+- C++17 ports (OpenTTD, game engines): `ghcr.io/bdgscotland/amiport-toolchain-gcc13:latest` (GCC 13.3.0, full C++17). Build with `docker build -f toolchain/docker/Dockerfile.bebbo-gcc13 toolchain/docker/`
+
 **Category 3 (Console UI) build configuration:**
 - Add `-I../../lib/console-shim/include` to CFLAGS
 - Add `-L../../lib/console-shim -lamiport-console` to LDFLAGS
