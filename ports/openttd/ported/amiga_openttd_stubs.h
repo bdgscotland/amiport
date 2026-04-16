@@ -70,12 +70,60 @@ struct sockaddr_storage {
 #define AI_ADDRCONFIG 0
 #endif
 
-/* NOTE: AmigaOS NDK <exec/nodes.h> defines 'struct Node' which collides
- * with OpenTTD's linkgraph typedefs. Avoid including any NDK exec headers
- * in this stub. The collision is handled by OpenTTD's os_abstraction.h
- * which includes the NDK socket headers AFTER the linkgraph headers. */
+/* IPv6 stubs -- no IPv6 on classic AmigaOS */
+#ifndef IPV6_V6ONLY
+#define IPV6_V6ONLY 0
+#endif
+#ifndef IPPROTO_IPV6
+#define IPPROTO_IPV6 41
+#endif
+#ifndef AF_INET6
+#define AF_INET6 26
+#endif
 
+/* Network resolution stubs -- getaddrinfo/freeaddrinfo are in our
+ * bsdsocket-shim but need the declaration visible. getnameinfo and
+ * gai_strerror are stubs. */
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-/* select() -- declared in libnix <sys/select.h> (pulled in via os_abstraction.h).
- * Do NOT include sys/select.h here -- it transitively pulls in exec/nodes.h
- * which defines struct Node, colliding with OpenTTD's linkgraph typedef Node. */
+struct addrinfo;
+struct sockaddr;
+
+#ifndef _HAVE_GETADDRINFO_DECL
+#define _HAVE_GETADDRINFO_DECL
+int getaddrinfo(const char *node, const char *service,
+                const struct addrinfo *hints, struct addrinfo **res);
+void freeaddrinfo(struct addrinfo *res);
+#endif
+
+static inline int getnameinfo(const struct sockaddr *sa, unsigned int salen,
+    char *host, unsigned int hostlen, char *serv, unsigned int servlen,
+    int flags)
+{
+    (void)sa; (void)salen; (void)serv; (void)servlen; (void)flags;
+    if (host && hostlen > 0) host[0] = '\0';
+    return -1;
+}
+
+static inline const char *gai_strerror(int errcode)
+{
+    (void)errcode;
+    return "address resolution error";
+}
+
+#ifdef __cplusplus
+}
+#endif
+
+/* AmigaOS NDK <exec/nodes.h> defines 'struct Node' which collides with
+ * OpenTTD's linkgraph typedef Node. OpenTTD never uses struct Node directly
+ * (no ln_Succ, ln_Pred, etc.). Rename it before any NDK header loads. */
+#define Node AmigaExecNode
+#include <exec/nodes.h>
+#include <exec/lists.h>
+#include <exec/ports.h>
+#include <sys/socket.h>
+#include <sys/select.h>
+#undef Node
