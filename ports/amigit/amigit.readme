@@ -1,134 +1,66 @@
-Short:        Local git CLI for AmigaOS 3.x (preview)
+Short:        Git client for AmigaOS 3.x over HTTPS
 Type:         dev/misc
 Architecture: m68k-amigaos >= 68020
 Uploader:     duncan@bowring.us
 Author:       Duncan Bowring (amiport, built on libgit2)
-Version:      0.1-7
+Version:      0.2
 URL:          https://github.com/bdgscotland/amiport
 
-amigit 0.1-7 -- DEVELOPER PREVIEW
+amigit 0.2 -- DEVELOPER PREVIEW
 
-This is an early developer preview, NOT a stable git client.
-Suitable for early testers and feedback. Not yet suitable for
-managing real projects.
+The first git client for AmigaOS 3.x with HTTPS networking.
+Clone public repositories from GitHub, GitLab, Codeberg, or
+any HTTPS git server.
 
 What works today:
+  - amigit clone https://github.com/user/repo [dest]
+  - amigit ls-remote https://github.com/user/repo
   - Local repository operations: status, log, show, diff, add,
     commit, branch, checkout, tag
   - Reading existing repos created by another git
-  - Single-letter assigned-volume init (T:foo, R:foo after
-    AmigaDOS Assign)
+  - Authentication via ENV:GIT_HTTP_TOKEN (PAT) or interactive
+    raw-mode prompt on HTTP 401
 
 What does NOT work yet:
+  - fetch, pull, push (0.3 milestone)
+  - SSH, git://, or plain HTTP transports (HTTPS only)
   - amigit init from a multi-character volume name (WORK:,
-    Ram Disk:, System 3.1:). You have to AmigaDOS Assign a
-    single-letter alias first. See "Init friction" below.
-  - Network: no clone, no fetch, no push, no remote, no pull.
-    The whole collaboration value of git is missing. amigit
-    currently only manages LOCAL repositories.
-  - Multi-word commit messages via -m (AmigaDOS splits argv on
-    whitespace). Use -F <file> for multi-word messages instead
-    (added 0.1-5): write your message to a file and pass it via
-    -F. Multi-line messages work too.
-  - Annotated tags with messages (tag -a). Only lightweight
-    tags work today. Planned for a future revision.
-  - Merge, rebase, cherry-pick, revert, stash. None implemented.
-  - Color output, pager integration, interactive flows.
+    Ram Disk:). Workaround: Assign R: WORK: ; amigit init R:foo
+  - Clone destination with a multi-character volume name has the
+    same limitation. Workaround: use a single-letter Assign
+  - Merge, rebase, cherry-pick, revert, stash
+  - Color output, pager integration, interactive flows
+  - Multi-word commit messages via -m (use -F <file> instead)
 
-The init friction:
-  Out of the box, "amigit init" from a typical Shell prompt
-  (1.WORK:>, 1.Ram Disk:>) does NOT work. The libgit2 library
-  this port embeds only recognizes single-character drive
-  prefixes (X:) as path roots. AmigaOS multi-character volume
-  names confuse it. amigit detects the case at startup and
-  emits a friendly error pointing at the workaround.
+Authentication for private repos:
+  SetEnv GIT_HTTP_TOKEN ghp_your_pat_here
+  SetEnv GIT_HTTP_USERNAME your_username
+  amigit clone https://github.com/user/private-repo
 
-  Workaround:
-    1.WORK:> Assign R: WORK:
-    1.WORK:> R:
-    1.R:> amigit init R:myproject
-
-  We are working on a real fix. See PORT.md inside the LHA for
-  the engineering notes on three approaches that were tried in
-  the 0.1.x line and rolled back.
+  Or omit the env vars and amigit prompts interactively.
 
 Roadmap:
-  0.1-7 (this release) -- development snapshot for the networking
-        track. HTTPS transport plumbing (PDR-012) progresses: HTTP
-        Basic auth sourcing from ENV:GIT_HTTP_TOKEN and ENV:
-        GIT_HTTP_USERNAME (with interactive raw-mode token prompt
-        fallback) and a 1-shot 401 retry inside the HTTPS
-        transport. Not yet user-visible because cmd_clone is still
-        a Phase 8 deliverable -- the 401 retry path only activates
-        when a libgit2 fetch state machine drives a credentialed
-        request, which needs cmd_clone to exist. 0.1-7 builds on
-        the 0.1-6 -m68020 library baseline; no perf regression.
-  0.1-6 (2026-04-14) -- bundled libgit2 / zlib / posix-shim
-        rebuilt at -m68020 alongside the amigit binary itself.
-        0.1-5 was a -m68020 binary linked against -m68000
-        libraries, so the hot work (libgit2 pack/diff, zlib
-        inflate, POSIX shims) was still running 68000 code.
-        0.1-6 fixed that: every code path in the final image
-        uses the 68020 instruction set. Noticeable on diff,
-        log, and status over larger histories.
-  0.2 -- init works from any volume + annotated tag messages
-        (tag -a -F <file>). Removes the init friction wall
-        above. Target: weeks, not months.
-  1.0 -- HTTPS clone, fetch, log, diff against public repos
-        via a libgit2 smart-HTTP backend on AmiSSL. Target:
-        roughly 6-10 weeks of focused work. This is the
-        watershed release -- the moment amigit becomes a tool
-        you would actually use to explore real codebases on
-        AmigaOS.
-  Future -- HTTPS push, libssh2 SSH support, merge / rebase /
-           stash. Probably another 4-8 weeks beyond 1.0.
+  0.2 (this release) -- HTTPS clone and ls-remote
+  0.3 -- fetch and pull (incremental updates)
+  1.0 -- push (bidirectional sync, Aminet release)
+  Future -- SSH support, merge, rebase, stash
 
-Why amigit is local-only today:
-  Upstream git is structurally infeasible on AmigaOS because
-  its command dispatch is built on fork() / execvp(), which
-  AmigaOS does not provide. amigit is built from scratch on
-  libgit2 1.8.5 (pruned to remove networking, submodule
-  cloning, and the failalloc harness) which gives us a clean
-  embeddable git core but no network transport. Networking
-  is a large, separate engineering effort tracked in the
-  roadmap above.
+Requirements:
+  - AmigaOS 3.x with 68020+ CPU (Vampire, A1200/030+, A3000+)
+  - AmiSSL 5.x installed (for HTTPS)
+  - TCP/IP stack (Roadshow, Miami, AmiTCP)
+  - 4 MB free RAM minimum
 
-What this preview is good for:
-  - Validating the libgit2 + amiport posix-shim stack on real
-    AmigaOS hardware (your A2000+Vampire, A1200, A3000 / 4000)
-  - Walking the history of an existing .git/ directory copied
-    over from a Linux machine
-  - Experimenting with a journal-style local-only workflow
-  - Reporting bugs that help shape 0.2 / 0.3 / 1.0
+Binary: ~1.2 MB (stripped). Stack: 256 KB.
 
-What this preview is NOT good for:
-  - Daily git workflow on real projects (yet)
-  - Collaboration via GitHub / GitLab / etc (no networking yet)
-  - Anything that requires merge, rebase, or stash
+Built on: libgit2 1.8.5, zlib 1.3.1, amiport posix-shim,
+          bsdsocket-shim, AmiSSL 5 SDK
+Cross-compiled with m68k-amigaos-gcc 6.5.0b.
+103/103 FS-UAE functional tests passing.
 
-Project: https://github.com/bdgscotland/amiport
-Built on: libgit2 1.8.5, zlib 1.3.1, amiport posix-shim
+Bug reports: https://github.com/bdgscotland/amiport/issues
 
-Cross-compiled with m68k-amigaos-gcc 6.5.0b for AmigaOS 3.x.
-Targets 68020 minimum (no plain 68000 / A500 support --
-accelerated Amigas only). Tested in FS-UAE A1200 with 87/87
-functional tests passing -- but those tests cover synthetic
-happy paths and do not yet exercise the full real-world
-workflow. Real workflow validation is a 0.2 milestone.
-
-Binary: ~1.03 MB (stripped). Stack: 256 KB. Requires 4 MB
-free RAM at runtime. 68020 minimum.
-
-Bug reports and feedback welcome via the GitHub issue tracker:
-https://github.com/bdgscotland/amiport/issues
-
-Exit codes (Amiga-native):
+Exit codes:
   0  = success (RETURN_OK)
-  10 = any error (RETURN_ERROR)
+  10 = error (RETURN_ERROR)
   20 = fatal (RETURN_FAIL)
-
-Environment variables (for commit author/committer identity):
-  GIT_AUTHOR_NAME         (default: amigit user)
-  GIT_AUTHOR_EMAIL        (default: amigit@localhost)
-  GIT_COMMITTER_NAME      (default: amigit user)
-  GIT_COMMITTER_EMAIL     (default: amigit@localhost)

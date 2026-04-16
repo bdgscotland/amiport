@@ -710,25 +710,18 @@ The project is DONE when all of these are true:
 
 ## Session checkpoint (update in-place every session)
 
-**Current phase:** Phase 8 (cmd_clone.c + amigit 0.2 release, 1
-session). Phase 7 is complete. Phase 7 landed the HTTP Basic auth
-path -- GitHub PAT sourcing via `ENV:GIT_HTTP_TOKEN` /
-`ENV:GIT_HTTP_USERNAME` with an interactive raw-mode prompt
-fallback, a 1-shot 401 retry wired into the shared
-`open_request_with_redirects` helper, an inline RFC 4648 base64
-encoder (no libtomcrypt dependency), and a volatile-wipe
-credential scrub helper used on every exit path. All four suites
-still green: `tests/libgit2` 79/79, `tests/amigit-http-client`
-25/25 + 26/26 + **17/17 (new test_credential vamos binary)**,
-FS-UAE `ports/amigit` 100/100 (unchanged -- Phase 7 does not add
-new FS-UAE tests because the 401-retry path needs a real 401
-responder, which the harness does not have; real-hardware
-verification is the authoritative Phase 7 gate, unblocked by
-Phase 8's `cmd_clone`). amigit binary is 1,225,036 bytes (was
-1,222,168 on Phase 6 -- +2,868 bytes for credential.c plus the
-401 retry block in transport_https.c).
-Last update: 2026-04-15 (Phase 7 landed -- credential callback +
-401 retry).
+**Current phase:** Phase 9 (cmd_fetch.c + cmd_pull.c, 1 session).
+Phase 8 is complete. Phase 8 shipped `amigit clone <url> [path]`
+as the first user-facing networked command, cut the 0.2 release
+(VERSION=0.2, REVISION=1), and purged the `_https-probe` debug
+command. All four suites green: `tests/libgit2` 79/79,
+`tests/amigit-http-client` 25/25 + 26/26 + 17/17, FS-UAE
+`ports/amigit` 103/103 (was 100 on Phase 7: -7 _https-probe
+tests purged, +10 clone error-path tests added). amigit binary
+is 1,226,464 bytes (was 1,225,036 on Phase 7 -- +1,428 bytes:
+cmd_clone.o replaced cmd_https_probe.o at similar size).
+Last update: 2026-04-15 (Phase 8 landed -- cmd_clone + 0.2
+release).
 
 **2026-04-14 plan change:** original Phase 3 (plain HTTP only)
 and original Phase 7 (AmiSSL integration) MERGED into the
@@ -742,22 +735,87 @@ If a previous session's handoff mentions "Phase 8" or "Phase 12"
 those refer to the OLD numbering -- see the current
 `## Phase plan` section for authoritative current numbering.
 
-**Last completed phase:** Phase 7 (credential callback + 401
-retry, single session, 2026-04-15). Still pending (unchanged
-from the Phase 3 checkpoint, now newly valuable with Phase 7
-credentials available): real-hardware smoke test on Duncan's
-A2000 + Vampire V2 500+ + X-Surf 100 + Roadshow + AmiSSL
-installer. Phase 7 makes the first credentialed clone attempt
-possible -- with `SetEnv GIT_HTTP_TOKEN <pat>` the 401-retry path
-is now wired end-to-end. Real authentication verification
-requires a real server that actually sends 401; the FS-UAE
-harness cannot reliably provide one, so that gate still lives on
-real hardware. Blocked on Phase 8 (`cmd_clone.c`) because the
-Phase 6+7 paths are currently reachable only via `_https-probe`
-(which does not issue authenticated requests) or via libgit2's
-internal state machine (which Phase 8 will drive via `git_clone`
-and which will be the first consumer of the new credential code
-path in the real use case).
+**Last completed phase:** Phase 8 (cmd_clone + amigit 0.2
+release, single session, 2026-04-15). Real-hardware happy-path
+clone is the outstanding gate -- FS-UAE error-path tests are
+green (103/103) but the actual "clone a real GitHub repo over
+HTTPS" test requires Duncan's A2000 + Vampire V2 500+ + X-Surf
+100 + Roadshow + AmiSSL stack. Phase 8 unblocks this: the
+`_https-probe` diagnostic has been replaced by a real
+`amigit clone` command that drives `git_clone()` through the
+entire Phase 2-7 transport + credential stack.
+
+**Phase 8 summary (2026-04-15):**
+
+Phase 8 shipped `amigit clone <url> [path]` as the first
+user-facing networked command and cut the 0.2 release. Before
+this session, amigit's HTTPS transport was exercisable only via
+the `_https-probe` debug command or through libgit2 internals
+that nothing in the binary drove. After this session,
+`git_clone()` drives the full stack end-to-end: URL validation,
+destination path resolution with `.git` suffix stripping and
+multi-char volume precheck, `git_clone_options` setup with a
+rate-limited `transfer_progress` callback (one line per 128
+objects), and error handling with GIT_EEXISTS detection for
+existing destinations. The `_https-probe` debug command was
+purged (TU deleted, dispatch entry removed, 7 test blocks
+dropped, `amigit_transport_https_debug_post` removed from
+`transport_https.c`). 10 clone error-path tests added (missing
+URL, malformed scheme, bare hostname, empty host, too many args,
+unknown option, ftp/git/ssh/http scheme rejection). Happy-path
+clone against a real git server is a real-hardware test only --
+the FS-UAE harness does not have reliable bsdsocket+AmiSSL
+passthrough.
+
+Landed files:
+- `ports/amigit/ported/cmd_clone.c` (NEW) -- 435 lines,
+  `amigit_cmd_clone` entry point, `default_dest_from_url`,
+  `validate_url_scheme`, `dest_path_is_supported`,
+  `clone_transfer_progress` callback.
+- `ports/amigit/ported/amigit.h` -- AMIGIT_VERSION "0.2",
+  removed `amigit_cmd_https_probe` prototype, added
+  `amigit_cmd_clone`.
+- `ports/amigit/ported/amigit.c` -- $VER "0.2", replaced
+  `_https-probe` dispatch entry with `clone`, updated help text
+  from "Local repositories only" to "Clone and manage
+  repositories over HTTPS".
+- `ports/amigit/ported/transport_https.c` -- removed
+  `amigit_transport_https_debug_post` (~80 lines).
+- `ports/amigit/ported/transport_https.h` -- removed debug_post
+  prototype.
+- `ports/amigit/ported/cmd_https_probe.c` -- DELETED.
+- `ports/amigit/Makefile` -- VERSION=0.2, REVISION=1, swapped
+  cmd_https_probe.o -> cmd_clone.o in OBJECTS.
+- `ports/amigit/test-fsemu-cases.txt` -- version EXPECT updated
+  to 0.2, _https-probe blocks removed, clone blocks added.
+- `ports/amigit/amigit.readme` -- full rewrite for 0.2
+  (clone in "works today", fetch/pull/push in "not yet").
+
+Build and test results:
+- `tests/libgit2 run`: **79/79** (unchanged).
+- `tests/amigit-http-client run`: **25/25 + 26/26 + 17/17**
+  (unchanged).
+- `make test-fsemu TARGET=ports/amigit`: **103/103** (was
+  100/100 on Phase 7. Delta: -7 _https-probe + 10 clone).
+- Binary: **1,226,464 bytes** (was 1,225,036).
+- Memory-checker: CLEAN (all git_repository alloc/free pairs
+  balanced, no heap allocations in progress callback, stack
+  pressure ~532 bytes against 262144 __stack).
+- Perf-optimizer: CLEAN (network-bound, no CPU optimization
+  measurable; dead url_len variable cleaned up).
+
+NOT done in Phase 8 (deferred to Phase 9 or later):
+- Real-hardware happy-path clone. Deferred to user -- the
+  A2000 + Vampire + X-Surf 100 + AmiSSL stack is needed.
+- fetch and pull (Phase 9 scope).
+- Credential caching across multiple libgit2 remote calls
+  within one git_clone invocation (if the 401 retry fires on
+  the LS request, it may fire again on the POST request within
+  the same clone; the current architecture re-prompts each time
+  because the credential is not cached across the transport
+  helper's open_request_with_redirects calls). Acceptable for
+  now because env vars bypass the prompt entirely.
+- Push (Phase 11 scope).
 
 **Phase 7 summary (2026-04-15):**
 
@@ -950,45 +1008,42 @@ memory note for the next session.
   the real use case. Phase 8 may cache if cmd_clone's work
   patterns warrant it.
 
-**Phase 8 hints (what the next session should know):**
+**Phase 8 hints:** DONE (see Phase 8 summary above).
 
-Phase 8 implements `amigit clone <url> [path]` and cuts the 0.2
-release. The foundation is complete:
-1. Transport layer handles GET, POST, and 401 retry.
-2. Credentials come from env vars or interactive prompt.
-3. All four test suites are green.
+**Phase 9 hints (what the next session should know):**
 
-Phase 8 work:
-- `ports/amigit/ported/cmd_clone.c` -- URL parsing, path
-  resolution, `git_clone_options` setup, transport registration
-  (via the existing `amigit_transport_https_register`), progress
-  callback wiring, error handling.
-- Register `amigit_transport_https_register` early in main()
-  BEFORE the `cmd_clone` dispatch runs so the transport is
-  active for `git_clone`.
-- Remove `cmd_https_probe.c` and the `_https-probe` dispatch
-  table entries. The diagnostic probe has served its purpose.
-- Decide whether to pull libgit2's credential subsystem via an
-  un-prune or keep the direct-internal wiring. Recommendation:
-  keep direct-internal. Phase 7's architecture has zero libgit2
-  coupling and the env var + prompt paths cover every practical
-  use case.
-- Version bump to 0.2 (not 0.1-8). This is the "can I use git
-  on my Amiga" threshold -- it's a real feature release.
-- Full metadata sweep: PORTS.md, README.md, data/catalog.json,
-  site catalogs, amigit.readme, PORT.md.
+Phase 9 implements `amigit fetch origin` and `amigit pull origin
+main`. The foundation is complete: Phase 8's `git_clone` already
+drives `git_remote_connect` + `git_remote_download` +
+`git_checkout_head` through the custom transport, so the fetch
+path only needs `git_remote_lookup` (from an existing repo) +
+`git_remote_fetch` (which uses the same LS + POST flow that
+clone used). Pull is fetch + fast-forward-only merge via
+`git_merge_analysis` + `git_reference_set_target`.
 
-**Other-session boundaries (unchanged from Phase 6):** a
+Phase 9 work:
+- `cmd_fetch.c`: open repo, look up remote by name, call
+  `git_remote_fetch` with progress callback. Transfer progress
+  callback can be shared with clone (same signature).
+- `cmd_pull.c`: call fetch, then `git_merge_analysis`. If
+  fast-forward, `git_reference_set_target` + checkout. If not,
+  bail with a clear message.
+- Version bump: probably 0.2-2 (not 0.3 -- fetch/pull are
+  incremental on the 0.2 baseline, not a feature release).
+- The transport registration already happens in main() before
+  dispatch, so fetch and pull inherit it.
+
+**Other-session boundaries (unchanged from Phase 7):** a
 parallel dropbear session has uncommitted changes in
 `lib/bsdsocket-shim/src/socket.c` and `ports/dropbear/**`. Phase
-7 did NOT touch either -- the bsdsocket-shim on disk (with
-those uncommitted changes) was linked into Phase 7's binary via
+8 did NOT touch either -- the bsdsocket-shim on disk (with
+those uncommitted changes) was linked into Phase 8's binary via
 `-lamiport-net` and all test suites passed, so the uncommitted
-delta is compatible with Phase 7. The `amiport_libgit2_stubs.c`
+delta is compatible with Phase 8. The `amiport_libgit2_stubs.c`
 soft-float overrides (`__divsf3`, `__floatunsisf`) stay critical
-through Phases 7 and 8; do not remove them until after real-
-hardware clone profiling confirms nothing still pulls them from
-libgit2's `patch_generate.c`.
+through Phase 9; do not remove them until after real-hardware
+clone profiling confirms nothing still pulls them from libgit2's
+`patch_generate.c`.
 
 **Phase 6 summary (2026-04-14):**
 

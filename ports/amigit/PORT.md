@@ -16,19 +16,33 @@
 
 ## Status
 
-**0.2 (2026-04-15) -- DEVELOPER PREVIEW.** PDR-012 Phase 7
+**0.2 (2026-04-15) -- DEVELOPER PREVIEW.** PDR-012 Phase 8:
+first user-facing networked command. `amigit clone <url> [path]`
+drives libgit2's `git_clone()` through the custom HTTPS
+subtransport from Phases 2-6, with Phase 7's credential/401
+retry for private repos. Removed the `_https-probe` debug
+command (7 tests purged), added 10 clone error-path tests.
+All four suites green: libgit2 79/79, amigit-http-client
+25/25 + 26/26 + 17/17, FS-UAE 103/103. Binary 1,226,464 bytes
+(+1,428 from 0.1-7: cmd_clone.o replaced cmd_https_probe.o at
+similar size). Memory-checker CLEAN, perf-optimizer CLEAN
+(network-bound, no CPU optimization measurable). VERSION bumped
+to 0.2 (feature release, not 0.1-8) because HTTPS clone is the
+"can I use git on my Amiga" threshold. Real-hardware smoke test
+deferred to user -- FS-UAE bsdsocket+AmiSSL passthrough is not
+reliably available in the harness.
+
+**0.1-7 (2026-04-15) -- DEVELOPER PREVIEW.** PDR-012 Phase 7
 landed: HTTP Basic auth sourcing via `ENV:GIT_HTTP_TOKEN` /
 `ENV:GIT_HTTP_USERNAME` with interactive raw-mode token prompt
 fallback, plus a 1-shot 401 retry inside the HTTPS transport.
 All four test suites green: libgit2 79/79, amigit-http-client
-25/25 + 26/26 + **17/17 (new test_credential vamos binary)**,
+25/25 + 26/26 + 17/17 (new test_credential vamos binary),
 FS-UAE `ports/amigit` 100/100. Binary 1.17 MB (up 3 KB from
 0.1-6). The credential code is reachable only when libgit2's
 fetch state machine drives a credentialed request, which needs
-`cmd_clone` (Phase 8) to exist -- so 0.2 is a development
-snapshot, not a user-visible feature release. The 0.2 release
-will ship Phase 7+Phase 8 together with cmd_clone as the entry
-point.
+`cmd_clone` (Phase 8) to exist -- so 0.1-7 is a development
+snapshot, not a user-visible feature release.
 
 **0.1-6 (2026-04-14) -- DEVELOPER PREVIEW.** All 11 PDR-010a v1
 commands compile and run, **87/87** FS-UAE functional tests

@@ -5,17 +5,17 @@
 | Field | Value |
 |-------|-------|
 | Port | amigit |
-| Date | 2026-04-15 20:45:49 |
-| Duration | 18s |
+| Date | 2026-04-15 21:17:03 |
+| Duration | 17s |
 | Platform | FS-UAE 3.2.35 (A1200, Kickstart 3.1) |
 | Binary | `WORK:amigit` (1.2M) |
 | Test method | ARexx harness → TAP output |
-| Result | **PASS** — 100/100 passed |
+| Result | **PASS** — 103/103 passed |
 
 ## Test Results
 
 ```
-1..100
+1..103
 ok 1 - version prints amigit version on first line
 ok 2 - version prints libgit2 version on second line
 ok 3 - version prints shim availability on third line
@@ -109,14 +109,17 @@ ok 90 - ls-remote --help mentions AmiSSL requirement
 ok 91 - ls-remote rejects ftp:// URL scheme before any network traffic
 ok 92 - ls-remote rejects http:// URL scheme (https-only in Phase 5)
 ok 93 - ls-remote surfaces real transport error against live HTTPS server
-ok 94 - _https-probe missing url exits RETURN_ERROR
-ok 95 - _https-probe invalid URL rejected before network
-ok 96 - _https-probe --lib-only opens AmiSSL via OpenAmiSSLTags
-ok 97 - _https-probe live HTTPS GET to amiport.platesteel.net returns status
-ok 98 - _https-probe --pack missing url exits RETURN_ERROR
-ok 99 - _https-probe --pack rejects invalid URL
-ok 100 - _https-probe --pack reaches live HTTPS server and surfaces real status
-# passed: 100 failed: 0 total: 100
+ok 94 - clone missing url exits RETURN_ERROR
+ok 95 - clone --help prints usage
+ok 96 - clone rejects ftp:// URL scheme
+ok 97 - clone rejects http:// URL (https-only)
+ok 98 - clone rejects bare hostname without scheme
+ok 99 - clone rejects https:// with empty host
+ok 100 - clone rejects git:// URL scheme
+ok 101 - clone rejects ssh:// URL scheme
+ok 102 - clone too many positional args
+ok 103 - clone unknown option
+# passed: 103 failed: 0 total: 103
 ```
 
 ### Breakdown
@@ -216,13 +219,16 @@ ok 100 - _https-probe --pack reaches live HTTPS server and surfaces real status
 | 91 | ls-remote rejects ftp:// URL scheme before any network traffic | PASS | |
 | 92 | ls-remote rejects http:// URL scheme (https-only in Phase 5) | PASS | |
 | 93 | ls-remote surfaces real transport error against live HTTPS server | PASS | |
-| 94 | _https-probe missing url exits RETURN_ERROR | PASS | |
-| 95 | _https-probe invalid URL rejected before network | PASS | |
-| 96 | _https-probe --lib-only opens AmiSSL via OpenAmiSSLTags | PASS | |
-| 97 | _https-probe live HTTPS GET to amiport.platesteel.net returns status | PASS | |
-| 98 | _https-probe --pack missing url exits RETURN_ERROR | PASS | |
-| 99 | _https-probe --pack rejects invalid URL | PASS | |
-| 100 | _https-probe --pack reaches live HTTPS server and surfaces real status | PASS | |
+| 94 | clone missing url exits RETURN_ERROR | PASS | |
+| 95 | clone --help prints usage | PASS | |
+| 96 | clone rejects ftp:// URL scheme | PASS | |
+| 97 | clone rejects http:// URL (https-only) | PASS | |
+| 98 | clone rejects bare hostname without scheme | PASS | |
+| 99 | clone rejects https:// with empty host | PASS | |
+| 100 | clone rejects git:// URL scheme | PASS | |
+| 101 | clone rejects ssh:// URL scheme | PASS | |
+| 102 | clone too many positional args | PASS | |
+| 103 | clone unknown option | PASS | |
 
 ## Environment
 
@@ -242,7 +248,7 @@ Each test runs the command inside AmigaOS, captures stdout to a file,
 and compares against the expected output string.
 
 ```
-# test-fsemu-cases.txt -- FS-UAE functional tests for amigit 0.1
+# test-fsemu-cases.txt -- FS-UAE functional tests for amigit 0.2
 #
 # Phase 3b scope: version, init, status, log, show, diff.
 # Phase 3c will add: add, commit, checkout, branch, tag.
@@ -279,7 +285,7 @@ and compares against the expected output string.
 
 TEST: version prints amigit version on first line
 CMD: WORK:amigit version
-EXPECT: amigit 0.1-7 (built 2026-04-15)
+EXPECT: amigit 0.2 (built 2026-04-15)
 EXPECT_RC: 0
 
 TEST: version prints libgit2 version on second line
@@ -977,91 +983,63 @@ EXPECT_CONTAINS: ls-remote:
 EXPECT_RC: 10
 
 # ============================================================
-# _https-probe debug command -- PDR-012 Phase 3 session 2
+# clone command -- PDR-012 Phase 8
 # ============================================================
 #
-# Debug subcommand (underscore prefix = internal, not in --help).
-# Exercises http_client + amissl_glue directly, BEFORE Phase 5 wires
-# the HTTPS transport into libgit2 dispatch. Uses amiport.platesteel.net
-# as the live HTTPS target since it's our own infrastructure (no rate
-# limits, no auth, stable). Requires AmiSSL to be installed -- the
-# harness ASSIGNs WORK:Libs into LIBS: if build/amiga/Libs/amisslmaster.library
-# exists (see scripts/test-fsemu.sh). Full stack exercised:
-#   amiport_getaddrinfo -> amiport_socket -> amiport_connect
-#   -> OpenLibrary(amisslmaster.library) -> InitAmiSSLMaster
-#   -> OpenAmiSSL -> SSL_CTX_new -> SSL_new -> SSL_set_fd
-#   -> X509_VERIFY_PARAM_set1_host -> SSL_set_tlsext_host_name
-#   -> SSL_connect -> SSL_write -> SSL_read
-# The test passes if status= appears in stdout (any 2xx/3xx/4xx is
-# fine -- the point is that the network+TLS stack reached the server
-# and got a parseable HTTP response back).
+# `amigit clone <url> [path]` -- first user-facing networked command.
+# Error-path tests run on FS-UAE without network; the happy-path
+# clone of a real public repo is a real-hardware test (A2000 +
+# Vampire + X-Surf 100 + Roadshow + AmiSSL) because FS-UAE
+# bsdsocket passthrough + AmiSSL is not reliably available.
 
-TEST: _https-probe missing url exits RETURN_ERROR
-CMD: WORK:amigit _https-probe
-EXPECT_CONTAINS: usage: amigit _https-probe
+TEST: clone missing url exits RETURN_ERROR
+CMD: WORK:amigit clone
+EXPECT_CONTAINS: clone: missing url argument
 EXPECT_RC: 10
 
-TEST: _https-probe invalid URL rejected before network
-CMD: WORK:amigit _https-probe ftp://example.com/
-EXPECT_CONTAINS: invalid URL
-EXPECT_RC: 10
-
-# The live HTTPS GET test (_https-probe https://amiport.platesteel.net/)
-# is intentionally NOT included here. It is blocked on a known Phase 3
-# session 2 issue: OpenLibrary("amisslmaster.library") returns NULL on
-# this FS-UAE harness (A1200 + Kick 3.1 ROM + 8MB Fast), even after the
-# library file is confirmed accessible via LIBS: chain or explicit
-# WORK:Libs/RAM:Libs paths, and even with version=0 passed to
-# OpenLibrary. The graceful-degrade path fires correctly ("HTTPS not
-# available"). Root cause TBD in session 3. Real-hardware smoke
-# (A2000 + Vampire + AmiSSL installer) is the authoritative test.
-# See docs/pdr/012-amigit-https-networking.md Phase 3 session 2
-# checkpoint.
-
-TEST: _https-probe --lib-only opens AmiSSL via OpenAmiSSLTags
-CMD: WORK:amigit _https-probe --lib-only
-EXPECT_CONTAINS: amissl_glue_probe: OK
+TEST: clone --help prints usage
+CMD: WORK:amigit clone --help
+EXPECT_CONTAINS: usage: amigit clone
 EXPECT_RC: 0
 
-TEST: _https-probe live HTTPS GET to amiport.platesteel.net returns status
-CMD: WORK:amigit _https-probe https://amiport.platesteel.net/
-EXPECT_CONTAINS: status=
-EXPECT_RC: 0
-
-# ============================================================
-# _https-probe --pack -- PDR-012 Phase 6
-# ============================================================
-#
-# Phase 6 debug mode: POST /git-upload-pack directly via
-# amigit_transport_https_debug_post(), bypassing libgit2's smart-
-# transport dispatch. Sends a minimal pkt-line flush-only body
-# ("0000") so any HTTPS origin server responds with a non-200
-# status -- 400/405 is the expected result from non-git servers
-# like amiport.platesteel.net. The prefix "pack-probe:" in stdout
-# is the reached-transport marker: its presence proves the Phase 6
-# POST flow opened the connection, sent the POST, and received
-# a response (even if that response is a transport error).
-#
-# The happy-path POST + pack reception against a real git server
-# is deliberately NOT automated here -- FS-UAE test reliability
-# against third-party infra (github.com, codeberg.org) is weak.
-# Real-hardware verification on Duncan's A2000 + Vampire stack is
-# the authoritative Phase 6 happy-path test, tracked in the
-# PDR-012 Session checkpoint.
-
-TEST: _https-probe --pack missing url exits RETURN_ERROR
-CMD: WORK:amigit _https-probe --pack
-EXPECT_CONTAINS: pack-probe: usage
+TEST: clone rejects ftp:// URL scheme
+CMD: WORK:amigit clone ftp://example.com/repo.git
+EXPECT_CONTAINS: unsupported URL scheme
 EXPECT_RC: 10
 
-TEST: _https-probe --pack rejects invalid URL
-CMD: WORK:amigit _https-probe --pack ftp://example.com/
-EXPECT_CONTAINS: pack-probe:
+TEST: clone rejects http:// URL (https-only)
+CMD: WORK:amigit clone http://example.com/repo.git
+EXPECT_CONTAINS: not supported
 EXPECT_RC: 10
 
-TEST: _https-probe --pack reaches live HTTPS server and surfaces real status
-CMD: WORK:amigit _https-probe --pack https://amiport.platesteel.net/
-EXPECT_CONTAINS: pack-probe:
+TEST: clone rejects bare hostname without scheme
+CMD: WORK:amigit clone github.com/foo/bar.git
+EXPECT_CONTAINS: not a URL
+EXPECT_RC: 10
+
+TEST: clone rejects https:// with empty host
+CMD: WORK:amigit clone https:///repo.git
+EXPECT_CONTAINS: no host
+EXPECT_RC: 10
+
+TEST: clone rejects git:// URL scheme
+CMD: WORK:amigit clone git://example.com/repo.git
+EXPECT_CONTAINS: unsupported URL scheme
+EXPECT_RC: 10
+
+TEST: clone rejects ssh:// URL scheme
+CMD: WORK:amigit clone ssh://example.com/repo.git
+EXPECT_CONTAINS: unsupported URL scheme
+EXPECT_RC: 10
+
+TEST: clone too many positional args
+CMD: WORK:amigit clone https://example.com/r.git T:dest extra
+EXPECT_CONTAINS: too many positional arguments
+EXPECT_RC: 10
+
+TEST: clone unknown option
+CMD: WORK:amigit clone --depth 1 https://example.com/r.git
+EXPECT_CONTAINS: unknown option
 EXPECT_RC: 10
 ```
 
@@ -1077,9 +1055,9 @@ Written by the ARexx harness when all tests complete:
 
 ```
 TESTS_COMPLETE
-passed=100
+passed=103
 failed=0
-total=100
+total=103
 ```
 
 ---

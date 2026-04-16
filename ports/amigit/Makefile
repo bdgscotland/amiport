@@ -16,9 +16,9 @@ TARGET      = amigit
 # computes DISPLAY_VERSION via `ifeq ($(REVISION),1)` at include time,
 # so a `REVISION = 2` after the include is too late and DISPLAY_VERSION
 # stays at "0.1" instead of "0.1-2". Discovered while bumping to 0.1-2.
-VERSION     = 0.1
-REVISION    = 7
-DESCRIPTION = Local git CLI for AmigaOS 3.x (preview)
+VERSION     = 0.2
+REVISION    = 1
+DESCRIPTION = Git client for AmigaOS 3.x over HTTPS
 AUTHOR      = Duncan Bowring (amiport, on libgit2)
 AMINET_CAT  = dev/misc
 
@@ -47,7 +47,7 @@ OBJECTS = ported/amigit.o \
           ported/cmd_branch.o \
           ported/cmd_tag.o \
           ported/cmd_ls_remote.o \
-          ported/cmd_https_probe.o \
+          ported/cmd_clone.o \
           ported/transport_https.o \
           ported/credential.o \
           ported/http_client.o \

@@ -91,7 +91,7 @@ int amigit_resolve_repo_path(const char *in, char *out, size_t outsize)
 long __stack = 262144;
 
 /* $VER tag for `version` command. Date is the build day. */
-static const char *verstag = "$VER: amigit 0.1-7 (15.04.2026)";
+static const char *verstag = "$VER: amigit 0.2 (15.04.2026)";
 
 /* ========================================================================
  * Dispatch table -- single source of truth for v1 command set
@@ -125,12 +125,9 @@ static const amigit_command dispatch_table[] = {
     { "tag",      amigit_cmd_tag,
       "List or create lightweight tags" },
     { "ls-remote", amigit_cmd_ls_remote,
-      "List references from a remote (HTTPS stub in Phase 2)" },
-    /* Debug-only probe -- underscore prefix hides it from public
-     * help output. Exercises http_client directly before Phase 5
-     * wires it into transport_https.c. Removed at 1.0. */
-    { "_https-probe", amigit_cmd_https_probe,
-      "[debug] Connect, handshake, GET / and print status=NNN" },
+      "List references from a remote over HTTPS" },
+    { "clone",    amigit_cmd_clone,
+      "Clone a remote git repository over HTTPS" },
     { NULL,       NULL,              NULL }
 };
 
@@ -146,7 +143,7 @@ int amigit_usage(const char *cmd_name, int rc)
     if (cmd_name == NULL) {
         fprintf(out, "usage: amigit <command> [args]\n\n");
         fprintf(out, "amiport-native git client built on libgit2.\n");
-        fprintf(out, "Local repositories only; no network commands.\n\n");
+        fprintf(out, "Clone and manage repositories over HTTPS.\n\n");
         fprintf(out, "Commands:\n");
         for (cmd = dispatch_table; cmd->name != NULL; cmd++) {
             fprintf(out, "  %-10s  %s\n", cmd->name, cmd->summary);
