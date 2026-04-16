@@ -65,6 +65,18 @@ struct sockaddr_storage {
 };
 #endif
 
+/* Fix: SDL Sint32 (=int32_t=long on 68k) vs int mismatch in std::max.
+ * Provide overloads that accept mixed long/int arguments. */
+#ifdef __cplusplus
+#include <algorithm>
+namespace std {
+    inline long max(long a, int b) { return a > b ? a : b; }
+    inline long max(int a, long b) { return a > b ? a : b; }
+    inline long min(long a, int b) { return a < b ? a : b; }
+    inline long min(int a, long b) { return a < b ? a : b; }
+}
+#endif
+
 /* AI_ADDRCONFIG -- not available on AmigaOS */
 #ifndef AI_ADDRCONFIG
 #define AI_ADDRCONFIG 0
