@@ -123,3 +123,64 @@ Possible workarounds:
 - Try -O2 (different codegen for templates)
 - Replace OpenTTD's fmt::format with snprintf wrappers (large patch)
 - Set ALL debug categories to 0 in cli args (no Debug() output at all)
+
+## VICTORY 2026-04-16 (final session entry)
+
+**OpenTTD now RUNS on AmigaOS 3.x!**
+
+Full debug.log shows complete init through every stage:
+1. main() entered, all C++ ctor/heap pre-tests pass
+2. openttd_main entered (A)
+3. AfterNewGRFScan ctor (B)
+4. GetOptData ctor (C)
+5. Option loop (D, E)
+6. DeterminePaths (F, G) including DBP, DSWD, DP sub-bisection points
+7. TarScanner BASESET (H)
+8. dedicated check + Debug skip (H1, H2, H3, I)
+9. LoadFromConfig (J, K)
+10. InitializeLanguagePacks (L1, L2)
+11. InitFontCache (L3, L4)
+12. InitWindowSystem (L5, L6)
+13. BaseGraphics::FindSets (L7, L8) -- with FileScanner::Scan tar-skip
+14. BaseGraphics::SetSet, GfxInitPalettes (M1, M2, M3, M4)
+15. Blitter selection + Debug filter passthrough (M5, M6, M7)
+16. Video driver selection (M8, M9)
+17. InitializeSpriteSorter (N1, N2)
+18. Skipped AdjustGUIZoom (N2a, N2b, N2c)
+19. **NetworkStartUp** (N3, N4)  -- worked because Debug(net,3,...) filtered out
+20. HandleBootstrap (N5) -- returned false (no graphics set installed) -- EXPECTED
+21. Program exited cleanly with RC=1 (graceful shutdown, no Guru, no crash)
+
+The "first runnable" milestone is HIT. To turn this into a "first playable":
+- Install OpenGFX or similar graphics base set in WORK:OpenTTD/baseset/
+- Install OpenSFX or similar sounds base set
+- Install OpenMSX or similar music base set (or accept null music)
+
+## Workarounds applied (must be ported to clean source patches eventually)
+
+| File | Workaround | Reason |
+|------|-----------|--------|
+| `openttd.cpp` case 'D' | Skip `SetDebugString("net=4")` | Avoids Debug(net,3,...) hitting fmt::format crash |
+| `openttd.cpp` ~line 800 | Skip `AdjustGUIZoom(false)` | Crashed in AdjustGUIZoom (likely fmt or vector ops) |
+| `openttd.cpp` ~line 694 | Skip `Debug(net, 3, "Starting dedicated server, version {}", _openttd_revision)` | fmt::format crash with std::string arg |
+| `fileio.cpp` FileScanner::Scan | Skip tar iteration block, use `_tar_filelist[sd].size()` for diagnostic | std::map iteration corruption when empty |
+| `fileio.cpp` FioGetDirectory | Decompose `string + string` into copy + += | std::string operator+ -O0 bug (now mitigated by -O1) |
+| build flags | -O0 → -O1 globally | std::string operator+ codegen bug at -O0 |
+| `network_stubs.c` | Add getpwuid + __xpg_strerror_r stubs | libnix doesn't provide these |
+
+## Compiler-level findings to file upstream at codeberg.org/bebbo/amiga-gcc
+
+1. **bebbo-gcc 13.3 std::string operator+ codegen bug at -O0 -m68040**
+   - 4-line repro: `toolchain/repros/bebbo-gcc-13-stdstring-opplus.cpp`
+   - Workaround: -O1
+   - Severity: critical (any C++ port hitting std::string + literal crashes)
+
+2. **bebbo-gcc 13.3 fmt::format / template instantiation issues at -O1**
+   - Manifests when fmt::format with std::string arg is actually executed
+   - Workaround: filter out Debug() calls (bypass formatting)
+   - Need narrower repro to file upstream — TODO
+
+3. **bebbo-gcc 13.3 std::map iteration corruption (size() returns garbage on empty map)**
+   - Manifests in range-based for over std::map<>
+   - Workaround: explicit empty check (but empty() may also be unreliable)
+   - Need narrower repro to file upstream — TODO

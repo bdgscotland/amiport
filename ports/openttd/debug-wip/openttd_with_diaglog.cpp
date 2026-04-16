@@ -574,7 +574,8 @@ int openttd_main(int argc, char *argv[])
 			videodriver = "dedicated";
 			blitter = "null";
 			dedicated = true;
-			SetDebugString("net=4", ShowInfo);
+			/* AMIPORT: skip SetDebugString("net=4") -- avoids Debug(net, 3, ...) hitting fmt::format crash at -O1 */
+			/* SetDebugString("net=4", ShowInfo); */
 			if (mgo.opt != nullptr) {
 				scanner->dedicated_host = ParseFullConnectionString(mgo.opt, scanner->dedicated_port);
 			}
