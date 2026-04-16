@@ -26,7 +26,7 @@ AmigaOS predates POSIX. There is no `stat()`, no `opendir()`, no `getopt()`, no 
 
 | Port | Version | Source | Status |
 |------|---------|--------|--------|
-| [amigit](ports/amigit/) | 0.1-6 | amiport-native (libgit2) | **Developer preview** -- 87/87 FS-UAE, local-only |
+| [amigit](ports/amigit/) | 0.1-7 | amiport-native (libgit2) | **Developer preview** -- 100/100 FS-UAE, HTTPS auth wired (PDR-012 Phase 7) |
 | [basename](ports/basename/) | 1.14 | OpenBSD | Built & tested |
 | [bc](ports/bc/) | 1.07.1 | GNU | [Aminet](https://aminet.net) |
 | [cal](ports/cal/) | 1.32 | OpenBSD | [Aminet](https://aminet.net/package/util/cli/cal-1.0) |

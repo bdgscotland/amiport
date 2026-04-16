@@ -3109,12 +3109,12 @@
       "aminet_category": "dev/misc",
       "upstream": {
         "source": "amiport-native (built on libgit2 1.8.5)",
-        "version": "0.1-6",
+        "version": "0.1-7",
         "license": "GPL-2.0 (libgit2) + MIT (amiport code)"
       },
       "status": "ported",
-      "measured_binary_kb": 1054,
-      "test_count": 87,
+      "measured_binary_kb": 1197,
+      "test_count": 100,
       "test_pass_rate": 1.0,
       "ported_date": "2026-04-13"
     },
@@ -3414,6 +3414,23 @@
       "measured_binary_kb": 33,
       "measured_stack_kb": 16,
       "test_count": 24,
+      "test_pass_rate": 1.0,
+      "status": "ported"
+    },
+    {
+      "id": "dropbear",
+      "name": "dropbear",
+      "version": "2025.89",
+      "description": "SSH client for AmigaOS (68020+)",
+      "amiport_category": "network",
+      "aminet_category": "comm/tcp",
+      "upstream_source": "dropbear",
+      "upstream_license": "MIT",
+      "port_date": "2026-04-15",
+      "aminet_status": "pending",
+      "measured_binary_kb": 306,
+      "measured_stack_kb": 256,
+      "test_count": 23,
       "test_pass_rate": 1.0,
       "status": "ported"
     },

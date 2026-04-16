@@ -24,10 +24,34 @@ Update ALL of these:
 Any change to ported source, dependencies, or test suites requires updating:
 
 10. **PORTS.md** — Update version, test count, status
-11. **`data/catalog.json`** — Update version, `measured_binary_kb`, `test_count`, `test_pass_rate`
-12. **`site/api/v1/packages.json`** — Update version, revision, `test_count`, `test_pass`, `porting_notes`, `known_limitations`, `readme`
+11. **README.md** — Ports table row for the port
+12. **`data/catalog.json`** — Update version, `measured_binary_kb`, `test_count`, `test_pass_rate`
+13. **`site/data/catalog.json`** — Copy from `data/catalog.json` (mirror)
+14. **`site/data/packages/<name>.json`** — Update top-level `version`, `revision`, `size`, `sha256`, `machine_size`, `machine_sha256`, `download`, `published_at`, `updated_at`, and the embedded `readme` string
+15. **`ports/<name>/<name>.readme`** — `Version:` line AND any "amigit 0.1-N -- DEVELOPER PREVIEW" style banner
+16. **`ports/<name>/PORT.md`** — `| Version |` row, `| Last Update |` row, and a new Status block describing what changed
+17. **`ports/<name>/ported/<name>.h`** or wherever `<NAME>_VERSION` is defined
+18. **`ports/<name>/ported/<name>.c`** — `$VER` tag AND any `printf("<name> %s (built YYYY-MM-DD)\n", ...)` build-date strings in cmd_version or equivalent
+19. **`ports/<name>/test-fsemu-cases.txt`** — any `EXPECT: <name> X.Y-N` line that pins the exact version string
 
 This applies to version bumps (REVISION changes), dependency additions (e.g., adding Oniguruma), and test suite expansions. Do not consider a port update complete until catalog and site are updated.
+
+### Mandatory pre-commit validation step
+
+**After bumping `VERSION` or `REVISION` in any `ports/<name>/Makefile`, run `make check-port-metadata` IMMEDIATELY, BEFORE `git add`.**
+
+The script validates all 10 touchpoints above (plus the catalog-revision-drift check, stray-artifact check, and site-mirror-integrity check) in a single pass and reports every mismatch in one output. Running it after bumping but before staging lets you fix every drift in one edit loop instead of iterating through per-check failures at pre-commit hook time.
+
+**Failure mode this prevents:** the pre-commit hook is designed to catch exactly these drifts (and it does — it's the last line of defense). But if you stage + commit without running `make check-port-metadata` first, the hook fires, fails, and you end up fixing one file, re-staging, retrying the commit, getting the next failure, fixing that, re-staging, retrying the commit, etc. The hook catches everything eventually, but the interactive thrash wastes time and fragments your attention. One explicit `make check-port-metadata` call up-front shows all the drifts in one report so you can fix them atomically.
+
+**Also run it after any change that touches:**
+- `ports/<name>/original/` or `ports/<name>/ported/` (to catch stray `.o` files — run `make -C ports/<name> clean` first)
+- `lib/<name>/` if any port links against that library (the revision check may flag dependent ports)
+- `site/data/packages/<name>.json` (to catch file/sha mismatches)
+
+### Canonical incident: PDR-012 Phase 7 (2026-04-15)
+
+The Phase 7 commit attempted to land with `REVISION = 7` bumped in the Makefile but the downstream `ports/amigit/amigit.readme` `Version:` line, `ports/amigit/PORT.md` `| Version |` row, `site/data/packages/amigit.json` `revision` field, and three stray `.o` files in `ported/` were all out of sync. Pre-commit hook caught them — correctly — but surfaced them across multiple iterations. Running `make check-port-metadata` once after the REVISION bump would have reported all four drifts + the stray artifacts in one pass and the commit would have landed on the first try.
 
 ## When Completing a Category 3+ Port
 
