@@ -17,6 +17,19 @@
 #include <dirent.h>
 #include <sys/stat.h>
 #include <time.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <string>
+#include <vector>
+
+/* Debug log -- defined BEFORE safeguards.h which blocks fopen/open */
+static int _dbgfd = -1;
+static void dbglog(const char *msg)
+{
+	if (_dbgfd < 0) _dbgfd = open("WORK:OpenTTD/debug.log", O_WRONLY | O_CREAT | O_TRUNC, 0644);
+	if (_dbgfd >= 0) { write(_dbgfd, msg, strlen(msg)); write(_dbgfd, "\n", 1); }
+	printf("%s\n", msg);
+}
 
 #include "../original/OpenTTD-13.4/src/safeguards.h"
 
@@ -81,13 +94,28 @@ void ShowOSErrorBox(const char *buf, bool system)
 
 int CDECL main(int argc, char *argv[])
 {
+	dbglog("AMIGA: main() entered");
 	for (int i = 0; i < argc; i++) StrMakeValidInPlace(argv[i]);
+	dbglog("AMIGA: argv validated");
 
 	CrashLog::InitialiseCrashLog();
+	dbglog("AMIGA: CrashLog init done");
 
 	SetRandomSeed(time(nullptr));
+	dbglog("AMIGA: random seed set");
 
-	return openttd_main(argc, argv);
+	dbglog("AMIGA: testing std::string...");
+	{ std::string test_str = "hello"; dbglog("AMIGA: string OK"); }
+	dbglog("AMIGA: testing new/delete...");
+	{ int *p = new int(42); delete p; dbglog("AMIGA: heap OK"); }
+	dbglog("AMIGA: testing large stack frame (1052 bytes like openttd_main)...");
+	{ volatile char buf[1100]; buf[0] = 'x'; buf[1099] = 'y'; dbglog("AMIGA: stack OK"); }
+	dbglog("AMIGA: calling openttd_main NOW");
+	int ret = openttd_main(argc, argv);
+
+	dbglog("AMIGA: openttd_main returned");
+	if (_dbgfd >= 0) close(_dbgfd);
+	return ret;
 }
 
 bool GetClipboardContents(char *buffer, const char *last)
