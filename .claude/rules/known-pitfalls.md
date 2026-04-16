@@ -1279,3 +1279,42 @@ When auditing a static library archive for soft-float pulls (the amigit / mathie
 **Also:** `FT_TRACE` style debug macros (FreeType, other libraries) containing `float` / `double` format specifiers compile to `do {} while(0)` in production builds when the corresponding `FT_DEBUG_LEVEL_TRACE` / `FT_DEBUG_LEVEL_ERROR` preprocessor define is OFF. Seeing `float` in source is NOT evidence of a soft-float pull -- verify the macro expansion in the project's debug-level header first. For FreeType specifically, the release configuration (ftoption.h) disables both debug levels, and all `FT_TRACE4`/`FT_TRACE6` / `FT_ERROR` calls become no-ops.
 
 Discovered in FreeType 2.13.3 port, Stage 7 perf audit (2026-04-16). The audit initially flagged `___muldi3` in `ftbase.o` and `smooth.o` as a potential crash risk before recognizing the `di3` suffix as 64-bit integer (used for `FT_Int64` fixed-point), not single-precision float. The library is crash-free — all arithmetic is integer.
+
+## bebbo-gcc 13.3 std::string operator+ Corrupts Return Value at -O0 -m68040
+
+bebbo-gcc 13.3 (amiga13.3 branch) emits incorrect code for `std::basic_string::operator+` returning by value at `-O0 -m68040 -m68881 -noixemul -D__libnix__ -std=c++17`. The returned std::string has corrupted internal size/capacity/data fields. Subsequent method calls on the returned value either throw `std::out_of_range` (with absurd ~127M values for `__pos` and `size()` and a garbled function name like `þü:` in the message) or execute illegal instructions causing Guru Meditation #80000004.
+
+**Minimal reproduction** (4 lines):
+```cpp
+#include <string>
+int main() {
+    std::string a("hello");
+    std::string b = a + " world";  /* corrupt b */
+    return b.size();                /* throws or Gurus */
+}
+```
+
+Reference repro: `toolchain/repros/bebbo-gcc-13-stdstring-opplus.cpp`.
+
+**What works vs what doesn't (same compiler, same -O0):**
+- `std::string s; s += "x";` -- WORKS (operator+= is fine)
+- `std::string s("hello");` -- WORKS (ctor is fine)
+- `std::string foo() { std::string r("x"); r += "y"; return r; }` -- WORKS (return-by-value of locally-built string is fine)
+- `std::string b = a + "literal";` -- CRASHES (operator+ overload returning by value)
+- `std::string b = a + b2;` -- CRASHES (likely)
+
+**Fix:** Build C++ ports with `-O1` or higher. Verified on 4-line repro AND 38MB OpenTTD binary -- both crash at -O0 and run cleanly at -O1.
+
+**This is the OPPOSITE of crash-patterns #16** (bebbo-gcc 6.5.0b struct-return bug at -O1/-O2 fixed by -O0). bebbo-gcc 13.3 has the inverse: struct-return-style codegen for std::string operator+ is broken at -O0, fixed at -O1+. Different compiler version, different bug, opposite optimization sensitivity.
+
+**Tested non-fixes** (still crash at -O0): `-fno-elide-constructors`, `-fno-tree-sra`, `-fno-rtti -fno-exceptions`, `-mlong-calls`, `-mno-strict-align`.
+
+Discovered in OpenTTD 13.4 port (PDR-015, 2026-04-16). Initially misdiagnosed as a "GNU ld text hunk relocation bug for >29MB text sections" -- that hypothesis was REFUTED by a 32MB pure-C test binary that ran cleanly. Cross-referenced in amiga-kb pitfall (same title) and crash-pattern (Guru #80000004 / std::out_of_range from bebbo-gcc 13.3 std::string operator+ at -O0). Upstream report TODO: https://codeberg.org/bebbo/amiga-gcc
+
+## libnix getenv("HOME") Returns Env-Archive Path, Not Real HOME
+
+On AmigaOS with bebbo-gcc 13.3 + libnix `-noixemul`, `getenv("HOME")` returns the literal string `"SYS:Prefs/Env-Archive"` (the path of the AmigaOS env-archive directory) instead of NULL or a real home directory. Code that does `homedir = getenv("HOME"); some_path = homedir + "/" + APP_DIR;` produces nonsensical paths like `"SYS:Prefs/Env-Archive/PROGDIR:data/"` (note the embedded `:` from PROGDIR). Any path-handling code that assumes `:` only appears once (volume separator) breaks subtly downstream.
+
+**Fix:** Either (a) inspect getenv("HOME") result and treat anything ending in `Env-Archive` as "no HOME set" (fall back to per-port default), or (b) explicitly `SetEnv HOME WORK:` (or similar) in the User-Startup before launching the binary. Option (b) is cleaner.
+
+Discovered in OpenTTD 13.4 port (PDR-015, 2026-04-16).

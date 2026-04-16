@@ -49,6 +49,11 @@ static void dbglog_bytes(const char *prefix, unsigned char *p, int n)
 
 #include "../original/OpenTTD-13.4/src/safeguards.h"
 
+extern "C" void diaglog(const char *msg)
+{
+	dbglog(msg);
+}
+
 /*
  * AmigaOS root check: a path is "root" if it's a volume name (ends with ':')
  * or is just "/" (unlikely on Amiga but handle it).

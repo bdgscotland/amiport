@@ -1,0 +1,31 @@
+# FS-UAE config for debugging OpenTTD crash
+# Enables console_debugger to drop into 68k debugger on Guru
+amiga_model = A3000
+cpu = 68030
+fpu_model = 68882
+cpu_speed = max
+
+kickstart_file = $BASE/Kickstarts/kick3.1-a4000.rom
+
+hard_drive_0 = $CONFIG/../../build/system
+hard_drive_0_label = System
+hard_drive_0_priority = 1
+
+hard_drive_1 = $CONFIG/../../build/amiga
+hard_drive_1_label = WORK
+
+fast_memory = 8192
+zorro_iii_memory = 65536
+cpu_24bit_addressing = 0
+
+keyboard_input_grab = 1
+raw_input = 0
+joystick_port_1_mode = nothing
+
+window_width = 800
+window_height = 600
+
+# Debugger / crash diagnostics
+console_debugger = 1
+log_autoscale = 0
+log_keyboard = 0
