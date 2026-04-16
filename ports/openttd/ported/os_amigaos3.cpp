@@ -159,9 +159,22 @@ int CDECL main(int argc, char *argv[])
 	/* Skip calling the constructor for now */
 	dbglog("AMIGA: line 552: GetOptData...");
 	/* Skip option parsing too */
-	dbglog("AMIGA: SIMULATION PASSED.");
-	dbglog("AMIGA: Skipping real openttd_main -- returning 0.");
-	int ret = 0;
+	dbglog("AMIGA: calling openttd_main with try/catch...");
+	int ret = 1;
+	try {
+		ret = openttd_main(argc, argv);
+		dbglog("AMIGA: openttd_main returned normally");
+	} catch (const std::exception &e) {
+		dbglog("AMIGA: EXCEPTION caught!");
+		const char *w = e.what();
+		if (_dbgfd >= 0) {
+			write(_dbgfd, "  type: std::exception\n  what: ", 30);
+			write(_dbgfd, w, strlen(w));
+			write(_dbgfd, "\n", 1);
+		}
+	} catch (...) {
+		dbglog("AMIGA: UNKNOWN exception caught!");
+	}
 
 	dbglog("AMIGA: openttd_main returned");
 	if (_dbgfd >= 0) close(_dbgfd);
