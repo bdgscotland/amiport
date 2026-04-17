@@ -25,6 +25,24 @@ eval $CXX $DEFS $INCS $FLAGS \
     -o CMakeFiles/openttd.dir/src/fileio.cpp.o \
     -c /amiport/ports/openttd/original/OpenTTD-13.4/src/fileio.cpp 2>&1 | tail -3
 
+echo "=== Recompiling gfxinit.cpp (instantiates BaseGraphics::AddFile) ==="
+eval $CXX $DEFS $INCS $FLAGS \
+    -o CMakeFiles/openttd.dir/src/gfxinit.cpp.o \
+    -c /amiport/ports/openttd/original/OpenTTD-13.4/src/gfxinit.cpp 2>&1 | tail -3
+
+echo "=== Recompiling ini_load.cpp ==="
+eval $CXX $DEFS $INCS $FLAGS \
+    -o CMakeFiles/openttd.dir/src/ini_load.cpp.o \
+    -c /amiport/ports/openttd/original/OpenTTD-13.4/src/ini_load.cpp 2>&1 | tail -3
+
+echo "=== Recompiling music.cpp + sound.cpp ==="
+eval $CXX $DEFS $INCS $FLAGS \
+    -o CMakeFiles/openttd.dir/src/music.cpp.o \
+    -c /amiport/ports/openttd/original/OpenTTD-13.4/src/music.cpp 2>&1 | tail -3
+eval $CXX $DEFS $INCS $FLAGS \
+    -o CMakeFiles/openttd.dir/src/sound.cpp.o \
+    -c /amiport/ports/openttd/original/OpenTTD-13.4/src/sound.cpp 2>&1 | tail -3
+
 echo "=== Recompiling os_amigaos3.cpp ==="
 eval $CXX $DEFS $INCS $FLAGS \
     -o /tmp/os_amigaos3.o \

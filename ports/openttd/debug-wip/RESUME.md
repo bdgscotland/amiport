@@ -225,3 +225,67 @@ Next steps:
 
 This is a clean stopping point -- the openttd binary works, just needs
 ScanPath to be robust against AmigaOS file enumeration semantics.
+
+## MASSIVE PROGRESS UPDATE 2026-04-16 (continuation)
+
+OpenTTD now loads OpenGFX 7.1 base graphics set successfully!
+
+### Critical bugs fixed this round
+
+1. **Debug(grf, ...) -> fmt::format crash inside FillSetDetails**
+   - Bypassed `Debug(grf, 1, "Checking {} for base set", filename)` in
+     base_media_func.h::AddFile() which crashed at -O1
+   - This is fmt::format with std::string arg, same root cause as
+     other Debug() crashes
+
+2. **Address Error #80000003 in ini_load.cpp / fileio.cpp**
+   - `_searchpaths[sp] + _subdirs[subdir] + filename` chained operator+
+     decomposed to `buf.assign() + buf.append() + buf.append()`
+   - Required adding ini_load.cpp + gfxinit.cpp + music.cpp + sound.cpp
+     to recompile script (not just openttd.cpp + fileio.cpp)
+
+3. **`this->description[std::string{}] = *item->value` crash**
+   - std::map<std::string, std::string>::operator[] with std::string{}
+     key + assignment crashes in fetch_metadata("description")
+   - Bypassed both the single insert AND the for-loop that adds
+     translation descriptions
+   - Description text is metadata only, doesn't affect game boot
+
+### Where we are now (debug.log ~70KB+)
+
+- Past FillSetDetails completely
+- All 30 file iterations of CheckMD5 succeeded
+- Scanning game/library/ paths for AI scripts
+- Last printed: `FS::Scan: 7 returning` from a recursive Scan call
+- After that, hangs / crashes (no more output)
+
+### Workarounds added this round
+
+- `base_media_func.h`: bypass Debug(grf, 1, "Checking..."), bypass
+  description map insert + translation loop
+- `fileio.cpp`: decompose `string + string + string` chain in
+  FioFOpenFileSp into assign() + append() + append()
+- recompile_openttd.sh: added ini_load.cpp, gfxinit.cpp, music.cpp,
+  sound.cpp, base_media_func.h consumers
+- User-Startup: `SetEnv HOME WORK:OpenTTD` (didn't actually fix anything
+  but documented as good practice — libnix getenv issue still polluted
+  paths via internal table)
+- Minimal `opengfx.obg` config in baseset/
+
+### Next-session pickup
+
+- Continue bisecting after `FS::Scan: 7 returning` (likely in some
+  AfterNewGRFScan code path or game initialization that now reaches
+  further)
+- Many more places likely use `Debug()`, `std::map<std::string,...>`,
+  fmt::format that will need the same workarounds
+- Long-term: fix the ROOT CAUSE in bebbo-gcc 13.3 codegen (file upstream
+  bug at codeberg.org/bebbo/amiga-gcc), not patch downstream forever
+
+### Files changed (in debug-wip/)
+
+- base_media_func.h (NEW — added)
+- ini_load_with_diaglog.cpp (NEW — added)
+- openttd_with_diaglog.cpp (UPDATED)
+- fileio_with_diaglog.cpp (UPDATED)
+- recompile_openttd.sh (UPDATED — more TUs included)

@@ -199,7 +199,10 @@ static FILE *FioFOpenFileSp(const std::string &filename, const char *mode, Searc
 	if (subdir == NO_DIRECTORY) {
 		buf = filename;
 	} else {
-		buf = _searchpaths[sp] + _subdirs[subdir] + filename;
+		/* AMIPORT: decomposed std::string operator+ chain to avoid bebbo-gcc 13.3 codegen bug */
+		buf.assign(_searchpaths[sp]);
+		buf.append(_subdirs[subdir]);
+		buf.append(filename);
 	}
 
 #if defined(_WIN32)
@@ -1203,9 +1206,12 @@ static uint ScanPath(FileScanner *fs, const char *extension, const char *path, s
 	struct dirent *dirent;
 	DIR *dir;
 
+	{ char b[200]; seprintf(b, lastof(b), "SP: enter path=%s", path ? path : "(null)"); diaglog(b); }
 	if (path == nullptr || (dir = ttd_opendir(path)) == nullptr) return 0;
+	diaglog("SP: opendir ok");
 
 	while ((dirent = readdir(dir)) != nullptr) {
+		{ char b[200]; seprintf(b, lastof(b), "SP: readdir name=%s", dirent->d_name); diaglog(b); }
 		std::string d_name = FS2OTTD(dirent->d_name);
 
 		if (!FiosIsValidFile(path, dirent, &sb)) continue;
@@ -1213,6 +1219,7 @@ static uint ScanPath(FileScanner *fs, const char *extension, const char *path, s
 		std::string filename(path);
 		filename += d_name;
 
+		diaglog("SP: after FiosIsValidFile");
 		if (S_ISDIR(sb.st_mode)) {
 			/* Directory */
 			if (!recursive) continue;
@@ -1225,6 +1232,7 @@ static uint ScanPath(FileScanner *fs, const char *extension, const char *path, s
 		}
 	}
 
+	diaglog("SP: loop done, closedir");
 	closedir(dir);
 
 	return num;
