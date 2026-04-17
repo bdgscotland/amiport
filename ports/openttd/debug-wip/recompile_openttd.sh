@@ -67,7 +67,7 @@ echo "=== Linking openttd ==="
 LINK_CMD=$(cat CMakeFiles/openttd.dir/link.txt | head -1)
 LINK_CMD=$(echo "$LINK_CMD" | sed 's| CMakeFiles/openttd.dir/src/os/unix/[^ ]*||g')
 LINK_CMD=$(echo "$LINK_CMD" | sed 's| -rdynamic||')
-LINK_CMD=$(echo "$LINK_CMD" | sed 's|m68k-amigaos-g++ |m68k-amigaos-g++ -Wl,--allow-multiple-definition |')
+LINK_CMD=$(echo "$LINK_CMD" | sed 's|m68k-amigaos-g++ |m68k-amigaos-g++ -Wl,--allow-multiple-definition -Wl,--no-gc-sections |')
 LINK_CMD=$(echo "$LINK_CMD" | sed 's| -o openttd| -o /tmp/openttd /tmp/os_amigaos3.o /tmp/crashlog_amigaos3.o /tmp/softfloat_stubs.o /tmp/network_stubs.o|')
 LINK_CMD="$LINK_CMD -lsocket -latomic"
 

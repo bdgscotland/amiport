@@ -289,3 +289,54 @@ OpenTTD now loads OpenGFX 7.1 base graphics set successfully!
 - openttd_with_diaglog.cpp (UPDATED)
 - fileio_with_diaglog.cpp (UPDATED)
 - recompile_openttd.sh (UPDATED — more TUs included)
+
+## VICTORY 2 (visible output!) — 2026-04-16
+
+OpenTTD now displays text on screen! User saw:
+
+```
+Trying to load graphics set 'OpenGFX', but it is incomplete
+ogfx1_base.grf is corrupt (OpenGFX 7.1)
+ogfxi_logos.grf is corrupt (OpenGFX 7.1)
+ogfxc_arctic.grf is corrupt (OpenGFX 7.1)
+... [all 6 grf files reported corrupt]
+```
+
+This was with the MINIMAL ASCII opengfx.obg that had placeholder MD5s
+(00000000...). Of course the .grf files don't match — they have real
+MD5s. So openttd correctly reported them as corrupt.
+
+After restoring the REAL opengfx.obg (with actual MD5 checksums), openttd
+no longer reports "corrupt" — it loads the set successfully — but then
+crashes with Guru #8000000B (Line F emulator trap, crash-pattern #2 family).
+
+## Status
+
+- ✓ OpenGFX base set loaded successfully (real MD5s match real .grf files)
+- ✓ Dedicated video driver renders text to screen
+- ✗ Crash #8000000B in deeper code path (likely text rendering / font / sprite code that uses float math)
+- Binary now: 21MB stripped, built from clean CMake rebuild + 6 source patches
+
+## What needs to happen next
+
+1. Add more soft-float stubs to softfloat_stubs.c:
+   - `__divsf3`, `__mulsf3`, `__addsf3`, `__subsf3`
+   - `__divdf3`, `__muldf3`, `__adddf3`, `__subdf3`
+   - `__floatsisf`, `__floatsidf`, `__fixunssfsi`, `__fixunsdfsi`
+   - All from libgcc — currently being pulled in but call mathieeesingbas
+2. OR ensure the binary uses FPU instructions directly (not soft-float)
+   by verifying -m68881 is on every TU
+3. Identify which code path is calling float math (likely sprite cache,
+   font rendering, GUI scaling)
+
+## Build environment notes
+
+The "rebuild everything with batch script" approach BROKE the build
+because the batch used a shorter FLAGS string than CMake. Result: window.cpp.o
+had different fmt template instantiations than other .o files, causing
+duplicate-section-with-different-content link errors.
+
+Fix: use real CMake (apt-get install cmake in the runtime image, then
+`make openttd` — fails at link due to -rdynamic but produces all .o).
+Then use recompile_openttd.sh to relink with corrected flags. This now
+works.
