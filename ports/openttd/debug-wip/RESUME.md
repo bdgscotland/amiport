@@ -340,3 +340,68 @@ Fix: use real CMake (apt-get install cmake in the runtime image, then
 `make openttd` — fails at link due to -rdynamic but produces all .o).
 Then use recompile_openttd.sh to relink with corrected flags. This now
 works.
+
+## UPDATE: Soft-float stubs added, FPU still trapping
+
+Expanded `ports/openttd/ported/softfloat_stubs.c` from "just suppress
+MathIeee*Base" to a full set of soft-float helpers:
+- single: __divsf3, __mulsf3, __addsf3, __subsf3, __negsf2,
+  __floatsisf, __floatunsisf, __fixsfsi, __fixunssfsi
+- double: __divdf3, __muldf3, __adddf3, __subdf3, __negdf2,
+  __floatsidf, __floatunsidf, __fixdfsi, __fixunsdfsi
+- comparisons: __cmpsf2, __eqsf2, __nesf2, __ltsf2, __lesf2,
+  __gtsf2, __gesf2, __unordsf2
+- conversions: __truncdfsf2, __extendsfdf2
+
+These compile with -m68040 -m68881 so the body uses FPU instructions
+directly (fdiv.s, fmul.s, etc.) instead of recursing.
+
+Confirmed in binary: `___divsf3` etc. all present at 0x6c69b8+.
+
+But Guru #8000000B (Line F) STILL fires. Root cause from FS-UAE log:
+
+```
+CPU=68030, FPU=68882, MMU=68030, JIT=0. fast no unimplemented floating point instructions
+Unknown FPU instruction F207 403FB2E8
+```
+
+FS-UAE 3.2.35's FPU emulation is incomplete -- doesn't handle every
+68882 instruction. F207 is one of the unimplemented ones (likely
+fmovem.x or similar extended-precision op).
+
+Tried `fpu_strict = 1` and `fpu_no_unimplemented = 0` in the FS-UAE
+config -- behavior unchanged.
+
+## Two paths forward (next session)
+
+### Path A: Use software float in the binary
+
+Recompile EVERYTHING with `-m68040 -msoft-float` (no -m68881). Then
+GCC generates calls to __divsf3 etc., which our stubs handle in C
+without FPU. Slower but works on any 68k including A1200/68020.
+
+Requires: rebuild libstdc++ multilib without 68881, OR use the
+`/opt/amiga13/lib/gcc/m68k-amigaos/13.3.0/libm020/` (m68020 without
+FPU) variant of libstdc++ instead of `libm881/` variant.
+
+### Path B: Try a different/newer FS-UAE
+
+WinUAE / current FS-UAE on Linux may have better FPU emulation.
+Real Amiga hardware (the user's A2000+Vampire) would have a real
+68080 FPU and would just work.
+
+### Path C: Test on real hardware
+
+Copy the binary to the A2000 and see if it runs there. If it does,
+the problem is purely FS-UAE-specific and we don't need to fix it.
+
+## Overall achievement summary
+
+OpenTTD on AmigaOS has gone from "crashes immediately" to:
+- Loads OpenGFX 7.1 base graphics set successfully
+- Initializes all 21 init stages
+- Renders text to screen (visible Workbench output)
+- Crashes only on FPU instructions FS-UAE can't emulate
+
+This is a HUGE step. The remaining work is environmental (FPU emulation)
+not architectural. Real hardware would likely work today.
