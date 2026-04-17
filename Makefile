@@ -9,7 +9,7 @@
 #   clean            Remove build artifacts
 #   fetch-ndk        Download AmigaOS NDK 3.2 R4
 
-.PHONY: setup setup-toolchain setup-debug-tools build-shim build-emu build-console build-net build-http build-zlib build-libtommath build-libtomcrypt build-libgit2 build-freetype test-libtomcrypt build test test-shim test-emu test-console test-net test-zlib test-libtommath test-libgit2 test-freetype test-ports package clean fetch-ndk help doctor smoke-test compare list-ports build-ports install-emu setup-emu emu publish check-aminet build-uaequit build-keyinject test-fsemu check-docs check-agents check-test-coverage check-fix-propagation check-port-metadata check-arexx scrape-adcd
+.PHONY: setup setup-toolchain setup-debug-tools build-shim build-emu build-console build-net build-http build-zlib build-libtommath build-libtomcrypt build-libgit2 build-freetype build-softfloat test-libtomcrypt build test test-shim test-emu test-console test-net test-zlib test-libtommath test-libgit2 test-freetype test-ports package clean fetch-ndk help doctor smoke-test compare list-ports build-ports install-emu setup-emu emu publish check-aminet build-uaequit build-keyinject test-fsemu check-docs check-agents check-test-coverage check-fix-propagation check-port-metadata check-arexx scrape-adcd
 
 help:
 	@echo "amiport — AI-powered Amiga porting toolkit"
@@ -109,6 +109,9 @@ build-libgit2: build-zlib build-shim
 
 build-freetype:
 	$(MAKE) -C lib/freetype
+
+build-softfloat:
+	$(MAKE) -C lib/softfloat
 
 build:
 ifndef TARGET
