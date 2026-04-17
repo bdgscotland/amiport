@@ -58,6 +58,16 @@ $CC -m68020 -O0 -noixemul \
     -o /tmp/softfloat_stubs.o \
     -c /amiport/ports/openttd/ported/softfloat_stubs.c 2>&1 | tail -3
 
+echo "=== Recompiling ottd_softfloat.c (pure-integer IEEE 754 single) ==="
+$CC -m68020 -O1 -noixemul -fno-strict-aliasing \
+    -o /tmp/ottd_softfloat.o \
+    -c /amiport/ports/openttd/ported/ottd_softfloat.c 2>&1 | tail -3
+
+echo "=== Recompiling ottd_softdouble.c (pure-integer IEEE 754 double) ==="
+$CC -m68020 -O1 -noixemul -fno-strict-aliasing \
+    -o /tmp/ottd_softdouble.o \
+    -c /amiport/ports/openttd/ported/ottd_softdouble.c 2>&1 | tail -3
+
 echo "=== Recompiling network_stubs.c ==="
 $CC -m68020 -O0 -noixemul \
     -o /tmp/network_stubs.o \
@@ -68,7 +78,7 @@ LINK_CMD=$(cat CMakeFiles/openttd.dir/link.txt | head -1)
 LINK_CMD=$(echo "$LINK_CMD" | sed 's| CMakeFiles/openttd.dir/src/os/unix/[^ ]*||g')
 LINK_CMD=$(echo "$LINK_CMD" | sed 's| -rdynamic||')
 LINK_CMD=$(echo "$LINK_CMD" | sed 's|m68k-amigaos-g++ |m68k-amigaos-g++ -Wl,--allow-multiple-definition -Wl,--no-gc-sections |')
-LINK_CMD=$(echo "$LINK_CMD" | sed 's| -o openttd| -o /tmp/openttd /tmp/os_amigaos3.o /tmp/crashlog_amigaos3.o /tmp/softfloat_stubs.o /tmp/network_stubs.o|')
+LINK_CMD=$(echo "$LINK_CMD" | sed 's| -o openttd| -o /tmp/openttd /amiport/lib/softfloat/libsoftfloat.a /tmp/os_amigaos3.o /tmp/crashlog_amigaos3.o /tmp/softfloat_stubs.o /tmp/network_stubs.o|')
 LINK_CMD="$LINK_CMD -lsocket -latomic"
 
 eval $LINK_CMD 2>&1 | tail -10
