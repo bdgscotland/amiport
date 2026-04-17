@@ -405,3 +405,49 @@ OpenTTD on AmigaOS has gone from "crashes immediately" to:
 
 This is a HUGE step. The remaining work is environmental (FPU emulation)
 not architectural. Real hardware would likely work today.
+
+## DECODED: FPU instruction F207 -- 68881-only transcendental
+
+F207 = F-line opcode, coprocessor ID 1 (FPU), mode=data register direct,
+reg=D7. This is `cpGEN with EA=D7` -- a FPU coprocessor general instruction
+whose actual operation is in the SECOND word (which FS-UAE's log truncated).
+
+The "Unknown FPU instruction" error from FS-UAE means it doesn't implement
+the specific operation in the second word. Almost certainly one of the
+68881/68882-only transcendentals that were DROPPED in the 68040/68060:
+
+- Monadic: FACOS, FASIN, FATAN, FATANH, FCOS, FCOSH, FETOX, FETOXM1,
+  FGETEXP, FGETMAN, FINT, FINTRZ, FLOG10, FLOG2, FLOGN, FLOGNP1, FSIN,
+  FSINCOS, FSINH, FTAN, FTANH, FTENTOX, FTWOTOX
+- Dyadic: FMOD, FREM, FSCAL, FSGLDIV, FSGLMUL
+- Transfer: FMOVECR
+
+FS-UAE 3.2.35's 68882 emulation only implements the 68040-compatible
+subset. Any transcendental triggers Line F.
+
+OpenTTD almost certainly doesn't NEED transcendentals at the dedicated
+server boot path. Likely culprits:
+- libstdc++ initialization code (e.g., locale init may use trig)
+- C runtime startup (libnix/newlib may probe FPU with FSIN-style code)
+- OpenTTD's CalculatePopupPosition, gfx scaling, sprite zoom math
+
+## Next-session fix
+
+Rebuild WITHOUT -m68881 (use -m68040 alone). GCC will then NOT emit
+68881-only transcendentals -- it'll call __sinf/__cosf/etc. which our
+soft-float stubs (extended) can route to libgcc's safe versions or
+math approximation helpers.
+
+Build command change in CMake flags:
+  -m68040 -m68881  →  -m68040  (drop -m68881)
+
+May need to also use libstdc++ multilib variant `libm020/` instead
+of `libm020/libm881/` (the no-FPU build of the C++ runtime).
+
+TODO: file FS-UAE issue at github.com/FrodeSolheim/fs-uae about
+incomplete 68882 transcendental emulation under fpu_strict=1.
+
+## Sources
+- [Motorola 68881 - Wikipedia](https://en.wikipedia.org/wiki/Motorola_68881)
+- [MC68881 User Manual (NXP)](https://www.nxp.com/docs/en/reference-manual/MC68881UM.pdf)
+- [English Amiga Board - FPU bug thread](https://eab.abime.net/showthread.php?t=94401)
