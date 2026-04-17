@@ -2,11 +2,11 @@
 
 ## Status
 
-Proposed
+Accepted — Delivered 2026-03-30 in sibling repo [`bdgscotland/libSDL2-amigaos3`](https://github.com/bdgscotland/libSDL2-amigaos3) v0.7.0. The library now ships RTG (CyberGraphX / Picasso96 + P96/SAGA fallback for Vampire) and AGA (Kalms c2p) backends, Paula audio, Exec-Task threading, IDCMP input, gameport joystick, and dos.library filesystem. Four games run on FS-UAE and real hardware: 1oom (Master of Orion 1), Chocolate Doom, Julius (Caesar III), Celeste Classic. The "separate repo" clause of the original decision is superseded by [PDR-014](014-fold-sdl-games-into-amiport.md), which folds SDL game ports into amiport as Category 5 while keeping the library itself in its own repo with its own release cycle.
 
 ## Date
 
-2026-03-27
+2026-03-27 (proposed) / 2026-04-15 (accepted, delivery confirmed)
 
 ## Problem
 

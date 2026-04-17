@@ -1,0 +1,25 @@
+; amiport FS-UAE test runner
+; AmiSSL: stage amisslmaster.library and its backend into RAM:Libs
+; and add to the LIBS: search chain. The amissl master's 68k
+; search path for its backend is FLAT: LIBS:AmiSSL/amissl_v362.library
+; (no 68020-40/68060 subdirectory -- the installer chooses which
+; CPU variant to copy to that flat path, and the master opens
+; that one path). See PDR-012 Phase 3 session 3 for the 68k
+; master source-code reference. The 68020-40 variant is correct
+; for our A3000 + 68030 test config.
+MakeDir >NIL: RAM:Libs
+MakeDir >NIL: RAM:Libs/AmiSSL
+Copy >NIL: WORK:Libs/amisslmaster.library RAM:Libs/
+Copy >NIL: WORK:Libs/AmiSSL/68020-40/amissl_v362.library RAM:Libs/AmiSSL/
+Assign LIBS: RAM:Libs ADD
+; Root CA certs for AmiSSL's SSL_CTX_set_default_verify_paths().
+; The AmiSSL: assign must point to a directory containing a Certs/
+; subdir. Copy the bundled certs from WORK:AmiSSL/Certs to RAM:AmiSSL/Certs
+; and create the AmiSSL: assign there.
+MakeDir >NIL: RAM:AmiSSL
+MakeDir >NIL: RAM:AmiSSL/Certs
+Copy >NIL: WORK:AmiSSL/Certs/#? RAM:AmiSSL/Certs/ QUIET
+Assign AmiSSL: RAM:AmiSSL
+SYS:System/RexxMast >NIL:
+Wait 2
+SYS:Rexxc/rx WORK:test-runner.rexx

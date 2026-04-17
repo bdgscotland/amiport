@@ -1,0 +1,16 @@
+notifications:
+  global:
+    irc:
+      - openttd
+      - openttd.notice
+
+  push:
+    only:
+    - master
+    only-by:
+    - DorpsGek
+  commit-comment:
+  discussion:
+  pull-request:
+  issue:
+  tag-created:

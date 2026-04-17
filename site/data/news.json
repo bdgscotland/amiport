@@ -1,5 +1,13 @@
 [
   {
+    "id": "2026-04-15-dropbear-ssh-client",
+    "date": "2026-04-15T21:30:00Z",
+    "title": "Dropbear SSH client -- first SSH for classic AmigaOS",
+    "body": "dbclient from Dropbear 2025.89 is now available -- the first SSH client for AmigaOS 3.x. Connect to any modern SSH server with password or Ed25519 public key authentication.\n\nFeatures: ChaCha20-Poly1305 encryption, interactive terminal with arrow keys and tab completion, Ctrl-C forwarding, exit code propagation. Includes `dropbearkey` for on-Amiga key generation. 309 KB binary, 23 automated tests passing.\n\nRequires a 68020+ CPU and a TCP/IP stack (Roadshow, AmiTCP, or Miami). Tested on FS-UAE A3000/030 -- not yet verified on real hardware.\n\n**Known issue:** public key auth crashes on exit (AN_MemCorrupt). The SSH session itself works correctly -- the crash is only during cleanup. Password auth exits cleanly. Root cause investigation planned.\n\nGrab it from [the packages page](/packages/?name=dropbear).",
+    "tags": ["release", "dropbear", "ssh", "network"],
+    "url": "/packages/?name=dropbear"
+  },
+  {
     "id": "2026-04-13-amigit-released",
     "date": "2026-04-13T12:00:00Z",
     "title": "amigit 0.1 -- first git client for classic AmigaOS",

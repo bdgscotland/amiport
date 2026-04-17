@@ -7,6 +7,7 @@
 | Task | Agent / Skill | Never Do Instead |
 |------|--------------|------------------|
 | Check if port exists | `aminet-researcher` agent | Don't use general-purpose agent for Aminet searches |
+| Check if a library is available on 68k | `aminet-researcher` agent, scope `dev/lib/` + `dev/c/` | Don't conclude "missing" from checking only the Docker image or a GitHub org — many classic libs (FreeType, SDL_ttf, SDL_mixer, etc.) live on Aminet only |
 | Analyze source | `source-analyzer` agent or `/analyze-source` | Don't manually grep for POSIX calls |
 | Transform source | `code-transformer` agent or `/transform-source` | Don't manually rewrite POSIX calls |
 | Build for Amiga | `build-manager` agent or `/build-amiga` | Don't run compiler commands directly |
