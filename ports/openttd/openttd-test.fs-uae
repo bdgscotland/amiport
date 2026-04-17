@@ -4,13 +4,11 @@
 # 5MB OpenGFX + game data). A1200 can't address >24-bit.
 
 amiga_model = A3000
-cpu = 68030
-fpu_model = 68882
+cpu = 68040
+fpu_model = 68040
 cpu_speed = max
-# Enable full FPU emulation including unimplemented instructions
-# (FS-UAE default is "fast no unimplemented" which traps on F207, F4xx etc.)
+# Force JIT+strict mode to better handle FPU instructions
 fpu_strict = 1
-fpu_no_unimplemented = 0
 
 # Kickstart 3.1 ROM (A4000 ROM works on A3000)
 kickstart_file = $BASE/Kickstarts/kick3.1-a4000.rom

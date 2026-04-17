@@ -54,12 +54,12 @@ eval $CXX $DEFS $INCS $FLAGS \
     -c /amiport/ports/openttd/ported/crashlog_amigaos3.cpp 2>&1 | tail -3
 
 echo "=== Recompiling softfloat_stubs.c ==="
-$CC -m68040 -m68881 -O0 -noixemul \
+$CC -m68020 -O0 -noixemul \
     -o /tmp/softfloat_stubs.o \
     -c /amiport/ports/openttd/ported/softfloat_stubs.c 2>&1 | tail -3
 
 echo "=== Recompiling network_stubs.c ==="
-$CC -m68040 -m68881 -O0 -noixemul \
+$CC -m68020 -O0 -noixemul \
     -o /tmp/network_stubs.o \
     -c /amiport/ports/openttd/ported/network_stubs.c 2>&1 | tail -3
 

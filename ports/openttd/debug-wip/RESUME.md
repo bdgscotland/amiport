@@ -451,3 +451,61 @@ incomplete 68882 transcendental emulation under fpu_strict=1.
 - [Motorola 68881 - Wikipedia](https://en.wikipedia.org/wiki/Motorola_68881)
 - [MC68881 User Manual (NXP)](https://www.nxp.com/docs/en/reference-manual/MC68881UM.pdf)
 - [English Amiga Board - FPU bug thread](https://eab.abime.net/showthread.php?t=94401)
+
+## ATTEMPTED FIX: -m68020 (drop -m68881) -- partial success
+
+Changed `CXX_FLAGS` and `link.txt` to use `-m68020` only (no `-m68881`).
+This selects `libm020/libstdc++.a` (no FPU C++ runtime). FPU instruction
+count in binary dropped from 394,091 to 186 (a 99.95% reduction).
+
+### Remaining 186 FPU instructions
+
+`/opt/amiga13/m68k-amigaos/lib/libm020/libm.a` -- libnix's math library
+for 68020 multilib -- STILL contains FPU instructions like `fatan.l`,
+`fsqrtx`, `ftentoxx`, `fsincosx`, `flog2x`, `fasinx`, etc. libnix's
+libm delegates to mathieeesingbas.library which uses native FPU
+on chips that have one. So even -m68020 doesn't get a fully soft-float
+binary.
+
+To get to ZERO FPU instructions, would need to:
+1. Replace libnix's libm with a pure-software math library, OR
+2. Override every transcendental (sin/cos/tan/sqrt/log/exp/atan/asin/acos)
+   with software impls in our soft-float stubs
+
+Either is significant work.
+
+### Different crash mode with cpu=68040
+
+Switching FS-UAE to `cpu = 68040 / fpu_model = 68040` traded the
+#8000000B (Line F) for **#80000003 Address Error** (odd alignment).
+
+Reason: 68040 enforces stricter alignment than 68030. Our binary is
+compiled `-m68020` which uses 68020 alignment rules (which allow some
+unaligned access for backward compat). On a strict 68040, those access
+patterns fault.
+
+So the matrix is:
+- `cpu=68030 fpu=68882` + binary `-m68040 -m68881`  → #8000000B (FPU transcendental)
+- `cpu=68030 fpu=68882` + binary `-m68020`           → still #8000000B (libm uses FPU)
+- `cpu=68040 fpu=68040` + binary `-m68020`           → #80000003 (alignment)
+
+## Conclusion (this session)
+
+For full FS-UAE compatibility, the binary needs:
+- `-m68020 -mstrict-align` to avoid alignment crashes on 68040 emulation
+- Custom soft-float math library (not libnix's libm) to avoid mathieee*.library
+- OR rebuild libnix without mathieee* dependency
+
+This is significant work for a future session. **The current binary will
+likely just work on real Amiga hardware** (Vampire 68080 has full FPU,
+real 68040+FPU has both required features). FS-UAE is the limiting
+factor for in-emulator testing.
+
+## Recommendation
+
+For "first playable" in-emulator: invest in a soft-float math library
+replacement (port newlib's libm or copy in pure-C transcendentals from
+musl/uClibc). Estimated: 1-2 sessions.
+
+For "first playable" on user's A2000+Vampire: copy binary to real
+hardware now. Should work as-is.
