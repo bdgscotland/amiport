@@ -1318,3 +1318,23 @@ On AmigaOS with bebbo-gcc 13.3 + libnix `-noixemul`, `getenv("HOME")` returns th
 **Fix:** Either (a) inspect getenv("HOME") result and treat anything ending in `Env-Archive` as "no HOME set" (fall back to per-port default), or (b) explicitly `SetEnv HOME WORK:` (or similar) in the User-Startup before launching the binary. Option (b) is cleaner.
 
 Discovered in OpenTTD 13.4 port (PDR-015, 2026-04-16).
+
+## FS-UAE 3.2.35 Incomplete 68882 FPU Emulation (68881-only transcendentals trap)
+
+FS-UAE 3.2.35 configured with `cpu = 68030 / fpu_model = 68882` only emulates the **68040-compatible subset** of the FPU instruction set. Any binary compiled with `-m68040 -m68881` (or any combo enabling 68881-only opcodes) that executes a transcendental -- FSIN, FCOS, FETOX, FATAN, FLOG10, FLOG2, FLOGN, FSINCOS, FTAN, FTANH, FTENTOX, FACOS, FASIN, FCOSH, FSINH, FGETEXP, FGETMAN, FINT, FINTRZ, FREM, FMOD, FSCAL, FSGLDIV, FSGLMUL, FMOVECR -- triggers Guru #8000000B (Line F / coprocessor exception).
+
+Symptom in `~/Documents/FS-UAE/Cache/Logs/fs-uae.log.txt`:
+```
+CPU=68030, FPU=68882, MMU=68030, JIT=0. fast no unimplemented floating point instructions
+Unknown FPU instruction Fxxx <pc>
+```
+
+The 68040 dropped all those instructions (they became FPSP exception-handler soft-emulated). FS-UAE follows the 68040's instruction set even when configured for 68882.
+
+**Fix:** Compile with `-m68040` ALONE (drop `-m68881`). GCC then won't emit 68881-only transcendentals -- it'll call libgcc helper functions that use pure soft-float (or our soft-float stubs in `lib/posix-shim/` / port-specific stubs).
+
+**Tested non-fixes**: `fpu_strict = 1`, `fpu_no_unimplemented = 0`, `fpu_model = 68040`. None of these enable the missing instructions.
+
+**Real hardware path**: Real 68882 chips and the Vampire 68080 implement the full 68881 set. A `-m68040 -m68881`-compiled binary works on real Amiga hardware -- only FS-UAE blocks it.
+
+Discovered in OpenTTD 13.4 port (PDR-015, 2026-04-16). The binary reached "OpenGFX loaded successfully + text rendered to FS-UAE screen" before hitting `Unknown FPU instruction F207`. F207 = cpGEN to D7, second word (FS-UAE log truncates it) is the actual transcendental opcode. Cross-referenced in amiga-kb pitfall + crash pattern (Guru #8000000B).
