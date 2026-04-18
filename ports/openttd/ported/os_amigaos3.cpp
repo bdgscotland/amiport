@@ -5,6 +5,48 @@
  * entry point, and platform stubs for AmigaOS 3.x on 68k.
  */
 
+/* amiport: AmigaOS reads this cookie at exec.library/LoadSeg time and
+ * allocates a stack of the specified size. The default shell-inherited
+ * stack (1 MB even with `Stack 1048576`) overflowed inside GenerateWorld(),
+ * crashing with Guru #80000003. The FS-UAE log showed Gary timeouts at
+ * descending addresses 0x077fff8c -> 0x077fff68 -- a stack-overflow
+ * signature. 16 MB gives plenty of headroom for OpenTTD's recursive
+ * world-gen + AI subsystems. PDR-015, 2026-04-17. */
+extern "C" long __stack = 16L * 1024L * 1024L;
+
+/* amiport: ctor probes -- write timestamps to dedicated files at very
+ * specific points in startup. Lets us determine WHERE the GUI build
+ * froze without a debugger:
+ *   ctor-1.txt = first global ctor ran (binary loaded successfully)
+ *   ctor-2.txt = late global ctor ran (most ctors completed)
+ *   ctor-main.txt = main() reached (libnix startup OK)
+ * If only ctor-1 exists -> some ctor between #1 and #2 hung
+ * If ctor-1 and ctor-2 but no ctor-main -> libnix init hung
+ * If ctor-main -> hang is in C++ code after main() called argc parsing */
+#include <stdio.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <string.h>
+
+extern "C" {
+    static void _amiport_probe_write(const char *path, const char *msg) {
+        int fd = open(path, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+        if (fd >= 0) { write(fd, msg, strlen(msg)); close(fd); }
+    }
+}
+
+namespace { struct AmiportCtorProbe1 {
+    AmiportCtorProbe1() { _amiport_probe_write("WORK:OpenTTD-SDL2/ctor-1.txt", "first ctor ran\n"); }
+}; static AmiportCtorProbe1 g_probe1; }
+
+/* Force this one to run very late by giving it lots of init dependency. */
+namespace { struct AmiportCtorProbe2 {
+    AmiportCtorProbe2() {
+        char buf[64]; snprintf(buf, sizeof(buf), "late ctor ran (probe1 addr=%p)\n", (void*)&g_probe1);
+        _amiport_probe_write("WORK:OpenTTD-SDL2/ctor-2.txt", buf);
+    }
+}; static AmiportCtorProbe2 g_probe2; }
+
 #include "../original/OpenTTD-13.4/src/stdafx.h"
 #include "../original/OpenTTD-13.4/src/textbuf_gui.h"
 #include "../original/OpenTTD-13.4/src/openttd.h"
@@ -51,7 +93,13 @@ static void dbglog_bytes(const char *prefix, unsigned char *p, int n)
 
 extern "C" void diaglog(const char *msg)
 {
-	dbglog(msg);
+	/* No-op stub: PDR-015 debug instrumentation in original/OpenTTD-13.4/src/
+	 * (fileio.cpp ScanPath SP: prints, openttd.cpp DBP/DSWD/DP/FSD markers)
+	 * fired ~137K times during init. Each call wrote synchronously to run.log
+	 * via libnix stdio + AmigaDOS Write() -- minutes of pure I/O wait time.
+	 * Stubbing here zeros the I/O cost without touching the original/ files.
+	 * Restore `dbglog(msg);` to re-enable for crash bisection. */
+	(void)msg;
 }
 
 /*
@@ -118,6 +166,19 @@ int CDECL main(int argc, char *argv[])
 	dbglog("AMIGA: main() entered");
 	for (int i = 0; i < argc; i++) StrMakeValidInPlace(argv[i]);
 	dbglog("AMIGA: argv validated");
+	/* Print argc + argv values via raw write (avoid snprintf safeguard block). */
+	{
+		char b[64];
+		const char *digits = "0123456789";
+		b[0] = 'A'; b[1] = 'M'; b[2] = 'I'; b[3] = 'G'; b[4] = 'A';
+		b[5] = ':'; b[6] = ' '; b[7] = 'a'; b[8] = 'r'; b[9] = 'g';
+		b[10] = 'c'; b[11] = '='; b[12] = digits[(argc / 10) % 10]; b[13] = digits[argc % 10]; b[14] = '\0';
+		dbglog(b);
+		for (int i = 0; i < argc && i < 8; i++) {
+			dbglog("AMIGA: argv:");
+			dbglog(argv[i] ? argv[i] : "(null)");
+		}
+	}
 
 	CrashLog::InitialiseCrashLog();
 	dbglog("AMIGA: CrashLog init done");

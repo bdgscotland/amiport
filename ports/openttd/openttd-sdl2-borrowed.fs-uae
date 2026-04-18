@@ -1,0 +1,31 @@
+# OpenTTD SDL2 GUI test using libSDL2-amigaos3's KNOWN-WORKING system disk
+# This eliminates our system disk as the variable.
+
+amiga_model = A4000/040
+kickstart_file = $BASE/Kickstarts/kick3.1-a4000.rom
+cpu = 68030
+
+# Use libSDL2's proven system disk (Picasso96 already configured)
+hard_drive_0 = /Users/duncan/Developer/libSDL2-amigaos3/build/system
+hard_drive_0_label = System
+hard_drive_0_priority = 1
+
+# Our build/amiga as WORK (has openttd-sdl2 + sdl-test/)
+hard_drive_1 = $CONFIG/../../build/amiga
+hard_drive_1_label = WORK
+
+graphics_card = uaegfx
+graphics_memory = 32768
+chip_memory = 8192
+zorro_iii_memory = 131072
+cpu_24bit_addressing = 0
+
+sound_output = enabled
+audio_frequency = 44100
+
+keyboard_input_grab = 1
+raw_input = 0
+joystick_port_1_mode = nothing
+
+window_width = 1024
+window_height = 768

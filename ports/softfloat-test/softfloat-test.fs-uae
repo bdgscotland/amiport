@@ -1,0 +1,32 @@
+# FS-UAE configuration for the lib/softfloat isolation test (PDR-015).
+#
+# Mirrors ports/openttd/openttd-test.fs-uae exactly so that any pass/fail
+# difference is attributable to the smaller binary content, not to the
+# emulator config. A3000 / 68030 / 68882 / 32-bit address bus.
+
+amiga_model = A3000
+cpu = 68030
+fpu_model = 68882
+cpu_speed = max
+
+kickstart_file = $BASE/Kickstarts/kick3.1-a4000.rom
+
+# Dedicated boot drive: build/system-softfloat (User-Startup launches the test)
+hard_drive_0 = $CONFIG/../../build/system-softfloat
+hard_drive_0_label = System
+hard_drive_0_priority = 1
+
+# Mount build output as WORK: — softfloat-test binary lives here
+hard_drive_1 = $CONFIG/../../build/amiga
+hard_drive_1_label = WORK
+
+fast_memory = 8192
+zorro_iii_memory = 65536
+cpu_24bit_addressing = 0
+
+keyboard_input_grab = 1
+raw_input = 0
+joystick_port_1_mode = nothing
+
+window_width = 800
+window_height = 600

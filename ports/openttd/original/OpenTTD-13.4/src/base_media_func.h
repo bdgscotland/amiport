@@ -59,16 +59,19 @@ bool BaseSet<T, Tnum_files, Tsearch_in_tars>::FillSetDetails(IniFile *ini, const
 	diaglog("FSD: 5e value present");
 	if (item->value->empty()) { diaglog("FSD: 5f value empty"); return false; }
 	diaglog("FSD: 5g description fetched OK");
-	/* AMIPORT: skip description map insert -- crashes in std::map<std::string,std::string>::operator[] */
-	/* this->description[std::string{}] = *item->value; */
-	diaglog("FSD: 6 SKIPPED description map insert");
+	/* AMIPORT: re-enabled. Was skipped at -O0 (std::map op[] bug). At -O1
+	 * the bug is gone AND the skip caused std::out_of_range later in
+	 * GetDescription() which does description.at("") -- empty map
+	 * throws. PDR-015 SDL2 GUI build, 2026-04-17. */
+	this->description[std::string{}] = *item->value;
+	diaglog("FSD: 6 description map insert OK");
 
 	/* Add the translations of the descriptions too. */
-	diaglog("FSD: 7 SKIPPED description translations loop");
-	/* for (const IniItem *item = metadata->item; item != nullptr; item = item->next) {
+	for (const IniItem *item = metadata->item; item != nullptr; item = item->next) {
 		if (item->name.compare(0, 12, "description.") != 0) continue;
 		this->description[item->name.substr(12)] = item->value.value_or("");
-	} */
+	}
+	diaglog("FSD: 7 description translations loop done");
 
 	diaglog("FSD: 8 before fetch shortname");
 	fetch_metadata("shortname");

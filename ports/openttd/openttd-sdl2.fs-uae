@@ -1,0 +1,74 @@
+# FS-UAE configuration for testing SDL2 programs with RTG
+#
+# Model: A1200 with 68030 accelerator -- matches our -m68030 target.
+# No FPU -- float ops use mathieeesingbas.library (software).
+#
+# NOTE: A4000/040 config requires the correct A4000 Kickstart ROM.
+# Using the A1200 ROM on A4000/040 causes math library crashes because
+# the A1200 ROM's mathieeesingbas.library can't handle the 68040 FPU.
+#
+# Prerequisites:
+#   FS-UAE (brew install fs-uae or ~/Developer/fs-uae/)
+#   Kickstart 3.1 ROM at ~/Documents/FS-UAE/Kickstarts/kick3.1.rom
+#   Bootable WB 3.1 system at build/system/
+
+amiga_model = A4000/040
+
+# Kickstart 3.1 rev 40.70 -- A4000
+kickstart_file = $BASE/Kickstarts/kick3.1-a4000.rom
+
+# Known-working SDL2 baseline: cpu=68030 + fpu_model=68882.
+# Picasso96 + libSDL2-amigaos3 are validated only on cpu=68030 in FS-UAE 3.2.35
+# (see libSDL2-amigaos3/toolchain/configs/sdl2-test.fs-uae). Higher emulator CPU
+# models (68040, 68060) trigger Picasso96 init failures and additional FPU/CPU
+# instruction-set gaps. See known-pitfalls.md "FS-UAE Emulator CPU Model Must
+# Match Binary CPU Target Exactly".
+cpu = 68030
+fpu_model = 68882
+
+# --- Storage ---
+hard_drive_0 = /Users/duncan/Developer/amiport/build/system
+hard_drive_0_label = System
+hard_drive_0_priority = 1
+
+hard_drive_1 = /Users/duncan/Developer/amiport/build/amiga
+hard_drive_1_label = WORK
+
+# --- RTG Graphics Card ---
+# uaegfx auto-selects Zorro III variant for A4000.
+# 32 MB VRAM -- plenty for multiple 1024x768x32 framebuffers.
+graphics_card = uaegfx
+graphics_memory = 32768
+
+# --- Memory ---
+# Max out: 8 MB Chip + 128 MB Zorro III Fast.
+chip_memory = 8192
+zorro_iii_memory = 131072
+
+# --- Audio ---
+# Paula audio emulation must be enabled for audio.device CMD_WRITE
+# to signal completion (DMA interrupt driven).
+sound_output = enabled
+audio_frequency = 44100
+
+# --- Input ---
+joystick_port_1_mode = nothing
+keyboard_input_grab = 1
+raw_input = 0
+
+# --- Display ---
+window_width = 1280
+window_height = 960
+
+# --- Debugging ---
+# To capture kprintf: install socat, uncomment serial_port, run socat first:
+#   socat TCP-LISTEN:1234,reuseaddr,fork - &
+#   serial_port = tcp://127.0.0.1:1234
+# File-based debug: DLOG() writes to WORK:sdl_debug.log
+
+# --- Isolation ---
+logs_dir = $CONFIG/../../build/fs-uae-state/Logs
+state_dir = $CONFIG/../../build/fs-uae-state
+save_states_dir = $CONFIG/../../build/fs-uae-state/Save
+
+

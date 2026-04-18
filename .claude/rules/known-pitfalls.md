@@ -1311,6 +1311,61 @@ Reference repro: `toolchain/repros/bebbo-gcc-13-stdstring-opplus.cpp`.
 
 Discovered in OpenTTD 13.4 port (PDR-015, 2026-04-16). Initially misdiagnosed as a "GNU ld text hunk relocation bug for >29MB text sections" -- that hypothesis was REFUTED by a 32MB pure-C test binary that ran cleanly. Cross-referenced in amiga-kb pitfall (same title) and crash-pattern (Guru #80000004 / std::out_of_range from bebbo-gcc 13.3 std::string operator+ at -O0). Upstream report TODO: https://codeberg.org/bebbo/amiga-gcc
 
+## bebbo-gcc 13.3 std::ostream operator<<(int) / operator<<(short) Gurus #80000008
+
+bebbo-gcc 13.3 (amiga13.3 branch) emits broken code for `std::basic_ostream<char>::operator<<(int)` and `operator<<(short)` at `-m68020 -O1 -noixemul -std=c++17`. The combined call -- header-inline `flags()` + `_M_insert(static_cast<long>(val))` -- triggers a privilege violation (Guru #80000008, CPU vector 8) the moment it executes. The crash window manifest lists `Program failed (error #80000008)`.
+
+**Minimal reproduction** (3 lines):
+```cpp
+#include <sstream>
+int main() {
+    std::ostringstream oss;
+    oss << (short)42;            /* GURU #80000008 here */
+    return 0;
+}
+```
+
+Reference repro: `ports/softfloat-test/softfloat-test.cpp` (phases 10b1 -- 10b5e bisect).
+
+**What works vs what doesn't (same compiler, same -O1, same binary):**
+- `oss.write("42", 2)` -- WORKS (raw streambuf, no facet dispatch)
+- `oss.put('4'); oss.put('2');` -- WORKS (single-char streambuf)
+- `oss.flags()` -- WORKS (cheap state read)
+- `std::locale::classic().name()` -- WORKS (locale singleton initialized)
+- `oss << (long)42` -- WORKS -> "42"
+- `oss << (unsigned long)42` -- WORKS -> "42"
+- `oss << (short)42` -- CRASHES with Guru #80000008
+- `oss << (int)42` -- crashes (untested past short, but uses same `_M_insert(long)` path)
+
+The `<<(short)` / `<<(int)` overloads are header-inline in libstdc++ `<ostream>`: they call `flags()` then `_M_insert(static_cast<long>(val))`. BOTH `flags()` AND `_M_insert(long)` are independently verified working in isolation -- yet the combined operation Gurus. Most likely cause: libstdc++.a's `_M_insert<long>` definition has an ABI / vtable mismatch with the inline header path that only the short/int overloads exercise. C++ global ctors are confirmed running (probe file is written before `main()`), so locale initialization is not the cause.
+
+**Workaround:** in any C++ port, cast int/short to `long` explicitly before `<<`:
+```cpp
+/* WRONG: Gurus on FS-UAE */
+oss << some_int;
+
+/* RIGHT (workaround 1): explicit cast forces the working long overload */
+oss << static_cast<long>(some_int);
+
+/* RIGHT (workaround 2): bypass the operator entirely, use snprintf or std::to_string */
+char buf[16]; snprintf(buf, sizeof(buf), "%d", some_int); oss << buf;
+oss << std::to_string(some_int);
+
+/* RIGHT (workaround 3): use fmt::format -- VERIFIED INDEPENDENT of the bug */
+oss << fmt::format("{}", some_int);
+std::string s = fmt::format("answer={}", some_int);   /* also safe */
+```
+
+**fmt is INDEPENDENT of this bug.** `fmt::format("{}", 42)` and `fmt::format(FMT_STRING("{}"), 42)` both work cleanly on FS-UAE -- verified via `ports/softfloat-test/softfloat-test.cpp` phases 11a-11d. fmt has its own hand-rolled `format_int` that bypasses libstdc++'s `num_put` facet entirely. This is critical for OpenTTD specifically, where ALL 604 `Debug()` calls route through `fmt::format(FMT_STRING(...), ...)` -- those are SAFE. The OpenTTD #80000003 alignment crash is therefore unrelated to this libstdc++ defect.
+
+**Scope qualification:** the bug affects only DIRECT `std::ostream<<int` / `std::ostream<<short` insertion sites. Code using fmt::format, libnix `printf("%d", ...)`, libnix `snprintf("%d", ...)`, or `std::to_string` is safe. The workaround applies to any consumer C++ TU compiled by bebbo-gcc 13.3 -- the bug is in libstdc++.a's stream insertion path, not in user code or in fmt.
+
+**This stacks on top of the std::string operator+ pitfall above** -- both are bebbo-gcc 13.3 libstdc++ ABI/codegen issues, both manifest as Gurus on FS-UAE that look like crashes in the consuming code, both work fine in isolation when bypassed. Treat libstdc++ on bebbo-gcc 13.3 as "unstable, audit every use against the pitfall list before relying on it".
+
+**Tested non-fixes**: rebuilding without `-fno-strict-aliasing`, dropping `-D__libnix__`, linking `libstdc++` differently. None help -- the bug is inside libstdc++.a itself.
+
+Discovered in PDR-015 OpenTTD debug session (2026-04-16). Initially attributed to lib/softfloat (mathieee* path was suspected since OpenTTD prints float-formatted text via `std::ostream<<`). Bisection via `ports/softfloat-test/softfloat-test.cpp` proved lib/softfloat is INNOCENT -- all 24 float operations (single + double helpers, sqrt/sin/cos/exp/log/pow/atan, printf %f/%g) pass cleanly. Crash is purely a libstdc++ short/int ostream overload defect. Cross-referenced in amiga-kb pitfall (same title) and crash-pattern (Guru #80000008). Upstream report TODO: https://codeberg.org/bebbo/amiga-gcc
+
 ## libnix getenv("HOME") Returns Env-Archive Path, Not Real HOME
 
 On AmigaOS with bebbo-gcc 13.3 + libnix `-noixemul`, `getenv("HOME")` returns the literal string `"SYS:Prefs/Env-Archive"` (the path of the AmigaOS env-archive directory) instead of NULL or a real home directory. Code that does `homedir = getenv("HOME"); some_path = homedir + "/" + APP_DIR;` produces nonsensical paths like `"SYS:Prefs/Env-Archive/PROGDIR:data/"` (note the embedded `:` from PROGDIR). Any path-handling code that assumes `:` only appears once (volume separator) breaks subtly downstream.
@@ -1319,7 +1374,67 @@ On AmigaOS with bebbo-gcc 13.3 + libnix `-noixemul`, `getenv("HOME")` returns th
 
 Discovered in OpenTTD 13.4 port (PDR-015, 2026-04-16).
 
+## AmigaDOS Doesn't Parse `2>>` Redirect -- Stderr Append Becomes Literal argv
+
+AmigaDOS's CLI/Shell parser does NOT understand the Unix-style `2>>file` (stderr append) redirect. When a command line has `binary args >>stdout.log 2>>stderr.log`, AmigaDOS:
+1. Honors `>>stdout.log` correctly (stdout append)
+2. Treats `2>>stderr.log` as a LITERAL argv entry passed to the binary
+
+So `WORK:OpenTTD/openttd -v sdl >>run.log 2>>run.log` produces argv:
+```
+argv[0] = "WORK:OpenTTD/openttd"
+argv[1] = "-v"
+argv[2] = "sdl"
+argv[3] = "2>>run.log"            <-- this should have been a redirect!
+```
+
+Any program using `getopt` or similar then sees `2>>run.log` as an unknown extra positional argument. For OpenTTD this triggered the "user passed extra args, print help and exit" code path -- the binary appeared to run silently and exit cleanly without ever actually launching.
+
+**Fix:** AmigaDOS only supports `>file` (overwrite) and `>>file` (append) for stdout. Stderr can't be redirected separately in a portable way. Options:
+- (Recommended) Use `>>file` only -- stderr goes to console, which is normally invisible from User-Startup. The dedicated server pattern uses `WORK:bin -D >>run.log`.
+- Use `Run >NIL: NewShell "CON:..." FROM script` and put your command in a separate Execute script -- the CON: window catches both stdout and stderr.
+- Pipe through a shell wrapper that joins stderr into stdout before invoking the binary (more complex).
+
+**NEVER** put `2>>` or `2>` in any AmigaDOS launch script, .rexx file, User-Startup, or shell command -- it gets eaten as argv and breaks every program that does argv validation.
+
+**Detection:** if a binary mysteriously prints help text and exits when you launched it with normal args, dump argv before any processing -- if argv[N] starts with `2>>` or `2>`, this is the cause.
+
+Discovered in OpenTTD 13.4 SDL2 GUI debug (PDR-015, 2026-04-17). Cost ~2 hours of "why doesn't getopt see my -v sdl" debugging before printing argv values revealed the trailing `2>>WORK:OpenTTD-SDL2/run.log` literal entry. Cross-referenced in amiga-kb pitfall.
+
+## libSDL2-amigaos3 Requires Devs/Picasso96/uaegfx.card Separately From Picasso96API.library
+
+libSDL2-amigaos3's RTG video init silently fails with "No RTG and not AGA chipset" error if `LIBS:Picasso96/uaegfx.card` is missing -- even when:
+- `LIBS:Picasso96API.library` is installed
+- `LIBS:Picasso96/rtg.library` is installed
+- `DEVS:Monitors/uaegfx` exists and was activated by Startup-Sequence
+- FS-UAE's uaegfx Z3 RTG board is allocated and visible (`uaegfx.card 3.3 init` in FS-UAE log)
+- The Picasso96 master library loaded fine
+
+The `uaegfx.card` file is the ACTUAL card driver that talks to the FS-UAE-emulated graphics hardware. Picasso96API.library is the API surface, rtg.library is the abstraction layer, but `uaegfx.card` is the per-board driver that bridges them. Without it, Picasso96 has nowhere to send framebuffer commands.
+
+**Fix:** copy `LIBS:Picasso96/uaegfx.card` (and ideally `LIBS:Picasso96/emulation.library` + `LIBS:Picasso96/fastlayers.library`) into the system disk. From a working RTG-enabled Picasso96 install:
+
+```
+LIBS:Picasso96API.library
+LIBS:Picasso96/rtg.library
+LIBS:Picasso96/uaegfx.card           <-- the missing piece
+LIBS:Picasso96/emulation.library
+LIBS:Picasso96/fastlayers.library
+DEVS:Picasso96Settings               <-- IFF mode database
+DEVS:Picasso96
+DEVS:Monitors/uaegfx                 <-- monitor activator
+DEVS:Monitors/Picasso96
+```
+
+The set ships with the Picasso96 install package. amiport's `build/system/` was missing only `uaegfx.card` from this set; copying it from `~/Developer/libSDL2-amigaos3/build/system/Libs/Picasso96/` resolved a 1-hour debug.
+
+**Detection:** if any RTG-using program (test_video, game_snake, openttd-sdl2, etc.) prints "No RTG and not AGA chipset" and exits, but FS-UAE log shows `uaegfx.card` initialized at boot, the system disk is missing `uaegfx.card` in `LIBS:Picasso96/`. Verify with `ls LIBS:Picasso96/` on the Amiga.
+
+Discovered in OpenTTD 13.4 SDL2 GUI port (PDR-015, 2026-04-17). Cross-referenced in amiga-kb pitfall.
+
 ## FS-UAE 3.2.35 Incomplete 68882 FPU Emulation (68881-only transcendentals trap)
+
+**Affects BOTH `cpu = 68030 / fpu_model = 68882` AND `cpu = 68060 / fpu_model = 68060` configurations.** Confirmed on 68060 mode 2026-04-17 against an OpenTTD-SDL2 binary built `-m68020 -m68881 -O1`: with `68060.library` and `68040.library` correctly staged in `LIBS:` and silently loaded by SetPatch, the binary still crashes with Software Failure `8000 0004` once game init code reaches FPU instructions. FS-UAE log shows `no FPU: F327-0000 PC=00F80C9C` and `FPU EXCEPTION 1 OP=F327-0000 EA=000003F4 PC=00F80C9C -> 00F80CC8` events being dispatched into ROM but unable to complete. The 68060.library/68040.library OS patches do NOT compensate for the FS-UAE emulator's missing 68881-only opcode coverage -- they handle MOVEC and other CPU-supervisor instructions, not the FPU gap. Switching emulator CPU model is therefore not a workaround; the only safe path is to recompile the binary with `-m68040` alone (no `-m68881`).
 
 FS-UAE 3.2.35 configured with `cpu = 68030 / fpu_model = 68882` only emulates the **68040-compatible subset** of the FPU instruction set. Any binary compiled with `-m68040 -m68881` (or any combo enabling 68881-only opcodes) that executes a transcendental -- FSIN, FCOS, FETOX, FATAN, FLOG10, FLOG2, FLOGN, FSINCOS, FTAN, FTANH, FTENTOX, FACOS, FASIN, FCOSH, FSINH, FGETEXP, FGETMAN, FINT, FINTRZ, FREM, FMOD, FSCAL, FSGLDIV, FSGLMUL, FMOVECR -- triggers Guru #8000000B (Line F / coprocessor exception).
 
@@ -1338,3 +1453,22 @@ The 68040 dropped all those instructions (they became FPSP exception-handler sof
 **Real hardware path**: Real 68882 chips and the Vampire 68080 implement the full 68881 set. A `-m68040 -m68881`-compiled binary works on real Amiga hardware -- only FS-UAE blocks it.
 
 Discovered in OpenTTD 13.4 port (PDR-015, 2026-04-16). The binary reached "OpenGFX loaded successfully + text rendered to FS-UAE screen" before hitting `Unknown FPU instruction F207`. F207 = cpGEN to D7, second word (FS-UAE log truncates it) is the actual transcendental opcode. Cross-referenced in amiga-kb pitfall + crash pattern (Guru #8000000B).
+
+## FS-UAE Emulator CPU Model Must Match Binary CPU Target Exactly
+
+The 68040 and 68060 are **NOT instruction-compatible**. Each removed instructions the other has:
+
+- **68060 removed from 68040**: MOVE16 (16-byte burst move), CAS2/CHK2/CMP2 with non-byte sizes, some addressing modes, 64-bit DIVS.L/DIVU.L/MULS.L/MULU.L (the wide-result forms)
+- **68040 removed from 68881/68882**: see the FPU-gap pitfall above (transcendentals)
+
+This means a binary compiled with `-m68040` will emit MOVE16 and other 040-only instructions; running it on FS-UAE's 68060 emulator triggers Software Failure `8000 0004` (generic illegal instruction) the moment one of those instructions executes. Conversely, a `-m68060` binary may emit instructions that the 68040 emulator handles via trap.
+
+**Rule:** the emulator's `cpu = NNNNN` MUST exactly match the binary's `-mNNNNN` flag. There is no safe "broader-CPU emulator covers narrower-CPU binary" assumption -- the instruction sets are not strict supersets in either direction.
+
+**Symptom:** Software Failure `8000 0004` (NOT the FPU `8000 000B`) early in binary execution, often during code that uses block-copy (MOVE16 -> memcpy hot path on -m68040) or wide multiply/divide. FS-UAE log shows `Illegal instruction: <opcode> at <PC> -> <handler>` events that the OS handler may bounce.
+
+**Fix:** in the FS-UAE config, set `cpu = X` and `fpu_model = X` to the same X as the binary's `-mX` flag. For an `-m68040 -O1 -noixemul` binary use `cpu = 68040`. For `-m68020` use `cpu = 68020` (or 68030, which is a strict superset of 68020).
+
+**Real hardware path:** real 68040 silicon runs the binary fine. Real 68060 silicon traps the missing instructions to a 68060.library handler that soft-emulates them -- so the binary works on real 68060 hardware but not on FS-UAE 68060 emulation (the emulator handles fewer instructions than the real-hardware OS-patch combo). Tested only on FS-UAE 3.2.35 -- newer FS-UAE versions may improve coverage.
+
+Discovered in OpenTTD 13.4 port (PDR-015, 2026-04-17). After dropping `-m68881` to dodge the FPU-gap pitfall above, the `-m68040 -O1` binary still crashed with Guru `8000 0004` deep in the content-directory scan loop on FS-UAE 68060 emulation. KB query (`amiga_crash_diagnosis 80000004`) returned "Illegal instruction (wrong CPU target)" immediately -- diagnosis took seconds once the KB was queried (per the existing "Debug-Agent Must Query amiga-kb FIRST" pitfall). Fix: flip FS-UAE config from `cpu = 68060` to `cpu = 68040`.

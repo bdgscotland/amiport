@@ -10,7 +10,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![GitHub stars](https://img.shields.io/github/stars/bdgscotland/amiport?style=social)](https://github.com/bdgscotland/amiport/stargazers)
 
-amiport ports POSIX/Linux C programs to AmigaOS 3.x. It provides POSIX compatibility libraries, a cross-compilation toolchain, and an AI-powered pipeline that takes a C source file from analysis through to a tested, [Aminet](https://aminet.net)-ready binary.
+amiport ports POSIX C and C++ software to AmigaOS 3.x -- CLI tools, network programs, console UIs, and SDL2 games. It provides POSIX/console/socket compatibility libraries, bundled algorithm libraries (crypto, compression, regex, fonts, soft-float), a cross-compilation toolchain (C89 + C++17), and an AI-powered pipeline that takes source from analysis through tested binary, distributed via [Aminet](https://aminet.net) and [amiport.platesteel.net](https://amiport.platesteel.net).
 
 **61 programs shipped. 1,419 test cases. 7 live on Aminet. First package manager for classic AmigaOS.**
 

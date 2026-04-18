@@ -35,6 +35,16 @@ eval $CXX $DEFS $INCS $FLAGS \
     -o CMakeFiles/openttd.dir/src/ini_load.cpp.o \
     -c /amiport/ports/openttd/original/OpenTTD-13.4/src/ini_load.cpp 2>&1 | tail -3
 
+echo "=== Recompiling video/dedicated_v.cpp (diaglog markers DV: 1-8) ==="
+eval $CXX $DEFS $INCS $FLAGS \
+    -o CMakeFiles/openttd.dir/src/video/dedicated_v.cpp.o \
+    -c /amiport/ports/openttd/original/OpenTTD-13.4/src/video/dedicated_v.cpp 2>&1 | tail -3
+
+echo "=== Recompiling genworld.cpp (diaglog markers GW: 1-18) ==="
+eval $CXX $DEFS $INCS $FLAGS \
+    -o CMakeFiles/openttd.dir/src/genworld.cpp.o \
+    -c /amiport/ports/openttd/original/OpenTTD-13.4/src/genworld.cpp 2>&1 | tail -3
+
 echo "=== Recompiling music.cpp + sound.cpp ==="
 eval $CXX $DEFS $INCS $FLAGS \
     -o CMakeFiles/openttd.dir/src/music.cpp.o \
@@ -72,6 +82,15 @@ echo "=== Recompiling network_stubs.c ==="
 $CC -m68020 -O0 -noixemul \
     -o /tmp/network_stubs.o \
     -c /amiport/ports/openttd/ported/network_stubs.c 2>&1 | tail -3
+
+echo "=== Recompiling md5_aligned.cpp (alignment-safe MD5 -- fixes Guru #80000003) ==="
+# Override CMake's build of 3rdparty/md5/md5.cpp with our memcpy-based version
+# that handles non-4-byte-aligned input buffers (PDR-015, 2026-04-17).
+# Add -I for the md5 dir (md5.h sibling include) since md5_aligned.cpp lives in ported/.
+eval $CXX $DEFS $INCS $FLAGS \
+    -I/amiport/ports/openttd/original/OpenTTD-13.4/src/3rdparty/md5 \
+    -o CMakeFiles/openttd.dir/src/3rdparty/md5/md5.cpp.o \
+    -c /amiport/ports/openttd/ported/md5_aligned.cpp 2>&1 | tail -3
 
 echo "=== Linking openttd ==="
 LINK_CMD=$(cat CMakeFiles/openttd.dir/link.txt | head -1)

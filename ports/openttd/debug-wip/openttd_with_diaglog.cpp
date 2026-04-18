@@ -816,13 +816,17 @@ int openttd_main(int argc, char *argv[])
 		ShutdownGame();
 		return ret;
 	}
+	diaglog("OTTD: O1 after HandleBootstrap");
 
 	VideoDriver::GetInstance()->ClaimMousePointer();
+	diaglog("OTTD: O2 after ClaimMousePointer");
 
 	/* initialize screenshot formats */
 	InitializeScreenshotFormats();
+	diaglog("OTTD: O3 after InitializeScreenshotFormats");
 
 	BaseSounds::FindSets();
+	diaglog("OTTD: O4 after BaseSounds::FindSets");
 	if (sounds_set.empty() && !BaseSounds::ini_set.empty()) sounds_set = BaseSounds::ini_set;
 	if (!BaseSounds::SetSet(sounds_set)) {
 		if (sounds_set.empty() || !BaseSounds::SetSet({})) {
@@ -834,7 +838,10 @@ int openttd_main(int argc, char *argv[])
 		}
 	}
 
+	diaglog("OTTD: O5 after BaseSounds::SetSet");
+
 	BaseMusic::FindSets();
+	diaglog("OTTD: O6 after BaseMusic::FindSets");
 	if (music_set.empty() && !BaseMusic::ini_set.empty()) music_set = BaseMusic::ini_set;
 	if (!BaseMusic::SetSet(music_set)) {
 		if (music_set.empty() || !BaseMusic::SetSet({})) {
@@ -846,21 +853,54 @@ int openttd_main(int argc, char *argv[])
 		}
 	}
 
+	diaglog("OTTD: O7 after BaseMusic::SetSet");
+
 	if (sounddriver.empty() && !_ini_sounddriver.empty()) sounddriver = _ini_sounddriver;
 	DriverFactoryBase::SelectDriver(sounddriver, Driver::DT_SOUND);
+	diaglog("OTTD: P1 after SelectDriver SOUND");
 
 	if (musicdriver.empty() && !_ini_musicdriver.empty()) musicdriver = _ini_musicdriver;
 	DriverFactoryBase::SelectDriver(musicdriver, Driver::DT_MUSIC);
+	diaglog("OTTD: P2 after SelectDriver MUSIC");
 
-	GenerateWorld(GWM_EMPTY, 64, 64); // Make the viewport initialization happy
-	LoadIntroGame(false);
+	diaglog("OTTD: P3 before GenerateWorld");
+	/* amiport: gate the dedicated-mode skips on the actual selected video
+	 * driver (dedicated_v vs sdl2_v vs null_v). The DedicatedVideoDriver
+	 * doesn't initialize a screen surface, so calling GenerateWorld /
+	 * SetupColoursAndInitialWindow / new MainWindow under it Gurus.
+	 * Under SDL2 / a real video driver these MUST run for the GUI to
+	 * appear. Detection: VideoDriver::GetInstance()->HasGUI() returns
+	 * false for dedicated and true for SDL2. PDR-015, 2026-04-17. */
+	bool is_amiga_dedicated_video = !VideoDriver::GetInstance()->HasGUI();
+	if (is_amiga_dedicated_video) {
+		diaglog("OTTD: P3a SKIPPING GenerateWorld+LoadIntroGame (HasGUI=false)");
+	} else {
+		diaglog("OTTD: P3b RUNNING GenerateWorld+LoadIntroGame (HasGUI=true)");
+		GenerateWorld(GWM_EMPTY, 64, 64);
+		diaglog("OTTD: P4 after GenerateWorld");
+		LoadIntroGame(false);
+		diaglog("OTTD: P5 after LoadIntroGame");
+	}
 
-	CheckForMissingGlyphs();
+	if (is_amiga_dedicated_video) {
+		diaglog("OTTD: P5a SKIPPING CheckForMissingGlyphs (HasGUI=false)");
+	} else {
+		CheckForMissingGlyphs();
+		diaglog("OTTD: P5b after CheckForMissingGlyphs");
+	}
 
-	/* ScanNewGRFFiles now has control over the scanner. */
-	RequestNewGRFScan(scanner.release());
+	if (is_amiga_dedicated_video) {
+		diaglog("OTTD: P6a SKIPPING RequestNewGRFScan (HasGUI=false)");
+		scanner.release();
+	} else {
+		RequestNewGRFScan(scanner.release());
+		diaglog("OTTD: P6b after RequestNewGRFScan");
+	}
+	diaglog("OTTD: P7 after RequestNewGRFScan branch");
 
+	diaglog("OTTD: Q1 entering VideoDriver MainLoop -- if you see Q2 below, MainLoop returned cleanly!");
 	VideoDriver::GetInstance()->MainLoop();
+	diaglog("OTTD: Q2 after VideoDriver::MainLoop");
 
 	WaitTillSaved();
 
@@ -1507,21 +1547,31 @@ bool RequestNewGRFScan(NewGRFScanCallback *callback)
 
 void GameLoop()
 {
+	static int gl_count = 0;
+	bool gl_first = (gl_count == 0);
+	if (gl_first) diaglog("GL: 1 enter");
 	if (_game_mode == GM_BOOTSTRAP) {
+		if (gl_first) diaglog("GL: 1a BOOTSTRAP path");
 		/* Check for UDP stuff */
 		if (_network_available) NetworkBackgroundLoop();
+		gl_count++;
 		return;
 	}
+	if (gl_first) diaglog("GL: 2 not bootstrap");
 
 	if (_request_newgrf_scan) {
+		if (gl_first) diaglog("GL: 3 NewGRF scan path -- should NOT happen (we cleared it)");
 		ScanNewGRFFiles(_request_newgrf_scan_callback);
 		_request_newgrf_scan = false;
 		_request_newgrf_scan_callback = nullptr;
 		/* In case someone closed the game during our scan, don't do anything else. */
 		if (_exit_game) return;
 	}
+	if (gl_first) diaglog("GL: 4 before ProcessAsyncSaveFinish");
 
 	ProcessAsyncSaveFinish();
+	if (gl_first) diaglog("GL: 5 after ProcessAsyncSaveFinish");
+	gl_count++;
 
 	/* autosave game? */
 	if (_do_autosave) {
@@ -1529,35 +1579,45 @@ void GameLoop()
 		_do_autosave = false;
 		SetWindowDirty(WC_STATUS_BAR, 0);
 	}
+	if (gl_first) diaglog("GL: 6 after autosave check");
 
 	/* switch game mode? */
 	if (_switch_mode != SM_NONE && !HasModalProgress()) {
+		if (gl_first) diaglog("GL: 7a calling SwitchToMode");
 		SwitchToMode(_switch_mode);
+		if (gl_first) diaglog("GL: 7b after SwitchToMode");
 		_switch_mode = SM_NONE;
 	}
+	if (gl_first) diaglog("GL: 8 after switch_mode check");
 
 	IncreaseSpriteLRU();
+	if (gl_first) diaglog("GL: 9 after IncreaseSpriteLRU");
 
 	/* Check for UDP stuff */
 	if (_network_available) NetworkBackgroundLoop();
+	if (gl_first) diaglog("GL: 10 after NetworkBackgroundLoop");
 
 	DebugSendRemoteMessages();
+	if (gl_first) diaglog("GL: 11 after DebugSendRemoteMessages");
 
 	if (_networking && !HasModalProgress()) {
 		/* Multiplayer */
+		if (gl_first) diaglog("GL: 12a NetworkGameLoop path");
 		NetworkGameLoop();
 	} else {
 		if (_network_reconnect > 0 && --_network_reconnect == 0) {
-			/* This means that we want to reconnect to the last host
-			 * We do this here, because it means that the network is really closed */
 			NetworkClientConnectGame(_settings_client.network.last_joined, COMPANY_SPECTATOR);
 		}
 		/* Singleplayer */
+		if (gl_first) diaglog("GL: 12b StateGameLoop path");
 		StateGameLoop();
 	}
+	if (gl_first) diaglog("GL: 13 after game loop");
 
 	if (!_pause_mode && HasBit(_display_opt, DO_FULL_ANIMATION)) DoPaletteAnimations();
 
 	SoundDriver::GetInstance()->MainLoop();
+	if (gl_first) diaglog("GL: 14 after SoundDriver MainLoop");
 	MusicLoop();
+	if (gl_first) diaglog("GL: 15 GameLoop complete -- first tick done!");
 }
