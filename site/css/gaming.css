@@ -1,0 +1,897 @@
+/* ============================================================================
+   gaming.css -- amiport gaming portal extensions
+   Louder amber, bigger numbers, tiles that pop. Still MUI on warm gray.
+   Extends site/css/style.css -- load both.
+   ============================================================================ */
+
+/* Accent variants controlled by the Tweaks panel (data-accent on <html>). */
+:root[data-accent="red"]    { --accent: var(--red);        --accent-light: var(--salmon); }
+:root[data-accent="brown"]  { --accent: var(--brown);      --accent-light: var(--salmon); }
+:root[data-accent="cream"]  { --accent: var(--cream);      --accent-light: var(--amber-light); }
+:root                       { --accent: var(--amber);      --accent-light: var(--amber-light); }
+
+/* Gaming gets a wider canvas -- tile grids need room. */
+body.gaming .content.gaming-container {
+    max-width: 1080px;
+    padding: var(--sp-lg) var(--sp-md) var(--sp-2xl);
+    display: flex; flex-direction: column; gap: var(--sp-lg);
+}
+
+/* ── Dark hero strip ─────────────────────────────────────────────────────── */
+.hero-strip {
+    background: #1a1a1a;
+    color: var(--cream);
+    padding: var(--sp-xl) var(--sp-xl) var(--sp-lg);
+    border-top: 1px solid var(--bevel-shine);
+    border-left: 1px solid var(--bevel-shine);
+    border-bottom: 1px solid var(--bevel-shadow);
+    border-right: 1px solid var(--bevel-shadow);
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: var(--sp-xl);
+    align-items: end;
+}
+.hero-strip__eyebrow {
+    font-size: var(--fs-xs);
+    color: var(--amber-light);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-weight: 600;
+    margin-bottom: var(--sp-sm);
+}
+.hero-strip__title {
+    font-size: 40px;
+    font-weight: 700;
+    line-height: 1.05;
+    color: var(--cream);
+    margin: 0 0 var(--sp-md);
+    letter-spacing: -0.5px;
+}
+.hero-strip__title em {
+    color: var(--amber-light);
+    font-style: normal;
+}
+.hero-strip__sub {
+    font-size: var(--fs-lg);
+    color: #a89c80;
+    max-width: 560px;
+    line-height: 1.45;
+    margin: 0 0 var(--sp-md);
+}
+.hero-strip__actions {
+    display: flex; gap: var(--sp-sm); margin-top: var(--sp-md);
+}
+
+/* ── Leaderboard slab: big ticking numbers in the hero ───────────────────── */
+.leaderboard {
+    background: #0e0e0e;
+    border-top: 1px solid #000;
+    border-left: 1px solid #000;
+    border-bottom: 1px solid var(--title-bar-shine);
+    border-right: 1px solid var(--title-bar-shine);
+    padding: var(--sp-md);
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--sp-md) var(--sp-xl);
+    min-width: 320px;
+}
+.leaderboard__item {
+    display: flex; flex-direction: column; gap: 2px;
+}
+.leaderboard__label {
+    font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px;
+    color: #7a6d50; font-weight: 600;
+}
+.leaderboard__value {
+    font-family: "SF Mono", "Fira Code", "JetBrains Mono", Consolas, monospace;
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--amber-light);
+    line-height: 1;
+    display: flex; align-items: baseline; gap: 6px;
+    font-variant-numeric: tabular-nums;
+    transition: color 180ms ease-out;
+}
+.leaderboard__value.ticking { color: #fff; }
+.leaderboard__value sub {
+    font-size: 10px; color: #7a6d50; font-weight: 600; letter-spacing: 1px;
+    text-transform: uppercase; vertical-align: baseline;
+}
+
+/* ── Section head (uppercase brown label, muted monospace aside) ─────────── */
+.gaming-section-head {
+    display: flex; align-items: baseline; justify-content: space-between;
+    margin-bottom: var(--sp-sm);
+    border-bottom: 1px solid var(--bevel-shadow);
+    padding-bottom: var(--sp-xs);
+    flex-wrap: wrap;
+    gap: var(--sp-sm);
+}
+.gaming-section-head h2 {
+    font-size: var(--fs-xs); font-weight: 700; letter-spacing: 2px;
+    text-transform: uppercase; color: var(--brown);
+    margin: 0;
+}
+.gaming-section-head__aside {
+    font-size: var(--fs-xs); color: var(--text-muted);
+    font-family: "SF Mono", "Fira Code", Consolas, monospace;
+}
+.gaming-section-head__aside a { color: var(--brown); }
+
+/* ── Filter bar ──────────────────────────────────────────────────────────── */
+.filter-bar {
+    display: flex; gap: var(--sp-sm); align-items: center;
+    padding: var(--sp-sm);
+    background: var(--elevated);
+    border-top: 1px solid var(--bevel-shadow);
+    border-left: 1px solid var(--bevel-shadow);
+    border-bottom: 1px solid var(--bevel-shine);
+    border-right: 1px solid var(--bevel-shine);
+    flex-wrap: wrap;
+}
+.filter-bar__label {
+    font-size: var(--fs-xs); font-weight: 600; text-transform: uppercase;
+    letter-spacing: 1px; color: var(--text-muted);
+}
+.filter-bar select {
+    font-family: inherit; font-size: var(--fs-sm);
+    padding: 4px 6px; min-height: 26px;
+    background: var(--light-surface); color: var(--text);
+    border-top: 1px solid var(--bevel-shadow);
+    border-left: 1px solid var(--bevel-shadow);
+    border-bottom: 1px solid var(--bevel-shine);
+    border-right: 1px solid var(--bevel-shine);
+    border-radius: 0;
+}
+.filter-bar__count {
+    margin-left: auto;
+    font-family: "SF Mono", "Fira Code", Consolas, monospace;
+    font-size: var(--fs-xs);
+    color: var(--text-muted);
+}
+
+/* ── Port grid ───────────────────────────────────────────────────────────── */
+.port-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--sp-md);
+}
+.port-grid--featured {
+    grid-template-columns: 2fr 1fr 1fr;
+    grid-template-rows: auto auto;
+}
+.port-grid--featured .port-tile:first-child {
+    grid-row: span 2;
+}
+
+.port-tile {
+    background: var(--surface);
+    border-top: 1px solid var(--bevel-shine);
+    border-left: 1px solid var(--bevel-shine);
+    border-bottom: 1px solid var(--bevel-shadow);
+    border-right: 1px solid var(--bevel-shadow);
+    text-decoration: none;
+    color: var(--text);
+    display: flex; flex-direction: column;
+    cursor: pointer;
+    transition: none;
+}
+.port-tile:hover {
+    border-top: 1px solid var(--bevel-shadow);
+    border-left: 1px solid var(--bevel-shadow);
+    border-bottom: 1px solid var(--bevel-shine);
+    border-right: 1px solid var(--bevel-shine);
+}
+.port-tile:hover .port-tile__title { color: var(--salmon); }
+
+.port-tile__screenshot {
+    aspect-ratio: 16 / 10;
+    background: #111;
+    position: relative;
+    border-bottom: 1px solid var(--bevel-shadow);
+    overflow: hidden;
+    display: block;
+}
+.port-tile__screenshot img {
+    width: 100%; height: 100%; object-fit: cover;
+    image-rendering: pixelated;
+    display: block;
+}
+.port-tile__badges {
+    position: absolute;
+    top: var(--sp-xs); left: var(--sp-xs);
+    display: flex; gap: 4px;
+}
+.port-tile__screenshot-fps {
+    position: absolute;
+    bottom: var(--sp-xs); right: var(--sp-xs);
+    font-family: "SF Mono", "Fira Code", Consolas, monospace;
+    font-size: 10px; font-weight: 700;
+    color: var(--amber-light);
+    background: rgba(0,0,0,0.7);
+    padding: 2px 6px;
+    letter-spacing: 1px;
+}
+.port-tile__body {
+    padding: var(--sp-sm) var(--sp-md) var(--sp-md);
+    display: flex; flex-direction: column; gap: 4px;
+    flex: 1;
+}
+.port-tile__title {
+    font-size: var(--fs-lg); font-weight: 700; color: var(--brown);
+    margin: 0; line-height: 1.2;
+}
+.port-tile__subtitle {
+    font-size: var(--fs-xs);
+    color: var(--text-muted);
+    margin: 0;
+}
+.port-tile__meta {
+    margin-top: auto;
+    padding-top: var(--sp-sm);
+    display: flex; gap: var(--sp-sm); flex-wrap: wrap;
+    font-family: "SF Mono", "Fira Code", Consolas, monospace;
+    font-size: 10px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.port-tile__meta strong { color: var(--text); font-weight: 700; }
+
+.port-tile--featured {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr auto;
+}
+.port-tile--featured .port-tile__screenshot {
+    aspect-ratio: auto;
+    min-height: 300px;
+}
+.port-tile--featured .port-tile__title {
+    font-size: var(--fs-2xl);
+}
+.port-tile--featured .port-tile__subtitle {
+    font-size: var(--fs-sm);
+    margin-top: 4px;
+}
+
+/* Placeholder screenshot -- CRT-ish pixel composition */
+.screenshot-placeholder {
+    width: 100%; height: 100%;
+    background:
+        repeating-linear-gradient(
+            to bottom,
+            rgba(0,0,0,0) 0 2px,
+            rgba(0,0,0,0.18) 2px 3px
+        ),
+        var(--ph-bg, #222);
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+}
+.screenshot-placeholder__title {
+    font-family: "SF Mono", "Fira Code", Consolas, monospace;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--ph-fg, #b8860b);
+    letter-spacing: 1px;
+    text-shadow: 0 0 1px rgba(0,0,0,0.8);
+    padding: 6px 12px;
+    background: rgba(0,0,0,0.5);
+    border: 1px solid var(--ph-fg, #b8860b);
+}
+.screenshot-placeholder__ornament {
+    position: absolute;
+    font-family: "SF Mono", "Fira Code", Consolas, monospace;
+    font-size: 9px;
+    color: var(--ph-fg, #b8860b);
+    opacity: 0.7;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+.screenshot-scanline::after {
+    content: "";
+    position: absolute; inset: 0;
+    background: repeating-linear-gradient(
+        to bottom,
+        transparent 0 2px,
+        rgba(0,0,0,0.08) 2px 3px
+    );
+    pointer-events: none;
+}
+
+/* ── Status pill ─────────────────────────────────────────────────────────── */
+.status-pill {
+    display: inline-block;
+    font-family: "SF Mono", "Fira Code", Consolas, monospace;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 6px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border: 1px solid var(--bevel-shadow);
+    line-height: 1.4;
+}
+.status-pill--playable { background: #88BB88; color: #1a1a1a; border-color: #448844; }
+.status-pill--wip      { background: #CCAA66; color: #1a1a1a; border-color: #886633; }
+.status-pill--planned  { background: #A8A8A8; color: #4a4a4a; border-color: #606060; }
+
+/* ── Live telemetry table tweaks ─────────────────────────────────────────── */
+.telemetry-note {
+    margin: 10px 0 0;
+    font-size: 11px;
+    color: var(--text-muted);
+    font-family: "SF Mono", "Fira Code", Consolas, monospace;
+}
+
+/* ── Stats cards -- gaming variant (slightly tighter) ────────────────────── */
+.gaming-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--sp-md);
+}
+@media (max-width: 760px) {
+    .gaming-stats-grid { grid-template-columns: 1fr; }
+}
+
+.stats-card {
+    background: var(--surface);
+    padding: var(--sp-md);
+    border-top: 1px solid var(--bevel-shine);
+    border-left: 1px solid var(--bevel-shine);
+    border-bottom: 1px solid var(--bevel-shadow);
+    border-right: 1px solid var(--bevel-shadow);
+    text-align: center;
+    display: flex; flex-direction: column; gap: 4px;
+}
+.stats-card__value {
+    font-size: var(--fs-3xl); font-weight: 700; color: var(--amber-dark);
+    font-family: "SF Mono", "Fira Code", "JetBrains Mono", Consolas, monospace;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+}
+.stats-card__label {
+    font-size: var(--fs-xs); text-transform: uppercase; letter-spacing: 1px;
+    color: var(--brown); font-weight: 600;
+}
+.stats-card__sub {
+    font-size: var(--fs-xs); color: var(--text-muted);
+}
+
+/* ── Changelog ───────────────────────────────────────────────────────────── */
+.changelog__entry {
+    display: grid;
+    grid-template-columns: 96px 1fr;
+    gap: var(--sp-md);
+    padding: var(--sp-sm) 0;
+    border-bottom: 1px solid var(--bevel-shadow);
+    font-size: var(--fs-sm);
+}
+.changelog__entry:last-child { border-bottom: 0; }
+.changelog__date {
+    font-family: "SF Mono", "Fira Code", Consolas, monospace;
+    font-size: 11px; color: var(--brown); font-weight: 700;
+}
+.changelog__what ul { margin: 4px 0 0; padding-left: 18px; }
+.changelog__what li { margin-bottom: 2px; line-height: 1.45; }
+.changelog__version {
+    font-family: "SF Mono", "Fira Code", Consolas, monospace;
+    font-size: 10px; color: var(--amber-dark);
+    margin-left: 6px;
+}
+
+/* ── Submit form (gaming) ────────────────────────────────────────────────── */
+.submit-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--sp-md);
+}
+@media (max-width: 720px) {
+    .submit-grid { grid-template-columns: 1fr; }
+}
+.submit-grid label {
+    display: block;
+    font-size: var(--fs-xs); font-weight: 600;
+    text-transform: uppercase; letter-spacing: 1px;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+}
+.submit-grid .wb-input[aria-invalid="true"],
+.submit-grid .wb-textarea[aria-invalid="true"] {
+    outline: 2px solid var(--red);
+    outline-offset: 0;
+}
+.submit-grid__full { grid-column: 1 / -1; }
+
+/* ── Tweaks panel ────────────────────────────────────────────────────────── */
+.tweaks-toggle {
+    position: fixed;
+    right: var(--sp-md);
+    bottom: var(--sp-md);
+    font-family: inherit; font-size: var(--fs-sm); font-weight: 600;
+    padding: 6px 12px;
+    background: var(--title-bar); color: var(--cream);
+    border-top: 1px solid var(--title-bar-shine);
+    border-left: 1px solid var(--title-bar-shine);
+    border-bottom: 1px solid var(--title-bar-shadow);
+    border-right: 1px solid var(--title-bar-shadow);
+    cursor: pointer;
+    z-index: 99;
+    border-radius: 0;
+}
+.tweaks-toggle:hover { color: var(--amber-light); }
+
+.tweaks-panel {
+    position: fixed;
+    right: var(--sp-md);
+    bottom: 54px;
+    width: 280px;
+    background: var(--surface);
+    border-top: 1px solid var(--bevel-shine);
+    border-left: 1px solid var(--bevel-shine);
+    border-bottom: 1px solid var(--bevel-shadow);
+    border-right: 1px solid var(--bevel-shadow);
+    z-index: 100;
+    display: none;
+}
+.tweaks-panel.open { display: block; }
+.tweaks-panel__title {
+    background: var(--title-bar);
+    color: var(--cream);
+    padding: 4px var(--sp-sm);
+    font-size: var(--fs-sm);
+    font-weight: 700;
+    text-align: center;
+    border-top: 1px solid var(--title-bar-shine);
+    border-bottom: 1px solid var(--title-bar-shadow);
+}
+.tweaks-panel__body {
+    padding: var(--sp-md);
+    display: flex; flex-direction: column; gap: var(--sp-sm);
+}
+.tweaks-row {
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: var(--fs-sm);
+}
+.tweaks-row label {
+    font-size: 11px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 1px;
+    color: var(--text-muted);
+}
+.tweaks-row select {
+    font-family: inherit; font-size: 12px;
+    padding: 2px 4px;
+    background: var(--light-surface);
+    border-top: 1px solid var(--bevel-shadow);
+    border-left: 1px solid var(--bevel-shadow);
+    border-bottom: 1px solid var(--bevel-shine);
+    border-right: 1px solid var(--bevel-shine);
+    border-radius: 0;
+}
+
+.swatch-row { display: flex; gap: 4px; }
+.swatch {
+    width: 20px; height: 20px; cursor: pointer;
+    border-top: 1px solid var(--bevel-shine);
+    border-left: 1px solid var(--bevel-shine);
+    border-bottom: 1px solid var(--bevel-shadow);
+    border-right: 1px solid var(--bevel-shadow);
+}
+.swatch.active {
+    border-top: 1px solid var(--bevel-shadow);
+    border-left: 1px solid var(--bevel-shadow);
+    border-bottom: 1px solid var(--bevel-shine);
+    border-right: 1px solid var(--bevel-shine);
+    outline: 2px solid var(--amber);
+    outline-offset: -2px;
+}
+.swatch--amber { background: var(--amber); }
+.swatch--red   { background: var(--red); }
+.swatch--brown { background: var(--brown); }
+.swatch--cream { background: var(--cream); }
+
+/* ── Arcade cabinet mode (dark) ──────────────────────────────────────────── */
+body.gaming.arcade {
+    background: #0c0c0c;
+    color: var(--cream);
+}
+body.gaming.arcade .group-frame {
+    background: #161616;
+    color: var(--cream);
+    border-top-color: #3a3a3a;
+    border-left-color: #3a3a3a;
+    border-bottom-color: #000;
+    border-right-color: #000;
+}
+body.gaming.arcade .group-frame__title {
+    color: var(--amber-light);
+    border-bottom-color: #000;
+}
+body.gaming.arcade .port-tile {
+    background: #161616;
+    color: var(--cream);
+    border-top-color: #3a3a3a;
+    border-left-color: #3a3a3a;
+    border-bottom-color: #000;
+    border-right-color: #000;
+}
+body.gaming.arcade .port-tile__title      { color: var(--amber-light); }
+body.gaming.arcade .port-tile__subtitle   { color: #7a7a7a; }
+body.gaming.arcade .port-tile__meta       { color: #7a7a7a; }
+body.gaming.arcade .port-tile__meta strong { color: var(--cream); }
+body.gaming.arcade .port-tile:hover .port-tile__title { color: var(--cream); }
+body.gaming.arcade .gaming-section-head h2       { color: var(--amber-light); }
+body.gaming.arcade .gaming-section-head          { border-bottom-color: #3a3a3a; }
+body.gaming.arcade .gaming-section-head__aside   { color: #7a7a7a; }
+body.gaming.arcade .gaming-section-head__aside a { color: var(--amber-light); }
+body.gaming.arcade .wb-table th              { background: #222; color: var(--cream); }
+body.gaming.arcade .wb-table tr:nth-child(odd)  td { background: #161616; color: var(--cream); }
+body.gaming.arcade .wb-table tr:nth-child(even) td { background: #1c1c1c; color: var(--cream); }
+body.gaming.arcade .wb-table tr:hover td     { background: #2a2a2a; }
+body.gaming.arcade .wb-table .name           { color: var(--amber-light); }
+body.gaming.arcade .filter-bar               { background: #1c1c1c; border-color: #000; color: var(--cream); }
+body.gaming.arcade .filter-bar__label        { color: #7a7a7a; }
+body.gaming.arcade .filter-bar select {
+    background: #0c0c0c; color: var(--cream);
+    border-top-color: #000; border-left-color: #000;
+    border-bottom-color: #3a3a3a; border-right-color: #3a3a3a;
+}
+body.gaming.arcade .stats-card               { background: #161616; color: var(--cream); border-color: #3a3a3a #000 #000 #3a3a3a; }
+body.gaming.arcade .stats-card__label        { color: #7a7a7a; }
+body.gaming.arcade .stats-card__sub          { color: #5a5a5a; }
+body.gaming.arcade .changelog__entry         { border-bottom-color: #2a2a2a; }
+body.gaming.arcade .wb-input,
+body.gaming.arcade .wb-textarea,
+body.gaming.arcade .wb-select {
+    background: #0c0c0c; color: var(--cream);
+    border-top-color: #000; border-left-color: #000;
+    border-bottom-color: #3a3a3a; border-right-color: #3a3a3a;
+}
+body.gaming.arcade a        { color: var(--amber-light); }
+body.gaming.arcade a:hover  { color: var(--cream); }
+body.gaming.arcade .footer  { color: #7a7a7a; border-top-color: #3a3a3a; }
+body.gaming.arcade .footer a { color: var(--amber-light); }
+
+/* ── Dense mode ──────────────────────────────────────────────────────────── */
+body.gaming.dense .content.gaming-container { gap: var(--sp-md); }
+body.gaming.dense .port-tile__body { padding: 6px 10px 8px; }
+body.gaming.dense .group-frame__body { padding: 10px; }
+body.gaming.dense .port-grid { gap: 8px; }
+
+/* ── Responsive ──────────────────────────────────────────────────────────── */
+@media (max-width: 880px) {
+    .hero-strip { grid-template-columns: 1fr; }
+    .leaderboard { min-width: 0; }
+    .port-grid,
+    .port-grid--featured { grid-template-columns: repeat(2, 1fr); grid-template-rows: auto; }
+    .port-grid--featured .port-tile:first-child { grid-row: auto; grid-column: span 2; }
+    .port-tile--featured .port-tile__screenshot { min-height: 220px; }
+}
+@media (max-width: 520px) {
+    .hero-strip { padding: var(--sp-lg) var(--sp-md); }
+    .hero-strip__title { font-size: 28px; }
+    .leaderboard { grid-template-columns: 1fr 1fr; padding: var(--sp-sm); gap: var(--sp-sm); }
+    .leaderboard__value { font-size: 20px; }
+    .port-grid,
+    .port-grid--featured { grid-template-columns: 1fr; }
+    .port-grid--featured .port-tile:first-child { grid-column: auto; }
+}
+
+/* ============================================================================
+   Detail page (games/<id>.html)
+   ============================================================================ */
+
+.breadcrumb {
+    font-size: 11px; color: var(--text-muted);
+    font-family: "SF Mono", "Fira Code", Consolas, monospace;
+    padding: 2px 0 var(--sp-sm);
+}
+.breadcrumb a { color: var(--brown); }
+.breadcrumb__sep { color: var(--text-muted); margin: 0 6px; }
+
+.detail-hero {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: var(--sp-md);
+    background: #1a1a1a;
+    padding: var(--sp-lg);
+    border-top: 1px solid var(--bevel-shine);
+    border-left: 1px solid var(--bevel-shine);
+    border-bottom: 1px solid var(--bevel-shadow);
+    border-right: 1px solid var(--bevel-shadow);
+}
+.detail-hero__screenshot {
+    aspect-ratio: 16 / 10;
+    background: #000;
+    overflow: hidden;
+    border-top: 1px solid var(--bevel-dark);
+    border-left: 1px solid var(--bevel-dark);
+    border-bottom: 1px solid #2a2a2a;
+    border-right: 1px solid #2a2a2a;
+    position: relative;
+}
+.detail-hero__screenshot img {
+    width: 100%; height: 100%; object-fit: cover;
+    image-rendering: pixelated;
+}
+.detail-hero__info {
+    color: var(--cream);
+    display: flex; flex-direction: column; gap: var(--sp-sm);
+}
+.detail-hero__title {
+    font-size: 32px; font-weight: 700; color: var(--cream);
+    margin: 0; line-height: 1.05;
+    letter-spacing: -0.5px;
+}
+.detail-hero__subtitle {
+    font-size: var(--fs-sm); color: #a89c80;
+    margin: 0; font-family: "SF Mono", "Fira Code", Consolas, monospace;
+    text-transform: uppercase; letter-spacing: 1px;
+}
+.detail-hero__stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--sp-sm);
+    margin-top: var(--sp-sm);
+}
+.detail-hero__stat {
+    background: #0e0e0e;
+    padding: 6px 10px;
+    border-top: 1px solid #000;
+    border-left: 1px solid #000;
+    border-bottom: 1px solid #2a2a2a;
+    border-right: 1px solid #2a2a2a;
+}
+.detail-hero__stat-label {
+    font-size: 9px; color: #7a6d50; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 1px;
+    margin-bottom: 2px;
+}
+.detail-hero__stat-value {
+    font-family: "SF Mono", "Fira Code", Consolas, monospace;
+    font-size: 15px; font-weight: 700; color: var(--amber-light);
+    font-variant-numeric: tabular-nums;
+}
+.detail-hero__blurb {
+    color: #a89c80; font-size: 13px; line-height: 1.5; margin: 0;
+}
+.detail-hero__actions {
+    margin-top: auto; padding-top: 12px;
+    display: flex; gap: 6px; flex-wrap: wrap;
+}
+
+.detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: var(--sp-lg);
+    align-items: start;
+}
+.detail-grid > .col-side {
+    display: flex; flex-direction: column; gap: var(--sp-md);
+    position: sticky; top: var(--sp-md);
+}
+@media (max-width: 880px) {
+    .detail-hero { grid-template-columns: 1fr; }
+    .detail-grid { grid-template-columns: 1fr; }
+    .detail-grid > .col-side { position: static; }
+}
+
+/* Screenshot strip */
+.shot-strip {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--sp-sm);
+    margin-top: 8px;
+}
+.shot-strip__item {
+    aspect-ratio: 4 / 3;
+    background: #111;
+    border-top: 1px solid var(--bevel-dark);
+    border-left: 1px solid var(--bevel-dark);
+    border-bottom: 1px solid var(--bevel-shine);
+    border-right: 1px solid var(--bevel-shine);
+    cursor: pointer;
+    overflow: hidden;
+    position: relative;
+}
+.shot-strip__item.active {
+    outline: 2px solid var(--amber);
+    outline-offset: -2px;
+}
+
+/* Key-value list */
+.kv-list { display: flex; flex-direction: column; }
+.kv-list__row {
+    display: grid;
+    grid-template-columns: 140px 1fr;
+    gap: var(--sp-sm);
+    padding: 5px 0;
+    border-bottom: 1px dotted var(--bevel-shadow);
+    font-size: var(--fs-sm);
+}
+.kv-list__row:last-child { border-bottom: 0; }
+.kv-list__key {
+    font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 1px; color: var(--text-muted);
+}
+.kv-list__val {
+    color: var(--text);
+    font-family: "SF Mono", "Fira Code", Consolas, monospace;
+    font-size: 12px;
+}
+
+/* Keymap */
+.keymap {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px var(--sp-md);
+}
+.keymap__row {
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: var(--fs-sm);
+    padding: 3px 0;
+    border-bottom: 1px dotted var(--bevel-shadow);
+}
+.keymap__keys { display: flex; gap: 2px; }
+.key {
+    display: inline-block;
+    font-family: "SF Mono", "Fira Code", Consolas, monospace;
+    font-size: 10px; font-weight: 700;
+    padding: 2px 6px; min-width: 18px; text-align: center;
+    background: var(--elevated);
+    color: var(--text);
+    border-top: 1px solid var(--bevel-shine);
+    border-left: 1px solid var(--bevel-shine);
+    border-bottom: 1px solid var(--bevel-shadow);
+    border-right: 1px solid var(--bevel-shadow);
+}
+
+/* Tabs */
+.tabs {
+    display: flex; gap: 0;
+    border-bottom: 1px solid var(--bevel-shadow);
+    flex-wrap: wrap;
+}
+.tab {
+    padding: 6px 14px;
+    font-size: 11px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 1px;
+    color: var(--text-muted);
+    background: var(--surface);
+    border-top: 1px solid var(--bevel-shine);
+    border-left: 1px solid var(--bevel-shine);
+    border-right: 1px solid var(--bevel-shadow);
+    cursor: pointer;
+    user-select: none;
+    font-family: inherit;
+}
+.tab--active {
+    color: var(--text); background: var(--elevated);
+    border-bottom: 1px solid var(--elevated);
+    margin-bottom: -1px;
+    position: relative; z-index: 1;
+}
+.tab-panel {
+    background: var(--elevated);
+    padding: var(--sp-md);
+    border-left: 1px solid var(--bevel-shine);
+    border-right: 1px solid var(--bevel-shadow);
+    border-bottom: 1px solid var(--bevel-shadow);
+}
+
+/* Issues */
+.issue {
+    display: grid;
+    grid-template-columns: 72px 1fr auto;
+    gap: var(--sp-sm);
+    padding: 6px 0;
+    border-bottom: 1px dotted var(--bevel-shadow);
+    align-items: center;
+    font-size: var(--fs-sm);
+}
+.issue__id {
+    font-family: "SF Mono", "Fira Code", Consolas, monospace;
+    font-size: 11px; color: var(--brown);
+}
+.issue__severity {
+    font-size: 10px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 1px;
+    padding: 2px 6px;
+    border: 1px solid var(--bevel-shadow);
+}
+.issue__severity--high   { background: #CC8888; color: #1a1a1a; border-color: #884444; }
+.issue__severity--medium { background: #CCAA66; color: #1a1a1a; border-color: #886633; }
+.issue__severity--low    { background: #A8A8A8; color: #4a4a4a; }
+
+/* Compat matrix */
+.compat {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--fs-sm);
+    border: 1px solid var(--bevel-shadow);
+}
+.compat th, .compat td {
+    padding: 5px 8px;
+    border: 1px solid var(--bevel-shadow);
+    text-align: center;
+}
+.compat th {
+    background: var(--elevated);
+    text-transform: uppercase;
+    font-size: 10px;
+    letter-spacing: 1px;
+    font-weight: 700;
+}
+.compat td:first-child {
+    text-align: left;
+    font-weight: 700;
+    background: var(--surface);
+}
+.compat__mark {
+    font-family: "SF Mono", "Fira Code", Consolas, monospace;
+    font-weight: 700;
+}
+.compat__mark--yes     { color: var(--success-border); }
+.compat__mark--no      { color: var(--error-border); }
+.compat__mark--partial { color: var(--warning-border); }
+
+/* Patch viewer */
+.patch-viewer {
+    background: var(--terminal-bg);
+    border-top: 1px solid var(--bevel-dark);
+    border-left: 1px solid var(--bevel-dark);
+    border-bottom: 1px solid var(--bevel-shine);
+    border-right: 1px solid var(--bevel-shine);
+    font-family: "SF Mono", "Fira Code", Consolas, monospace;
+    font-size: 12px;
+    line-height: 1.5;
+    overflow: hidden;
+}
+.patch-viewer__header {
+    background: #1a1a1a;
+    color: #a89c80;
+    padding: 6px 10px;
+    border-bottom: 1px solid #000;
+    display: flex; justify-content: space-between;
+    font-size: 11px;
+}
+.patch-viewer__body {
+    padding: 8px 0;
+    color: var(--terminal-fg);
+    max-height: 320px;
+    overflow-y: auto;
+    overflow-x: auto;
+}
+.patch-viewer__line {
+    display: grid;
+    grid-template-columns: 40px 1fr;
+    padding: 0 10px 0 0;
+    white-space: pre;
+}
+.patch-viewer__line .ln {
+    color: #555; text-align: right; padding-right: 8px;
+    user-select: none; font-size: 10px; line-height: 1.7;
+}
+.patch-viewer__line--add  { background: rgba(100, 150, 80, 0.15); color: #a8cc88; }
+.patch-viewer__line--del  { background: rgba(180, 80, 80, 0.15);  color: #cc8888; }
+.patch-viewer__line--ctx  { color: #888880; }
+.patch-viewer__line--hunk { color: var(--amber); padding-left: 10px; font-weight: 700; }
+
+/* See-also sidebar links */
+.see-also__link {
+    display: flex; justify-content: space-between;
+    padding: 6px 0;
+    border-bottom: 1px dotted var(--bevel-shadow);
+    text-decoration: none;
+    color: var(--text);
+    font-size: 13px;
+}
+.see-also__link:last-child { border-bottom: 0; }
+.see-also__link strong { color: var(--brown); }
+.see-also__link:hover strong { color: var(--salmon); }
+.see-also__fps {
+    font-family: "SF Mono", "Fira Code", Consolas, monospace;
+    font-size: 11px; color: var(--amber-dark);
+}
+
+/* Hidden helper (reused from base site) */
+.hidden { display: none !important; }

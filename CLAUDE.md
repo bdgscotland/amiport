@@ -44,6 +44,11 @@ The porting pipeline has 4 stages, each backed by a Claude skill:
   - `site/stats.html` — Stats dashboard with SVG bar charts, category breakdown, publication timeline
   - `site/news.html` — News archive page — release announcements, project updates, behind-the-scenes notes. JS-driven from `site/data/news.json`, rendered by `site/js/news.js`.
   - `site/amiga.html` — HTML 3.2 page for classic Amiga browsers (IBrowse/AWeb). PHP-generated, table layout, <30KB, 640x480
+  - `site/gaming.html` — Gaming portal landing. Dark hero + live FPS leaderboard, port-tile grid (featured + 9 others), live telemetry table, project stats, submit form, changelog, Tweaks panel (accent/layout/density/arcade). Loads `css/gaming.css` on top of `css/style.css` and `js/gaming.js`. Links to `games/<id>.html`.
+  - `site/games/<id>.html` — Per-port detail page shell (10 total: julius, chocolate-doom, ccleste, 1oom, sdlpop, vanilla-conquer, fheroes2, reminiscence, another-world, opentyrian). Minimal shell with `<html data-game-id="...">`; all rendering via `js/gaming-detail.js`.
+  - `site/css/gaming.css` — Gaming portal styles: hero-strip, leaderboard slab, port-tile grid, status pills, screenshot placeholder, filter bar, tweaks panel, arcade/dense modes, detail-page blocks (hero, tabs, keymap, compat, patch-viewer, issue list, kv-list, breadcrumb).
+  - `site/js/gaming.js` — Gaming landing page logic. Vanilla JS (no framework). Port data, live-FPS ticker (1.4s jitter ±2), filter/sort, tile rendering, submit-form validation, tweaks panel.
+  - `site/js/gaming-detail.js` — Detail-page renderer. Reads `data-game-id`, merges per-port overrides (Julius has hand-crafted details) with a generic `makeDetails()` fallback. Renders hero, screenshot strip, tabs (Overview/Controls/Issues/Compat/Changelog/Patches), and sidebar (Install/Requirements/See also).
   - `site/feed.php` — RSS 2.0 feed combining published packages **and news entries** (`site/data/news.json`), sorted by date. `?category=<cat>` filter narrows to packages only (news is project-wide).
   - `site/data/news.json` — Source of truth for site news. Flat JSON array of `{id, date, title, body, tags, url}`. ASCII-only. Appended via `/post-news` skill — do not hand-edit when the skill applies. `site/api/v1/activity.php` and `site/feed.php` read this file server-side; the browser reaches it via `site/api/v1/news.php` (see below) because `.htaccess` blocks direct `/data/` access.
   - `site/api/v1/news.php` — Public JSON proxy for `site/data/news.json`. Matches the same pattern as `packages.php` proxying `data/packages/*.json`. Validates JSON parses before echoing.
@@ -104,6 +109,7 @@ The `/port-project` skill has GATE checks — it will not proceed to the next st
 | `catalog-engineer` | Catalog management — candidate enumeration, dry-run analysis, scoring, batch dispatch |
 | `port-worker` | **Draft mode only** — self-contained porting worker for quick-pass batch dispatch in worktrees. Use specialized agents via `/batch-port-parallel` for production quality. |
 | `regression-checker` | After shim/library changes — rebuild and test all affected ports to detect regressions |
+| `sdl-game-helper` | SDL1/SDL2 game-port specialist. Dispatch for any new SDL game port (after `aminet-researcher`) or to perf-audit an existing one. Knows libSDL2-amigaos3 fast-path traps (`OS3_OpenWindowed` +64 padding, BitMapScale fallback, asm bswap32, libSDL2 `-O0` default), bebbo-gcc 13.3 libstdc++ ABI traps (`std::ostream<<int` Guru, `std::string operator+` at -O0, `std::this_thread::sleep_for` 20 ms granularity), frame-budget math, sprite-cache sizing, OS-cursor strategy, and the FS-UAE CPU/FPU compatibility matrix. Flexible-style specialist — adapts playbook to context. |
 
 ## Documentation Rules — IMPORTANT
 

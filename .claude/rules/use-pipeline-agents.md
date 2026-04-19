@@ -27,6 +27,7 @@
 | Visual test authoring | `visual-test-expert` agent | Don't manually write SCRAPE/SCREEN_READ tests |
 | Regression detection | `regression-checker` agent | Don't manually rebuild all ports after shim changes |
 | Catalog management | `catalog-engineer` agent | Don't manually score candidates or plan batches |
+| SDL1/SDL2 game port or audit | `sdl-game-helper` agent | Don't try to perf-tune a game port with just `perf-optimizer` -- game bottlenecks live in render loops, frame limiters, and libstdc++ ABI traps that the general perf agent doesn't catch |
 
 ## How to Dispatch
 
@@ -55,6 +56,7 @@ subagent_type: "amiport-publisher"      # Test-gated publishing to amiport site
 subagent_type: "port-worker"            # Parallel batch: self-contained stages 0-4 in worktree
 subagent_type: "regression-checker"     # After shim/lib changes: rebuild + test affected ports
 subagent_type: "catalog-engineer"       # Catalog management: scoring, enumeration, batch planning
+subagent_type: "sdl-game-helper"        # SDL1/SDL2 game ports: libSDL2 fast-path, bebbo-gcc 13.3 libstdc++ traps, FS-UAE CPU/FPU matrix
 ```
 
 ## Never Bypass a Running Agent

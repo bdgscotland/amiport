@@ -206,6 +206,7 @@ analyze → transform → build → test → memory-check → perf-optimize → 
 | hardware-expert | Hardware architecture validation (CPU variants, chipset, address space) |
 | visual-test-expert | Visual test authoring and debugging (SCRAPE/SCREEN_READ) |
 | regression-checker | Rebuild all affected ports after shim library changes |
+| sdl-game-helper | SDL1/SDL2 game-port specialist -- libSDL2-amigaos3 fast-path, bebbo-gcc 13.3 libstdc++ traps, frame-budget math, FS-UAE CPU/FPU matrix |
 | catalog-engineer | Catalog management, candidate scoring, batch dispatch |
 | site-manager | Website deployment, manifest generation, security scanning |
 | aminet-publisher | Aminet package preparation and publishing (curated, never automatic) |

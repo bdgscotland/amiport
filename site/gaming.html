@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="amiport gaming -- classic PC games ported to AmigaOS 3.x. Doom, Caesar III, Prince of Persia, C&amp;C, and more.">
+    <title>amiport gaming -- classic PC games for AmigaOS 3.x</title>
+    <link rel="stylesheet" href="css/style.css?v=20260414a">
+    <link rel="stylesheet" href="css/gaming.css?v=20260419a">
+    <link rel="icon" type="image/svg+xml" href="img/favicon.svg">
+    <link rel="alternate" type="application/rss+xml" title="amiport -- New Ports" href="/feed.php">
+</head>
+<body class="gaming">
+
+<a href="#main" class="skip-link">Skip to content</a>
+
+<!-- Screen Bar (shared nav) -->
+<header class="screen-bar" role="banner">
+    <a href="/" class="screen-bar__brand" aria-label="amiport home">
+        <svg width="170" height="30" viewBox="0 0 240 44" aria-hidden="true">
+            <rect x="4" y="6" width="32" height="32" fill="#8B6914"/>
+            <circle cx="12" cy="14" r="2.5" fill="#DAA520"/>
+            <rect x="10" y="12" width="20" height="20" fill="none" stroke="#DAA520" stroke-width=".75"/>
+            <rect x="0" y="11" width="6" height="2.5" fill="#DAA520"/>
+            <rect x="0" y="18" width="6" height="2.5" fill="#DAA520"/>
+            <rect x="0" y="25" width="6" height="2.5" fill="#DAA520"/>
+            <rect x="0" y="32" width="6" height="2.5" fill="#DAA520"/>
+            <rect x="34" y="11" width="6" height="2.5" fill="#DAA520"/>
+            <rect x="34" y="18" width="6" height="2.5" fill="#DAA520"/>
+            <rect x="34" y="25" width="6" height="2.5" fill="#DAA520"/>
+            <rect x="34" y="32" width="6" height="2.5" fill="#DAA520"/>
+            <rect x="11" y="2" width="2.5" height="6" fill="#DAA520"/>
+            <rect x="18" y="2" width="2.5" height="6" fill="#DAA520"/>
+            <rect x="25" y="2" width="2.5" height="6" fill="#DAA520"/>
+            <rect x="11" y="36" width="2.5" height="6" fill="#DAA520"/>
+            <rect x="18" y="36" width="2.5" height="6" fill="#DAA520"/>
+            <rect x="25" y="36" width="2.5" height="6" fill="#DAA520"/>
+            <text x="48" y="31" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="26" font-weight="700" fill="#E0D0B8">ami<tspan fill="#DAA520">port</tspan></text>
+        </svg>
+    </a>
+    <nav aria-label="Main navigation">
+        <ul class="screen-bar__nav">
+            <li><a href="packages.html">Packages</a></li>
+            <li><a href="gaming.html" aria-current="page">Gaming</a></li>
+            <li><a href="stats.html">Stats</a></li>
+            <li><a href="news.html">News</a></li>
+            <li><a href="amiga.html">Amiga</a></li>
+            <li><a href="https://github.com/bdgscotland/amiport" target="_blank" rel="noopener">GitHub</a></li>
+        </ul>
+    </nav>
+</header>
+
+<main id="main" class="content gaming-container">
+
+    <!-- Dark hero with leaderboard -->
+    <section class="hero-strip" aria-labelledby="gaming-hero-headline">
+        <div>
+            <div class="hero-strip__eyebrow">amiport gaming</div>
+            <h1 class="hero-strip__title" id="gaming-hero-headline">
+                Classic PC games, <em>running on your Amiga</em>.
+            </h1>
+            <p class="hero-strip__sub">
+                Ten game ports unified into one portal. Doom, Caesar III, Celeste, Master of Orion,
+                Prince of Persia, Command &amp; Conquer -- compiled with bebbo-gcc, riding on
+                libSDL2-amigaos3, installable with <code>amiport install amiport-gaming</code>.
+            </p>
+            <div class="hero-strip__actions">
+                <a class="btn btn--primary" href="#ports">Browse ports</a>
+                <a class="btn btn--default" href="#submit">Request a game</a>
+            </div>
+        </div>
+        <div id="hero-leaderboard-wrap">
+            <div class="leaderboard" id="hero-leaderboard" aria-label="Live leaderboard">
+                <!-- populated by gaming.js -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Install meta-package -->
+    <section class="group-frame" aria-labelledby="install-heading">
+        <div class="group-frame__title" id="install-heading" role="heading" aria-level="2">Install the gaming meta-package</div>
+        <div class="group-frame__body">
+            <div class="stack-sm" style="display:flex; flex-direction:column; gap: 8px;">
+                <div class="install-block">
+                    <span class="install-block__prompt">1.SYS:&gt;</span>
+                    <span class="install-block__cmd">amiport install amiport-gaming</span>
+                </div>
+                <div class="install-block">
+                    <span class="install-block__prompt">1.SYS:&gt;</span>
+                    <span class="install-block__cmd">amiport-gaming list --playable</span>
+                </div>
+                <p class="text-muted" style="margin: 4px 0 0; font-size: 13px;">
+                    The meta-package pulls <strong>libSDL2-amigaos3</strong> (0.7.0+) and <strong>SDL2_mixer</strong>,
+                    and installs launchers to <code>SYS:Games/</code>.
+                    Game data files are not included -- see each port for legal acquisition.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Port grid -->
+    <section id="ports" aria-labelledby="ports-heading">
+        <div class="gaming-section-head">
+            <h2 id="ports-heading"><span id="filter-count">Ports</span></h2>
+            <div class="gaming-section-head__aside">
+                <a href="feed.php">rss</a> &middot; last build <span id="last-build">--</span>
+            </div>
+        </div>
+
+        <div class="stack-md" style="display:flex; flex-direction:column; gap: 16px;">
+            <div class="filter-bar" role="group" aria-label="Filter and sort ports">
+                <span class="filter-bar__label">Status</span>
+                <select id="filter-status" aria-label="Filter by status">
+                    <option value="all">All</option>
+                    <option value="playable">Playable</option>
+                    <option value="wip">WIP</option>
+                    <option value="planned">Planned</option>
+                </select>
+
+                <span class="filter-bar__label">Platform</span>
+                <select id="filter-platform" aria-label="Filter by original platform">
+                    <option value="all">All</option>
+                    <option value="DOS">DOS</option>
+                    <option value="Windows">Windows</option>
+                    <option value="Amiga">Amiga</option>
+                    <option value="PICO-8">PICO-8</option>
+                </select>
+
+                <span class="filter-bar__label">Audio</span>
+                <select id="filter-audio" aria-label="Filter by audio support">
+                    <option value="all">All</option>
+                    <option value="yes">With audio</option>
+                    <option value="no">Silent</option>
+                </select>
+
+                <span class="filter-bar__label" style="margin-left: auto;">Sort</span>
+                <select id="filter-sort" aria-label="Sort ports">
+                    <option value="featured">Featured</option>
+                    <option value="fps">Top FPS</option>
+                    <option value="year">Oldest first</option>
+                    <option value="name">Name (A-Z)</option>
+                </select>
+            </div>
+
+            <div id="port-grid" class="port-grid port-grid--featured" role="list">
+                <!-- tiles populated by gaming.js -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Live telemetry leaderboard -->
+    <section id="leaderboard" aria-labelledby="leaderboard-heading">
+        <div class="gaming-section-head">
+            <h2 id="leaderboard-heading">Performance leaderboard</h2>
+            <div class="gaming-section-head__aside">
+                measured on a Vampire V4 &middot; live
+            </div>
+        </div>
+        <div class="group-frame">
+            <div class="group-frame__title">Live telemetry &middot; emulator + real hardware</div>
+            <div class="group-frame__body">
+                <table class="wb-table" aria-describedby="telemetry-note">
+                    <thead>
+                        <tr>
+                            <th>Port</th>
+                            <th>Game</th>
+                            <th>FPS (live)</th>
+                            <th>Target</th>
+                            <th>Progress</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaderboard-body">
+                        <!-- rows populated by gaming.js -->
+                    </tbody>
+                </table>
+                <p class="telemetry-note" id="telemetry-note">
+                    // Ticking every 1.4s &middot; jitter +/- 2 fps &middot; rolling avg
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats -->
+    <section aria-labelledby="stats-heading">
+        <div class="group-frame">
+            <div class="group-frame__title" id="stats-heading" role="heading" aria-level="2">Project state</div>
+            <div class="group-frame__body">
+                <div class="gaming-stats-grid">
+                    <div class="stats-card">
+                        <span class="stats-card__value" id="stat-playable">--</span>
+                        <span class="stats-card__label">Playable ports</span>
+                        <span class="stats-card__sub" id="stat-playable-sub">--</span>
+                    </div>
+                    <div class="stats-card">
+                        <span class="stats-card__value" id="stat-avg-fps">--</span>
+                        <span class="stats-card__label">Average framerate</span>
+                        <span class="stats-card__sub">across 7 active ports</span>
+                    </div>
+                    <div class="stats-card">
+                        <span class="stats-card__value" id="stat-files">--</span>
+                        <span class="stats-card__label">Source files built</span>
+                        <span class="stats-card__sub" id="stat-files-sub">--</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Submit form -->
+    <section id="submit" aria-labelledby="submit-heading">
+        <div class="gaming-section-head">
+            <h2 id="submit-heading">Request a port</h2>
+            <div class="gaming-section-head__aside">
+                or open a PR on <a href="https://github.com/bdgscotland/amiga-game-ports" target="_blank" rel="noopener">amiga-game-ports</a>
+            </div>
+        </div>
+        <div class="group-frame">
+            <div class="group-frame__body">
+                <form id="submit-form" novalidate>
+                    <div class="submit-grid">
+                        <div>
+                            <label for="sf-name">Game name</label>
+                            <input id="sf-name" name="game_name" type="text" class="wb-input"
+                                   placeholder="e.g. Quake, Dune II, Syndicate" required maxlength="100">
+                        </div>
+                        <div>
+                            <label for="sf-year">Year (optional)</label>
+                            <input id="sf-year" name="year" type="text" class="wb-input"
+                                   placeholder="e.g. 1996" maxlength="4" pattern="\d*">
+                        </div>
+                        <div class="submit-grid__full">
+                            <label for="sf-upstream">Upstream source URL (optional)</label>
+                            <input id="sf-upstream" name="upstream" type="url" class="wb-input"
+                                   placeholder="https://github.com/...">
+                        </div>
+                        <div class="submit-grid__full">
+                            <label for="sf-why">Why would this be a good Amiga port?</label>
+                            <textarea id="sf-why" name="why" class="wb-textarea" rows="3" maxlength="800"
+                                      placeholder="Portable C/C++? SDL2-based? Small footprint?"></textarea>
+                        </div>
+                        <div class="submit-grid__full" style="display:flex; gap: 8px;">
+                            <button type="submit" class="btn btn--primary">Submit request</button>
+                            <button type="reset" class="btn btn--default">Reset</button>
+                        </div>
+                    </div>
+                </form>
+
+                <div id="submit-success" class="alert alert--success hidden" role="alert" aria-live="polite" style="margin-top: 12px;"></div>
+                <div id="submit-error" class="alert alert--error hidden" role="alert" aria-live="polite" style="margin-top: 12px;"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Recent activity / changelog -->
+    <section aria-labelledby="changelog-heading">
+        <div class="group-frame">
+            <div class="group-frame__title" id="changelog-heading" role="heading" aria-level="2">Recent activity</div>
+            <div class="group-frame__body">
+                <div class="changelog">
+                    <div class="changelog__entry">
+                        <div class="changelog__date">2026-04-11</div>
+                        <div class="changelog__what">
+                            <strong>Julius 1.7.0-ami3</strong><span class="changelog__version">+42 commits</span>
+                            <ul>
+                                <li>Fixed aqueduct pathing on maps &gt; 160 tiles.</li>
+                                <li>Custom cursor no longer corrupts mouse sprite on RTG.</li>
+                                <li>Save files now round-trip with PC Julius 1.7.</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="changelog__entry">
+                        <div class="changelog__date">2026-04-09</div>
+                        <div class="changelog__what">
+                            <strong>Vanilla Conquer 0.3-ami0</strong>
+                            <ul>
+                                <li>GDI Mission 1 terrain now renders all 21 tile types. Previously: 18.</li>
+                                <li>Intro movie plays. Audio still silent.</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="changelog__entry">
+                        <div class="changelog__date">2026-04-02</div>
+                        <div class="changelog__what">
+                            <strong>SDLPoP</strong> -- input pipe redesigned. Keyboard capture WIP on Input Event API.
+                        </div>
+                    </div>
+                    <div class="changelog__entry">
+                        <div class="changelog__date">2026-03-28</div>
+                        <div class="changelog__what">
+                            <strong>Chocolate Doom 3.0.1-ami2</strong> -- WAV effects stable. MIDI music still deferred to 3.1.
+                        </div>
+                    </div>
+                    <div class="changelog__entry">
+                        <div class="changelog__date">2026-03-22</div>
+                        <div class="changelog__what">
+                            <strong>fheroes2</strong> added to WIP list. Asset loader parses all .AGG archives. Combat turn ends in NULL deref after move 7 -- patch pending.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+</main>
+
+<!-- Tweaks panel -->
+<button type="button" class="tweaks-toggle" id="tweaks-toggle" aria-controls="tweaks-panel" aria-expanded="false">
+    Tweaks
+</button>
+<aside class="tweaks-panel" id="tweaks-panel" aria-label="Display tweaks">
+    <div class="tweaks-panel__title">Display Tweaks</div>
+    <div class="tweaks-panel__body">
+        <div class="tweaks-row">
+            <label>Accent</label>
+            <div class="swatch-row">
+                <button type="button" class="swatch swatch--amber active" data-accent="amber" aria-label="Amber accent"></button>
+                <button type="button" class="swatch swatch--red"          data-accent="red"   aria-label="Red accent"></button>
+                <button type="button" class="swatch swatch--brown"        data-accent="brown" aria-label="Brown accent"></button>
+                <button type="button" class="swatch swatch--cream"        data-accent="cream" aria-label="Cream accent"></button>
+            </div>
+        </div>
+        <div class="tweaks-row">
+            <label for="tweak-layout">Layout</label>
+            <select id="tweak-layout">
+                <option value="featured" selected>Featured</option>
+                <option value="grid">Grid</option>
+            </select>
+        </div>
+        <div class="tweaks-row">
+            <label for="tweak-density">Density</label>
+            <select id="tweak-density">
+                <option value="comfortable" selected>Comfortable</option>
+                <option value="dense">Dense</option>
+            </select>
+        </div>
+        <div class="tweaks-row">
+            <label for="tweak-arcade">Arcade cabinet</label>
+            <input type="checkbox" id="tweak-arcade">
+        </div>
+        <div class="tweaks-row">
+            <label for="tweak-leaderboard">Hero leaderboard</label>
+            <input type="checkbox" id="tweak-leaderboard" checked>
+        </div>
+        <div class="tweaks-row">
+            <label for="tweak-liveFps">Live FPS ticker</label>
+            <input type="checkbox" id="tweak-liveFps" checked>
+        </div>
+    </div>
+</aside>
+
+<!-- Footer -->
+<footer class="footer content" role="contentinfo">
+    <span>
+        <a href="https://github.com/bdgscotland/amiport" target="_blank" rel="noopener">GitHub</a>
+        &middot;
+        <a href="https://github.com/bdgscotland/amiga-game-ports" target="_blank" rel="noopener">amiga-game-ports</a>
+        &middot;
+        <a href="feed.php">RSS</a>
+        &middot;
+        <a href="packages.html">Packages</a>
+    </span>
+    <span>
+        By <strong>Duncan Bowring</strong> &middot; Built with <a href="https://claude.ai/code" target="_blank" rel="noopener">Claude Code</a>.
+    </span>
+</footer>
+
+<script src="js/gaming.js?v=20260419a"></script>
+</body>
+</html>
