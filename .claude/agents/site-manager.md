@@ -31,6 +31,10 @@ site/
 ├── changelog.html      # Changelog timeline (JS-driven)
 ├── stats.html          # Public stats page
 ├── catalog.html        # Porting tech tree (sortable, voteable)
+├── gaming.html         # Gaming portal landing (hero + live FPS leaderboard + port tiles)
+├── games/<id>.html     # 10 per-port game detail pages (static shells + data-game-id)
+│                       #   Rendered client-side by js/gaming-detail.js. Julius has hand-crafted
+│                       #   details; the other 9 use makeDetails() fallback.
 ├── admin.php           # Password-protected admin dashboard (CSRF-protected)
 ├── db.php              # PDO singleton, .env loader, CSRF helpers
 ├── schema.sql          # MySQL table definitions (7 tables)
@@ -42,7 +46,10 @@ site/
 │   ├── catalog.js      # Catalog table + vote buttons + Most Wanted sort
 │   ├── activity.js     # Activity feed renderer (homepage)
 │   ├── changelog.js    # Changelog timeline renderer
-│   └── terminal-anim.js # Hero typing animation
+│   ├── terminal-anim.js # Hero typing animation
+│   ├── gaming.js       # Gaming landing page (tiles, filters, live FPS ticker, submit, tweaks)
+│   └── gaming-detail.js # Gaming per-port detail renderer (hero, tabs, compat, patches)
+├── css/gaming.css      # Gaming portal styles (hero-strip, port-tile, detail-hero, tabs, ...)
 ├── api/v1/
 │   ├── index.php       # Health/info endpoint (status: ok)
 │   ├── packages.php    # Package list with download/vote counts
@@ -112,6 +119,17 @@ curl -s -o /dev/null -w "%{http_code}" -X POST "http://amiport.platesteel.net/ap
 
 # Changelog
 curl -s -o /dev/null -w "%{http_code}" "http://amiport.platesteel.net/changelog.html"  # Must return 200
+
+# Gaming portal landing
+curl -s -o /dev/null -w "%{http_code}" "http://amiport.platesteel.net/gaming.html"  # Must return 200
+
+# Gaming detail page (Julius — hand-crafted, most complex)
+curl -s -o /dev/null -w "%{http_code}" "http://amiport.platesteel.net/games/julius.html"  # Must return 200
+
+# Gaming CSS + JS bundle
+curl -s -o /dev/null -w "%{http_code}" "http://amiport.platesteel.net/css/gaming.css"        # 200
+curl -s -o /dev/null -w "%{http_code}" "http://amiport.platesteel.net/js/gaming.js"          # 200
+curl -s -o /dev/null -w "%{http_code}" "http://amiport.platesteel.net/js/gaming-detail.js"   # 200
 
 # Data directory blocked
 curl -sI "http://amiport.platesteel.net/data/packages/grep.json"  # Must return 403
