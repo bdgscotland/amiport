@@ -52,7 +52,7 @@
 
 <main id="main" class="content gaming-container">
 
-    <!-- Dark hero with leaderboard -->
+    <!-- Dark hero with featured-port showcase -->
     <section class="hero-strip" aria-labelledby="gaming-hero-headline">
         <div>
             <div class="hero-strip__eyebrow">amiport gaming</div>
@@ -69,11 +69,21 @@
                 <a class="btn btn--default" href="#submit">Request a game</a>
             </div>
         </div>
-        <div id="hero-leaderboard-wrap">
-            <div class="leaderboard" id="hero-leaderboard" aria-label="Live leaderboard">
-                <!-- populated by gaming.js -->
+        <a id="hero-showcase" class="hero-showcase" href="games/julius.html" aria-label="Featured port: Julius">
+            <div class="hero-showcase__shot" id="hero-showcase-shot">
+                <!-- screenshot placeholder injected by gaming.js -->
             </div>
-        </div>
+            <div class="hero-showcase__info">
+                <div class="hero-showcase__eyebrow">Featured port</div>
+                <div class="hero-showcase__title">Julius</div>
+                <div class="hero-showcase__sub">Caesar III &middot; 1998 &middot; City-builder</div>
+                <div class="hero-showcase__meta">
+                    <span>v1.7.0-ami3</span>
+                    <span>42 FPS on a Vampire V4</span>
+                    <span>3.2 MB</span>
+                </div>
+            </div>
+        </a>
     </section>
 
     <!-- Install meta-package -->
@@ -337,10 +347,6 @@
         <div class="tweaks-row">
             <label for="tweak-arcade">Arcade cabinet</label>
             <input type="checkbox" id="tweak-arcade">
-        </div>
-        <div class="tweaks-row">
-            <label for="tweak-leaderboard">Hero leaderboard</label>
-            <input type="checkbox" id="tweak-leaderboard" checked>
         </div>
         <div class="tweaks-row">
             <label for="tweak-liveFps">Live FPS ticker</label>

@@ -62,7 +62,63 @@ body.gaming .content.gaming-container {
     display: flex; gap: var(--sp-sm); margin-top: var(--sp-md);
 }
 
-/* ── Leaderboard slab: big ticking numbers in the hero ───────────────────── */
+/* ── Hero featured-port showcase (right-hand slab) ───────────────────────── */
+.hero-showcase {
+    display: flex; flex-direction: column;
+    width: 360px;
+    text-decoration: none;
+    background: #0e0e0e;
+    color: var(--cream);
+    border-top: 1px solid #000;
+    border-left: 1px solid #000;
+    border-bottom: 1px solid var(--title-bar-shine);
+    border-right: 1px solid var(--title-bar-shine);
+    transition: outline 120ms ease-out;
+    outline: 0 solid transparent;
+    outline-offset: 0;
+}
+.hero-showcase:hover {
+    outline: 2px solid var(--amber);
+    outline-offset: -2px;
+}
+.hero-showcase:hover .hero-showcase__title { color: var(--amber-light); }
+.hero-showcase__shot {
+    aspect-ratio: 16 / 10;
+    background: #111;
+    position: relative;
+    overflow: hidden;
+    border-bottom: 1px solid #000;
+}
+.hero-showcase__info {
+    padding: var(--sp-sm) var(--sp-md) var(--sp-md);
+    display: flex; flex-direction: column; gap: 2px;
+}
+.hero-showcase__eyebrow {
+    font-size: 10px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 2px;
+    color: var(--amber-light);
+    margin-bottom: 4px;
+}
+.hero-showcase__title {
+    font-size: 22px; font-weight: 700;
+    color: var(--cream); line-height: 1.1;
+    transition: color 120ms ease-out;
+}
+.hero-showcase__sub {
+    font-size: 12px; color: #a89c80;
+    margin-top: 2px;
+}
+.hero-showcase__meta {
+    margin-top: var(--sp-sm);
+    display: flex; gap: var(--sp-sm); flex-wrap: wrap;
+    font-family: "SF Mono", "Fira Code", Consolas, monospace;
+    font-size: 10px;
+    color: #7a6d50;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* ── Leaderboard slab (still used by the telemetry table section below) ──── */
 .leaderboard {
     background: #0e0e0e;
     border-top: 1px solid #000;
@@ -561,6 +617,7 @@ body.gaming.dense .port-grid { gap: 8px; }
 @media (max-width: 880px) {
     .hero-strip { grid-template-columns: 1fr; }
     .leaderboard { min-width: 0; }
+    .hero-showcase { width: 100%; }
     .port-grid,
     .port-grid--featured { grid-template-columns: repeat(2, 1fr); grid-template-rows: auto; }
     .port-grid--featured .port-tile:first-child { grid-row: auto; grid-column: span 2; }

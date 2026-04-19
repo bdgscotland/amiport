@@ -323,34 +323,11 @@
         });
     }
 
-    // ── Hero leaderboard (the big ticker) ────────────────────────────────────
-    function renderHeroLeaderboard(container, liveFps) {
-        var active = PORTS.filter(function (p) { return p.fps != null; });
-        var best = active.reduce(function (acc, p) {
-            var v = liveFps[p.id];
-            return v > (acc.v || 0) ? { v: v, name: p.name } : acc;
-        }, { v: 0, name: '--' });
-        var avg = active.length ? Math.round(
-            active.reduce(function (a, p) { return a + (liveFps[p.id] || 0); }, 0) / active.length
-        ) : 0;
-
-        var items = [
-            { label: 'Top port', value: best.name, unit: '' },
-            { label: 'Top FPS', value: best.v || '--', unit: 'fps' },
-            { label: 'Avg FPS', value: avg, unit: 'fps' },
-            { label: 'Playable', value: STATS.playable + '/' + STATS.total, unit: '' }
-        ];
-
+    // ── Hero featured-port showcase (static screenshot placeholder) ─────────
+    function renderHeroShowcase(container) {
+        var featured = PORTS.find(function (p) { return p.id === 'julius'; }) || PORTS[0];
         container.innerHTML = '';
-        items.forEach(function (it) {
-            var item = el('div', { class: 'leaderboard__item' });
-            item.appendChild(el('div', { class: 'leaderboard__label', text: it.label }));
-            var val = el('div', { class: 'leaderboard__value ticking' }, [document.createTextNode(String(it.value))]);
-            if (it.unit) val.appendChild(el('sub', { text: it.unit }));
-            item.appendChild(val);
-            container.appendChild(item);
-            setTimeout(function () { val.classList.remove('ticking'); }, 180);
-        });
+        container.appendChild(screenshotPlaceholder(featured));
     }
 
     // ── Grid render ──────────────────────────────────────────────────────────
@@ -414,7 +391,6 @@
         layout: 'featured',
         arcade: false,
         density: 'comfortable',
-        leaderboard: true,
         liveFps: true
     };
 
@@ -428,8 +404,6 @@
         applyAccent(tweaks.accent);
         document.body.classList.toggle('arcade', !!tweaks.arcade);
         document.body.classList.toggle('dense', tweaks.density === 'dense');
-        var lb = document.getElementById('hero-leaderboard-wrap');
-        if (lb) lb.style.display = tweaks.leaderboard ? '' : 'none';
     }
 
     function bindTweaks(onTweakChange) {
@@ -460,7 +434,7 @@
             });
         });
 
-        ['arcade', 'leaderboard', 'liveFps'].forEach(function (key) {
+        ['arcade', 'liveFps'].forEach(function (key) {
             var cb = document.getElementById('tweak-' + key);
             if (!cb) return;
             cb.addEventListener('change', function () {
@@ -478,11 +452,10 @@
     // ── Boot ─────────────────────────────────────────────────────────────────
     var filter = { status: 'all', platform: 'all', audio: 'all' };
     var sort = 'featured';
-    var gridEl, heroLbEl, tableEl, filterStatusEl;
+    var gridEl, tableEl, filterStatusEl;
 
     function onLiveTick(state) {
         if (tableEl) renderLeaderboard(tableEl, state);
-        if (heroLbEl) renderHeroLeaderboard(heroLbEl, state);
         if (gridEl) {
             // Only update the tile FPS overlays in place (avoid full re-render churn).
             var tiles = gridEl.querySelectorAll('.port-tile');
@@ -512,7 +485,6 @@
             filterStatusEl.textContent = 'Ports * ' + filtered.length + ' of ' + STATS.total;
         }
         renderLeaderboard(tableEl, liveFpsState);
-        renderHeroLeaderboard(heroLbEl, liveFpsState);
     }
 
     function populateStats() {
@@ -548,9 +520,11 @@
 
     function init() {
         gridEl = document.getElementById('port-grid');
-        heroLbEl = document.getElementById('hero-leaderboard');
         tableEl = document.getElementById('leaderboard-body');
         filterStatusEl = document.getElementById('filter-count');
+
+        var showcaseShot = document.getElementById('hero-showcase-shot');
+        if (showcaseShot) renderHeroShowcase(showcaseShot);
 
         initLiveFps();
         populateStats();
