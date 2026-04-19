@@ -1454,7 +1454,11 @@ The 68040 dropped all those instructions (they became FPSP exception-handler sof
 
 Discovered in OpenTTD 13.4 port (PDR-015, 2026-04-16). The binary reached "OpenGFX loaded successfully + text rendered to FS-UAE screen" before hitting `Unknown FPU instruction F207`. F207 = cpGEN to D7, second word (FS-UAE log truncates it) is the actual transcendental opcode. Cross-referenced in amiga-kb pitfall + crash pattern (Guru #8000000B).
 
-## FS-UAE Emulator CPU Model Must Match Binary CPU Target Exactly
+## FS-UAE Emulator CPU Model Must Be Compatible With Binary CPU Target (NOT exact match)
+
+**CORRECTION (2026-04-18):** Earlier wording said "must EXACTLY match". That's wrong. The actual rule is: **emulator CPU must be a strict superset of the binary's instruction set.** A `-m68020` binary runs cleanly on `cpu = 68040` (040 includes all 020 instructions). Vanilla Conquer's `vanillatd.fs-uae` config explicitly does this for raw emulator throughput.
+
+What was correct in the original wording: 68040 and 68060 are NOT instruction-compatible with each other -- a -m68040 binary can crash on cpu=68060 and vice versa.
 
 The 68040 and 68060 are **NOT instruction-compatible**. Each removed instructions the other has:
 
@@ -1472,3 +1476,122 @@ This means a binary compiled with `-m68040` will emit MOVE16 and other 040-only 
 **Real hardware path:** real 68040 silicon runs the binary fine. Real 68060 silicon traps the missing instructions to a 68060.library handler that soft-emulates them -- so the binary works on real 68060 hardware but not on FS-UAE 68060 emulation (the emulator handles fewer instructions than the real-hardware OS-patch combo). Tested only on FS-UAE 3.2.35 -- newer FS-UAE versions may improve coverage.
 
 Discovered in OpenTTD 13.4 port (PDR-015, 2026-04-17). After dropping `-m68881` to dodge the FPU-gap pitfall above, the `-m68040 -O1` binary still crashed with Guru `8000 0004` deep in the content-directory scan loop on FS-UAE 68060 emulation. KB query (`amiga_crash_diagnosis 80000004`) returned "Illegal instruction (wrong CPU target)" immediately -- diagnosis took seconds once the KB was queried (per the existing "Debug-Agent Must Query amiga-kb FIRST" pitfall). Fix: flip FS-UAE config from `cpu = 68060` to `cpu = 68040`.
+
+## bebbo-gcc 13.3 std::chrono::steady_clock Works Correctly (REFUTES 6.5 pitfall)
+
+The existing amiga-kb pitfall "std::chrono::system_clock has poor resolution on bebbo-gcc 6.5" (discovered in libSDL2 / Vanilla Conquer) reports `std::chrono::system_clock::now()` and `steady_clock::now()` returning 1-second-or-20ms granular timestamps under bebbo-gcc 6.5, capping game simulation at ~1 fps. That pitfall was prescribed to fix by replacing `std::chrono` calls with `SDL_GetTicks()` (timer.device/ReadEClock-backed, microsecond resolution).
+
+**This does NOT apply to bebbo-gcc 13.3.** Tested 2026-04-17 against the OpenTTD 13.4 SDL2 GUI port (PDR-015): the original binary uses `std::chrono::steady_clock::now()` for game-tick + draw-tick scheduling in `src/video/video_driver.cpp` and runs at ~2 fps on FS-UAE A4000/030 + 8 MB RTG. We patched all 5 `steady_clock::now()` call sites to a `SDL_GetTicks()`-backed wrapper (`ports/openttd/ported/amiga_steady_clock.h` providing `amiport::amiga_steady_now()` returning a `std::chrono::steady_clock::time_point` constructed from `SDL_GetTicks()` ms). Rebuilt, retested -- **no observable speedup**. Game simulation rate unchanged. So 13.3's libstdc++ steady_clock implementation produces sub-second resolution timestamps that drive OpenTTD's tick loop correctly.
+
+**Implication for porters:** if a port targets bebbo-gcc 13.3 (the standard image for C++17 ports), do NOT preemptively replace `std::chrono::steady_clock` / `system_clock` calls with `SDL_GetTicks()` based on the 6.5 pitfall. Test first. The 6.5 pitfall is real for 6.5 but does not generalize to the newer toolchain. The `amiport::amiga_steady_now()` wrapper in `ports/openttd/ported/amiga_steady_clock.h` remains in the tree as a documented escape-hatch pattern in case a future bebbo-gcc regression brings the issue back, but is not the perf path for 13.3.
+
+**Implication for OpenTTD specifically:** the ~2 fps bottleneck is somewhere else. Per the C&C/Vanilla Conquer playbook (`~/.claude/projects/-Users-duncan-Developer-libSDL2-amigaos3/memory/project_vanilla_conquer.md`), the next-highest-impact perf axes after chrono were: (#2) drop resolution to native 320x200 fullscreen instead of 640x480 (4.8x fewer pixels, took C&C from 60ms/frame to 22ms/frame), and (#3) bypass `SDL_Renderer` for direct `SDL_GetWindowSurface` + `SDL_UpdateWindowSurface` (took C&C from 135ms/frame to 60ms/frame). Both require patching OpenTTD's `src/video/sdl2_v.cpp` / `src/video/sdl2_default_v.cpp` — deferred for a future session.
+
+Discovered in OpenTTD 13.4 port (PDR-015, 2026-04-17). amiga-kb chrono pitfall confirmed for 6.5 but refuted for 13.3.
+
+## bebbo-gcc 13.3 std::this_thread::sleep_for Has 20 ms Granularity (libnix Delay-backed)
+
+`std::this_thread::sleep_for(duration)` on bebbo-gcc 13.3 + libnix routes through libnix `Delay()` which operates at AmigaOS 50Hz (one tick = 20 ms). Even `sleep_for(1ms)` blocks for 20 ms; `sleep_for(0)` may also round to a tick boundary.
+
+**Impact:** Game frame limiters that drive a sleep based on chrono delta-time will burn 20 ms per frame regardless of how short the requested sleep is. For a 60Hz game loop where Tick takes 26 ms, the SleepTillNextTick pattern adds ~44 ms of false sleep — capping observable frame rate to ~14 fps even though the actual rendering work could deliver ~37 fps.
+
+**Symptom:** `LoopOnce avg = N+44 ms` despite `Tick avg = N ms` for the work inside it. The gap is the sleep_for overhead. Profile shows the gap shrinks when SDL_Delay is substituted.
+
+**Fix:** Replace `std::this_thread::sleep_for(d)` with `SDL_Delay(ms)` on AmigaOS:
+
+```cpp
+if (next_tick > now) {
+#ifdef __AMIGA__
+    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(next_tick - now).count();
+    if (ms > 0) {
+        SDL_Delay((Uint32)ms);
+    }
+#else
+    std::this_thread::sleep_for(next_tick - now);
+#endif
+}
+```
+
+`SDL_Delay()` in libSDL2-amigaos3 is backed by timer.device with sub-millisecond resolution — not Delay()'s 20 ms.
+
+**Verified impact:** OpenTTD 13.4 port (PDR-015, 2026-04-18). LoopOnce avg dropped from **70.7 ms → 27.0 ms (2.6x)** at 320x240 with this single-line fix in `video/video_driver.cpp:SleepTillNextTick`.
+
+**This is the C&C/Vanilla Conquer "frame limiter" pitfall** — their commit message said "Frame_Limiter: 40ms render throttle, stripped chrono timing". They replaced the chrono-driven frame limit with a fixed-ms throttle. Same root cause, same fix shape.
+
+**Related pitfall:** the prior pitfall above ("bebbo-gcc 13.3 std::chrono::steady_clock works correctly") established that chrono::steady_clock::now() itself is fine on 13.3. So the issue is NOT the chrono read, it's the sleep_for routing through libnix Delay(). They're independent.
+
+Cross-referenced in amiga-kb pitfall with same title. Discovered in OpenTTD 13.4 port (PDR-015, 2026-04-18) by profiling the LoopOnce - Tick gap with ReadEClock instrumentation, which revealed a consistent 44 ms per-frame overhead unaccounted for by any measured function call.
+
+## libSDL2-amigaos3 OS3_OpenWindowed +64 Screen Padding Forces BitMapScale Slow Path
+
+When libSDL2-amigaos3's `OS3_OpenWindowed` opens its own RTG screen (no Workbench public screen available), it pads the requested SDL window size by +64 pixels and minimum-clamps to 640x480 before calling `BestCModeIDTags`. Picasso96 then rounds UP to the next standard mode -- 640+64=704 → picks 800x600. AmigaOS Window->Width=800 but the SDL surface stays at 640x480.
+
+**Consequence:** in `OS3_UpdateWindowFramebuffer`, `need_scale = (win_w > surface->w || win_h > surface->h)` evaluates TRUE → goes through the SLOW BitMapScale + WritePixelArray path instead of the FAST LockBitMap memcpy path.
+
+**Fix:** in `lib/libSDL2-amigaos3/src/video/amigaos3/SDL_os3window.c` `OS3_OpenWindowed`, request EXACT size:
+```c
+int scrw = window->w;
+int scrh = window->h;
+```
+No +64. No minimum clamp. If user asked for 640x480 and that's a Picasso96 mode (it is), screen is 640x480, surface=window=640x480, need_scale=0, fast path engages.
+
+**Verified:** OpenTTD 13.4 (PDR-015, 2026-04-18). SDL_UpdateWindowSurfaceRects dropped 54 ms (BitMapScale path) → 12 ms (LockBitMap memcpy with asm bswap). Cross-referenced in amiga-kb.
+
+## 68k Inline Asm bswap32 (rol.w / swap / rol.w) is 6x Faster Than C mask+shift+OR for ARGB↔BGRA Conversion
+
+When converting ARGB32 → BGRA32 (typical libSDL2 surface → Picasso96 BGRA32 VRAM), the per-pixel byte-reverse via mask+shift+OR is slow:
+
+```c
+dst[i] = ((p & 0xFF) << 24) | ((p & 0xFF00) << 8) | ((p & 0xFF0000) >> 8) | ((p & 0xFF000000) >> 24);
+```
+
+~11 ops per pixel (4 mask + 4 shift + 3 OR) plus load/store. At 25 MIPS effective on emulated 030, 307,200 pixels (640x480) takes ~77 ms.
+
+68k has SWAP and ROL.W instructions that combine to do byte-reverse in 3 instructions:
+
+```c
+__asm__ volatile (
+    "rol.w  #8, %0\n\t"
+    "swap   %0\n\t"
+    "rol.w  #8, %0"
+    : "+d" (p));
+```
+
+ROL.W #8 swaps inner two bytes; SWAP exchanges word halves; ROL.W #8 again swaps the now-low bytes. Total ~12 cycles on 68030 vs ~25-30 cycles for the C version.
+
+**Verified:** libSDL2-amigaos3 in OpenTTD 13.4 (PDR-015, 2026-04-18). MemcpyARGB_to_BGRA for 1.2 MB framebuffer: 77 ms (C, libSDL2 -O0) → 12 ms (asm, libSDL2 -O2) = 6.2x speedup. Cross-referenced in amiga-kb.
+
+## libSDL2-amigaos3 Makefile Defaults to -O0 -- Perf Trap for Consumer Ports
+
+`libSDL2-amigaos3/Makefile` line ~12 default CFLAGS includes `-O0`. Every libSDL2 internal call (video update, audio mix, event poll, framebuffer convert) runs unoptimized. Consumer port can be -O2 itself but if it spends 60% of its time inside libSDL2 it's effectively -O0.
+
+**Verified:** OpenTTD 13.4 (PDR-015, 2026-04-18). The MemcpyARGB_to_BGRA perf gain (77 → 12 ms) was a combination of the asm bswap AND -O2 compilation. -O2 alone (without asm) accounts for ~2-3x via constant hoisting and loop inlining.
+
+**Fix:** override CFLAGS to -O2 when building libSDL2 for consumer ports:
+```bash
+docker run --rm -v $(pwd):/work -w /work amigadev/crosstools:m68k-amigaos \
+    bash -c "make -f Makefile native-build CFLAGS='-std=gnu99 -O2 -m68030 -noixemul ...'"
+```
+
+Cross-referenced in amiga-kb. The libSDL2-amigaos3 Makefile should default to -O2 with -O0 only when SDL_OS3_DEBUG; until upstreamed, every consumer must override.
+
+## SDL2 Game Ports: Enable OS Hardware Mouse Cursor on AmigaOS
+
+Games that call `SDL_ShowCursor(SDL_DISABLE)` and draw their own software cursor in the framebuffer feel laggy on AmigaOS — software cursor only redraws once per frame, so cursor latency = frame time = 30-50 ms on emulated 030.
+
+**Fix:** gate on `__AMIGA__`:
+```cpp
+#ifdef __AMIGA__
+    SDL_ShowCursor(1);   // OS hardware cursor at OS speed
+#else
+    SDL_ShowCursor(0);
+#endif
+```
+
+OS cursor draws via intuition.library `Pointer` independent of game frame rate.
+
+**Caveat:** double-cursor — both OS arrow AND in-game cursor visible if game draws its own cursor in the framebuffer too. Need to ALSO gate the game's framebuffer cursor draw. For OpenTTD: `DrawMouseCursor()` in src/window.cpp:3148.
+
+**Caveat 2:** click events still arrive at PollEvent rate (once per game tick), so clicks may still feel slow even though cursor moves smoothly. Separate problem — game tick rate.
+
+**Verified:** OpenTTD 13.4 (PDR-015, 2026-04-18). Single-line change in `src/video/sdl2_v.cpp:203`. Cross-referenced in amiga-kb.

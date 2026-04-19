@@ -18,6 +18,7 @@
 #include <devices/timer.h>
 #include <proto/exec.h>
 #include <proto/timer.h>
+#include <proto/dos.h>  /* Open/Write/Close inline glue for direct file I/O dump */
 
 #include <stdio.h>
 #include <string.h>
@@ -138,6 +139,94 @@ amiport_profile_record(const char *name, ULONG ticks)
 }
 
 /*
+ * amiport_profile_dump -- print snapshot without cleanup.
+ *
+ * Non-destructive periodic dump for live profiling. Call from main loop.
+ * Same format as summary but does NOT clean up timer device resources.
+ */
+/*
+ * amiport_profile_dump -- write snapshot DIRECTLY via AmigaDOS Open/Write/Close.
+ *
+ * Bypasses libnix stdio entirely. The earlier printf+fflush approach failed
+ * twice on FS-UAE -- libnix stdio buffer never flushed to disk because the
+ * binary did not get a clean exit (FS-UAE killed mid-execution). The ctor
+ * probe pattern in os_amigaos3.cpp uses direct AmigaDOS Open(MODE_NEWFILE)
+ * + Write() + Close() and reliably writes ctor-1.txt / ctor-2.txt regardless
+ * of stdio state. Same pattern here.
+ *
+ * Each call OPENS THE FILE FRESH (MODE_NEWFILE = truncate + write) so each
+ * snapshot OVERWRITES the previous one. For incremental capture, a caller
+ * could rotate filenames (profile-1.log, profile-2.log, etc.) on each dump.
+ */
+void
+amiport_profile_dump(void)
+{
+    int i, j;
+    struct prof_entry tmp;
+    ULONG grand_total = 0;
+    char buf[4096];
+    int pos = 0;
+    BPTR fh;
+
+    if (!prof_initialized || prof_count == 0)
+        return;
+
+    /* Insertion sort by total_ticks descending */
+    for (i = 1; i < prof_count; i++) {
+        tmp = prof_table[i];
+        j = i - 1;
+        while (j >= 0 && prof_table[j].total_ticks < tmp.total_ticks) {
+            prof_table[j + 1] = prof_table[j];
+            j--;
+        }
+        prof_table[j + 1] = tmp;
+    }
+
+    for (i = 0; i < prof_count; i++)
+        grand_total += prof_table[i].total_ticks;
+
+    /* Build entire dump as a string in memory, then write atomically */
+    pos += sprintf(buf + pos, "=== amiport profile (%lu Hz) ===\n", prof_eclock_freq);
+    pos += sprintf(buf + pos, "%-24s %10s %12s %10s %10s %5s\n",
+                    "Function", "Calls", "Total(ticks)", "Avg(us)", "Max(us)", "%");
+
+    for (i = 0; i < prof_count && pos < (int)(sizeof(buf) - 200); i++) {
+        ULONG calls = prof_table[i].call_count;
+        ULONG total = prof_table[i].total_ticks;
+        ULONG maxt = prof_table[i].max_ticks;
+        ULONG avg_us = 0;
+        ULONG max_us = 0;
+        ULONG pct = 0;
+
+        /* freq ~709379 Hz so 1 tick ~= 1.41 us. avg_us = total/calls * 1.41 */
+        if (calls > 0 && prof_eclock_freq > 0)
+            avg_us = (total / calls) * 1410 / 1000;
+        if (prof_eclock_freq > 0)
+            max_us = maxt * 1410 / 1000;
+        if (grand_total > 0)
+            pct = total * 100 / grand_total;
+
+        pos += sprintf(buf + pos, "%-24s %10lu %12lu %10lu %10lu %4lu%%\n",
+                        prof_table[i].name, calls, total, avg_us, max_us, pct);
+    }
+    /* Avoid 32-bit overflow: grand_total * 1410 can exceed ULONG max
+     * when accumulated ticks span ~3 sec (E-clock at 709 KHz hits 2.13e9
+     * ticks at 30 sec total, * 1410 = 3e12 -- overflows 32-bit easily).
+     * Divide by 1000 first, lose 3 decimal digits of precision, no overflow. */
+    pos += sprintf(buf + pos, "Total measured ticks: %lu (~%lu ms)\n\n",
+                    grand_total,
+                    (prof_eclock_freq > 0) ? (grand_total / 1000) * 1410 / 1000 : 0);
+
+    /* Write the whole thing atomically -- bypasses libnix stdio.
+     * Same pattern as ctor-1.txt / ctor-2.txt probes in os_amigaos3.cpp */
+    fh = Open((CONST_STRPTR)"WORK:OpenTTD-SDL2/profile.log", MODE_NEWFILE);
+    if (fh) {
+        Write(fh, (CONST_APTR)buf, (LONG)pos);
+        Close(fh);
+    }
+}
+
+/*
  * amiport_profile_summary -- print sorted results and clean up.
  *
  * Output format designed to be grep-friendly and readable on a 640x200
@@ -173,10 +262,12 @@ amiport_profile_summary(void)
     for (i = 0; i < prof_count; i++)
         grand_total += prof_table[i].total_ticks;
 
-    /* Header */
-    fprintf(stderr, "\n=== amiport profiler (%lu Hz) ===\n", prof_eclock_freq);
-    fprintf(stderr, "%-20s %8s %10s %8s %8s %5s\n",
+    /* Header -- STDOUT not stderr so AmigaDOS >> redirect captures it */
+    printf("\n=== amiport profiler (%lu Hz) ===\n", prof_eclock_freq);
+    fflush(stdout);
+    printf("%-20s %8s %10s %8s %8s %5s\n",
             "Function", "Calls", "Total(ms)", "Avg(us)", "Max(us)", "%");
+    fflush(stdout);
 
     /* Rows */
     for (i = 0; i < prof_count; i++) {
@@ -201,14 +292,16 @@ amiport_profile_summary(void)
         if (grand_total > 0)
             pct = total * 100 / grand_total;
 
-        fprintf(stderr, "%-20s %8lu %10lu %8lu %8lu %4lu%%\n",
+        printf("%-20s %8lu %10lu %8lu %8lu %4lu%%\n",
                 prof_table[i].name, calls, total_ms, avg_us, max_us, pct);
+        fflush(stdout);  /* Force each line to disk immediately */
     }
 
     /* Footer */
     {
         ULONG gt_ms = grand_total / (prof_eclock_freq / 1000);
-        fprintf(stderr, "Total measured: %lu ms\n\n", gt_ms);
+        printf("Total measured: %lu ms\n\n", gt_ms);
+        fflush(stdout);
     }
 
     /* Cleanup timer device */

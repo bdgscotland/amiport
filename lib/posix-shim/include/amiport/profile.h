@@ -29,6 +29,10 @@
 
 #include <exec/types.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* Maximum number of distinct profiling points */
 #define AMIPORT_PROFILE_MAX_ENTRIES 64
 
@@ -40,11 +44,19 @@ int amiport_profile_init(void);
  * Register with atexit() for automatic output. */
 void amiport_profile_summary(void);
 
+/* Print periodic profiling snapshot to stdout (non-destructive).
+ * Call from main loop every N frames or every T seconds. */
+void amiport_profile_dump(void);
+
 /* Internal: record a timing sample */
 void amiport_profile_record(const char *name, ULONG ticks);
 
 /* Internal: read E-Clock low word (fast inline) */
 ULONG amiport_profile_eclock(void);
+
+#ifdef __cplusplus
+}
+#endif
 
 /* Profiling macros -- simple statements, not do/while.
  * Supports multiple END points and early returns between BEGIN/END.
@@ -64,6 +76,7 @@ ULONG amiport_profile_eclock(void);
 /* Stubs that compile to nothing */
 #define amiport_profile_init()    (0)
 #define amiport_profile_summary() ((void)0)
+#define amiport_profile_dump()    ((void)0)
 
 #endif /* AMIPORT_PROFILE */
 

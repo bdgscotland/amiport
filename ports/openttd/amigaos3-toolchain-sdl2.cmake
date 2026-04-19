@@ -20,7 +20,7 @@ set(CMAKE_RANLIB m68k-amigaos-ranlib)
 # -Dalloca=...          libnix has no alloca
 # -Duint=...            UNIX mode skips uint typedef in stdafx.h
 # -include ...          no-op mutex/condition_variable stubs
-set(AMIGA_COMMON_FLAGS "-m68020 -O1 -noixemul -D__libnix__ -DTTD_ENDIAN=1 -Dalloca=__builtin_alloca")
+set(AMIGA_COMMON_FLAGS "-m68020 -O1 -noixemul -D__libnix__ -DTTD_ENDIAN=1 -Dalloca=__builtin_alloca -DAMIPORT_PROFILE")
 set(AMIGA_THREAD_STUB "-include ${CMAKE_CURRENT_LIST_DIR}/ported/amiga_openttd_stubs.h")
 set(AMIGA_STUB_INCLUDE "-I${CMAKE_CURRENT_LIST_DIR}/ported")
 

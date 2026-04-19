@@ -10,6 +10,7 @@
 #include "../stdafx.h"
 #ifdef __AMIGA__
 #include "../../../../../ported/amiga_steady_clock.h"
+#include <amiport/profile.h>
 #else
 #define AMIGA_STEADY_NOW() std::chrono::steady_clock::now()
 #endif
@@ -51,7 +52,12 @@ void VideoDriver::GameThread()
 
 		auto now = AMIGA_STEADY_NOW();
 		if (this->next_game_tick > now) {
+#ifdef __AMIGA__
+			auto _ms = std::chrono::duration_cast<std::chrono::milliseconds>(this->next_game_tick - now).count();
+			if (_ms > 0) { SDL_Delay((Uint32)_ms); }
+#else
 			std::this_thread::sleep_for(this->next_game_tick - now);
+#endif
 		} else {
 			/* Ensure we yield this thread if drawings wants to take a lock on
 			 * the game state. This is mainly because most OSes have an
@@ -105,6 +111,8 @@ void VideoDriver::StopGameThread()
 
 void VideoDriver::Tick()
 {
+	AMIPORT_PROFILE_BEGIN("VideoDriver::Tick");
+
 	if (!this->is_game_threaded && AMIGA_STEADY_NOW() >= this->next_game_tick) {
 		this->GameLoop();
 
@@ -170,6 +178,8 @@ void VideoDriver::Tick()
 			DriverFactoryBase::MarkVideoDriverOperational();
 		}
 	}
+
+	AMIPORT_PROFILE_END("VideoDriver::Tick");
 }
 
 void VideoDriver::SleepTillNextTick()
@@ -183,8 +193,8 @@ void VideoDriver::SleepTillNextTick()
 
 	if (next_tick > now) {
 #ifdef __AMIGA__
-		auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(next_tick - now).count();
-		if (ms > 0) { SDL_Delay((Uint32)ms); }
+		auto _ms = std::chrono::duration_cast<std::chrono::milliseconds>(next_tick - now).count();
+		if (_ms > 0) { SDL_Delay((Uint32)_ms); }
 #else
 		std::this_thread::sleep_for(next_tick - now);
 #endif

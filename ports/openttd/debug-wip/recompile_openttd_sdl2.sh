@@ -17,13 +17,57 @@ FLAGS=$(echo "$FLAGS" | sed 's/-O0/-O1/g')
 echo "BUILD_DIR=$BUILD_DIR"
 echo "===="
 
-echo "=== Rebuilding files at -O1 to dodge bebbo-gcc 13.3 -O0 std::string op+ bug ==="
-# These files use std::string operator+ in load-bearing init paths.
-# At -O0 they corrupt the returned string (Guru #80000004 / #80000006).
-# CMake's default for our toolchain is -O0; override with the FLAGS sed.
-for src in openttd.cpp fileio.cpp gfxinit.cpp ini_load.cpp music.cpp sound.cpp \
-           video/dedicated_v.cpp video/sdl2_v.cpp video/sdl2_default_v.cpp \
-           genworld.cpp; do
+echo "=== Rebuilding PROFILED files with -DAMIPORT_PROFILE ==="
+# Profiled versions from debug-wip/ with AMIPORT_PROFILE enabled.
+# CRITICAL: each *_profiled.cpp inherited "../foo.h" relative includes from
+# its original src/ location. Now living in debug-wip/, those paths break.
+# Add -iquote paths so the relative includes resolve as if compiled from
+# the original src/ subdirectory:
+#   openttd_profiled.cpp + genworld_profiled.cpp -- inherit src/openttd.cpp
+#     paths: "stdafx.h", etc. -> need -iquote .../src
+#   sdl2_v_profiled.cpp -- inherits src/video/sdl2_v.cpp paths:
+#     "../stdafx.h" -> need -iquote .../src/video so ".." == src
+PROF_BASE="$FLAGS -DAMIPORT_PROFILE -I/amiport/lib/posix-shim/include -I/sdl2/include"
+SRC_TOP="/amiport/ports/openttd/original/OpenTTD-13.4/src"
+
+for src in openttd genworld; do
+    obj="CMakeFiles/openttd.dir/src/${src}.cpp.o"
+    src_full="/amiport/ports/openttd/debug-wip/${src}_profiled.cpp"
+    if [ -f "$src_full" ]; then
+        echo "  -> ${src}_profiled.cpp"
+        eval $CXX $DEFS $INCS $PROF_BASE -iquote $SRC_TOP -o "$obj" -c "$src_full" 2>&1 | tail -10 || true
+    fi
+done
+
+src_full="/amiport/ports/openttd/debug-wip/sdl2_v_profiled.cpp"
+obj="CMakeFiles/openttd.dir/src/video/sdl2_v.cpp.o"
+echo "  -> sdl2_v_profiled.cpp"
+eval $CXX $DEFS $INCS $PROF_BASE -iquote $SRC_TOP/video -o "$obj" -c "$src_full" 2>&1 | tail -10 || true
+
+# Drill-down instrumentation: Paint, Tick, UpdateWindows live in src/video/* and src/
+src_full="/amiport/ports/openttd/debug-wip/sdl2_default_v_profiled.cpp"
+obj="CMakeFiles/openttd.dir/src/video/sdl2_default_v.cpp.o"
+echo "  -> sdl2_default_v_profiled.cpp"
+eval $CXX $DEFS $INCS $PROF_BASE -iquote $SRC_TOP/video -o "$obj" -c "$src_full" 2>&1 | tail -10 || true
+
+src_full="/amiport/ports/openttd/debug-wip/video_driver_profiled.cpp"
+obj="CMakeFiles/openttd.dir/src/video/video_driver.cpp.o"
+echo "  -> video_driver_profiled.cpp"
+eval $CXX $DEFS $INCS $PROF_BASE -iquote $SRC_TOP/video -o "$obj" -c "$src_full" 2>&1 | tail -10 || true
+
+src_full="/amiport/ports/openttd/debug-wip/window_profiled.cpp"
+obj="CMakeFiles/openttd.dir/src/window.cpp.o"
+echo "  -> window_profiled.cpp"
+eval $CXX $DEFS $INCS $PROF_BASE -iquote $SRC_TOP -o "$obj" -c "$src_full" 2>&1 | tail -10 || true
+
+echo "=== Rebuilding other files at -O1 (non-profiled) ==="
+# NOTE: do NOT include video/sdl2_default_v.cpp, video/video_driver.cpp, or
+# window.cpp here -- they are already built ABOVE from their *_profiled.cpp
+# overrides with -DAMIPORT_PROFILE. Including them in this loop overwrites
+# the profiled .o with a non-profiled version, dropping the instrumentation
+# silently (caused 4+ rebuild cycles of "no Paint data" until traced).
+for src in fileio.cpp gfxinit.cpp ini_load.cpp music.cpp sound.cpp \
+           video/dedicated_v.cpp; do
     obj="CMakeFiles/openttd.dir/src/${src}.o"
     src_full="/amiport/ports/openttd/original/OpenTTD-13.4/src/${src}"
     if [ -f "$src_full" ]; then
@@ -54,7 +98,7 @@ LINK_CMD=$(cat CMakeFiles/openttd.dir/link.txt | head -1)
 LINK_CMD=$(echo "$LINK_CMD" | sed 's| -rdynamic||')
 LINK_CMD=$(echo "$LINK_CMD" | sed 's|m68k-amigaos-g++ |m68k-amigaos-g++ -Wl,--allow-multiple-definition -Wl,--no-gc-sections |')
 LINK_CMD=$(echo "$LINK_CMD" | sed 's| CMakeFiles/openttd.dir/src/os/unix/[^ ]*||g')
-LINK_CMD=$(echo "$LINK_CMD" | sed 's| -o openttd| -o /tmp/openttd-sdl2 /amiport/lib/softfloat/libsoftfloat.a /tmp/os_amigaos3_sdl2.o /tmp/crashlog_amigaos3_sdl2.o /tmp/network_stubs_sdl2.o|')
+LINK_CMD=$(echo "$LINK_CMD" | sed 's| -o openttd| -o /tmp/openttd-sdl2 /amiport/lib/softfloat/libsoftfloat.a /tmp/os_amigaos3_sdl2.o /tmp/crashlog_amigaos3_sdl2.o /tmp/network_stubs_sdl2.o /amiport/lib/posix-shim/src/profile.o|')
 LINK_CMD="$LINK_CMD -lsocket -latomic"
 
 eval $LINK_CMD 2>&1 | tail -8
