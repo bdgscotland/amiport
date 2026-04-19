@@ -1,5 +1,13 @@
 [
   {
+    "id": "2026-04-19-freetype-library",
+    "date": "2026-04-19T12:00:00Z",
+    "title": "FreeType 2.13.3 ported -- TTF text rendering for AmigaOS",
+    "body": "FreeType 2.13.3 is now available as a bundled amiport library (`lib/freetype/`). 486 KB static archive, 218 exported symbols, full FreeType 2 API minus zlib / environment-properties / SVG. This unlocks TrueType and OpenType text rendering for any SDL1 game or graphical port that wants real fonts.\n\nThe subset is SDL_ttf-shaped: base, truetype, sfnt, autofit, smooth, pshinter, psaux, psnames, raster. Paired with the Aminet SDL_ttf 2.0.9 and the toolchain's libSDL.a, the three archives link cleanly into a 772 KB binary -- proven end-to-end.\n\nBuilt `-O0 -m68000` for safety on bebbo-gcc 6.5.0b, with per-file `-O1 -fno-strict-aliasing` promotions on five audited hot-path files: the AA rasterizer, the TrueType bytecode interpreter, the mono scanline rasterizer, and two bitmap helpers. Zero soft-float symbol pulls -- all arithmetic is 16.16 and 26.6 fixed-point integer, so downstream consumers stay clear of the `mathieeesingbas.library` crash family that hit amigit's diff engine.\n\n26 unit tests pass on vamos covering library init, face open, glyph loading, rasterization (normal and bitmap content), kerning, outline transforms, 68k-specific bitmap alignment, and stress paths. The `make -C tests/freetype demo` target renders the letter 'A' at 20 px and dumps the AA bitmap as ASCII art -- permanent visual proof that the rasterizer produces recognizable glyphs, not just non-null buffers.\n\nConsumers should set `__stack >= 65536`. The TrueType bytecode interpreter plus autofitter push deep call stacks on complex hinted fonts; combined with AmigaOS's 2-4 KB hidden dos.library depth, smaller stacks will Guru.\n\nNext up: first Category 5 SDL game port using this stack (PDR-014). See the full [library roster](/shims.html#libs-heading) or browse [`lib/freetype/`](https://github.com/bdgscotland/amiport/tree/main/lib/freetype) on GitHub.",
+    "tags": ["library", "freetype", "sdl", "infrastructure"],
+    "url": "https://github.com/bdgscotland/amiport/tree/main/lib/freetype"
+  },
+  {
     "id": "2026-04-15-dropbear-ssh-client",
     "date": "2026-04-15T21:30:00Z",
     "title": "Dropbear SSH client -- first SSH for classic AmigaOS",

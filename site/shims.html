@@ -73,6 +73,105 @@
         </div>
     </section>
 
+    <!-- Bundled Libraries -->
+    <section class="group-frame" aria-labelledby="libs-heading">
+        <div class="group-frame__title" id="libs-heading" role="heading" aria-level="2">Bundled Libraries</div>
+        <div class="group-frame__body">
+            <p>Beyond the POSIX shim, amiport ports entire third-party libraries
+            and ships them as static archives. Ports link against these to get
+            capabilities AmigaOS does not provide natively. All built for 68k
+            with bebbo-gcc, audited for memory safety and 68k-specific hazards.</p>
+            <div class="wb-table-wrap">
+                <table class="wb-table">
+                    <caption class="hidden">Bundled amiport libraries</caption>
+                    <thead>
+                        <tr>
+                            <th scope="col">Library</th>
+                            <th scope="col">Purpose</th>
+                            <th scope="col">Link flag</th>
+                            <th scope="col">Used by</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><a href="https://github.com/bdgscotland/amiport/tree/main/lib/posix-shim" target="_blank" rel="noopener">posix-shim</a></td>
+                            <td>Tier 1 direct POSIX wrappers (150+ functions)</td>
+                            <td><code>-lamiport</code></td>
+                            <td>every CLI port</td>
+                        </tr>
+                        <tr>
+                            <td><a href="https://github.com/bdgscotland/amiport/tree/main/lib/posix-emu" target="_blank" rel="noopener">posix-emu</a></td>
+                            <td>Tier 2 approximations (pipe, mmap, select)</td>
+                            <td><code>-lamiport-emu</code></td>
+                            <td>grep, awk, tail</td>
+                        </tr>
+                        <tr>
+                            <td><a href="https://github.com/bdgscotland/amiport/tree/main/lib/console-shim" target="_blank" rel="noopener">console-shim</a></td>
+                            <td>ncurses / termcap via console.device</td>
+                            <td><code>-lamiport-console</code></td>
+                            <td>less, mg, tetris, vim</td>
+                        </tr>
+                        <tr>
+                            <td><a href="https://github.com/bdgscotland/amiport/tree/main/lib/bsdsocket-shim" target="_blank" rel="noopener">bsdsocket-shim</a></td>
+                            <td>BSD sockets via bsdsocket.library</td>
+                            <td><code>-lamiport-net</code></td>
+                            <td>wget, amiport, dropbear</td>
+                        </tr>
+                        <tr>
+                            <td><a href="https://github.com/bdgscotland/amiport/tree/main/lib/http-shim" target="_blank" rel="noopener">http-shim</a></td>
+                            <td>Reusable HTTP/1.0 GET client</td>
+                            <td><code>-lhttp-shim -lamiport-net</code></td>
+                            <td>amiport CLI</td>
+                        </tr>
+                        <tr>
+                            <td><a href="https://github.com/bdgscotland/amiport/tree/main/lib/oniguruma" target="_blank" rel="noopener">oniguruma</a></td>
+                            <td>Perl-compatible regex (6.9.9, 156 KB)</td>
+                            <td><code>-loniguruma</code></td>
+                            <td>jq</td>
+                        </tr>
+                        <tr>
+                            <td><a href="https://github.com/bdgscotland/amiport/tree/main/lib/zlib" target="_blank" rel="noopener">zlib</a></td>
+                            <td>DEFLATE / gzip / zlib compression (1.3.1, 90 KB)</td>
+                            <td><code>-lz</code></td>
+                            <td>libgit2, amigit</td>
+                        </tr>
+                        <tr>
+                            <td><a href="https://github.com/bdgscotland/amiport/tree/main/lib/libgit2" target="_blank" rel="noopener">libgit2</a></td>
+                            <td>Embedded git library (1.8.5 pruned, 1.44 MB)</td>
+                            <td><code>-lgit2 -lz -lamiport -lm</code></td>
+                            <td>amigit</td>
+                        </tr>
+                        <tr>
+                            <td><a href="https://github.com/bdgscotland/amiport/tree/main/lib/libtommath" target="_blank" rel="noopener">libtommath</a></td>
+                            <td>Big integer arithmetic (1.3.0, 90 KB)</td>
+                            <td><code>-ltommath</code></td>
+                            <td>libtomcrypt, dropbear</td>
+                        </tr>
+                        <tr>
+                            <td><a href="https://github.com/bdgscotland/amiport/tree/main/lib/libtomcrypt" target="_blank" rel="noopener">libtomcrypt</a></td>
+                            <td>Crypto: AES, ChaCha20, SHA, RSA, ECDSA (1.18.2, 259 KB)</td>
+                            <td><code>-ltomcrypt -ltommath</code></td>
+                            <td>dropbear</td>
+                        </tr>
+                        <tr>
+                            <td><a href="https://github.com/bdgscotland/amiport/tree/main/lib/freetype" target="_blank" rel="noopener">freetype</a></td>
+                            <td>TrueType / OpenType font rendering (2.13.3, 486 KB, SDL_ttf subset)</td>
+                            <td><code>-lfreetype -lm</code></td>
+                            <td>SDL1 games needing text</td>
+                        </tr>
+                        <tr>
+                            <td><a href="https://github.com/bdgscotland/amiport/tree/main/lib/softfloat" target="_blank" rel="noopener">softfloat</a></td>
+                            <td>Pure-integer IEEE 754 + software libm (31 KB)</td>
+                            <td><code>-lsoftfloat -lm</code></td>
+                            <td>C++ ports using float on FS-UAE</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p style="margin-top: 1em;">See <a href="https://github.com/bdgscotland/amiport/blob/main/README.md#compatibility-libraries" target="_blank" rel="noopener">README.md</a> for full usage notes and each library's own <code>lib/&lt;name&gt;/</code> directory for audit reports (MEMORY-AUDIT.md, PERF-REPORT.md, PATCHES.md where applicable).</p>
+        </div>
+    </section>
+
 </main>
 
 <!-- Footer -->
