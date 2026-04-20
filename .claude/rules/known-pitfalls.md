@@ -1595,3 +1595,41 @@ OS cursor draws via intuition.library `Pointer` independent of game frame rate.
 **Caveat 2:** click events still arrive at PollEvent rate (once per game tick), so clicks may still feel slow even though cursor moves smoothly. Separate problem — game tick rate.
 
 **Verified:** OpenTTD 13.4 (PDR-015, 2026-04-18). Single-line change in `src/video/sdl2_v.cpp:203`. Cross-referenced in amiga-kb.
+
+## AmigaOS Case-Insensitive Filesystem — Subdir Names Cannot Match Sibling Binary Names
+
+AmigaOS filesystems (OFS/FFS/SFS/PFS) are case-insensitive. A directory named `OpenTTD-SDL2/` in the SAME parent dir as a binary named `openttd-sdl2` is treated as a NAME COLLISION — the filesystem allows both to exist physically but tools become confused:
+
+- `stat OpenTTD-SDL2/` returns the metadata of the BINARY, not the directory
+- `mkdir OpenTTD-SDL2/` may say "already exists" matching against the file
+- LHA extraction may fail with "1 file failed" when trying to create a subdir whose case-folded name matches an existing sibling
+- Any path-resolution code that walks AmigaOS volumes will pick whichever entry is first in the volume's hash chain
+
+**Discovered 2026-04-19** in amiport's openttd port deployment. We had `Programs:amiport-wip/OpenTTD/openttd-sdl2` (the binary) and tried to create `Programs:amiport-wip/OpenTTD/OpenTTD-SDL2/` (a subdir) for libSDL2-amigaos3's hardcoded `WORK:OpenTTD-SDL2/sdl2-perf.log` paths. The subdir refused to materialize and libSDL2's profile log writes silently failed.
+
+**Fix:** for any port whose libraries write to a `<name>-SDL2/<file>` path or similar (libSDL2-amigaos3 hardcodes these — see existing pitfall about WORK: hardcoding), choose a DIFFERENT case-folded name for the subdir than the nearby binary. E.g. rename binary to `openttd-gui` or rename the subdir to `OpenTTD-Logs`. Better: patch libSDL2 to use `T:` paths instead.
+
+**Detection:** if you create a subdir via `mkdir` or LHA extract and a later operation says the path doesn't exist, check whether a binary with the same case-folded name exists in the parent.
+
+## bgdbserver per-session mode gives up too fast for large binaries
+
+WDrijver/bgdbserver v1.3 (gdb-server for AmigaOS, by Stefan "Bebbo" Franke, GPL-3.0) when invoked as `bgdbserver <target> [args]` operates in single-session mode:
+
+1. Loads target binary
+2. Sets it stopped at entry
+3. Listens on TCP port 2345 for a gdb client
+4. **If no client attaches within ~5-30 seconds** (exact timeout unconfirmed), it kills the target and exits
+
+For tiny binaries (a 10 KB hello.c) this is fine — gdb's `target remote` handshake completes in time. For **large binaries (38 MB OpenTTD)**, the load step + gdb's slow handshake (especially through Docker on macOS) frequently exceeds the timeout and bgdbserver gives up before debug session establishes.
+
+**Discovered 2026-04-19** during amiport's first openttd-on-real-Vampire debug attempt. Multiple bgdbserver+gdb attach attempts failed with TCP "Connection timed out" on the gdb side; bgdbserver's Shell output showed "3 hunks ... unloaded program ... cleanup ... exited" — clean exit, not crash. Meanwhile rsh-fake mode (`bgdbserver` no args, listens on port 514) was verified STABLE for 30+ seconds — confirms the issue is specifically the per-session-mode timeout.
+
+**Three workarounds (none implemented yet):**
+
+1. **Use rsh-fake mode end-to-end:** `bgdbserver` (no args) on Amiga, then drive via rsh from host with `bgdbserver <target>` as the rsh command. Requires a working rsh client on host (macOS removed it; homebrew `inetutils` may have one).
+2. **Patch bgdbserver source** to make the per-session timeout configurable or remove it entirely. Source is at github.com/WDrijver/bgdbserver, ~5 .c files, GPL-3.0.
+3. **Race the timer:** start bgdbserver and immediately fire gdb attach before the timeout — works if you can pipeline the operations tightly.
+
+**Detection:** if `gdb target remote <amiga-ip>:2345` reports "Connection timed out" but the same IP+port shows OPEN to a Python TCP probe seconds before, bgdbserver almost certainly gave up between the probe and gdb's handshake.
+
+Cross-reference: amiport memory `session_real_hardware_2026_04_19.md`, `reference_amigactl.md` (Channel C), amiga-kb pitfall (TODO: replay write — MCP server was down at end of session).

@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Porting Unix software to AmigaOS 3.x is not a recompile - it is a negotiation. No fork. No stat. No signals. This is how amiport closes the gap.">
+    <title>Why porting is hard - amiport</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" type="image/svg+xml" href="img/favicon.svg">
+    <style>
+        /* Page-local styles, all derived from DESIGN.md tokens already in style.css */
+
+        /* Lede paragraph under the H1 - slightly larger, muted */
+        .lede {
+            font-size: var(--fs-lg);
+            line-height: 1.55;
+            color: var(--text);
+            max-width: 68ch;
+            margin-bottom: var(--sp-lg);
+        }
+        .lede strong { color: var(--text); }
+
+        /* Two-column + three-column grids, MUI-style: no gaps, just a 1px dark rule */
+        .grid-2, .grid-3 {
+            display: grid;
+            gap: var(--sp-md);
+        }
+        .grid-2 { grid-template-columns: 1fr 1fr; }
+        .grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+        @media (max-width: 700px) {
+            .grid-2, .grid-3 { grid-template-columns: 1fr; }
+        }
+
+        /* An "impossibility" card = inset group-frame with three labelled rows */
+        .impossibility {
+            background: var(--surface);
+            border-top: 1px solid var(--bevel-shine);
+            border-left: 1px solid var(--bevel-shine);
+            border-right: 1px solid var(--bevel-shadow);
+            border-bottom: 1px solid var(--bevel-shadow);
+            padding: var(--sp-md);
+        }
+        .impossibility__name {
+            font-family: var(--font-mono);
+            font-size: var(--fs-xl);
+            color: var(--amber-dark);
+            font-weight: 600;
+            margin-bottom: var(--sp-xs);
+        }
+        .impossibility__why {
+            font-size: var(--fs-sm);
+            color: var(--text-muted);
+            margin-bottom: var(--sp-md);
+        }
+        .impossibility__row {
+            border-top: 1px solid var(--bevel-shadow);
+            padding-top: var(--sp-sm);
+            margin-top: var(--sp-sm);
+        }
+        .impossibility__row:first-of-type {
+            border-top: 0;
+            padding-top: 0;
+            margin-top: 0;
+        }
+        .impossibility__label {
+            font-size: var(--fs-2xs);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--brown);
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+        .impossibility__value {
+            font-size: var(--fs-sm);
+            color: var(--text);
+            line-height: 1.45;
+        }
+        .impossibility__value code {
+            font-family: var(--font-mono);
+            font-size: 13px;
+            background: var(--elevated);
+            padding: 0 4px;
+            border-top: 1px solid var(--bevel-shadow);
+            border-left: 1px solid var(--bevel-shadow);
+            border-right: 1px solid var(--bevel-shine);
+            border-bottom: 1px solid var(--bevel-shine);
+        }
+
+        /* Tier diagram - three horizontal bars like a layered cake */
+        .tier-stack { display: flex; flex-direction: column; gap: 0; }
+        .tier {
+            display: grid;
+            grid-template-columns: 96px 1fr auto;
+            gap: var(--sp-md);
+            align-items: center;
+            padding: var(--sp-md);
+            border-top: 1px solid var(--bevel-shine);
+            border-left: 1px solid var(--bevel-shine);
+            border-right: 1px solid var(--bevel-shadow);
+            border-bottom: 1px solid var(--bevel-shadow);
+        }
+        .tier + .tier { margin-top: -1px; }
+        .tier--1 { background: var(--surface); }
+        .tier--2 { background: var(--elevated); }
+        .tier--3 { background: var(--light-surface); }
+        .tier__num {
+            font-size: 44px;
+            font-weight: 700;
+            color: var(--amber-dark);
+            line-height: 1;
+            font-family: var(--font-mono);
+            text-align: center;
+        }
+        .tier__body h3 {
+            font-size: var(--fs-lg);
+            color: var(--text);
+            margin-bottom: 2px;
+        }
+        .tier__body p {
+            font-size: var(--fs-sm);
+            color: var(--text-muted);
+            margin: 0;
+        }
+        .tier__count {
+            font-size: var(--fs-2xs);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--brown);
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        .tier__count strong {
+            display: block;
+            font-size: var(--fs-2xl);
+            color: var(--text);
+            font-family: var(--font-mono);
+            font-weight: 700;
+            text-align: right;
+            letter-spacing: 0;
+        }
+        @media (max-width: 600px) {
+            .tier { grid-template-columns: 60px 1fr; }
+            .tier__num { font-size: 32px; }
+            .tier__count { grid-column: 2; justify-self: start; }
+        }
+
+        /* Shim-table section styling. Reuses .wb-table but adds a category row. */
+        .shim-group-head td {
+            background: var(--elevated) !important;
+            padding: 8px 10px !important;
+            border-top: 1px solid var(--bevel-shadow);
+            border-bottom: 1px solid var(--bevel-shadow);
+        }
+        .shim-group-head td span {
+            font-size: var(--fs-2xs);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--brown);
+            font-weight: 600;
+        }
+        .shim-group-head td span em {
+            font-style: normal;
+            color: var(--text-muted);
+            margin-left: var(--sp-sm);
+            letter-spacing: 0;
+            text-transform: none;
+        }
+        .wb-table code {
+            font-family: var(--font-mono);
+            font-size: 13px;
+            color: var(--amber-dark);
+            font-weight: 500;
+        }
+        .wb-table td:first-child code { color: var(--text); font-weight: 600; }
+        .wb-table td.note { color: var(--text-muted); font-size: var(--fs-xs); }
+
+        /* "Case study" port callout - quasi-terminal style */
+        .case-study {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 0;
+        }
+        .case-study__row {
+            display: grid;
+            grid-template-columns: 140px 1fr;
+            gap: var(--sp-md);
+            padding: var(--sp-sm) 0;
+            border-bottom: 1px dotted var(--bevel-shadow);
+            font-size: var(--fs-sm);
+        }
+        .case-study__row:last-child { border-bottom: 0; }
+        .case-study__label {
+            font-size: var(--fs-2xs);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--brown);
+            font-weight: 600;
+            padding-top: 2px;
+        }
+        .case-study__value { color: var(--text); }
+        .case-study__value code {
+            font-family: var(--font-mono);
+            font-size: 13px;
+            color: var(--amber-dark);
+        }
+
+        /* Number callouts in the hero */
+        .stat-strip {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0;
+            margin-top: var(--sp-lg);
+            border-top: 1px solid var(--bevel-shine);
+            border-left: 1px solid var(--bevel-shine);
+            border-right: 1px solid var(--bevel-shadow);
+            border-bottom: 1px solid var(--bevel-shadow);
+            background: var(--surface);
+        }
+        .stat-strip__cell {
+            padding: var(--sp-md);
+            border-right: 1px solid var(--bevel-shadow);
+            text-align: left;
+        }
+        .stat-strip__cell:last-child { border-right: 0; }
+        .stat-strip__cell:nth-child(n+2) {
+            border-left: 1px solid var(--bevel-shine);
+            margin-left: -1px;
+        }
+        .stat-strip__v {
+            font-family: var(--font-mono);
+            font-size: var(--fs-3xl);
+            color: var(--amber-dark);
+            font-weight: 700;
+            line-height: 1;
+            margin-bottom: var(--sp-xs);
+        }
+        .stat-strip__l {
+            font-size: var(--fs-2xs);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--brown);
+            font-weight: 600;
+        }
+        @media (max-width: 600px) {
+            .stat-strip { grid-template-columns: 1fr 1fr; }
+            .stat-strip__cell { border-bottom: 1px solid var(--bevel-shadow); }
+        }
+
+        /* TOC pill row */
+        .toc {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--sp-sm);
+            margin: var(--sp-md) 0 var(--sp-lg);
+        }
+        .toc a {
+            font-size: var(--fs-xs);
+            padding: 4px 10px;
+            background: var(--elevated);
+            color: var(--text);
+            text-decoration: none;
+            border-top: 1px solid var(--bevel-shine);
+            border-left: 1px solid var(--bevel-shine);
+            border-right: 1px solid var(--bevel-shadow);
+            border-bottom: 1px solid var(--bevel-shadow);
+            font-weight: 500;
+        }
+        .toc a:hover {
+            background: var(--light-surface);
+            color: var(--salmon);
+        }
+
+        /* Inline "void" glyph used under impossibilities */
+        .void-mark {
+            font-family: var(--font-mono);
+            color: var(--red);
+            font-weight: 700;
+        }
+
+        /* Definition list for the "what we do NOT do" box */
+        .notlist {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .notlist li {
+            font-size: var(--fs-sm);
+            padding: var(--sp-xs) 0;
+            color: var(--text);
+            display: grid;
+            grid-template-columns: 20px 1fr;
+            gap: var(--sp-sm);
+        }
+        .notlist li::before {
+            content: "x";
+            color: var(--red);
+            font-weight: 700;
+            font-family: var(--font-mono);
+        }
+    </style>
+</head>
+<body>
+
+<a href="#main" class="skip-link">Skip to content</a>
+
+<header class="screen-bar" role="banner">
+    <a href="/" class="screen-bar__brand" aria-label="amiport home"><svg width="170" height="30" viewBox="0 0 240 44" aria-hidden="true"><rect x="4" y="6" width="32" height="32" fill="#8B6914"/><circle cx="12" cy="14" r="2.5" fill="#DAA520"/><rect x="10" y="12" width="20" height="20" fill="none" stroke="#DAA520" stroke-width=".75"/><rect x="0" y="11" width="6" height="2.5" fill="#DAA520"/><rect x="0" y="18" width="6" height="2.5" fill="#DAA520"/><rect x="0" y="25" width="6" height="2.5" fill="#DAA520"/><rect x="0" y="32" width="6" height="2.5" fill="#DAA520"/><rect x="34" y="11" width="6" height="2.5" fill="#DAA520"/><rect x="34" y="18" width="6" height="2.5" fill="#DAA520"/><rect x="34" y="25" width="6" height="2.5" fill="#DAA520"/><rect x="34" y="32" width="6" height="2.5" fill="#DAA520"/><rect x="11" y="2" width="2.5" height="6" fill="#DAA520"/><rect x="18" y="2" width="2.5" height="6" fill="#DAA520"/><rect x="25" y="2" width="2.5" height="6" fill="#DAA520"/><rect x="11" y="36" width="2.5" height="6" fill="#DAA520"/><rect x="18" y="36" width="2.5" height="6" fill="#DAA520"/><rect x="25" y="36" width="2.5" height="6" fill="#DAA520"/><text x="48" y="31" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="26" font-weight="700" fill="#E0D0B8">ami<tspan fill="#DAA520">port</tspan></text></svg></a>
+    <nav aria-label="Main navigation">
+        <ul class="screen-bar__nav">
+            <li><a href="packages.html">Packages</a></li>
+            <li><a href="gaming.html">Gaming</a></li>
+            <li><a href="stats.html">Stats</a></li>
+            <li><a href="news.html">News</a></li>
+            <li><a href="porting.html" aria-current="page">Porting</a></li>
+            <li><a href="amiga.html">Amiga</a></li>
+            <li><a href="https://github.com/bdgscotland/amiport" target="_blank" rel="noopener">GitHub</a></li>
+        </ul>
+    </nav>
+</header>
+
+<main id="main" class="content">
+
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+        <a href="/">Home</a>
+        <span class="breadcrumb__sep" aria-hidden="true">&gt;</span>
+        <span class="breadcrumb__current">Why porting is hard</span>
+    </nav>
+
+    <!-- HERO -->
+    <section class="group-frame" aria-labelledby="hero-heading">
+        <div class="group-frame__title" id="hero-heading" role="heading" aria-level="1">The problem</div>
+        <div class="group-frame__body">
+            <p class="lede">
+                Porting Unix software to AmigaOS 3.x is not a recompile. <strong>It is a negotiation.</strong>
+                Software written after 1985 assumes primitives the Amiga simply does not have -
+                no <code>fork()</code>, no <code>stat()</code> as POSIX defines it,
+                no signal delivery, no <code>mmap()</code>, no symbolic links, no protection bits
+                that map cleanly. Every port is a series of small decisions about what to
+                forward, what to fake, and what to refuse.
+            </p>
+            <p class="lede" style="margin-bottom: 0;">
+                <code>amiport</code> is the library of those decisions. The page below is the map.
+            </p>
+
+            <div class="stat-strip" aria-label="amiport coverage at a glance">
+                <div class="stat-strip__cell">
+                    <div class="stat-strip__v">69</div>
+                    <div class="stat-strip__l">ports shipping</div>
+                </div>
+                <div class="stat-strip__cell">
+                    <div class="stat-strip__v">69</div>
+                    <div class="stat-strip__l">Tier 1 shims</div>
+                </div>
+                <div class="stat-strip__cell">
+                    <div class="stat-strip__v">2,057</div>
+                    <div class="stat-strip__l">tests passing</div>
+                </div>
+                <div class="stat-strip__cell">
+                    <div class="stat-strip__v">7</div>
+                    <div class="stat-strip__l">on Aminet</div>
+                </div>
+            </div>
+
+            <nav class="toc" aria-label="Page sections">
+                <a href="#impossibilities">The three impossibilities</a>
+                <a href="#tiers">The tier model</a>
+                <a href="#shims">The shim library</a>
+                <a href="#case-study">Case study: <code>patch</code></a>
+                <a href="#refusals">What amiport will not do</a>
+                <a href="#contributing">Adding a shim</a>
+            </nav>
+        </div>
+    </section>
+
+    <!-- THE THREE IMPOSSIBILITIES -->
+    <section class="group-frame" id="impossibilities" aria-labelledby="impossibilities-heading">
+        <div class="group-frame__title" id="impossibilities-heading" role="heading" aria-level="2">The three impossibilities</div>
+        <div class="group-frame__body">
+            <p style="font-size: var(--fs-base); color: var(--text); margin-bottom: var(--sp-md);">
+                Most of the difficulty in porting collapses onto three primitives that AmigaOS 3.x does not provide.
+                Each demands a different response: <strong>forward, fake, or refuse</strong>.
+            </p>
+
+            <div class="grid-3">
+
+                <article class="impossibility">
+                    <div class="impossibility__name">fork()</div>
+                    <p class="impossibility__why">Spawns an identical copy of the running process - the single most load-bearing primitive in Unix. Shells, pipelines, and build systems all lean on it.</p>
+                    <div class="impossibility__row">
+                        <div class="impossibility__label">What Unix expects</div>
+                        <div class="impossibility__value">Full process duplication with copy-on-write memory, inherited fds, independent scheduling.</div>
+                    </div>
+                    <div class="impossibility__row">
+                        <div class="impossibility__label">What AmigaOS offers</div>
+                        <div class="impossibility__value"><code>CreateNewProc()</code> - a task in the same address space with no memory isolation and no <code>exec()</code> pair.</div>
+                    </div>
+                    <div class="impossibility__row">
+                        <div class="impossibility__label">What amiport does</div>
+                        <div class="impossibility__value"><span class="void-mark">x</span> <strong>Refuse.</strong> Ports that genuinely need <code>fork()</code> (bash, make, ssh server) are out-of-scope. Ports that only shell out (patch, diff) use <code>System()</code> one-shot invocation.</div>
+                    </div>
+                </article>
+
+                <article class="impossibility">
+                    <div class="impossibility__name">stat()</div>
+                    <p class="impossibility__why">POSIX file metadata: mode, owner, size, three timestamps, inode, device. Every file tool on Earth uses this.</p>
+                    <div class="impossibility__row">
+                        <div class="impossibility__label">What Unix expects</div>
+                        <div class="impossibility__value">Atomic <code>stat(path, &amp;sb)</code> returning permission bits, two timestamps in Unix epoch, and a stable inode across renames.</div>
+                    </div>
+                    <div class="impossibility__row">
+                        <div class="impossibility__label">What AmigaOS offers</div>
+                        <div class="impossibility__value"><code>Lock() + Examine()</code>: two separate calls, protection bits with <em>inverted</em> semantics, one <code>DateStamp</code> in ticks-from-1978, no inode.</div>
+                    </div>
+                    <div class="impossibility__row">
+                        <div class="impossibility__label">What amiport does</div>
+                        <div class="impossibility__value"><strong>Forward.</strong> <code>amiport_stat()</code> composes Lock+Examine, converts DateStamp to Unix epoch, and maps AmigaDOS flags back to POSIX. Inode is synthesized from the lock hash.</div>
+                    </div>
+                </article>
+
+                <article class="impossibility">
+                    <div class="impossibility__name">signal()</div>
+                    <p class="impossibility__why">Asynchronous delivery of events - Ctrl-C, SIGPIPE, SIGALRM. Unix interactivity assumes them.</p>
+                    <div class="impossibility__row">
+                        <div class="impossibility__label">What Unix expects</div>
+                        <div class="impossibility__value">Named signals, installable handlers, interrupt of any blocking call, process-group semantics.</div>
+                    </div>
+                    <div class="impossibility__row">
+                        <div class="impossibility__label">What AmigaOS offers</div>
+                        <div class="impossibility__value">32 task signal bits, polled via <code>SetSignal()</code>, synchronously checked. <code>SIGBREAKF_CTRL_C</code> only.</div>
+                    </div>
+                    <div class="impossibility__row">
+                        <div class="impossibility__label">What amiport does</div>
+                        <div class="impossibility__value"><strong>Fake.</strong> <code>amiport_signal(SIGINT, h)</code> stores a handler. Long-running loops call <code>check_break()</code> between iterations; it polls <code>SetSignal(0,0)</code> and invokes the handler if Ctrl-C fired.</div>
+                    </div>
+                </article>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- TIER MODEL -->
+    <section class="group-frame" id="tiers" aria-labelledby="tier-heading">
+        <div class="group-frame__title" id="tier-heading" role="heading" aria-level="2">The tier model</div>
+        <div class="group-frame__body">
+            <p style="font-size: var(--fs-base); color: var(--text); margin-bottom: var(--sp-md);">
+                Not every missing primitive gets the same treatment. Every shim is classified by how closely the Amiga side matches POSIX semantics. A port's complexity is just the sum of the tiers it touches.
+            </p>
+
+            <div class="tier-stack">
+                <div class="tier tier--1">
+                    <div class="tier__num">1</div>
+                    <div class="tier__body">
+                        <h3>Direct mapping</h3>
+                        <p>One AmigaOS call matches POSIX semantics. Thin wrapper. No surprises.</p>
+                        <p style="margin-top: 4px;"><code>open</code>, <code>read</code>, <code>write</code>, <code>close</code>, <code>getcwd</code>, <code>opendir</code>, <code>stat</code>, <code>getenv</code>...</p>
+                    </div>
+                    <div class="tier__count">
+                        <strong>69</strong>
+                        functions
+                    </div>
+                </div>
+                <div class="tier tier--2">
+                    <div class="tier__num">2</div>
+                    <div class="tier__body">
+                        <h3>Behavioural emulation</h3>
+                        <p>No clean Amiga equivalent. Semantics faked in C, often via polling or re-implementation.</p>
+                        <p style="margin-top: 4px;"><code>regex</code>, <code>mkstemp</code>, <code>check_break</code>, <code>expand_argv</code>, <code>recallocarray</code>, <code>mmap</code>...</p>
+                    </div>
+                    <div class="tier__count">
+                        <strong>19</strong>
+                        functions
+                    </div>
+                </div>
+                <div class="tier tier--3">
+                    <div class="tier__num">3</div>
+                    <div class="tier__body">
+                        <h3>Structural refusal</h3>
+                        <p>Cannot be faked at the shim layer. Either the port avoids them, or the port is rejected.</p>
+                        <p style="margin-top: 4px;"><code>fork</code>, <code>exec*</code>, <code>pthread_*</code>, <code>pipe</code>, <code>select()</code> on non-sockets, <code>mmap(MAP_SHARED)</code></p>
+                    </div>
+                    <div class="tier__count">
+                        <strong>&infin;</strong>
+                        out of scope
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SHIM LIBRARY -->
+    <section class="group-frame" id="shims" aria-labelledby="shim-list-heading">
+        <div class="group-frame__title" id="shim-list-heading" role="heading" aria-level="2">The shim library</div>
+        <div class="group-frame__body">
+            <p style="font-size: var(--fs-base); color: var(--text); margin-bottom: var(--sp-md);">
+                A curated selection of Tier 1 POSIX functions <code>libamiport.a</code> provides, and what each maps to on the AmigaOS side.
+                For the full list of 69 shims, see the <a href="shims.html">shims browser</a> or the
+                <a href="https://github.com/bdgscotland/amiport/tree/main/lib/posix-shim" target="_blank" rel="noopener">source tree</a>.
+            </p>
+
+            <div class="wb-table-wrap">
+                <table class="wb-table">
+                    <caption class="sr-only">amiport Tier 1 POSIX functions and their AmigaOS mappings</caption>
+                    <thead>
+                        <tr>
+                            <th scope="col" style="width: 30%;">POSIX function</th>
+                            <th scope="col" style="width: 28%;">amiport call</th>
+                            <th scope="col">AmigaOS mapping / note</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                        <tr class="shim-group-head"><td colspan="3"><span>File I/O <em>17 functions &middot; <code>file_io.c</code></em></span></td></tr>
+                        <tr><td><code>open</code></td><td><code>amiport_open</code></td><td><code>Open()</code> with flag mapping</td></tr>
+                        <tr><td><code>close</code></td><td><code>amiport_close</code></td><td><code>Close()</code> - protects fd 0/1/2</td></tr>
+                        <tr><td><code>read</code></td><td><code>amiport_read</code></td><td><code>Read()</code></td></tr>
+                        <tr><td><code>write</code></td><td><code>amiport_write</code></td><td><code>Write()</code></td></tr>
+                        <tr><td><code>lseek</code></td><td><code>amiport_lseek</code></td><td><code>Seek()</code> - handles old-position return</td></tr>
+                        <tr><td><code>dup</code></td><td><code>amiport_dup</code></td><td>fd_table sharing + scan-on-close</td></tr>
+                        <tr><td><code>dup2</code></td><td><code>amiport_dup2</code></td><td>fd_table sharing + scan-on-close</td></tr>
+                        <tr><td><code>unlink</code></td><td><code>amiport_unlink</code></td><td><code>DeleteFile()</code></td></tr>
+                        <tr><td><code>rename</code></td><td><code>amiport_rename</code></td><td><code>Rename()</code></td></tr>
+                        <tr><td><code>access</code></td><td><code>amiport_access</code></td><td><code>Lock()</code> test</td></tr>
+                        <tr><td><code>isatty</code></td><td><code>amiport_isatty</code></td><td><code>IsInteractive()</code></td></tr>
+                        <tr><td><code>pread</code></td><td><code>amiport_pread</code></td><td class="note">Seek + Read + Seek. Non-atomic.</td></tr>
+                        <tr><td><code>pwrite</code></td><td><code>amiport_pwrite</code></td><td class="note">Seek + Write + Seek. Non-atomic.</td></tr>
+                        <tr><td><code>tmpfile</code></td><td><code>amiport_tmpfile</code></td><td><code>Open("T:...")</code></td></tr>
+                        <tr><td><code>mkstemp</code></td><td><code>amiport_mkstemp</code></td><td class="note">Unique name via task address + counter</td></tr>
+                        <tr><td><code>chmod</code></td><td><code>amiport_chmod</code></td><td class="note">No-op stub - Amiga protection bits are inverted</td></tr>
+                        <tr><td><code>realpath</code></td><td><code>amiport_realpath</code></td><td><code>Lock()</code> + <code>NameFromLock()</code></td></tr>
+
+                        <tr class="shim-group-head"><td colspan="3"><span>Directory operations <em>7 functions &middot; <code>dir_ops.c</code></em></span></td></tr>
+                        <tr><td><code>opendir</code></td><td><code>amiport_opendir</code></td><td><code>Lock()</code> + <code>Examine()</code></td></tr>
+                        <tr><td><code>readdir</code></td><td><code>amiport_readdir</code></td><td><code>ExNext()</code></td></tr>
+                        <tr><td><code>closedir</code></td><td><code>amiport_closedir</code></td><td><code>UnLock()</code></td></tr>
+                        <tr><td><code>mkdir</code></td><td><code>amiport_mkdir</code></td><td><code>CreateDir()</code> - mode bits ignored</td></tr>
+                        <tr><td><code>rmdir</code></td><td><code>amiport_rmdir</code></td><td class="note">Same call as <code>unlink</code> on AmigaOS</td></tr>
+                        <tr><td><code>getcwd</code></td><td><code>amiport_getcwd</code></td><td><code>GetCurrentDirName()</code></td></tr>
+                        <tr><td><code>chdir</code></td><td><code>amiport_chdir</code></td><td><code>CurrentDir()</code> + <code>Lock()</code></td></tr>
+
+                        <tr class="shim-group-head"><td colspan="3"><span>File status <em>3 functions &middot; <code>stat.c</code></em></span></td></tr>
+                        <tr><td><code>stat</code></td><td><code>amiport_stat</code></td><td><code>Lock()</code> + <code>Examine()</code> - DateStamp &rarr; Unix epoch</td></tr>
+                        <tr><td><code>fstat</code></td><td><code>amiport_fstat</code></td><td class="note"><code>ExamineFH()</code> - requires AmigaOS 2.0+</td></tr>
+                        <tr><td><code>lstat</code></td><td><code>amiport_lstat</code></td><td class="note">Alias to <code>stat</code> - FFS has no symlinks</td></tr>
+
+                        <tr class="shim-group-head"><td colspan="3"><span>Environment <em>3 functions &middot; <code>process.c</code></em></span></td></tr>
+                        <tr><td><code>getenv</code></td><td><code>amiport_getenv</code></td><td><code>GetVar()</code> - returns malloc'd string</td></tr>
+                        <tr><td><code>setenv</code></td><td><code>amiport_setenv</code></td><td><code>SetVar()</code> + <code>GVF_GLOBAL_ONLY</code> - writes to ENV:</td></tr>
+                        <tr><td><code>unsetenv</code></td><td><code>amiport_unsetenv</code></td><td><code>DeleteVar()</code> + <code>GVF_GLOBAL_ONLY</code></td></tr>
+
+                        <tr class="shim-group-head"><td colspan="3"><span>String safety <em>6 functions &middot; <code>string_bsd.c</code></em></span></td></tr>
+                        <tr><td><code>strlcpy</code></td><td><code>amiport_strlcpy</code></td><td class="note">BSD safe string copy</td></tr>
+                        <tr><td><code>strlcat</code></td><td><code>amiport_strlcat</code></td><td class="note">BSD safe string concatenation</td></tr>
+                        <tr><td><code>reallocarray</code></td><td><code>amiport_reallocarray</code></td><td class="note">Overflow-checked realloc</td></tr>
+                        <tr><td><code>strtok_r</code></td><td><code>amiport_strtok_r</code></td><td class="note">Thread-safe strtok</td></tr>
+                        <tr><td><code>strsep</code></td><td><code>amiport_strsep</code></td><td class="note">BSD string tokenizer</td></tr>
+                        <tr><td><code>strndup</code></td><td><code>amiport_strndup</code></td><td class="note">Bounded string duplication</td></tr>
+
+                        <tr class="shim-group-head"><td colspan="3"><span>stdio extensions <em>4 functions &middot; <code>stdio_ext.c</code></em></span></td></tr>
+                        <tr><td><code>asprintf</code></td><td><code>amiport_asprintf</code></td><td class="note">Dynamic formatted string</td></tr>
+                        <tr><td><code>vasprintf</code></td><td><code>amiport_vasprintf</code></td><td class="note">va_list variant</td></tr>
+                        <tr><td><code>getline</code></td><td><code>amiport_getline</code></td><td class="note">GNU extension, fgets-based</td></tr>
+                        <tr><td><code>getdelim</code></td><td><code>amiport_getdelim</code></td><td class="note">Read until delimiter</td></tr>
+
+                        <tr class="shim-group-head"><td colspan="3"><span>Pattern matching <em>3 functions &middot; <code>fnmatch.c</code> / <code>scandir.c</code></em></span></td></tr>
+                        <tr><td><code>fnmatch</code></td><td><code>amiport_fnmatch</code></td><td class="note">Shell-style glob matching</td></tr>
+                        <tr><td><code>scandir</code></td><td><code>amiport_scandir</code></td><td class="note">With filter and sort callbacks</td></tr>
+                        <tr><td><code>alphasort</code></td><td><code>amiport_alphasort</code></td><td class="note">strcmp wrapper for scandir</td></tr>
+
+                        <tr class="shim-group-head"><td colspan="3"><span>Process &amp; time <em>9 functions &middot; <code>process.c</code>, <code>signal_emu.c</code>, <code>time_funcs.c</code></em></span></td></tr>
+                        <tr><td><code>sleep</code></td><td><code>amiport_sleep</code></td><td><code>Delay()</code> - 1/50s granularity</td></tr>
+                        <tr><td><code>usleep</code></td><td><code>amiport_usleep</code></td><td><code>Delay()</code> - rounds up</td></tr>
+                        <tr><td><code>getpid</code></td><td><code>amiport_getpid</code></td><td><code>FindTask(NULL)</code> cast to int</td></tr>
+                        <tr><td><code>time</code></td><td><code>amiport_time</code></td><td><code>DateStamp()</code> + epoch offset</td></tr>
+                        <tr><td><code>gettimeofday</code></td><td><code>amiport_gettimeofday</code></td><td class="note">Approximate microseconds</td></tr>
+                        <tr><td><code>signal(SIGINT)</code></td><td><code>amiport_signal</code></td><td><code>SetSignal()</code> / Ctrl-C only</td></tr>
+                        <tr><td><code>raise(SIGINT)</code></td><td><code>amiport_raise</code></td><td><code>Signal()</code></td></tr>
+                        <tr><td><code>getopt</code></td><td><code>amiport_getopt</code></td><td class="note">Pure C implementation</td></tr>
+                        <tr><td><code>check_break</code></td><td><code>check_break</code></td><td class="note">Polls <code>SetSignal(0,0)</code> - call between loop iterations</td></tr>
+
+                    </tbody>
+                </table>
+            </div>
+
+            <p style="font-size: var(--fs-xs); color: var(--text-muted); margin-top: var(--sp-md);">
+                Source: <a href="https://github.com/bdgscotland/amiport/tree/main/lib/posix-shim" target="_blank" rel="noopener">lib/posix-shim</a>
+                &middot; Header: <code>amiport/amiport.h</code>
+                &middot; Link flag: <code>-L../../lib/posix-shim -lamiport</code>
+            </p>
+        </div>
+    </section>
+
+    <!-- CASE STUDY -->
+    <section class="group-frame" id="case-study" aria-labelledby="case-study-heading">
+        <div class="group-frame__title" id="case-study-heading" role="heading" aria-level="2">Case study: porting <code style="font-family: var(--font-mono); color: var(--brown); font-size: var(--fs-xl);">patch</code></div>
+        <div class="group-frame__body">
+            <p style="font-size: var(--fs-base); color: var(--text); margin-bottom: var(--sp-md);">
+                OpenBSD <code>patch</code> is a good case because it touches almost every shim category - file I/O, directory ops, temp files, memory-mapped reads, and signal handling - without needing the Tier 3 refusals.
+            </p>
+
+            <div class="case-study">
+                <div class="case-study__row">
+                    <div class="case-study__label">Upstream</div>
+                    <div class="case-study__value">OpenBSD <code>patch</code> v1.78 (ISC + BSD 3-Clause)</div>
+                </div>
+                <div class="case-study__row">
+                    <div class="case-study__label">Tier 1 shims used</div>
+                    <div class="case-study__value">
+                        <code>stat</code>, <code>fstat</code>, <code>open</code>, <code>read</code>, <code>write</code>, <code>close</code>, <code>lseek</code>,
+                        <code>unlink</code>, <code>rename</code>, <code>mkdir</code>, <code>chdir</code>, <code>chmod</code>,
+                        <code>opendir</code>, <code>readdir</code>, <code>closedir</code>,
+                        <code>signal</code>, <code>getline</code>, <code>mkstemp</code>,
+                        <code>strtonum</code>, <code>warnc</code>, <code>recallocarray</code>, <code>getopt_long</code>
+                    </div>
+                </div>
+                <div class="case-study__row">
+                    <div class="case-study__label">Tier 2 emulations</div>
+                    <div class="case-study__value"><code>emu_mmap</code> / <code>emu_munmap</code> - backed by <code>malloc + read</code>. Patch never writes through the mapping, so shared semantics are unneeded.</div>
+                </div>
+                <div class="case-study__row">
+                    <div class="case-study__label">Tier 3 refusals</div>
+                    <div class="case-study__value">None. Patch never <code>fork()</code>s or <code>exec()</code>s.</div>
+                </div>
+                <div class="case-study__row">
+                    <div class="case-study__label">Upstream patches</div>
+                    <div class="case-study__value">
+                        4 patches:
+                        remove <code>flock()</code> (no-op on AmigaOS - single-task access is already exclusive);
+                        replace <code>mmap</code> reads with <code>emu_mmap</code>;
+                        force <code>amiport/*.h</code> includes ahead of libc;
+                        wire <code>check_break</code> into the hunk-apply loop so Ctrl-C aborts cleanly mid-patch.
+                    </div>
+                </div>
+                <div class="case-study__row">
+                    <div class="case-study__label">Binary size</div>
+                    <div class="case-study__value">128 KB stripped, m68k-amigaos</div>
+                </div>
+                <div class="case-study__row">
+                    <div class="case-study__label">Tests</div>
+                    <div class="case-study__value"><strong>42 / 42 passing</strong> under FS-UAE (Workbench 3.1, 4 MB Fast RAM)</div>
+                </div>
+                <div class="case-study__row">
+                    <div class="case-study__label">Aminet</div>
+                    <div class="case-study__value">Not yet submitted. Review pending.</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- REFUSALS -->
+    <section class="group-frame" id="refusals" aria-labelledby="refusal-heading">
+        <div class="group-frame__title" id="refusal-heading" role="heading" aria-level="2">What amiport will not do</div>
+        <div class="group-frame__body">
+            <p style="font-size: var(--fs-base); color: var(--text); margin-bottom: var(--sp-md);">
+                A short, deliberate list of the refusals. A shim that lies about its semantics is worse than a missing one; every item below was considered, prototyped, and rejected.
+            </p>
+
+            <div class="grid-2">
+                <ul class="notlist">
+                    <li><span><strong>No <code>fork</code> emulation.</strong> Single-address-space tasks cannot honour process semantics. Use <code>System()</code> for one-shots.</span></li>
+                    <li><span><strong>No threading.</strong> Amiga tasks are cooperative and share memory. <code>pthread_*</code> would be a lie.</span></li>
+                    <li><span><strong>No anonymous pipes.</strong> <code>PIPE:</code> exists but is fragile; ports that want pipelines should be rewritten to streaming stdio.</span></li>
+                    <li><span><strong>No symlinks.</strong> FFS does not support them. <code>lstat</code> is aliased to <code>stat</code> rather than faked.</span></li>
+                </ul>
+                <ul class="notlist">
+                    <li><span><strong>No <code>chmod</code>.</strong> Amiga protection bits invert POSIX meaning. A stub that silently succeeds protects callers; a stub that pretends to work corrupts files.</span></li>
+                    <li><span><strong>No <code>select()</code> on non-sockets.</strong> <code>bsdsocket.library</code> only polls sockets. Console input uses <code>WaitForChar()</code>.</span></li>
+                    <li><span><strong>No <code>MAP_SHARED</code>.</strong> Tier 2 <code>emu_mmap</code> is read-only, malloc-backed.</span></li>
+                    <li><span><strong>No <code>locale</code>.</strong> Ports assume <code>LANG=C</code>. Wide-char paths are rejected at <code>open()</code>.</span></li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- CONTRIBUTING -->
+    <section class="group-frame" id="contributing" aria-labelledby="contributing-heading">
+        <div class="group-frame__title" id="contributing-heading" role="heading" aria-level="2">Adding a shim</div>
+        <div class="group-frame__body">
+            <p style="font-size: var(--fs-base); color: var(--text); margin-bottom: var(--sp-md);">
+                The bar for adding a Tier 1 shim is: <strong>does an AmigaOS call exist whose semantics match the POSIX function for the common case?</strong>
+                If yes - write the wrapper, add a test file under <code>tests/shim/</code>, run <code>make test-shim</code>, submit.
+            </p>
+
+            <div class="install-block">
+                <span class="install-block__prompt">$&nbsp;</span><span class="install-block__cmd">git clone https://github.com/bdgscotland/amiport &amp;&amp; cd amiport</span><br>
+                <span class="install-block__prompt">$&nbsp;</span><span class="install-block__cmd">make build-shim</span><br>
+                <span class="install-block__prompt">$&nbsp;</span><span class="install-block__cmd">make test-shim</span>
+            </div>
+
+            <p style="font-size: var(--fs-sm); color: var(--text-muted); margin-top: var(--sp-md);">
+                Each new Tier 1 shim needs: the wrapper in <code>lib/posix-shim/src/</code>,
+                a public declaration in the matching <code>amiport/*.h</code>,
+                at least one test that exercises the error path,
+                and an entry in this table. Pull requests welcome.
+            </p>
+
+            <p style="margin-top: var(--sp-md);">
+                <a class="btn btn--primary" href="https://github.com/bdgscotland/amiport/blob/main/docs/porting-guide.md" target="_blank" rel="noopener">Read the porting guide</a>
+                &nbsp;
+                <a class="btn" href="https://github.com/bdgscotland/amiport/issues" target="_blank" rel="noopener">Open issues</a>
+            </p>
+        </div>
+    </section>
+
+</main>
+
+<!-- Footer -->
+<footer class="footer content" role="contentinfo">
+    <span>
+        <a href="https://github.com/bdgscotland/amiport" target="_blank" rel="noopener">GitHub</a>
+        &middot;
+        <a href="https://aminet.net/" target="_blank" rel="noopener">Aminet</a>
+        &middot;
+        <a href="feed.php">RSS</a>
+        &middot;
+        <a href="catalog.html">Catalog</a>
+        &middot;
+        <a href="changelog.html">Changelog</a>
+        &middot;
+        <a href="shims.html">Shims</a>
+        &middot;
+        <a href="porting.html" aria-current="page">Porting</a>
+    </span>
+    <span>
+        By <strong>Duncan Bowring</strong> &middot; Built with <a href="https://claude.ai/code" target="_blank" rel="noopener">Claude Code</a>.
+    </span>
+</footer>
+
+</body>
+</html>

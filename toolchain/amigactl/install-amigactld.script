@@ -1,0 +1,55 @@
+.key macip/A
+.bra {
+.ket }
+;
+; install-amigactld - one-shot installer for the amigactld daemon
+;
+; Usage:  Execute Programs:install-amigactld <mac-ip>
+; Example: Execute Programs:install-amigactld 192.168.1.50
+;
+; Pre-req: Programs:amigactld-0.8.2.lha already uploaded via FTP
+;
+
+FailAt 21
+
+Echo "[install] amigactld installer"
+Echo "[install] client IP allowed: {macip}"
+
+If NOT EXISTS Programs:amigactld-0.8.2.lha
+    Echo "[install] ERROR: Programs:amigactld-0.8.2.lha not found"
+    Echo "[install] upload the LHA via FTP first"
+    Quit 10
+EndIf
+
+If EXISTS Programs:amigactl
+    Echo "[install] removing old extract dir..."
+    Delete Programs:amigactl ALL QUIET
+EndIf
+
+Echo "[install] extracting LHA..."
+CD Programs:
+LhA -q x amigactld-0.8.2.lha
+
+If NOT EXISTS Programs:amigactl/amigactld
+    Echo "[install] ERROR: extraction failed - amigactl/amigactld missing"
+    Quit 10
+EndIf
+
+Echo "[install] copying daemon + atrace_loader to C:..."
+Copy Programs:amigactl/amigactld C: CLONE
+Copy Programs:amigactl/atrace_loader C: CLONE
+
+Echo "[install] writing S:amigactld.conf..."
+Echo > S:amigactld.conf "PORT 6800"
+Echo >> S:amigactld.conf "ALLOW {macip}"
+
+Echo "[install] config file:"
+Type S:amigactld.conf
+
+Echo "[install] starting daemon (RUN >NIL: C:amigactld)..."
+RUN >NIL: C:amigactld
+
+Echo ""
+Echo "[install] done."
+Echo "[install] verify: type 'Status' - look for amigactld in the task list"
+Echo "[install] from Mac:  python3 -m amigactl --host 192.168.1.215 ping"
