@@ -54,10 +54,13 @@ Before making any claim, consult:
 
 ### Phase 3: libSDL2-amigaos3 fast-path engagement
 
-10. **OS3_OpenWindowed `+64` padding bug** — was forcing BitMapScale on every frame. Confirm the local libSDL2 build has the patched `OS3_OpenWindowed()` that uses exact `window->w/h` (no +64 padding, no minimum-clamp). Symptom: SDL_UpdateWindowSurface measures ~50 ms / frame at 640x480 instead of ~12 ms. Patch lives in `lib/libSDL2-amigaos3/src/video/amigaos3/SDL_os3window.c`.
-11. **68k asm bswap32 in libSDL2** — the ARGB→BGRA convert in `SDL_os3framebuffer.c` should use inline asm (`rol.w #8, %0; swap %0; rol.w #8, %0`), not C mask+shift+OR. 6x speedup on the per-frame memcpy.
+**3a. Ensure consumer is on the framebuffer path (MANDATORY FIRST CHECK).** Grep the game's platform/screen code for `SDL_CreateRenderer` / `SDL_CreateTexture` / `SDL_RenderCopy` / `SDL_RenderPresent`. If found, the game is on libSDL2-amigaos3's **renderer path** which is 2-3x slower than the framebuffer path. Every other Phase 3 optimization is irrelevant until this is fixed -- the fast-path lives in `SDL_UpdateWindowSurface`, which the renderer path doesn't call at all. Patch the game to use `SDL_GetWindowSurface` + direct memcpy into `surface->pixels` + `SDL_UpdateWindowSurface` on `__AMIGA__`. Reference diff: Julius 2026-04-21 (`~/Developer/libSDL2-amigaos3/ports/julius/src/platform/screen.c`). Full rationale + canonical diff: `.claude/rules/known-pitfalls.md` "libSDL2-amigaos3 SDL_Renderer Path is 2-3x Slower". Pair with OS hardware cursor (Phase 4 #16) -- software cursor via `SDL_RenderCopy` breaks when the renderer is gone, so drop `PLATFORM_USE_SOFTWARE_CURSOR` or equivalent define on the Amiga build.
+
+10. **OS3_OpenWindowed `+64` padding bug** — was forcing BitMapScale on every frame. Confirm the local libSDL2 build has the patched `OS3_OpenWindowed()` that uses exact `window->w/h` (no +64 padding, no minimum-clamp). Symptom: SDL_UpdateWindowSurface measures ~50 ms / frame at 640x480 instead of ~12 ms. Patch lives in `lib/libSDL2-amigaos3/src/video/amigaos3/SDL_os3window.c`. (Only applies once the game is on the framebuffer path -- see 3a above.)
+11. **68k asm bswap32 in libSDL2** — the ARGB→BGRA convert in `SDL_os3framebuffer.c` should use inline asm (`rol.w #8, %0; swap %0; rol.w #8, %0`), not C mask+shift+OR. 6x speedup on the per-frame memcpy. (Only matters on the framebuffer path.)
 12. **libSDL2 -O2 build** — the upstream `libSDL2-amigaos3/Makefile` defaults to `-O0`. Override `CFLAGS='-std=gnu99 -O2 -m68030 -noixemul ...'` when building libSDL2 for any consumer port. Combined with #11, drops 1.2 MB framebuffer convert from 77 ms → 12 ms.
 13. **Dirty rect logging** — when in doubt about whether the game sends full-window or partial dirty rects, instrument `SDL_UpdateWindowSurfaceRects` to log rect counts + sizes. Title menus often send full-window (1.2 MB at 640x480).
+14. **VSYNC is a no-op** — on libSDL2-amigaos3, `SDL_RENDERER_PRESENTVSYNC` does NOT sleep-to-refresh; removing it alone gives zero speedup. Do not rathole on VSYNC as a perf lever. Discovered in Julius port perf pass (2026-04-21).
 
 ### Phase 4: Game-loop architecture
 
@@ -79,6 +82,24 @@ Before making any claim, consult:
 23. **Use `amiport_profile`** from `lib/posix-shim/src/profile.c`. Direct AmigaDOS Open/Write/Close (bypasses libnix stdio), so no contention with the game's stdio. Compile profiled TUs with `-DAMIPORT_PROFILE`. Dump every N frames from the game's main loop.
 24. **Measure the right things** — LoopOnce (full frame), Tick (game logic), Paint (render), then drill into Paint sub-stages: SDL_BlitSurface (palette convert), SDL_UpdateWindowSurfaceRects (memcpy to RTG), PollEvent. The gap between Tick and (Paint + sub-stages) is input-loop overhead; instrument it specifically before optimizing.
 25. **Frame-limiter trap** — instrument LoopOnce - Tick - Paint. If there's an unaccounted gap > 5 ms, it's almost certainly `std::this_thread::sleep_for` (see #8).
+
+### Phase 7: Launcher script & deployment
+
+26. **WORK: hardcoding is universal** — every libSDL2-amigaos3 consumer game discovered so far (Julius/Caesar 3, OpenTTD-SDL2, Vanilla Conquer) hardcodes `WORK:` as the data volume at startup. The binary silently exits if WORK: is not assigned — no Guru, no error message, just a grey window or nothing. Confirmed pitfall: `.claude/rules/known-pitfalls.md` "libSDL2-amigaos3 Game Ports Hardcode WORK: as the Data Volume".
+27. **Every SDL game port MUST ship a launcher script.** The launcher (`ports/<name>/run-<name>`, installed as `WORK:<name>/run-<name>` or similar) MUST include:
+    ```
+    assign >NIL: WORK: <install-dir>
+    cd WORK:
+    Stack 262144
+    delete >NIL: run.log
+    <binary> >run.log
+    echo "=== run.log ==="
+    type run.log
+    ```
+    The `>NIL:` on assign suppresses the "exists" warning if user has a pre-existing WORK:. Stack 262144 is the libSDL2-amigaos3 minimum (4 KB default is not enough). `>run.log` captures stdout (do NOT use `2>>` — AmigaDOS parses it as literal argv, see known-pitfalls "AmigaDOS Doesn't Parse `2>>` Redirect").
+28. **PORT.md install instructions** MUST explicitly document the `assign WORK:` step and warn that a pre-existing WORK: volume will be shadowed during gameplay. Include a note on how to restore: `assign WORK:` (no target) + `assign WORK: <original-target>`, or reboot.
+29. **Companion `show-log` script** — a 1-line script that `type`s `WORK:run.log` from any shell. Useful for post-mortem diagnostics when the game window has already closed.
+30. **Launcher uploads via FTP gotcha** — when staging a game port via FTP to a real Amiga, do NOT rely on curl's `--ftp-create-dirs` for deep paths with old FTP servers (rc-ftpd 2.74 and similar). Absolute-path MKD commands may be interpreted CWD-relative, creating phantom nested dirs that consume real disk space. Create subdirs explicitly with `-Q "MKD <cwd-relative-path>"` or pre-create them on the Amiga.
 
 ## Decision flowchart for a new game port
 

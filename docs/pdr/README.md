@@ -23,6 +23,7 @@ PDRs capture product-level decisions — what we build, who it's for, and why. T
 | [PDR-013](013-dropbear-ssh-client.md) | Dropbear SSH client for AmigaOS 3.x — phased port with crypto libs | Accepted | 2026-04-14 |
 | [PDR-014](014-fold-sdl-games-into-amiport.md) | Fold SDL game ports into amiport as Category 5 (library stays external) | Accepted | 2026-04-15 |
 | [PDR-015](015-openttd-amigaos3.md) | OpenTTD 13.4 for AmigaOS 3.x -- C++17 game port targeting Vampire 68080 | Proposed | 2026-04-15 |
+| [PDR-016](016-openttd-asset-precaching.md) | OpenTTD asset precaching — .agf cache format to cut boot time from 5-10 min to seconds | Proposed | 2026-04-20 |
 
 ## Template
 

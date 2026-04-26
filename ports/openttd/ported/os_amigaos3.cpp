@@ -28,6 +28,10 @@ extern "C" long __stack = 16L * 1024L * 1024L;
 #include <unistd.h>
 #include <string.h>
 
+/* amiport: forward-declare FindTask at file scope. Avoids proto/exec.h
+ * pulling in NDK headers that collide with openttd's Node/Task in stdafx.h. */
+extern "C" void *FindTask(const char *name);
+
 extern "C" {
     static void _amiport_probe_write(const char *path, const char *msg) {
         int fd = open(path, O_WRONLY | O_CREAT | O_TRUNC, 0644);
@@ -64,11 +68,15 @@ namespace { struct AmiportCtorProbe2 {
 #include <string>
 #include <vector>
 
-/* Debug log -- defined BEFORE safeguards.h which blocks fopen/open/sprintf */
+/* Debug log -- defined BEFORE safeguards.h which blocks fopen/open/sprintf.
+ * Writes to WORK:trace.log (Programs:amiport-wip/OpenTTD/trace.log on the Amiga
+ * once `Assign WORK: Programs:amiport-wip/OpenTTD/` is set by the launcher).
+ * O_APPEND so we accumulate across runs -- amigactl can pull after process
+ * exit; survives reboots (unlike RAM:). */
 static int _dbgfd = -1;
 static void dbglog(const char *msg)
 {
-	if (_dbgfd < 0) _dbgfd = open("WORK:OpenTTD/debug.log", O_WRONLY | O_CREAT | O_TRUNC, 0644);
+	if (_dbgfd < 0) _dbgfd = open("WORK:trace.log", O_WRONLY | O_CREAT | O_APPEND, 0644);
 	if (_dbgfd >= 0) { write(_dbgfd, msg, strlen(msg)); write(_dbgfd, "\n", 1); }
 	printf("%s\n", msg);
 }
@@ -93,13 +101,10 @@ static void dbglog_bytes(const char *prefix, unsigned char *p, int n)
 
 extern "C" void diaglog(const char *msg)
 {
-	/* No-op stub: PDR-015 debug instrumentation in original/OpenTTD-13.4/src/
-	 * (fileio.cpp ScanPath SP: prints, openttd.cpp DBP/DSWD/DP/FSD markers)
-	 * fired ~137K times during init. Each call wrote synchronously to run.log
-	 * via libnix stdio + AmigaDOS Write() -- minutes of pure I/O wait time.
-	 * Stubbing here zeros the I/O cost without touching the original/ files.
-	 * Restore `dbglog(msg);` to re-enable for crash bisection. */
-	(void)msg;
+	/* Route to trace.log via dbglog. The trace file uses O_APPEND so it
+	 * accumulates across runs, survives exit + reboot, and amigactl can
+	 * pull it post-mortem. Low per-call cost (single open() cached + write()). */
+	dbglog(msg);
 }
 
 /*
@@ -153,16 +158,38 @@ bool FiosIsHiddenFile(const struct dirent *ent)
 
 void ShowInfo(const char *str)
 {
-	fprintf(stderr, "%s\n", str);
+	/* amiport: AmigaDOS cannot redirect stderr (no `2>>` — eaten as argv).
+	 * Write to stdout so Debug() output is captured by launcher's `>>file`. */
+	fprintf(stdout, "%s\n", str);
+	fflush(stdout);
 }
 
 void ShowOSErrorBox(const char *buf, bool system)
 {
-	fprintf(stderr, "Error: %s\n", buf);
+	fprintf(stdout, "Error: %s\n", buf);
+	fflush(stdout);
 }
 
 int CDECL main(int argc, char *argv[])
 {
+	/* amiport: suppress all system requesters ("Please insert volume X")
+	 * by setting pr_WindowPtr = -1 before any filesystem call. libSDL2
+	 * and libnix both open hardcoded paths (WORK:... sdl_log, sdl2-perf
+	 * logs) that trigger requesters on real AmigaOS if the path isn't
+	 * resolvable. -1 causes AmigaDOS to fail those paths programmatically
+	 * instead of prompting the user. Known pitfall; applies to all
+	 * amiport CLI + GUI programs. */
+	{
+		/* Poke pr_WindowPtr at byte offset 184 (0xB8) in struct Process.
+		 * Avoids pulling in full <dos/dosextens.h> which collides with OpenTTD's
+		 * own Node/Task symbols in stdafx.h. struct Process layout is stable
+		 * across AmigaOS 1.x-3.x (dos.library V36+). Verified via ndk-include. */
+		void *me = FindTask(nullptr);
+		if (me != nullptr) {
+			*((void **)((char *)me + 184)) = (void *)-1L;
+		}
+	}
+
 	dbglog("AMIGA: main() entered");
 	for (int i = 0; i < argc; i++) StrMakeValidInPlace(argv[i]);
 	dbglog("AMIGA: argv validated");

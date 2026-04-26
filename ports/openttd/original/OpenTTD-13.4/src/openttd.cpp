@@ -880,6 +880,14 @@ int openttd_main(int argc, char *argv[])
 		diaglog("OTTD: P4 after GenerateWorld");
 		LoadIntroGame(false);
 		diaglog("OTTD: P5 after LoadIntroGame");
+		/* amiport: init-time LoadIntroGame(false) already set up the title
+		 * game (opntitle.dat loaded on top of GenerateWorld'd empty world).
+		 * Without this line, MainLoop's first Tick fires SwitchToMode(SM_MENU)
+		 * -> LoadIntroGame(true) -> ResetGRFConfig(false) -> another full
+		 * NewGRF reload + GfxLoadSprites (~10 min redundant work on Vampire).
+		 * Setting _switch_mode = SM_NONE here skips that redundant round. */
+		_switch_mode = SM_NONE;
+		diaglog("OTTD: P5a _switch_mode = SM_NONE (skip redundant SM_MENU init)");
 	}
 
 	if (is_amiga_dedicated_video) {

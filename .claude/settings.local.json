@@ -28,7 +28,8 @@
       "Skill(review-amiga)",
       "Bash(ls:*)",
       "Bash(mkdir -p /Users/duncan/Developer/amiport/ports/amigit/.claude/agent-memory)",
-      "Bash(cat)"
+      "Bash(cat)",
+      "Bash(grep -E \"\\(openttd$|openttd-\\)\")"
     ]
   }
 }

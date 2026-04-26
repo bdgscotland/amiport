@@ -1,0 +1,1 @@
+OpenTTD port requires upstream source edits for AmigaOS integration (entry point, GRF state management, event loop patches). See PDR-015. Enables CLAUDE.md rule exception via block-original-edits.sh hook.

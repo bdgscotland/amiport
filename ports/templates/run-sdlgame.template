@@ -1,0 +1,69 @@
+; run-<PORT_NAME> -- AmigaDOS launcher for a libSDL2-amigaos3 game port
+;
+; PURPOSE
+; -------
+; libSDL2-amigaos3 games hardcode WORK: as the data volume at startup. If
+; WORK: is not assigned (or doesn't contain the expected game files), the
+; binary silently exits -- no Guru, no error, just a grey window and done.
+; This launcher creates a temporary WORK: assign pointing at the game's
+; real install directory so the binary finds everything.
+;
+; See `.claude/rules/known-pitfalls.md` entry "libSDL2-amigaos3 Game Ports
+; Hardcode WORK: as the Data Volume" for the full write-up.
+;
+; USAGE (from any Amiga shell)
+; ----------------------------
+;   execute <INSTALL_PATH>/run-<PORT_NAME>
+;
+; where <INSTALL_PATH> matches the assign target below (e.g.
+; Programs:amiport-wip/<PORT_NAME>).
+;
+; AFTER THE SESSION
+; -----------------
+; If you had a pre-existing WORK: volume, restore it with:
+;   assign WORK:                           ; remove the temporary assign
+;   assign WORK: <your-original-target>    ; re-point if needed
+; or simply reboot.
+;
+; TEMPLATE FIELDS TO FILL IN
+; --------------------------
+;   <INSTALL_PATH>   The absolute AmigaDOS path where the port is installed
+;                    (e.g. Programs:amiport-wip/Julius or WORK:Julius)
+;   <BINARY_NAME>    The executable file name (e.g. julius, openttd)
+;   <STACK>          The required stack in bytes -- 262144 is the tested
+;                    minimum for libSDL2-amigaos3 games. Bump if the binary
+;                    uses alloca(), big local arrays, or deep call stacks.
+
+; --- setup --------------------------------------------------------------
+
+; Point WORK: at the game's data dir. '>NIL:' suppresses the "assign
+; exists" warning if the user already has WORK: assigned elsewhere.
+; For ADD-mode (non-shadowing, search-path) behavior, replace the line
+; below with: assign >NIL: WORK: <INSTALL_PATH> ADD
+assign >NIL: WORK: <INSTALL_PATH>
+
+; Move to the data dir (which == WORK: now) so relative paths resolve.
+cd WORK:
+
+; libSDL2-amigaos3 games need more than the 4 KB default stack.
+Stack <STACK>
+
+; Fresh run log for post-mortem diagnostics.
+delete >NIL: run.log
+
+; --- launch -------------------------------------------------------------
+
+echo "launching <BINARY_NAME> -- log will be at WORK:run.log"
+echo "quit the game normally (or Ctrl-C in this shell if it wedges)"
+
+; Only ">file" (stdout capture). Do NOT use "2>>file" -- AmigaDOS parses
+; that as a literal argv entry, not a redirect, and the binary will see
+; it as an unknown positional argument. See known-pitfalls "AmigaDOS
+; Doesn't Parse `2>>` Redirect".
+<BINARY_NAME> >run.log
+
+; --- cleanup / diagnostics ----------------------------------------------
+
+echo ""
+echo "=== <BINARY_NAME> exited, last of run.log ==="
+type run.log

@@ -26,6 +26,7 @@ ports/<name>/
 | `<name>.readme` | Stage 7 | Template | Aminet-format readme for distribution |
 | `test-fsemu-cases.txt` | Stage 5b | test-designer | Functional test suite (non-interactive + ITEST) |
 | `test-fsemu-visual-cases.txt` | Stage 5e | test-designer | Visual verification tests with SCRAPE (Category 3+, ADR-024) |
+| `run-<name>` | Stage 7 | Template (Category 5 only) | AmigaDOS launcher script — assigns WORK:, sets stack, launches binary with log capture. REQUIRED for all SDL game ports because libSDL2-amigaos3 hardcodes WORK: as the data volume. Use `run-sdlgame.template`. |
 
 ## Build Artifacts (not checked in)
 

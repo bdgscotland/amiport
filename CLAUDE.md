@@ -69,7 +69,7 @@ The porting pipeline has 4 stages, each backed by a Claude skill:
 - `docs/references/amiga-intern/` — "Amiga Intern" (1992) converted to markdown — 68030 CPU internals, custom chip architecture, memory map, hardware programming
 - `tests/` — Unit tests (shim/, emu/, console/, net/, common/, zlib/)
 - `ports/` — Output directory for real ports (each port gets original/, ported/, Makefile, PORT.md)
-- `ports/templates/` — Canonical templates for per-port artifacts (Makefile, PORT.md, .readme, directory structure)
+- `ports/templates/` — Canonical templates for per-port artifacts (Makefile, PORT.md, .readme, directory structure, and `run-sdlgame.template` — mandatory launcher script for every Category 5 SDL game port, assigns WORK: to the install dir before launch. See `.claude/rules/known-pitfalls.md` "libSDL2-amigaos3 Game Ports Hardcode WORK:").
 - `data/catalog.json` — Porting Tech Tree: candidate inventory, readiness scoring, shim unlock index, hardware profiles
 - `scripts/catalog-score.py` — Catalog scoring, validation, status dashboard, next-candidate selection, diff reports
 

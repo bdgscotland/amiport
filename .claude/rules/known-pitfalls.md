@@ -1633,3 +1633,332 @@ For tiny binaries (a 10 KB hello.c) this is fine — gdb's `target remote` hands
 **Detection:** if `gdb target remote <amiga-ip>:2345` reports "Connection timed out" but the same IP+port shows OPEN to a Python TCP probe seconds before, bgdbserver almost certainly gave up between the probe and gdb's handshake.
 
 Cross-reference: amiport memory `session_real_hardware_2026_04_19.md`, `reference_amigactl.md` (Channel C), amiga-kb pitfall (TODO: replay write — MCP server was down at end of session).
+
+## libSDL2-amigaos3 Game Ports Hardcode WORK: as the Data Volume
+
+All known libSDL2-amigaos3 consumer games (Julius/Caesar 3, OpenTTD-SDL2, Vanilla Conquer, and presumably others — SDL1 games with the same path-detection pattern) expect their data files at `WORK:` or `WORK:<subdir>/` at startup. The hardcoding lives inside the game's platform-init code (not in libSDL2 itself), where it runs a path-detection scan like `open("WORK:some.file")` or `chdir("WORK:")` before even reaching the main loop.
+
+Symptom: the game launches from its install directory, **silently fails to locate its data**, and either prints nothing and exits, shows a grey window and exits, or (worst case) Gurus during asset loading. The binary gives no "missing WORK:" diagnostic — because the scan treats `not-found-on-WORK:` identically to `wrong-volume-label`.
+
+**Fix (per-launch):** assign `WORK:` to the game's actual data directory before launching:
+```
+assign >NIL: WORK: Programs:amiport-wip/<GameDir>
+cd WORK:
+Stack 262144
+<game-binary> >run.log
+```
+
+`>NIL:` suppresses the "assign already exists" warning if the user had a pre-existing WORK: volume. After the session, the user can clean up with a plain `assign WORK:` (no target) to remove the assign, or reboot. For cases where the user relies on their existing WORK: during gameplay (unusual for a game session), use `assign WORK: <path> ADD` instead of a plain assign — multi-assign lookup finds the game data when the primary WORK: doesn't have it.
+
+**Applies to every Category 5 (SDL game) port.** Every SDL game port's launcher script (`ports/<name>/run-<name>`) and PORT.md install instructions MUST include this assign step. The `sdl-game-helper` agent should generate launcher scripts with the assign by default. Upstream "fix" would be to patch the games to use `PROGDIR:` (the AmigaOS-native "wherever the binary lives" volume) instead of `WORK:`, but until that's done systematically across libSDL2-amigaos3 consumers, the launcher wrapper is the workaround.
+
+**Detection:** if an SDL game port binary launches but exits immediately with no output, no Guru, and nothing in run.log, check whether the game expects `WORK:`. Easy test: `assign >NIL: WORK: <install-dir>` + `cd WORK:` + relaunch. If that fixes it, you've hit this pitfall.
+
+Discovered in the Julius/Caesar 3 port on Vampire V2 real hardware (2026-04-21). Cross-references the earlier "libSDL2 WORK: hardcoding" note in OpenTTD-SDL2 session memory. Cross-referenced in amiga-kb pitfall with same title.
+
+## libSDL2-amigaos3 SDL_Renderer Path is 2-3x Slower Than Direct Framebuffer — Patch Consumers
+
+libSDL2-amigaos3 has two distinct render paths that perform very differently:
+
+1. **Framebuffer path** — `SDL_GetWindowSurface(window)` + write pixels + `SDL_UpdateWindowSurface(window)`. This is the FAST path. libSDL2-amigaos3 has the optimized LockBitMap + asm bswap32 (ARGB->BGRA) + direct Picasso96 write baked into `SDL_UpdateWindowSurface`. ~12 ms for a 1.2 MB (640x480x32) frame on a patched build.
+2. **Renderer path** — `SDL_CreateRenderer` + `SDL_CreateTexture(STREAMING)` + `SDL_UpdateTexture(canvas)` + `SDL_RenderCopy(texture)` + `SDL_RenderPresent`. This is the SLOW path. Per frame: canvas -> texture (memcpy 1), texture -> renderer back buffer (memcpy 2), back buffer -> window surface (memcpy 3). **~3x the memory bandwidth per frame.** Plus `SDL_RENDERER_PRESENTVSYNC` caps at display refresh if present.
+
+Modern portable games (Julius, many SDL2 ports) use the renderer path because it's the SDL2 "recommended" path on every other OS. On libSDL2-amigaos3 it's a perf trap.
+
+**Fix: patch the game's platform/screen layer to use the framebuffer path on `__AMIGA__`.** Reference diff in `~/Developer/libSDL2-amigaos3/ports/julius/src/platform/screen.c` after 2026-04-21:
+
+```c
+/* Skip SDL_CreateRenderer on __AMIGA__ -- SDL.renderer stays NULL */
+#ifdef __AMIGA__
+    SDL.renderer = NULL;
+#else
+    SDL.renderer = SDL_CreateRenderer(SDL.window, -1, SDL_RENDERER_PRESENTVSYNC);
+    /* ... */
+#endif
+
+/* Per-frame: direct memcpy canvas -> window surface pixels */
+void platform_screen_update(void) {
+#ifdef __AMIGA__
+    SDL_Surface *s = SDL_GetWindowSurface(SDL.window);
+    if (s && SDL_LockSurface(s) == 0) {
+        const unsigned char *src = (const unsigned char *) graphics_canvas();
+        unsigned char *dst = (unsigned char *) s->pixels;
+        int row = screen_width() * 4;
+        for (int y = 0; y < screen_height(); y++)
+            memcpy(dst + y * s->pitch, src + y * row, row);
+        SDL_UnlockSurface(s);
+    }
+#else
+    /* ... original SDL_Renderer path ... */
+#endif
+}
+
+void platform_screen_render(void) {
+#ifdef __AMIGA__
+    SDL_UpdateWindowSurface(SDL.window);
+#else
+    SDL_RenderPresent(SDL.renderer);
+#endif
+}
+```
+
+**Also gate `platform_screen_resize`, `platform_screen_destroy`, and any `SDL.texture`-touching code with `#ifdef __AMIGA__` / `#else`** so the Amiga build never creates or destroys a renderer/texture.
+
+**Pair with OS hardware cursor.** If the game also uses a software cursor via `SDL_RenderCopy` (e.g. Julius's `PLATFORM_USE_SOFTWARE_CURSOR`), drop the define on the Amiga build so the game uses `SDL_CreateColorCursor` / `SDL_SetCursor` instead. Intuition.library draws the cursor at OS speed independent of frame rate -- necessary because we're removing the renderer that the software cursor was being blitted through.
+
+**Caveat: scaling.** The renderer path supports `SDL_RenderSetLogicalSize` for arbitrary scale factors. The framebuffer path is 1:1 window-to-canvas only. If the game supports a "display scale percentage," the Amiga build must pin it to 100%.
+
+**Detection:** use `amiport_profile` (or add ad-hoc `ReadEClock` probes) around `platform_screen_update` / `platform_screen_render`. If their combined per-frame cost exceeds the frame-budget floor (pixels * 4 / ~100 MB/s on Vampire native or ~25 MB/s on FS-UAE), the renderer path is adding overhead. On Julius at 640x480 the "floor" is ~12 ms; the renderer path was measuring 30+ ms per frame before the patch; post-patch is close to the floor.
+
+Discovered in the Julius/Caesar 3 port on Vampire V2 (2026-04-21). The initial libSDL2 relink alone gave a small but disappointing speedup; patching `SDL_RENDERER_PRESENTVSYNC` -> `0` gave nothing; the renderer-path -> framebuffer-path bypass was the 2-3x win that made the game playable. Same pattern Vanilla Conquer used for C&C (135 ms -> 60 ms per frame) but formalized here as a reusable playbook. Cross-referenced in amiga-kb pitfall with same title.
+
+## Apollo 68080 AMMX: Byte-Reformat Memcpys Are 4-8x Faster With MOVEX / VPERM / MOVE16
+
+On Apollo Core (Vampire 68080), scalar byte-swap memcpy via `rol.w / swap / rol.w` is CPU-bound at roughly **100 MB/s** (3 instructions per 32-bit word + load/store). That is ~8x below the Vampire V2 memory write bandwidth ceiling of **~800 MB/s** (per Gunnar von Boehn, Apollo Team lead, 2026-04-21).
+
+**AMMX primitives that close the gap:**
+
+1. **Plain memcpy idiom** — AMMX 8-byte load/store per iteration, ~2 cycles per 8 bytes:
+   ```
+   loop: load (a0)+, D0       ; 8-byte load
+         store D0, (a1)+      ; 8-byte store
+         dbra d7, loop        ; ~2 clocks per iteration total
+   ```
+   Gets close to the 800 MB/s memory ceiling.
+
+2. **MOVE16** — 68040+ 16-byte burst move, alignment-required (16-byte aligned source+dest). Works on 68040/60 too, not Apollo-only. Used by `CopyMem` in ROM on 040+ machines.
+
+3. **MOVEX** — AMMX move-with-free-endian-swap. One instruction = one memory cycle per 4 bytes WITH byte-reverse. Replaces the entire `rol.w / swap / rol.w` sequence with a single instruction that runs at memcpy speed. Apollo-only.
+
+4. **VPERM** — AMMX arbitrary per-byte permute via control mask. Superset of MOVEX — any byte reshuffle (ARGB→BGRA, ARGB→RGBA, RGB888→BGR888, drop-alpha, palette expand, channel interleave). Apollo-only.
+
+**Perf impact at 800x600x32bpp (1.9 MB/frame):**
+
+| Path | Bandwidth | Time/frame | % of 30fps (33ms) |
+|------|-----------|------------|---------------------|
+| Scalar `rol/swap/rol` bswap | ~100 MB/s | 19 ms | 57% |
+| AMMX MOVEX (or VPERM) | ~800 MB/s | 2.4 ms | 7% |
+| Pure memcpy (no swap needed) | ~800 MB/s | 2.4 ms | 7% |
+
+So replacing the scalar bswap with MOVEX/VPERM on Apollo is a **~16 ms per-frame save at 800x600** for every libSDL2-amigaos3 consumer game that hits the framebuffer path.
+
+**CPU detection required.** AMMX is Apollo 68080-only. MOVEX/VPERM instructions will Line-F trap on stock 68020/40/60. Runtime path needs:
+1. Detect Apollo core at init (via `ExecBase->AttnFlags` or Apollo-specific flag).
+2. Dispatch to AMMX path on Apollo, fallback to `rol/swap/rol` (or MOVE16 on 040+) otherwise.
+3. Store the chosen function as a pointer set once at init — avoid per-call branch cost.
+
+**Related architectural rule: bswap at load, not per-frame.** Even on Apollo with MOVEX free, the cleanest design is to format-convert foreign assets ONCE at load time (the `.555` / PNG / etc. decoder emits pixels in the target surface's native format). Per-frame rendering becomes pure memcpy with zero byte manipulation. This path wins on every CPU (stock 68060 without AMMX, FS-UAE, etc.) at the cost of a one-time conversion during game load. When both paths are available (load-time convert + AMMX) the game is resilient across all CPUs and the display path is essentially free.
+
+**MOVE16 note:** Gunnar emphasizes MOVE16 as "very strong for memcopy" specifically — 68040+ 16-byte burst move. For any bulk copy that doesn't need byte manipulation, MOVE16 is the short path on 68040/60/Apollo alike. The 16-byte alignment requirement is usually easy to satisfy (align buffers at allocation time with `AllocMem(size+15)` + `((addr+15) & ~15)` pointer rounding, or use `MEMF_CHIP|MEMF_PUBLIC` which is already 16-byte aligned).
+
+**AMMX `storem3` for transparent sprite blits (2-instruction per 8-pixel loop).** The "decide per pixel whether to write, don't write $00 color" operation (8-bit palette sprite with color 0 = transparent) is the classic 2D game hot loop. Scalar version is a branchy `if (src[i] != 0) dst[i] = src[i]` per pixel — ~4-8 cycles per pixel including the conditional branch. Apollo AMMX has a dedicated masked-store instruction that does the compare in hardware:
+
+```
+loop: load   (a0)+, D0            ; 8-byte load
+      storem3 D0, #1, (a1)+       ; 8-byte store, SKIPPING bytes == $00
+      dbra d7, loop
+```
+
+(Canonical idiom per Gunnar von Boehn, 2026-04-21. The `#1` immediate selects the compare mode — skip bytes equal to zero. Two instructions for 8 pixels + dbra, ~2 cycles per iteration.)
+
+**Critical property: `storem3` is a true write-without-read masked store.** Unlike generic SIMD masked-blend patterns (x86 PCMPEQB+PAND+PANDN+POR+STORE, ARM NEON VBSL, etc.) that require loading the destination bytes so they can be preserved where the source is transparent, storem3 simply doesn't write the skipped bytes — the hardware omits them from the memory cycle. This means the inner loop is **1 read (src) + 1 write (dst)**, not **2 reads + 1 write** like a blend-merge. At the Vampire V2's 800 MB/s write ceiling, sprite compositing is no longer bound by a dst-read + dst-write pair, only by the dst-write — effectively doubling the throughput compared to even the best blend-based approaches on other SIMD ISAs. Gunnar's claim of "better than ARM" holds up: ARM NEON's VBSL and predicated stores still touch the destination; Apollo's storem3 doesn't. For sparse sprites (most 2D game sprites are mostly transparent pixels), this compounds — the sparser the sprite, the bigger the storem3 advantage vs. any blend.
+
+**Perf: roughly 8× faster than scalar** on palette-transparent sprites. A full 800×600×8bpp composite goes from ~12 ms scalar to ~1.5 ms AMMX. For realistic per-frame sprite compositing (many small sprites, not one full-screen blit), the proportional saving still applies — a Julius-scale compositor doing ~30 ms of scalar sprite work per frame drops to ~4 ms with storem3.
+
+**Generalizes:**
+- **16-bit (RGB555/RGB565) sprites with transparent = $0000**: storem3/storemask with `#1` works natively at 16bpp (per Gunnar, 2026-04-21). Since it's byte-level compare, a 16-bit pixel of $0000 has both bytes == 0, both get skipped, 16-bit pixel preserved. **This unlocks the full 16-bit pipeline optimization**: composite and display in 16bpp all the way through (half the bandwidth of 32bpp), no ARGB↔BGRA bswap needed, and transparent blits still free-via-hardware. Best-case Vampire V2 ceiling.
+- **16-bit sprites with non-zero transparent key** (e.g., magenta $F81F): needs a wider compare mode — check AMMX docs for `#2` / `#3` / etc. immediates, or a register-based compare target. Followup to Gunnar.
+- **32-bit ARGB with alpha-test transparency**: compare the alpha byte against 0; storem3 with appropriate byte-position mask, still write-without-read.
+- **Partial alpha blends**: needs a per-byte multiply primitive (different AMMX op — to-confirm with Gunnar).
+
+**Confirm with Gunnar / amiga-kb followup:**
+- The `storem3` mnemonic/opcode and all documented compare-mode immediate values
+- Whether storem3 can mask on values other than zero (for 16-bit or custom transparent color)
+- Whether there's a multiply primitive for smooth alpha blending
+- Whether storem3 covers the 16-byte-wide case (like MOVE16 is 16 bytes)
+
+**Applies to many workloads beyond libSDL2:**
+- Image decoders (PNG, JPEG, BMP) ARGB→BGRA
+- Video decoders YUV plane interleave / deinterleave
+- Network byte order (`htonl`, `ntohl`) — one MOVEX = free big↔little endian for packet headers
+- Audio sample format conversion (if 32-bit samples need endian flip)
+- 8-bit palette → 32-bit RGB expansion (VPERM with lookup)
+- Data structure layout conversions (SOA↔AOS)
+- **Sprite compositors with alpha/mask (the core 2D game loop — masked-blend idiom above)**
+- Scanline rasterizers that write only non-transparent pixels
+
+**Architecture facts (confirmed from Apollo Core docs / PRM, 2026-04-21 web research):**
+- AMMX is a **line-F coprocessor, id=7**.
+- Register file: **32x 64-bit AMMX data registers** — `D0-D7` (shared with classic 68k data regs but 64-bit wide in AMMX context) + `E0-E23` (AMMX-only). Plus **`B0-B7`**: 32-bit scalar side-regs for the newer Apollo scalar instructions (also available in AMMX form).
+- AMMX instructions are **3-operand** (vs classic 68k's 2-operand) — fits a typical `OP src, src2/mask, dst` shape.
+- Normally one operand of an AMMX instruction can be any 68k effective address (including memory, immediate). **Exceptions: `VPERM` and `TRANS` do NOT allow memory operands** — both source operands must be registers.
+
+**Instruction-by-instruction — filled in from primary sources:**
+
+**`MOVEX`** — Apollo instruction #34 in the AC68080 PRM. Free endian-swap move. Operand form is classic 3-operand AMMX; exact mnemonic form per AMMX Quick Reference v2.0 — **full encoding still requires fetching `AMMX.doc.txt` / `AMMXQuickRef.pdf` from apollo-core.com (currently ECONNREFUSED — retry later).**
+
+**`VPERM Rn, Rm, Rd`** — byte permutation. Takes TWO source registers (Rm + Rn concatenated = 16 input bytes) and a permute-key register or immediate; output Rd gets 8 bytes chosen by the key. Per-byte key indices: `0-7` select from Rm, `8-f` select from Rn. Both source operands must be registers (no memory, no immediate for Rm/Rn). This is how you'd do arbitrary byte reshuffles like ARGB→BGRA, channel interleaves, 8-bit palette → 32-bit RGB expansion (VPERM with a per-byte pattern). Mask register CAN be hoisted outside a loop — compute the permute pattern once, reuse in the hot loop.
+
+**`STOREM Rn, Rm, <VEA>`** — masked-store with **user-supplied bitmask**. `Rn` = 64-bit source data (8 bytes). `Rm.b` = 8-bit bitmask, MSB-to-LSB, one bit per byte position in Rn. `<VEA>` = memory effective address (full 68k addressing including post-increment). Writes only the bytes where the corresponding mask bit is 1. **Write-without-read**: the hardware does NOT fetch the destination bytes for mask bits that are 0 — they are simply untouched on the memory side. This is the primitive that enables sprite-transparent blits on **every Apollo** (V2 and V4) — **but the caller has to compute the mask separately**. Example (from the AMMX doc itself):
+```
+moveq #4, d3                  ; stall (write-use hazard)
+load 4(A0,D3.l*4), D1         ; D1 = 64 bits from memory
+moveq #010101, D2             ; D2.b = mask: which bytes to write
+storem D1, D2, (A2)+          ; write every-second byte from D1
+```
+
+**`STOREM3 Rn, #imm, <VEA>`** — **V4+ / Release 7+ only.** Takes an immediate mode value (`#1` = "skip bytes equal to 0" per Gunnar) and does the per-byte COMPARE in hardware before the masked store. That is: `STOREM3` is a one-instruction fusion of "compute mask by comparing source bytes to a constant" + "masked store." On V4 you get the whole transparent-blit primitive in one opcode. **On Vampire V2 this instruction does NOT exist** — you have to synthesize equivalent behavior with a separate AMMX byte-compare producing a mask register, then call regular `STOREM`. So the "2 instructions per 8 pixels" idiom Gunnar quoted is the V4 shape; **V2 code needs 3 instructions (compare + STOREM + dbra) per 8 pixels**, still ~4-5× faster than scalar but not quite the V4 ceiling.
+
+**`STOREILM`** — alternative masked-store variant mentioned in the AMMX docs, cited as useful for "particular problems" including color-key detection. Exact semantics need primary-doc confirmation.
+
+**Critical hardware delineation for amiport consumers:**
+- **Vampire V2 (user's hardware): STOREM + separate AMMX compare** (3 instructions per 8 pixels for transparent blit). Still ~4-5× faster than scalar.
+- **Vampire V4 / Release 7+: STOREM3 #1** (2 instructions per 8 pixels). What Gunnar's primarily optimizing for.
+- Any AMMX-using library targeting both should CPU-detect and pick the path. CPU detect = read Apollo-specific AttnFlag bit (confirm specific bit via PRM).
+
+**Assembler support:**
+- **vasm** `vasmm68k_mot -m68080 -Fhunk` (v1.8 May 2017 + 1.8a/1.8b additions). Recommended.
+- **PhxAss** also supports AMMX.
+- **bebbo-gcc** does NOT emit AMMX from C by default. Use inline `__asm__` blocks or separate `.asm` files assembled with vasm. Experimental `68080regs` branch of bebbo-gcc adds `-m68080` direct target with B0-B7/E0-E7 register access from C.
+
+**Still unresolved (need primary docs once apollo-core.com is reachable):**
+- Exact MOVEX encoding + operand size forms (`movex.l` vs others)
+- Full list of STOREM3 compare-mode immediates (does `#2` = "skip != 0"? Can it compare against a non-zero immediate?)
+- STOREM3 wider variants (16-byte analogous to MOVE16)
+- AMMX byte-compare instruction mnemonic (needed on V2 to produce STOREM masks)
+- Multiply primitive for partial-alpha blending
+- Runtime AMMX probe — specific AttnFlag bit or ExecBase check
+
+**Authoritative sources (all currently ECONNREFUSED from this session, 2026-04-21):**
+- AC68080 PRM — `http://www.apollo-core.com/documentation/AC68080PRM.pdf`
+- AMMX full reference (text) — `http://www.apollo-core.com/AMMX.doc.txt`
+- AMMX Quick Reference v2.0 — `http://www.apollo-core.com/AMMXQuickRef.pdf`
+- AMMX full reference (AmigaGuide) — `http://www.apollo-core.com/AMMX.guide`
+- Apollo wiki — `https://wiki.apollo-computer.com/doku.php?id=apollo_core:start`
+
+## Apollo AMMX: Authoritative Instruction Reference (from `AMMX.doc.txt`)
+
+Per the primary-source AMMX documentation obtained 2026-04-21 (user pasted it directly after apollo-core.com was down). Supersedes earlier sections above where they disagree.
+
+### Detection
+
+`AFB_68080 = 10` in `ExecBase->AttnFlags` signals Apollo Core presence. When set, AMMX1 is guaranteed (Gold 2.5+). AMMX2 (PCMP, BSEL, PMIN/PMAX, STOREC, STOREilm, LOADi/STOREi, PMULA/PMULL/PMULH, more) requires Gold 2.7+ and should be unlocked via `vampire.resource`:
+
+```c
+#include <vampire/vampire.h>
+struct Library *VampireBase = OpenResource(V_VAMPIRENAME);
+if (VampireBase && VampireBase->lib_Version >= 45) {
+    if (V_EnableAMMX(V_AMMX_V2) != VRES_ERROR) { /* AMMX2 available */ }
+}
+```
+
+**This is required, not optional**: AMMX awareness is per-task (flagged via SR bit 11). Without calling `V_EnableAMMX`, the extended AMMX registers (E0-E23) are not saved across context switches — using them unflagged is a data-corruption bug waiting to happen, not just a perf miss.
+
+### Register file
+
+- `D0-D7` — extended to 64-bit in AMMX context (shared with classic 68k data regs)
+- `E0-E23` — AMMX-only 64-bit data registers
+- `B0-B7` — 32-bit scalar side-regs (separate from the AMMX SIMD file)
+
+### Masked-store instructions (the sprite-blit primitives)
+
+**THERE IS NO `STOREM3`.** That was either a V4+ undocumented addition or Gunnar spoke loosely. The actual primary-source masked stores are:
+
+**`STOREm Rn, Rm, <VEA>`** — masked store with explicit byte bitmask. `Rm.b` (low 8 bits) is the mask: bit 7=byte0, bit 6=byte1, ... bit 0=byte7. Writes byte `i` only if `Rm.b & (1<<(7-i))` is set. Write-without-read confirmed in spec. Example from the doc:
+```
+move.b  #$f0, d0
+storem  E0, d0, 8(a0)      ; overwrite 4 bytes from 8(a0) with upper 32 bit of E0
+```
+
+**`STOREilm Rn, Rm, <VEA>`** — *inverted long mask* store. Uses the **top bit** (bit 7) of each BYTE of Rm as per-byte selector, **inverted**: writes source where top bit is 0, preserves destination where top bit is 1. This is designed specifically to consume PCMP output directly — PCMP produces `$ff` per matching byte / `$00` per non-matching — so `STOREilm` + PCMP composes into a **2-instruction masked store** with no mask-extraction step:
+
+```
+; color-key: skip magenta 16-bit pixels (RGB565 $F81F)
+pcmpeqw.w  #$F81F, E0, E2    ; E2 = $FFFF per word where E0 == magenta, $0000 where not
+storeilm   E0, E2, (a0)      ; write ONLY non-magenta words to (a0)
+```
+
+**`STOREC Rn, count, <VEA>`** — store first `count` bytes (0..8). Clean memcpy-tail handler, no manual tail code.
+
+### The actual V2 transparent-sprite-blit idiom (3 instructions, authoritative)
+
+For 8-bit palette sprites with color 0 = transparent:
+```
+loop: load      (a0)+, D0              ; 8 source pixels
+      pcmpeqb   #$00, D0, D1           ; D1 = $ff per byte where src == 0 (transparent)
+      storeilm  D0, D1, (a1)+          ; write only opaque bytes (write-without-read)
+      dbra      d7, loop
+```
+
+For 16-bit RGB565 sprites with transparent = magenta `$F81F`:
+```
+loop: load      (a0)+, D0              ; 4 source pixels (16bpp × 4 = 8 bytes)
+      pcmpeqw   #$F81F, D0, D1         ; D1 = $FFFF per word where src == magenta
+      storeilm  D0, D1, (a1)+          ; write only non-magenta words
+      dbra      d7, loop
+```
+
+**3 instructions per iteration, write-without-read, works on every Apollo (V2 included)**. This is the confirmed V2 ceiling — not the "2 instructions" I quoted earlier (which I misattributed to Gunnar's V4-era `storem3 #1` shorthand; `STOREM3` does not appear in the primary AMMX reference, so it must be a V4+/R7 extension or a convenience macro).
+
+### Alpha blending: PMULA is the instruction
+
+For partial-alpha blends (smooth transparency, fade effects, UI overlay composition), `PMULA` is **explicitly designed for this**. Per the doc verbatim: *"Alpha Blending is the most prominent use for this instruction."*
+
+```
+pmula <VEA>, b, d     ; d[i] = ((a[i] * b[i]) >> 8) + d[i]  (per byte)
+```
+
+Premultiplied-alpha blend in ONE instruction: preload `255-alpha` in the relevant byte slots of `b`, destination content in `a`, premultiplied RGB in `d`. Done. This is the AMMX answer to "how do I do smooth UI transparency without killing the CPU."
+
+Other multiply variants:
+- `PMUL88`: 4× short × short, shift down 8. Good for 16.0 × 8.8 fixed-point multiply.
+- `PMULL`: 4× short × short, keep low 16 bits. Also usable as left-shift by 2^n.
+- `PMULH`: 4× short × short, keep upper 16 bits. Pair with PMULL for full 32-bit multiply, or use alone for Q15 fractional multiply.
+
+### Pixel format conversion: PACK3216 and UNPACK1632 are gold for Julius
+
+These are literally made for ARGB↔RGB565 pipelines:
+
+- **`PACK3216 a, b, <VEA>`** — packs 2×4 bytes of ARGB into 4 words of RGB565 in ONE instruction. Output format matches Picasso96 hi-color mode exactly. For the Julius 16-bit-pipeline optimization, this is the bridge instruction: run ARGB canvas → `PACK3216` → write to Picasso96 16bpp window surface. **No byte swap needed, no custom bswap loop — one instruction per 8 ARGB pixels.**
+- **`UNPACK1632 <VEA>, d:d+1`** — inverse: 4× RGB565 words → 8 bytes of ARGB (consecutive register pair). For RGB565 sprite storage that needs to be composited as ARGB.
+
+### VPERM (corrected): fixed-key byte permute, 8-byte output
+
+`vperm #N, a, b, d` — immediate permute key (32-bit, 4 bits per output byte). Picks bytes from concatenated `a:b` (indices 0-7 from `a`, 8-15 from `b`) into `d`. Example patterns from the doc:
+```
+vperm #$018923ab, D1, D2, D3   ; word interleave: m0 n0 m1 n1 (from D1=[m0..m3], D2=[n0..n3])
+vperm #$F0F1F2F3, D4, D5, D6   ; unsigned byte→word: first 4 bytes as words (D5=0)
+vperm #$F4F5F6F7, D4, D5, D6   ; unsigned byte→word: second 4 bytes as words
+```
+
+The `#$Fx` index pattern exploits a neat quirk — indices >= `$F` produce zero (or, more precisely, unused slot with zero-extension). That's how the byte→word conversion example widens 8-bit pixels to 16-bit words with zero high-byte. Useful for palette expansion, format widening, zero-extending channels before multiplication.
+
+**Memory operands NOT allowed** on VPERM or TRANS (both sources must be registers). Key is ASSEMBLY-TIME immediate — can be hoisted out of a loop (fully encoded in the instruction).
+
+### MOVEX correction
+
+`MOVEX` is NOT in the AMMX instruction set per this primary doc — the TOC shows no entry for it. It's a **68080 scalar instruction** (per `AC68080PRM.pdf` instruction #34) separate from AMMX SIMD. For bulk SIMD byte-reformat (ARGB→BGRA of a large pixel buffer), the AMMX path uses `VPERM` with an appropriate byte-reverse key (not MOVEX).
+
+### BSEL — bit-by-bit selection
+
+`bsel <VEA>, b, d` → `d = (d & !b) | (a & b)`. Bit-level version of STOREilm's byte-level selection. Common pattern: PCMP produces a 64-bit mask, BSEL blends two sources bit-wise based on it. Useful when the conditional-replenish / clip / blend condition doesn't align on byte boundaries.
+
+### C2P (chunky-to-planar) is a mask-extraction helper too
+
+`c2p` is documented for classic chunky→planar conversion (for OCS/AGA bitplane output), but the doc also explicitly mentions: *"Also useful to extract condition masks from AMMX registers (e.g. after PCMP) into regular data registers."* So C2P is the bridge to get a PCMP result into a scalar Dn for flow-control or mask-table indexing.
+
+### Summary of corrections to the earlier section
+
+Where the earlier "Authoritative sources TBD" section speculated, the primary doc now confirms:
+
+1. **There is no `STOREM3`** in the official AMMX doc. `STOREm` (explicit bitmask) and `STOREilm` (inverted-long-mask, takes PCMP output directly) are the documented masked stores. `STOREm3`, if it exists on V4+, is either undocumented or post-this-doc.
+2. **V2 transparent-blit is `PCMP + STOREilm`**, 3 instructions inner loop, NOT a single magic instruction. Still very fast and still write-without-read.
+3. **MOVEX is not AMMX** — it's a scalar 68080 extension covered in the separate PRM.
+4. **VPERM takes an immediate (assembly-time) permute key** of 32 bits (4 bits per output byte). Not a register — so can't be dynamically computed, but also can't be a per-call cost.
+5. **PMULA explicitly documented as the alpha-blend primitive** — doc calls this its "most prominent use."
+6. **PACK3216 / UNPACK1632 are the ARGB↔RGB565 bridge** — one instruction per 8/4 pixels. Ideal for the Julius 16-bit pipeline optimization.
+7. **`V_EnableAMMX` via `vampire.resource` is mandatory**, not optional, to get correct context-switch behavior for E-registers. This is a correctness requirement, not perf.
+
+The earlier sections above this one contain some inaccuracies from pre-primary-source speculation — prefer this section where they disagree.
+
+Discovered/confirmed during Julius/Caesar 3 perf investigation on Vampire V2 (2026-04-21). Exact instruction encodings held pending Gunnar's Discord reply. Cross-referenced in amiga-kb pitfall with same title. Implementation target: `lib/libSDL2-amigaos3/src/video/amigaos3/SDL_os3framebuffer.c` gets an AMMX-gated fast path; every consumer game benefits with zero per-port work.
