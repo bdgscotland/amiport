@@ -9,7 +9,7 @@
 #   clean            Remove build artifacts
 #   fetch-ndk        Download AmigaOS NDK 3.2 R4
 
-.PHONY: setup setup-toolchain setup-debug-tools build-shim build-emu build-console build-net build-http build-zlib build-libtommath build-libtomcrypt build-libgit2 build-freetype build-glyph-cache build-softfloat test-libtomcrypt build test test-shim test-emu test-console test-net test-zlib test-libtommath test-libgit2 test-freetype test-glyph-cache test-ports package clean fetch-ndk help doctor smoke-test compare list-ports build-ports install-emu setup-emu emu publish check-aminet build-uaequit build-keyinject test-fsemu check-docs check-agents check-test-coverage check-fix-propagation check-port-metadata check-arexx scrape-adcd
+.PHONY: setup setup-toolchain setup-debug-tools build-shim build-emu build-console build-net build-http build-zlib build-libtommath build-libtomcrypt build-libgit2 build-freetype build-glyph-cache build-libwapcaplet build-softfloat test-libtomcrypt build test test-shim test-emu test-console test-net test-zlib test-libtommath test-libgit2 test-freetype test-glyph-cache test-libwapcaplet test-ports package clean fetch-ndk help doctor smoke-test compare list-ports build-ports install-emu setup-emu emu publish check-aminet build-uaequit build-keyinject test-fsemu check-docs check-agents check-test-coverage check-fix-propagation check-port-metadata check-arexx scrape-adcd
 
 help:
 	@echo "amiport — AI-powered Amiga porting toolkit"
@@ -29,6 +29,7 @@ help:
 	@echo "  build-libgit2    Cross-compile the libgit2 embedded git library"
 	@echo "  build-freetype   Cross-compile the FreeType font rendering library"
 	@echo "  build-glyph-cache Cross-compile the LRU glyph cache library"
+	@echo "  build-libwapcaplet Cross-compile NetSurf libwapcaplet (string interning)"
 	@echo "  build            Build a port (TARGET=examples/wc)"
 	@echo "  test             Test a build via vamos (TARGET=examples/wc)"
 	@echo "  test-shim        Run POSIX shim library tests via vamos"
@@ -41,6 +42,7 @@ help:
 	@echo "  test-libgit2     Run libgit2 tests via vamos (vamos-limited, 79/79)"
 	@echo "  test-freetype    Run FreeType tests via vamos (26/26)"
 	@echo "  test-glyph-cache Run lib/glyph-cache tests via vamos (6/6)"
+	@echo "  test-libwapcaplet Run lib/libwapcaplet tests via vamos -C 68040 (36/36)"
 	@echo "  package          Create LHA archive (TARGET=examples/wc)"
 	@echo "  fetch-ndk        Download AmigaOS NDK 3.2 R4"
 	@echo "  clean            Remove build artifacts"
@@ -115,6 +117,9 @@ build-freetype:
 build-glyph-cache:
 	$(MAKE) -C lib/glyph-cache
 
+build-libwapcaplet:
+	$(MAKE) -C lib/libwapcaplet
+
 build-softfloat:
 	$(MAKE) -C lib/softfloat
 
@@ -159,6 +164,9 @@ test-freetype: build-freetype
 
 test-glyph-cache: build-glyph-cache
 	$(MAKE) -C tests/glyph-cache run
+
+test-libwapcaplet: build-libwapcaplet
+	$(MAKE) -C tests/libwapcaplet run
 
 package:
 ifndef TARGET
