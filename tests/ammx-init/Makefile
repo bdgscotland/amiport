@@ -3,8 +3,7 @@ TOOLCHAIN_BIN = ../../toolchain/scripts
 CC = $(TOOLCHAIN_BIN)/m68k-amigaos-gcc
 
 CFLAGS = -O0 -noixemul -m68040 -m68881 -std=gnu99 -Wall \
-         -I../../lib/posix-shim/include \
-         -I../../lib/vampire-sdk/include
+         -I../../lib/posix-shim/include
 LDFLAGS = -L../../lib/posix-shim -lamiport-020
 
 VAMOS_STACK = 256

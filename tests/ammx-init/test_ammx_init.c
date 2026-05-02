@@ -11,7 +11,7 @@
 #include <stdlib.h>
 #include <amiport/ammx.h>
 
-long __stack = 32768;
+long __stack = 262144;
 
 int main(void)
 {
