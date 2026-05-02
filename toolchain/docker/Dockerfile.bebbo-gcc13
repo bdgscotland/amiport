@@ -71,11 +71,15 @@ RUN echo '#include <optional>\n#include <string_view>\nstd::optional<int> f(std:
     /opt/amiga13/bin/m68k-amigaos-g++ -std=c++17 -noixemul -m68040 -O0 -c -o /tmp/test.o /tmp/test.cpp && \
     echo "=== C++17 COMPILE TEST PASSED ==="
 
-# vasm 1.8b — AMMX2-aware m68k assembler (for Apollo 68080 AMMX kernels)
-# Source: http://sun.hasenbraten.de/vasm/  (free, redistributable)
+# vasm — AMMX2-aware m68k assembler (for Apollo 68080 AMMX kernels)
+# Source: http://sun.hasenbraten.de/vasm/  (free, redistributable; http only,
+# upstream does not serve HTTPS as of 2026-05-02).
 # Required by ports/netsurf and any future AMMX consumer.
+# Note: tracks upstream "release" tarball (currently 2.0e). For reproducibility
+# pin to a specific archive; for our use case (m68k motorola syntax + -m68080)
+# the upstream release stream has been stable for years.
 RUN cd /tmp && \
-    wget -q -O vasm.tar.gz http://sun.hasenbraten.de/vasm/release/vasm.tar.gz && \
+    wget -nv -O vasm.tar.gz http://sun.hasenbraten.de/vasm/release/vasm.tar.gz && \
     tar xzf vasm.tar.gz && cd vasm && \
     make CPU=m68k SYNTAX=mot && \
     install -m 755 vasmm68k_mot /usr/local/bin/ && \
