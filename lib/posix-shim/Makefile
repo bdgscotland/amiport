@@ -9,7 +9,7 @@ CC = $(TOOLCHAIN_BIN)/m68k-amigaos-gcc
 AR = $(TOOLCHAIN_BIN)/m68k-amigaos-ar
 RANLIB = $(TOOLCHAIN_BIN)/m68k-amigaos-ranlib
 
-CFLAGS = -O2 -noixemul -m68000 -Wall -Iinclude
+CFLAGS = -O2 -noixemul -m68000 -Wall -Iinclude -I../vampire-sdk/include
 
 # ----------------------------------------------------------------------
 # Dual-flavor 68020 build (Track A, 2026-04-14)
@@ -50,7 +50,8 @@ SRCS = $(SRCDIR)/file_io.c \
        $(SRCDIR)/termios.c \
        $(SRCDIR)/usergroup.c \
        $(SRCDIR)/sysinfo.c \
-       $(SRCDIR)/fts.c
+       $(SRCDIR)/fts.c \
+       $(SRCDIR)/ammx_init.c
 
 OBJS     = $(SRCS:.c=.o)
 OBJS_020 = $(SRCS:.c=.020.o)
