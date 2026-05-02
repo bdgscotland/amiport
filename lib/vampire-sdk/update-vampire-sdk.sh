@@ -1,7 +1,8 @@
 #!/bin/bash
 # Re-pull flype44/Vampire SDK and update the vendored headers.
-# Run from project root: bash lib/vampire-sdk/update-vampire-sdk.sh
+# Run from anywhere — script chdirs to the project root automatically.
 set -euo pipefail
+cd "$(git rev-parse --show-toplevel)" || { echo "Not in a git repo"; exit 1; }
 TMP=$(mktemp -d)
 trap "rm -rf $TMP" EXIT
 git clone --depth 1 https://github.com/flype44/Vampire "$TMP/vampire"
