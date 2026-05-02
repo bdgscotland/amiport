@@ -194,6 +194,27 @@ int amiport_glyph_cache_lookup(amiport_glyph_cache_t *cache,
     return 0; /* Table full or not found after full scan */
 }
 
+/* ----- Eviction ----- */
+
+static void evict_lru_entry(amiport_glyph_cache_t *cache) {
+    cache_entry_t *victim;
+
+    if (!cache->lru_tail) {
+        return; /* No entries to evict */
+    }
+
+    victim = cache->lru_tail;
+
+    /* Remove from LRU list */
+    lru_remove(cache, victim);
+
+    /* Mark hash slot as unoccupied */
+    victim->occupied = 0;
+
+    cache->entry_count--;
+    cache->eviction_count++;
+}
+
 /* ----- Insert ----- */
 
 int amiport_glyph_cache_insert(amiport_glyph_cache_t *cache,
@@ -219,11 +240,23 @@ int amiport_glyph_cache_insert(amiport_glyph_cache_t *cache,
         return 0;
     }
 
-    /* Allocate bitmap in arena */
+    /* Try allocating bitmap in arena -- evict entries if full.
+     * Bump-pointer arena does not support per-entry deallocation.
+     * Strategy: evict ALL entries and reset arena when full. */
     bitmap_copy = arena_alloc(cache, bitmap_bytes);
     if (!bitmap_copy) {
-        /* LRU eviction in Task 12 */
-        return 0;
+        /* Arena full -- evict all entries and reset */
+        while (cache->lru_tail) {
+            evict_lru_entry(cache);
+        }
+        cache->arena_used = 0;
+
+        /* Retry allocation */
+        bitmap_copy = arena_alloc(cache, bitmap_bytes);
+        if (!bitmap_copy) {
+            /* Still fails -- glyph larger than total arena */
+            return 0;
+        }
     }
 
     memcpy(bitmap_copy, glyph->bitmap, bitmap_bytes);
@@ -249,7 +282,7 @@ int amiport_glyph_cache_insert(amiport_glyph_cache_t *cache,
             return 1;
         }
 
-        if (keys_equal(slot, face_id, codepoint, px_size, hint_flags)) {
+        if (slot->occupied && keys_equal(slot, face_id, codepoint, px_size, hint_flags)) {
             /* Duplicate insert -- update in place */
             slot->glyph = *glyph;
             slot->glyph.bitmap = bitmap_copy;
@@ -258,7 +291,29 @@ int amiport_glyph_cache_insert(amiport_glyph_cache_t *cache,
         }
     }
 
-    /* Hash table full -- need eviction (Task 12) */
+    /* Hash table full -- evict one entry and retry */
+    evict_lru_entry(cache);
+
+    /* Retry insertion with one less entry */
+    for (probe = 0; probe < HASH_TABLE_SIZE; probe++) {
+        slot = &cache->hash_table[(idx + probe) & HASH_MASK];
+
+        if (!slot->occupied) {
+            slot->face_id = face_id;
+            slot->codepoint = codepoint;
+            slot->px_size = px_size;
+            slot->hint_flags = hint_flags;
+            slot->glyph = *glyph;
+            slot->glyph.bitmap = bitmap_copy;
+            slot->occupied = 1;
+
+            lru_push_front(cache, slot);
+            cache->entry_count++;
+            return 1;
+        }
+    }
+
+    /* Still full after eviction -- should never happen */
     return 0;
 }
 
