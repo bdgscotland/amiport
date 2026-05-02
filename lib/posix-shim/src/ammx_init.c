@@ -1,6 +1,11 @@
 /* ammx_init.c -- Apollo 68080 AMMX2 initialization.
  * Wraps the canonical pattern from arczi84/NetSurf-MUI's jsimd_ammx.c
  * and the Apollo team's V_EnableAMMX documentation.
+ *
+ * Threading: amiport binaries are single-process. The g_ammx_init_status
+ * sentinel is process-global; if a future amiport library spawns sub-tasks
+ * that race on first call, both writers race-write the same value (benign).
+ * Do not promise thread-safety we don't guarantee.
  */
 
 #include <amiport/ammx.h>
@@ -29,6 +34,10 @@ static int g_ammx_init_status = -1;
 
 int amiport_ammx_init(void)
 {
+    /* Local VampireBase shadows the global from <proto/vampire.h>; the
+     * V_EnableAMMX() inline pragma below expands here referencing this
+     * local. Do NOT rename to avoid a shadow warning -- that silently
+     * breaks the LP1 macro expansion. */
     struct Library *VampireBase;
 
     if (g_ammx_init_status != -1) {
@@ -41,7 +50,8 @@ int amiport_ammx_init(void)
         return g_ammx_init_status;
     }
 
-    /* Step 2: open vampire.resource */
+    /* Step 2: open vampire.resource. NOTE: OpenResource returns a system
+     * resource pointer; do NOT close it. There is no CloseResource(). */
     VampireBase = (struct Library *)OpenResource((CONST_STRPTR)V_VAMPIRENAME);
     if (!VampireBase) {
         g_ammx_init_status = 2;
