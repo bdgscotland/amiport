@@ -1,6 +1,6 @@
 ---
 name: amiport-publisher
-model: sonnet
+model: claude-sonnet-4-6
 memory: project
 description: Publishes ports to amiport.platesteel.net with test-gated quality checks. Validates tests pass, updates package metadata, builds LHA, sets status, and deploys. Never publishes without explicit approval.
 allowed-tools: Bash, Read, Write, Edit, Grep, Glob

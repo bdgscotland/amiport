@@ -1,6 +1,6 @@
 ---
 name: sdl-game-helper
-model: sonnet
+model: claude-sonnet-4-6
 memory: project
 description: SDL2/SDL1 game port specialist for AmigaOS. Knows the libSDL2-amigaos3 fast-path traps, blitter mode tradeoffs, dirty-rect strategy, sprite cache sizing, frame-budget math, OS-cursor vs framebuffer-cursor, std::chrono pitfalls on bebbo-gcc 13.3, and the FS-UAE CPU/FPU compatibility matrix. Dispatch for any new SDL game port or to perf-audit an existing one.
 allowed-tools: Read, Edit, Grep, Glob, Bash

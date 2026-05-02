@@ -1,6 +1,6 @@
 ---
 name: debug-agent
-model: sonnet
+model: claude-sonnet-4-6
 memory: project
 description: Autonomous crash debugger for Amiga ports. Parses Enforcer hit data, maps crashes to source lines, classifies as obvious or subtle, applies fixes, and iterates until clean. Dispatched when test-fsemu --debug detects Enforcer hits.
 allowed-tools: Bash, Read, Write, Edit, Grep, Glob, Agent

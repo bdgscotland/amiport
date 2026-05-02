@@ -1,6 +1,6 @@
 ---
 name: test-designer
-model: sonnet
+model: claude-sonnet-4-6
 description: Designs comprehensive test suites for amiport artifacts. For ports — generates FS-UAE ARexx test suites (test-fsemu-cases.txt) with functional/error/edge coverage. For libraries in lib/ — designs C unit test plans against tests/shim/test_framework.h. Both modes enforce docs/test-coverage-standard.md.
 allowed-tools: Bash, Read, Write, Glob, Grep
 skills:

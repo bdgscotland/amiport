@@ -1,6 +1,6 @@
 ---
 name: hardware-expert
-model: sonnet
+model: claude-sonnet-4-6
 memory: project
 description: Amiga system architecture specialist. Validates hardware claims, reviews address space assumptions, identifies chipset-specific issues, and advises on bus architecture. Dual-role: on-demand consultant for other agents + proactive auditor for reference docs and agent prompts.
 allowed-tools: Read, Edit, Grep, Glob

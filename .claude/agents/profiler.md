@@ -1,6 +1,6 @@
 ---
 name: profiler
-model: sonnet
+model: claude-sonnet-4-6
 memory: project
 description: Runtime profiler for Amiga ports. Instruments code with ReadEClock-based timing, builds with -DAMIPORT_PROFILE, runs on vamos or FS-UAE, captures timing data, and reports hotspots. Complements the perf-optimizer (static analysis) with empirical measurement. Dispatch after perf-optimizer to validate optimizations or find unexpected bottlenecks.
 allowed-tools: Read, Edit, Write, Bash, Grep, Glob

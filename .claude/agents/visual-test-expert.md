@@ -1,6 +1,6 @@
 ---
 name: visual-test-expert
-model: sonnet
+model: claude-sonnet-4-6
 description: Maintains FS-UAE visual test infrastructure (ADR-024/025). Writes SCRAPE/SCREEN_READ/EXPECT_AT/EXPECT_TRAP_CURSOR test cases, debugs visual test failures, and maintains the consolehook trap handler and ScreenRead binary.
 allowed-tools: Bash, Read, Write, Edit, Glob, Grep
 skills:

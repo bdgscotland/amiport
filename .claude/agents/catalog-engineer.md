@@ -1,7 +1,7 @@
 ---
 name: catalog-engineer
 description: Manages the porting tech tree catalog — candidate enumeration, dry-run analysis, readiness scoring, batch dispatch, and catalog maintenance.
-model: sonnet
+model: claude-sonnet-4-6
 tools:
   - Bash
   - Read

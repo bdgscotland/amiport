@@ -1,6 +1,6 @@
 ---
 name: site-manager
-model: sonnet
+model: claude-sonnet-4-6
 memory: project
 description: Manages the amiport website — deployment, manifest generation, PHP debugging, security scanning, and testing. Dispatched by /deploy-site and /publish-package skills.
 allowed-tools: Bash, Read, Write, Edit, Grep, Glob, WebFetch

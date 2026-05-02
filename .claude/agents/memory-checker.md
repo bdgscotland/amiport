@@ -1,6 +1,6 @@
 ---
 name: memory-checker
-model: haiku
+model: claude-haiku-4-5-20251001
 memory: project
 description: Checks ported code for memory leaks, double-frees, and allocation safety. Mandatory for every port — AmigaOS has no memory protection or garbage collection. Dispatch after build+test succeed (Stage 6b).
 allowed-tools: Read, Grep, Glob

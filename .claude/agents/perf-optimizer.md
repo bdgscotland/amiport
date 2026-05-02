@@ -1,6 +1,6 @@
 ---
 name: perf-optimizer
-model: sonnet
+model: claude-sonnet-4-6
 memory: project
 description: Optimizes ported code for 68k hardware performance. Knows instruction timing, CHIP/FAST RAM characteristics, cache behavior, and DMA contention. Optional — dispatch after memory-checker (Stage 6c) for performance-critical ports.
 allowed-tools: Read, Edit, Grep, Glob

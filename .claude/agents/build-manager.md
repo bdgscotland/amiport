@@ -1,6 +1,6 @@
 ---
 name: build-manager
-model: sonnet
+model: claude-sonnet-4-6
 memory: project
 description: Manages Amiga cross-compilation. Handles compiler errors, linker issues, and build configuration. Iterates on build failures until the code compiles cleanly.
 allowed-tools: Bash, Read, Write, Edit, Grep

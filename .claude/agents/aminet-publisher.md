@@ -1,6 +1,6 @@
 ---
 name: aminet-publisher
-model: sonnet
+model: claude-sonnet-4-6
 description: Prepares and publishes ports to Aminet. Validates packages, generates Aminet-format readmes, previews submissions, and handles FTP upload with user confirmation. Never publishes without explicit approval.
 allowed-tools: Read, Write, Bash, Grep, Glob
 ---

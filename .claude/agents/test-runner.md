@@ -1,6 +1,6 @@
 ---
 name: test-runner
-model: haiku
+model: claude-haiku-4-5-20251001
 description: Tests Amiga binaries using vamos emulator. Executes programs, captures output, compares against expected results. Fast and lightweight.
 allowed-tools: Bash, Read
 ---

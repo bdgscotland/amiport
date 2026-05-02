@@ -1,6 +1,6 @@
 ---
 name: regression-checker
-model: sonnet
+model: claude-sonnet-4-6
 memory: project
 description: After shim or library changes, rebuild and test all affected ports to detect regressions. Dispatch when lib/posix-shim/, lib/posix-emu/, lib/console-shim/, lib/bsdsocket-shim/, or lib/http-shim/ are modified.
 allowed-tools: Read, Grep, Glob, Bash

@@ -1,6 +1,6 @@
 ---
 name: aminet-researcher
-model: haiku
+model: claude-haiku-4-5-20251001
 description: Researches whether a tool or library already exists for AmigaOS before porting. Checks Aminet, Geek Gadgets, AmigaPorts, and community forums. Use before starting any port to avoid duplicating existing work.
 allowed-tools: WebSearch, WebFetch, Read, Grep
 ---

@@ -1,6 +1,6 @@
 ---
 name: port-worker
-model: sonnet
+model: claude-sonnet-4-6
 memory: project
 description: Self-contained porting worker that runs stages 0-4 for a single port in an isolated worktree. Designed for parallel dispatch — does analysis, transformation, building, and vamos testing without needing sub-agent dispatch.
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob, WebSearch, WebFetch
