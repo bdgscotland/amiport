@@ -1,0 +1,3 @@
+[submodule "ports/netsurf/original"]
+	path = ports/netsurf/original
+	url = https://github.com/arczi84/NetSurf-3.11-MUI.git
