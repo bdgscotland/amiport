@@ -71,6 +71,16 @@ RUN echo '#include <optional>\n#include <string_view>\nstd::optional<int> f(std:
     /opt/amiga13/bin/m68k-amigaos-g++ -std=c++17 -noixemul -m68040 -O0 -c -o /tmp/test.o /tmp/test.cpp && \
     echo "=== C++17 COMPILE TEST PASSED ==="
 
+# vasm 1.8b — AMMX2-aware m68k assembler (for Apollo 68080 AMMX kernels)
+# Source: http://sun.hasenbraten.de/vasm/  (free, redistributable)
+# Required by ports/netsurf and any future AMMX consumer.
+RUN cd /tmp && \
+    wget -q -O vasm.tar.gz http://sun.hasenbraten.de/vasm/release/vasm.tar.gz && \
+    tar xzf vasm.tar.gz && cd vasm && \
+    make CPU=m68k SYNTAX=mot && \
+    install -m 755 vasmm68k_mot /usr/local/bin/ && \
+    cd / && rm -rf /tmp/vasm*
+
 # --- Slim runtime image ---
 FROM ubuntu:22.04
 
@@ -84,6 +94,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /opt/amiga13 /opt/amiga13
+COPY --from=builder /usr/local/bin/vasmm68k_mot /usr/local/bin/
 
 ENV PATH="/opt/amiga13/bin:${PATH}"
 
