@@ -1,0 +1,5 @@
+# Build artifacts inside the upstream tree
+original/build/
+original/*.o
+original/*.a
+original/*.lha
