@@ -11,6 +11,18 @@
 #define HASH_TABLE_SIZE 512  /* Power of 2 for fast mod via & */
 #define HASH_MASK (HASH_TABLE_SIZE - 1)
 
+/* Cap entries at ~70% load factor. Linear-probe performance degrades
+ * sharply above 70-75% load (cluster lengths grow non-linearly). At
+ * 70% (358 entries) average probe length stays ~1.7 steps; without the
+ * cap a full table at 100% load would average ~10 steps per lookup.
+ *
+ * When entry_count >= MAX_ENTRIES on insert, we evict the LRU tail
+ * proactively rather than letting the probe loop find a slot. Caps
+ * worst-case lookup at the proactive boundary instead of the
+ * full-table boundary. Captured from perf-optimizer audit 2026-05-02.
+ */
+#define MAX_ENTRIES (HASH_TABLE_SIZE * 7 / 10)  /* 358 entries */
+
 typedef struct cache_entry cache_entry_t;
 
 struct cache_entry {
@@ -238,6 +250,13 @@ int amiport_glyph_cache_insert(amiport_glyph_cache_t *cache,
     /* Reject glyphs larger than total arena (can never fit) */
     if (bitmap_bytes > cache->arena_bytes) {
         return 0;
+    }
+
+    /* Proactive eviction: keep load factor under 70% for probe perf
+     * (perf-optimizer audit 2026-05-02). Evicts the LRU tail one at a
+     * time. Idempotent if already below the cap. */
+    while (cache->entry_count >= MAX_ENTRIES && cache->lru_tail) {
+        evict_lru_entry(cache);
     }
 
     /* Try allocating bitmap in arena -- evict entries if full.
