@@ -9,7 +9,7 @@
 #   clean            Remove build artifacts
 #   fetch-ndk        Download AmigaOS NDK 3.2 R4
 
-.PHONY: setup setup-toolchain setup-debug-tools build-shim build-emu build-console build-net build-http build-zlib build-libtommath build-libtomcrypt build-libgit2 build-freetype build-glyph-cache build-libwapcaplet build-libparserutils build-softfloat test-libtomcrypt build test test-shim test-emu test-console test-net test-zlib test-libtommath test-libgit2 test-freetype test-glyph-cache test-libwapcaplet test-libparserutils test-ports package clean fetch-ndk help doctor smoke-test compare list-ports build-ports install-emu setup-emu emu publish check-aminet build-uaequit build-keyinject test-fsemu check-docs check-agents check-test-coverage check-fix-propagation check-port-metadata check-arexx scrape-adcd
+.PHONY: setup setup-toolchain setup-debug-tools build-shim build-emu build-console build-net build-http build-zlib build-libtommath build-libtomcrypt build-libgit2 build-freetype build-glyph-cache build-libwapcaplet build-libparserutils build-libhubbub build-softfloat test-libtomcrypt build test test-shim test-emu test-console test-net test-zlib test-libtommath test-libgit2 test-freetype test-glyph-cache test-libwapcaplet test-libparserutils test-libhubbub test-ports package clean fetch-ndk help doctor smoke-test compare list-ports build-ports install-emu setup-emu emu publish check-aminet build-uaequit build-keyinject test-fsemu check-docs check-agents check-test-coverage check-fix-propagation check-port-metadata check-arexx scrape-adcd
 
 help:
 	@echo "amiport — AI-powered Amiga porting toolkit"
@@ -31,6 +31,7 @@ help:
 	@echo "  build-glyph-cache Cross-compile the LRU glyph cache library"
 	@echo "  build-libwapcaplet Cross-compile NetSurf libwapcaplet (string interning)"
 	@echo "  build-libparserutils Cross-compile NetSurf libparserutils (codecs, parser primitives)"
+	@echo "  build-libhubbub  Cross-compile NetSurf libhubbub (HTML5 tokeniser + tree builder)"
 	@echo "  build            Build a port (TARGET=examples/wc)"
 	@echo "  test             Test a build via vamos (TARGET=examples/wc)"
 	@echo "  test-shim        Run POSIX shim library tests via vamos"
@@ -45,6 +46,7 @@ help:
 	@echo "  test-glyph-cache Run lib/glyph-cache tests via vamos (6/6)"
 	@echo "  test-libwapcaplet Run lib/libwapcaplet tests via vamos -C 68040 (36/36)"
 	@echo "  test-libparserutils Run lib/libparserutils tests via vamos -C 68040 (57/57)"
+	@echo "  test-libhubbub   Run lib/libhubbub tests via vamos -C 68040 -s 4096 -m 8192 (20/20)"
 	@echo "  package          Create LHA archive (TARGET=examples/wc)"
 	@echo "  fetch-ndk        Download AmigaOS NDK 3.2 R4"
 	@echo "  clean            Remove build artifacts"
@@ -125,6 +127,9 @@ build-libwapcaplet:
 build-libparserutils:
 	$(MAKE) -C lib/libparserutils
 
+build-libhubbub: build-libparserutils
+	$(MAKE) -C lib/libhubbub
+
 build-softfloat:
 	$(MAKE) -C lib/softfloat
 
@@ -175,6 +180,9 @@ test-libwapcaplet: build-libwapcaplet
 
 test-libparserutils: build-libparserutils
 	$(MAKE) -C tests/libparserutils run
+
+test-libhubbub: build-libhubbub
+	$(MAKE) -C tests/libhubbub run
 
 package:
 ifndef TARGET

@@ -176,6 +176,7 @@ Most porting failures come from the POSIX gap. amiport bridges it with a three-t
 | [glyph-cache](lib/glyph-cache/) | Generic LRU glyph bitmap cache for text-rendering ports | `-lglyphcache` |
 | [libwapcaplet](lib/libwapcaplet/) | NetSurf string interning (libwapcaplet 0.4.3, NetSurf-Vampire dep stack) | `-lwapcaplet` |
 | [libparserutils](lib/libparserutils/) | NetSurf parser primitives — codecs, MIB aliases, UTF-8/16 helpers, inputstream | `-lparserutils` |
+| [libhubbub](lib/libhubbub/) | NetSurf HTML5 tokeniser + tree builder | `-lhubbub -lparserutils` |
 
 **Tier 1** (posix-shim) covers functions where POSIX and AmigaOS semantics map cleanly: `open`, `read`, `stat`, `opendir`, `getopt`, `glob`, `fnmatch`, `scandir`, etc. Drop-in replacements, no caveats.
 
