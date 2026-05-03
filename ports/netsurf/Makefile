@@ -45,6 +45,11 @@ $(NETSURF_BINARY):
 		echo "[INFO] Applying ports/netsurf/patches/01-amiport-netsurf-mui-buildsystem.patch"; \
 		(cd original && git apply ../patches/01-amiport-netsurf-mui-buildsystem.patch); \
 	fi
+	@if [ ! -f original/resources/FatMessages ]; then \
+		echo "[INFO] Staging resources/FatMessages from frontends/framebuffer/res/"; \
+		mkdir -p original/resources; \
+		cp original/frontends/framebuffer/res/FatMessages original/resources/FatMessages; \
+	fi
 	docker run --rm \
 		-v $(shell cd ../.. && pwd):/work \
 		-w /work/ports/netsurf/original \
