@@ -186,6 +186,7 @@ Most porting failures come from the POSIX gap. amiport bridges it with a three-t
 | [libnspsl](lib/libnspsl/) | NetSurf Public Suffix List lookup (cookie scope, ~13K LOC table data, no deps) | `-lnspsl` |
 | [libpng](lib/libpng/) | PNG image decoder/encoder (libpng 1.6.x, fixed-point only, no soft-float) | `-lpng -lz` |
 | [libjpeg](lib/libjpeg/) | JPEG image decoder/encoder (IJG libjpeg 9f, integer DCT only, no soft-float) | `-ljpeg` |
+| [libcurl](lib/libcurl/) | HTTP-only client (curl 8.11.1, no TLS/proxy/auth/IPv6/threads/QUIC/MIME, ~432 KB) | `-lcurl` (+ bsdsocket / `-lamiport-net`) |
 
 **Tier 1** (posix-shim) covers functions where POSIX and AmigaOS semantics map cleanly: `open`, `read`, `stat`, `opendir`, `getopt`, `glob`, `fnmatch`, `scandir`, etc. Drop-in replacements, no caveats.
 
