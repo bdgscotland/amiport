@@ -1,0 +1,54 @@
+CyberGraphX SDK source provenance
+==================================
+
+Date imported:  2026-05-02
+Importer:       amiport NetSurf Vampire Phase 1, Stage 11 second-pass
+
+Source:         Docker image `amigadev/crosstools:m68k-amigaos`
+                (the canonical bebbo-gcc 6.5 cross-toolchain image)
+
+Source paths inside that image:
+  /opt/m68k-amigaos/m68k-amigaos/include/cybergraphx/cybergraphics.{h,i}
+  /opt/m68k-amigaos/m68k-amigaos/include/cybergraphics      (symlink to cybergraphx)
+  /opt/m68k-amigaos/m68k-amigaos/include/clib/cybergraphics_protos.h
+  /opt/m68k-amigaos/m68k-amigaos/include/proto/cybergraphics.h
+  /opt/m68k-amigaos/m68k-amigaos/include/inline/cybergraphics.h
+  /opt/m68k-amigaos/m68k-amigaos/include/inline/cybergraphics_protos.h
+  /opt/m68k-amigaos/m68k-amigaos/include/pragmas/cybergraphics_pragmas.h
+  /opt/m68k-amigaos/m68k-amigaos/lib/fd/cybergraphics.fd
+  /opt/m68k-amigaos/m68k-amigaos/lib/sfd/cybergraphics.sfd
+  /opt/m68k-amigaos/m68k-amigaos/doc/cybergraphics.doc
+
+Original upstream:
+  CyberGraphX SDK 41.18 by phase5 digital products
+  $VER: cybergraphics.h 41.18 (21.02.1998)
+  Copyright (C) 1996-1998 by phase5 digital products
+
+Extraction command (one-shot reproducer):
+
+  mkdir -p /tmp/cgx-sdk
+  docker run --rm -v /tmp/cgx-sdk:/out amigadev/crosstools:m68k-amigaos bash -c '
+    mkdir -p /out/cybergraphx /out/cybergraphics /out/clib /out/proto /out/inline /out/pragmas
+    cp /opt/m68k-amigaos/m68k-amigaos/include/cybergraphx/* /out/cybergraphx/
+    cp /opt/m68k-amigaos/m68k-amigaos/include/cybergraphx/* /out/cybergraphics/
+    cp /opt/m68k-amigaos/m68k-amigaos/include/clib/cybergraphics_protos.h /out/clib/
+    cp /opt/m68k-amigaos/m68k-amigaos/include/proto/cybergraphics.h /out/proto/
+    cp /opt/m68k-amigaos/m68k-amigaos/include/inline/cybergraphics.h /out/inline/
+    cp /opt/m68k-amigaos/m68k-amigaos/include/inline/cybergraphics_protos.h /out/inline/
+    cp /opt/m68k-amigaos/m68k-amigaos/include/pragmas/cybergraphics_pragmas.h /out/pragmas/
+    cp /opt/m68k-amigaos/m68k-amigaos/lib/fd/cybergraphics.fd /out/
+    cp /opt/m68k-amigaos/m68k-amigaos/lib/sfd/cybergraphics.sfd /out/
+    cp /opt/m68k-amigaos/m68k-amigaos/doc/cybergraphics.doc /out/UPSTREAM-cybergraphics.doc
+  '
+
+To re-import or refresh:
+  Re-run the extraction command above; the layout under
+  `lib/cybergraphx-sdk/include/` mirrors the include subdirs exactly.
+
+Notes:
+  - cybergraphics/ and cybergraphx/ contain identical files. In the
+    upstream image cybergraphics/ is a symlink to cybergraphx/. We
+    duplicate-copy here because git does not gracefully version
+    cross-tree symlinks across host filesystems.
+  - The proto/ + inline/ headers are sfdc-generated (sfdc 1.11f).
+    They can be regenerated from cybergraphics.sfd if upstream changes.
