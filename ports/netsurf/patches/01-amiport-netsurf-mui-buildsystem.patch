@@ -250,6 +250,23 @@ index 4936d75..d290288 100644
  struct gui_utf8_table *mui_utf8_table;
  extern struct gui_layout_table *mui_layout_table;
  
+diff --git a/frontends/mui/gui.c b/frontends/mui/gui.c
+index 5403aaf..079a60a 100644
+--- a/frontends/mui/gui.c
++++ b/frontends/mui/gui.c
+@@ -148,7 +148,11 @@ struct Library *CyberGfxBase;
+ struct Library *MUIMasterBase;
+ //Added for AmigaOS 3.x
+ struct Library *AslBase, *LayersBase;
+-struct UtilityBase *UtilityBase = NULL;
++/* amiport: NDK <proto/utility.h> declares `extern struct Library *UtilityBase`,
++ * NOT struct UtilityBase *. The mismatch errors at compile in modern bebbo-gcc.
++ * (utility.library is a basic Exec library; the typed struct UtilityBase is
++ * only needed if accessing internal fields, which this code doesn't do.) */
++struct Library *UtilityBase = NULL;
+ struct GfxBase *GfxBase = NULL;
+ struct Library *IFFParseBase = NULL;
+ struct LocaleBase *LocaleBase = NULL;
 diff --git a/frontends/mui/mui.h b/frontends/mui/mui.h
 index ecbd0a0..f806dc6 100644
 --- a/frontends/mui/mui.h
