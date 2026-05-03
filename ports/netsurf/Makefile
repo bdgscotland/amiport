@@ -48,8 +48,8 @@ $(NETSURF_BINARY):
 	docker run --rm \
 		-v $(shell cd ../.. && pwd):/work \
 		-w /work/ports/netsurf/original \
-		-e "CFLAGS=$(TARGET_CFLAGS) -I/work/lib/sdi-headers/include -I/work/lib/cybergraphx-sdk/include -DVOLATILE=volatile" \
-		-e "CXXFLAGS=$(TARGET_CXXFLAGS) -I/work/lib/sdi-headers/include -I/work/lib/cybergraphx-sdk/include -DVOLATILE=volatile" \
+		-e "CFLAGS=$(TARGET_CFLAGS) -I/work/lib/sdi-headers/include -I/work/lib/cybergraphx-sdk/include -I/work/lib/muimaster-sdk/include -I/work/lib/codesets-sdk/include -I/work/lib/asyncio-sdk/include -I/work/lib/openurl-sdk/include -I/work/lib/ttengine-sdk/include -DVOLATILE=volatile" \
+		-e "CXXFLAGS=$(TARGET_CXXFLAGS) -I/work/lib/sdi-headers/include -I/work/lib/cybergraphx-sdk/include -I/work/lib/muimaster-sdk/include -I/work/lib/codesets-sdk/include -I/work/lib/asyncio-sdk/include -I/work/lib/openurl-sdk/include -I/work/lib/ttengine-sdk/include -DVOLATILE=volatile" \
 		-e "CC=m68k-amigaos-gcc" \
 		-e "CXX=m68k-amigaos-g++" \
 		-e "AR=m68k-amigaos-ar" \
