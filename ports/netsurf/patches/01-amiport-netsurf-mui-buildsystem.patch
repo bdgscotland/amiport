@@ -233,6 +233,23 @@ index f012b60..c20a733 100644
  #CFLAGS +=	-I/mnt/e/usr/local/amiga/m68k-amigaos/clib/extra/ns-include/turbojpeg
  CFLAGS +=	-Ifrontends -Ifrontends/mui/include -Ifrontends/mui/include-ns -Ifrontends/mui/Prefs #-Inetsurf/include
  CFLAGS +=	-Iinclude -Ifrontends/mui/include-extra
+diff --git a/frontends/mui/font.h b/frontends/mui/font.h
+index 4936d75..d290288 100644
+--- a/frontends/mui/font.h
++++ b/frontends/mui/font.h
+@@ -92,7 +92,11 @@ struct font_functions {
+                   size_t *char_offset, int *actual_x);
+ };
+ 
+-extern const struct font_functions nsfont;
++/* amiport: nsfont is defined as `static const` in BOTH font.c (system
++ * fonts path) and font_tte.c (TTengine path) -- only one is linked
++ * per build. Modern bebbo-gcc 13.3 errors when an `extern` declaration
++ * precedes a `static` definition in the same TU; original NetSurf
++ * relied on older gcc tolerating it. Remove the dead extern. */
+ struct gui_utf8_table *mui_utf8_table;
+ extern struct gui_layout_table *mui_layout_table;
+ 
 diff --git a/frontends/mui/mui.h b/frontends/mui/mui.h
 index ecbd0a0..f806dc6 100644
 --- a/frontends/mui/mui.h
