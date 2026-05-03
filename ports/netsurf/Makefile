@@ -39,11 +39,17 @@ $(NETSURF_BINARY):
 	@echo "TARGET=$(NETSURF_TARGET)"
 	@echo "CFLAGS=$(TARGET_CFLAGS)"
 	@echo ""
+	@if [ -n "$$(cd original && git diff --name-only)" ]; then \
+		echo "[INFO] Submodule already patched; skipping git apply"; \
+	else \
+		echo "[INFO] Applying ports/netsurf/patches/01-amiport-netsurf-mui-buildsystem.patch"; \
+		(cd original && git apply ../patches/01-amiport-netsurf-mui-buildsystem.patch); \
+	fi
 	docker run --rm \
 		-v $(shell cd ../.. && pwd):/work \
 		-w /work/ports/netsurf/original \
-		-e "CFLAGS=$(TARGET_CFLAGS)" \
-		-e "CXXFLAGS=$(TARGET_CXXFLAGS)" \
+		-e "CFLAGS=$(TARGET_CFLAGS) -I/work/lib/sdi-headers/include" \
+		-e "CXXFLAGS=$(TARGET_CXXFLAGS) -I/work/lib/sdi-headers/include" \
 		-e "CC=m68k-amigaos-gcc" \
 		-e "CXX=m68k-amigaos-g++" \
 		-e "AR=m68k-amigaos-ar" \
