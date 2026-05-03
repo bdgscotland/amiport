@@ -1,0 +1,201 @@
+diff --git a/Makefile b/Makefile
+index 45ef363..7c17622 100644
+--- a/Makefile
++++ b/Makefile
+@@ -136,7 +136,8 @@ include Makefile.defaults
+ -include Makefile.config
+ 
+ # libraries enabled by feature switch without pkgconfig file 
+-$(eval $(call feature_switch,JPEG,JPEG (libjpeg),-DWITH_JPEG,-ljpeg-ammx,-UWITH_JPEG,))
++# amiport: switched from feature_switch (which hardcoded -ljpeg-ammx) to pkg-config (libjpeg.pc)
++$(eval $(call pkg_config_find_and_add_enabled,JPEG,libjpeg,JPEG))
+ #$(eval $(call feature_switch,JPEG,JPEG (libjpeg-turbo),-DWITH_JPEG,-ljpeg,-UWITH_JPEG,))
+ $(eval $(call feature_switch,HARU_PDF,PDF export (haru),-DWITH_PDF_EXPORT,-lhpdf -lpng,-UWITH_PDF_EXPORT,))
+ $(eval $(call feature_switch,LIBICONV_PLUG,glibc internal iconv,-DLIBICONV_PLUG,,-ULIBICONV_PLUG,-liconv))
+diff --git a/Makefile.config b/Makefile.config
+index 10a982f..56ce490 100644
+--- a/Makefile.config
++++ b/Makefile.config
+@@ -1,119 +1,54 @@
++# Makefile.config for amiport NetSurf-Vampire Phase 1.
++# REPLACES the netsurf-mui upstream author's config (preserved at
++# Makefile.config.upstream-author). All toolchain vars (CC, AR,
++# GCCSDK_INSTALL_*, PKG_CONFIG_PATH, CFLAGS, LDFLAGS) come from the
++# wrapper Makefile env. This file ONLY sets feature flags.
++
++# === Image format support ===
++override NETSURF_USE_PNG  := YES
++override NETSURF_USE_JPEG := YES
++override NETSURF_USE_BMP  := YES
++override NETSURF_USE_GIF  := YES
++override NETSURF_USE_NSSVG := NO
++override NETSURF_USE_RSVG  := NO
++
++# === Network / TLS ===
++override NETSURF_USE_CURL    := YES
++override NETSURF_USE_OPENSSL := NO
++override NETSURF_USE_AMISSL  := NO
++
++# === I18N (no libutf8proc on amiport) ===
++override NETSURF_USE_UTF8PROC      := NO
++override NETSURF_USE_LIBICONV_PLUG := NO
++
++# === Scripting (no Duktape; libnix has no pthreads) ===
++override NETSURF_USE_DUKTAPE := NO
+ 
+-#override TARGET=mui
+-
+-override COMMON_WARNFLAGS =
+-override GCCSDK_INSTALL_ENV=/opt/netsurf/
+-
+-PREF=/opt/netsurf/m68k-unknown-amigaos
+-GCCSDK_INSTALL_ENV = $(PREF)/env
+-GCCSDK_INSTALL_CROSSBIN = $(PREF)/cross/bin
+-CFLAGS += -D__clib2__ -I$(PREF)/cross/m68k-unknown-amigaos/include -I$(PREF)/env/include \
+-        -I$(PREF)/env/m68k-unknown-amigaos/sys-include -I$(PREF)/env/netinclude 
+-LDFLAGS += -L/mnt/d/opt/netsurfy/netsurf-all-3.11/inst-amigaos3/lib -lnet -lamisslauto
+-PKG_CONFIG_PATH=/mnt/d/opt/netsurfy/netsurf-all-3.11/inst-amigaos3/lib/pkgconfig:/opt/netsurf/m68k-unknown-amigaos/env/lib/pkgconfig	
+-
+-CC := $(PREF)/cross/bin/m68k-unknown-amigaos-gcc
+-AS := $(PREF)/cross/bin/m68k-unknown-amigaos-as
+-LD := $(PREF)/cross/bin/m68k-unknown-amigaos-ld
+-AR := ar
+-
+-HOST_GCC=gcc
+-
+-	DEBUG 			:= NO
+-	JS			:= NO
+-	RTG 			:= YES
+-	USE_CACHE		:= YES
+-	
+-NETSURF_USE_AMISSL := NO
+-	
+-ifeq ($(findstring js,$(HOST)),js)
+-	JS			:= YES
+-endif
+-	
+-ifeq ($(findstring aga,$(HOST)),aga)
+-RTG := NO
+-CFLAGS += -DAGA685 -DAGA
+-endif
++# === Logging / PSL ===
++override NETSURF_USE_NSLOG := YES
++override NETSURF_USE_NSPSL := YES
+ 
+-ifeq ($(RTG),YES)
+-	CFLAGS += -DRTG
+-endif
+-	
+-ifeq ($(USE_CACHE),YES)
++# === Filesystem cache (T:/RAM:) ===
+ override NETSURF_FS_BACKING_STORE := YES
+-else
+-override NETSURF_FS_BACKING_STORE := NO
+-endif
+ 
+-PPC := NO
++# === Frontend ===
++override NETSURF_FB_FRONTEND := sdl
++override NETSURF_FB_FONTLIB  := internal
++override NETSURF_FB_RESPATH_sdl := "PROGDIR:Resources/"
+ 
+-ifeq ($(DEBUG),YES)
+-	CFLAGS += -DDEBUG_FETCH_VERBOSE
+-	#CFLAGS +=  -DFBTK_LOGGING
+-	#CFLAGS +=  -DDEBUG_SCHEDULER
+-else
+-	#CFLAGS += -DNDEBUG
+-endif
+-
+-ifeq ($(TTF),YES)
+-	override  NETSURF_FB_FONTLIB := freetype
+-	NETSURF_FEATURE_FREETYPE2_CFLAGS := -DFB_USE_FREETYPE
+-	NETSURF_USE_FREETYPE2 := YES
+-else
+-	override  NETSURF_FB_FONTLIB := internal
+-endif
++# === Build flags ===
++override COMMON_WARNFLAGS :=
++override NETSURF_STRIP_BINARY := NO
+ 
+-ifeq ($(NETSURF_FS_BACKING_STORE),YES)
+-	CFLAGS += -DCACHE
++# === RTG (Picasso96) -- on; Phase E adds AMMX text rendering ===
++RTG := YES
++ifeq ($(RTG),YES)
++    CFLAGS += -DRTG
+ endif
+ 
+-### To enable/disable PNG support, uncomment the appropriate line below.
+- override NETSURF_USE_PNG := YES
+-
+-### To enable/disable SVGTiny support, uncomment the appropriate line below.
+-# override NETSURF_USE_NSSVG := YES
+- override NETSURF_USE_NSSVG := NO
+-
+-### To enable/disable RSVG support, uncomment the appropriate line below.
+-# override NETSURF_USE_RSVG := YES
+- override NETSURF_USE_RSVG := NO
+-
+-NETSURF_USE_LIBICONV_PLUG := NO
+-NETSURF_USE_UTF8PROC := YES
+-
+-### To enable/disable BMP support, uncomment the appropriate line below.
+- override NETSURF_USE_BMP := YES
+-
+-### To make the framebuffer front end use freetype for text, uncomment the
+-### following line
+-# override NETSURF_FB_FONTLIB := freetype
+-
+-### To disable JavaScript support, uncomment the appropriate line below.
+-override NETSURF_USE_DUKTAPE := NO
+-
+-### To change flags to javascript binding generator
+-# GBFLAGS:=-g
+-
+-### To enable ASAN and UBSAN support in builds regardless of target
+-# override NETSURF_USE_SANITIZER := YES
+-
+-### If you're using the sanitizers and you want it to stop on failure...
+- override NETSURF_RECOVER_SANITIZERS := NO
+- 
+-override  NETSURF_FB_FRONTEND := sdl
+-override  NETSURF_FB_RESPATH_sdl := "PROGDIR:Resources/"
+-override  NETSURF_STRIP_BINARY := NO
+-
+-### To change the compiled in log level, alter this.
+-# Valid options are: DEEPDEBUG, DEBUG, VERBOSE, INFO, WARNING, ERROR, CRITICAL
+-#override NETSURF_LOG_LEVEL := DEBUG
+- override NETSURF_LOG_LEVEL := CRITICAL
+- #WARNING
+- #ERROR
+-
+-### To change the compiled in default log, change this
+-#override NETSURF_BUILTIN_LOG_FILTER := "(level:WARNING || cat:jserrors)"
+-
+-### To change the compiled in *verbose* log, change this
+-#override NETSURF_BUILTIN_VERBOSE_FILTER := "(level:VERBOSE || cat:jserrors)"
++# === Logging level ===
++override NETSURF_LOG_LEVEL := WARNING
+ 
++# === Sanitizers off ===
++override NETSURF_USE_SANITIZER       := NO
++override NETSURF_RECOVER_SANITIZERS  := NO
+diff --git a/frontends/mui/Makefile b/frontends/mui/Makefile
+index f012b60..c20a733 100644
+--- a/frontends/mui/Makefile
++++ b/frontends/mui/Makefile
+@@ -32,9 +32,11 @@ NETSURF_FS_BACKING_STORE := YES
+ #resource path
+ CFLAGS += '-DNETSURF_FB_RESPATH="$(NETSURF_FB_RESPATH)"'
+ 
+-CFLAGS += -DTURBOJPEG
++# amiport: TURBOJPEG disabled (we use stock libjpeg, not TurboJPEG)
++# CFLAGS += -DTURBOJPEG
+ 
+-CFLAGS +=	-I/mnt/e/usr/local/amiga/m68k-amigaos/clib/extra/ns-include
++# amiport: dropped author-specific path
++# CFLAGS +=	-I/mnt/e/usr/local/amiga/m68k-amigaos/clib/extra/ns-include
+ #CFLAGS +=	-I/mnt/e/usr/local/amiga/m68k-amigaos/clib/extra/ns-include/turbojpeg
+ CFLAGS +=	-Ifrontends -Ifrontends/mui/include -Ifrontends/mui/include-ns -Ifrontends/mui/Prefs #-Inetsurf/include
+ CFLAGS +=	-Iinclude -Ifrontends/mui/include-extra

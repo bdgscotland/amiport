@@ -1,0 +1,9 @@
+prefix=/work/lib/libjpeg
+libdir=${prefix}
+includedir=${prefix}/include
+
+Name: libjpeg
+Description: JPEG image decoder/encoder (IJG libjpeg 9f, integer DCT only)
+Version: 9.6
+Libs: -L${libdir} -ljpeg
+Cflags: -I${includedir}
