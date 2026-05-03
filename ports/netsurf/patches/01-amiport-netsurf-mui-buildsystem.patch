@@ -181,6 +181,40 @@ index 10a982f..56ce490 100644
 +# === Sanitizers off ===
 +override NETSURF_USE_SANITIZER       := NO
 +override NETSURF_RECOVER_SANITIZERS  := NO
+diff --git a/frontends/amiga/os3support.h b/frontends/amiga/os3support.h
+index 478d4a2..85fdb4d 100644
+--- a/frontends/amiga/os3support.h
++++ b/frontends/amiga/os3support.h
+@@ -186,17 +186,27 @@ typedef uint32_t uint32;
+ typedef int64_t int64;
+ typedef uint64_t uint64;
+ 
+-/* TimeVal */
++/* amiport: TimeVal and TimeRequest structs are now provided by modern
++ * NDKs (bebbo-gcc 13.3 / 6.5 / GCCSDK 4.x+) in <devices/timer.h> using
++ * the GCCSDK-conventional field names (tv_secs, tv_micro, tr_node,
++ * tr_time). Defining them here would either redefine-collide (bebbo
++ * 13.3) or shadow NDK's with mismatched field names (legacy NetSurf
++ * shim used Seconds/Microseconds/Request/Time which don't match
++ * frontends/mui code paths -- they all use the NDK field names).
++ * Suppress the legacy definitions; consumers that need the structs
++ * should pull <devices/timer.h> directly. */
++#include <devices/timer.h>
++#if 0
+ struct TimeVal {
+ 	uint32 Seconds;
+ 	uint32 Microseconds;
+ };
+ 
+-/* TimeRequest */
+ struct TimeRequest {
+ 	struct IORequest Request;
+ 	struct TimeVal Time;
+ };
++#endif
+ 
+ /* OutlineFont */
+ struct OutlineFont {
 diff --git a/frontends/mui/Makefile b/frontends/mui/Makefile
 index f012b60..c20a733 100644
 --- a/frontends/mui/Makefile
