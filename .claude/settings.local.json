@@ -29,7 +29,18 @@
       "Bash(ls:*)",
       "Bash(mkdir -p /Users/duncan/Developer/amiport/ports/amigit/.claude/agent-memory)",
       "Bash(cat)",
-      "Bash(grep -E \"\\(openttd$|openttd-\\)\")"
+      "Bash(grep -E \"\\(openttd$|openttd-\\)\")",
+      "mcp__amiga-kb__amiga_pitfalls_for",
+      "Read(//private/tmp/libhubbub-upstream/src/**)",
+      "Bash(echo \"exit: $?\")",
+      "Read(//private/tmp/libhubbub-upstream/build/**)",
+      "Read(//private/tmp/libhubbub-upstream/**)",
+      "Bash(perl build/make-entities.pl)",
+      "Bash(grep -E '\\\\[\\(5[0-9]{2}|[6-9][0-9]{2}|[0-9]{4,}\\)')",
+      "Bash(grep *)",
+      "Bash(awk '/^static hubbub_error|^hubbub_error/ && /^[a-zA-Z]/ {print NR\":\"$0}' /tmp/libhubbub-upstream/src/treebuilder/in_body.c)",
+      "Bash(awk '/^static hubbub_error process_start_tag/,/^}$/' /tmp/libhubbub-upstream/src/treebuilder/in_body.c)",
+      "Bash(gperf /tmp/libhubbub-upstream/src/treebuilder/element-type.gperf)"
     ]
   }
 }
