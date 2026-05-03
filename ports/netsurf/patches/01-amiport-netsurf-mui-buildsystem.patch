@@ -284,3 +284,19 @@ index ecbd0a0..f806dc6 100644
  APTR NewObject(struct IClass * classPtr, CONST_STRPTR classID, ULONG tagList, ...);
  
  #define DEFCLASS(s) ULONG create_##s##class(void); \
+diff --git a/frontends/mui/plotters.c b/frontends/mui/plotters.c
+index e5f2c32..e96d7cb 100644
+--- a/frontends/mui/plotters.c
++++ b/frontends/mui/plotters.c
+@@ -167,7 +167,10 @@ mui_blit_alpha_span(struct bitmap *bitmap, int src_x, int src_y,
+ /* Enhanced color handling functions for MUI plotters */
+ 
+ /* Global pen management */
+-static LONG global_pen_a = -1, global_pen_b = -1;
++/* amiport: global_pen_a/b are extern in gui.h and defined in
++ * browserclass.c -- bebbo-gcc 13.3 errors on the static-after-extern
++ * shadowing here. Removed (the file gets them via the extern in gui.h
++ * which is included transitively). */
+ static ULONG last_fg_color = 0xFFFFFFFF;
+ static ULONG last_bg_color = 0xFFFFFFFF;
+ 
