@@ -199,3 +199,20 @@ index f012b60..c20a733 100644
  #CFLAGS +=	-I/mnt/e/usr/local/amiga/m68k-amigaos/clib/extra/ns-include/turbojpeg
  CFLAGS +=	-Ifrontends -Ifrontends/mui/include -Ifrontends/mui/include-ns -Ifrontends/mui/Prefs #-Inetsurf/include
  CFLAGS +=	-Iinclude -Ifrontends/mui/include-extra
+diff --git a/frontends/mui/mui.h b/frontends/mui/mui.h
+index ecbd0a0..f806dc6 100644
+--- a/frontends/mui/mui.h
++++ b/frontends/mui/mui.h
+@@ -53,6 +53,12 @@
+ #include <clib/intuition_protos.h> // SetAttrs
+ #include <inline/intuition.h>
+ #endif
++/* amiport: NDK <inline/intuition.h> defines NewObject as a macro
++ * whenever NO_INLINE_STDARG is not defined. Some callers (e.g.
++ * browserclass.c) #undef NO_INLINE_STDARG before pulling proto/intuition.h
++ * which makes the macro active before mui.h is even reached. The #undef
++ * has to be unconditional + outside the #ifdef block above. */
++#undef NewObject
+ APTR NewObject(struct IClass * classPtr, CONST_STRPTR classID, ULONG tagList, ...);
+ 
+ #define DEFCLASS(s) ULONG create_##s##class(void); \
