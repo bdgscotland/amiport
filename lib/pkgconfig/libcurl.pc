@@ -1,0 +1,9 @@
+prefix=/work/lib/libcurl
+libdir=${prefix}
+includedir=${prefix}/include
+
+Name: libcurl
+Description: HTTP-only client (curl 8.11.1, no TLS, no proxy, no auth, no IPv6)
+Version: 8.11.1
+Libs: -L${libdir} -lcurl
+Cflags: -I${includedir} -DCURL_STATICLIB

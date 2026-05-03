@@ -1,0 +1,9 @@
+prefix=/work/lib/libnsbmp
+libdir=${prefix}
+includedir=${prefix}/include
+
+Name: libnsbmp
+Description: NetSurf BMP/ICO image decoder
+Version: 0.1.7
+Libs: -L${libdir} -lnsbmp
+Cflags: -I${includedir}

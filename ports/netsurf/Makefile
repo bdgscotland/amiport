@@ -49,9 +49,9 @@ $(NETSURF_BINARY):
 		-e "AR=m68k-amigaos-ar" \
 		-e "RANLIB=m68k-amigaos-ranlib" \
 		-e "STRIP=m68k-amigaos-strip" \
-		-e "GCCSDK_INSTALL_ENV=/opt/m68k-amigaos" \
-		-e "GCCSDK_INSTALL_CROSSBIN=/opt/m68k-amigaos/bin" \
-		-e "PKG_CONFIG_PATH=/opt/m68k-amigaos/lib/pkgconfig" \
+		-e "GCCSDK_INSTALL_ENV=/opt/amiga13/m68k-amigaos" \
+		-e "GCCSDK_INSTALL_CROSSBIN=/opt/amiga13/bin" \
+		-e "PKG_CONFIG_PATH=/work/lib/pkgconfig" \
 		$(DOCKER_IMAGE) \
 		bash -c "make TARGET=$(NETSURF_TARGET) V=1"
 

@@ -1,0 +1,10 @@
+prefix=/work/lib/libdom
+libdir=${prefix}
+includedir=${prefix}/include
+
+Name: libdom
+Description: NetSurf W3C DOM Level 3 implementation (HTML binding via libhubbub)
+Version: 0.4.2
+Requires: libwapcaplet libhubbub libparserutils
+Libs: -L${libdir} -ldom
+Cflags: -I${includedir}

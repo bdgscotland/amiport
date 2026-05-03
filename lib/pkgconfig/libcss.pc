@@ -1,0 +1,10 @@
+prefix=/work/lib/libcss
+libdir=${prefix}
+includedir=${prefix}/include
+
+Name: libcss
+Description: NetSurf CSS parser, selector, and cascade engine (22.10 fixed-point)
+Version: 0.9.2
+Requires: libwapcaplet libparserutils
+Libs: -L${libdir} -lcss
+Cflags: -I${includedir}

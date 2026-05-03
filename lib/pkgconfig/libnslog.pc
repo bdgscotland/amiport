@@ -1,0 +1,9 @@
+prefix=/work/lib/libnslog
+libdir=${prefix}
+includedir=${prefix}/include
+
+Name: libnslog
+Description: NetSurf categorical logger with filter language
+Version: 0.1.3
+Libs: -L${libdir} -lnslog
+Cflags: -I${includedir}

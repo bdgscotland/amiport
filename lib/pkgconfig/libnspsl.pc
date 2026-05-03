@@ -1,0 +1,9 @@
+prefix=/work/lib/libnspsl
+libdir=${prefix}
+includedir=${prefix}/include
+
+Name: libnspsl
+Description: NetSurf Public Suffix List lookup
+Version: 0.1.7
+Libs: -L${libdir} -lnspsl
+Cflags: -I${includedir}

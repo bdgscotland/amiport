@@ -1,0 +1,9 @@
+prefix=/work/lib/libwapcaplet
+libdir=${prefix}
+includedir=${prefix}/include
+
+Name: libwapcaplet
+Description: NetSurf string interning library
+Version: 0.4.3
+Libs: -L${libdir} -lwapcaplet
+Cflags: -I${includedir}

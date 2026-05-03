@@ -1,0 +1,9 @@
+prefix=/work/lib/libparserutils
+libdir=${prefix}
+includedir=${prefix}/include
+
+Name: libparserutils
+Description: NetSurf parser primitives library
+Version: 0.2.5
+Libs: -L${libdir} -lparserutils
+Cflags: -I${includedir}

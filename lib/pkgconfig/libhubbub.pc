@@ -1,0 +1,10 @@
+prefix=/work/lib/libhubbub
+libdir=${prefix}
+includedir=${prefix}/include
+
+Name: libhubbub
+Description: NetSurf HTML5 tokeniser and tree builder
+Version: 0.3.8
+Requires: libparserutils
+Libs: -L${libdir} -lhubbub
+Cflags: -I${includedir}

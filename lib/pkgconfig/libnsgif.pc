@@ -1,0 +1,9 @@
+prefix=/work/lib/libnsgif
+libdir=${prefix}
+includedir=${prefix}/include
+
+Name: libnsgif
+Description: NetSurf animated GIF decoder with LZW
+Version: 1.0.0
+Libs: -L${libdir} -lnsgif
+Cflags: -I${includedir}

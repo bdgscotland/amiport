@@ -1,0 +1,9 @@
+prefix=/work/lib/libpng
+libdir=${prefix}
+includedir=${prefix}/include
+
+Name: libpng
+Description: PNG image decoder and encoder (fixed-point only, no soft-float)
+Version: 1.6.43
+Libs: -L${libdir} -lpng -L/work/lib/zlib -lz
+Cflags: -I${includedir}

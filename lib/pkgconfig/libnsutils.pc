@@ -1,0 +1,9 @@
+prefix=/work/lib/libnsutils
+libdir=${prefix}
+includedir=${prefix}/include
+
+Name: libnsutils
+Description: NetSurf utility library (monotonic time, base64, pwrite/pread)
+Version: 0.1.0
+Libs: -L${libdir} -lnsutils
+Cflags: -I${includedir}

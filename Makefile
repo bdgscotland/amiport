@@ -264,6 +264,21 @@ test-libjpeg: build-libjpeg
 test-libcurl: build-libcurl
 	$(MAKE) -C tests/libcurl run
 
+# NetSurf-Vampire dep stack pkg-config validation (host-side, no Docker)
+# Uses the host's pkg-config to verify that lib/pkgconfig/*.pc files
+# resolve their transitive deps correctly. Paths print with /work/ prefix
+# (the in-Docker mount target) -- substitute with $(pwd) to map to host.
+validate-pkgconfig:
+	@echo "=== Validating lib/pkgconfig/*.pc on host ==="
+	@PKG_CONFIG_PATH=$$(pwd)/lib/pkgconfig pkg-config --print-errors --exists \
+		libwapcaplet libparserutils libhubbub libdom libcss \
+		libnsbmp libnsgif libnslog libnsutils libnspsl libpng libcurl
+	@echo ""
+	@echo "All 12 .pc files resolve. Sample expansion (libcss + libdom):"
+	@PKG_CONFIG_PATH=$$(pwd)/lib/pkgconfig pkg-config --cflags --libs libcss libdom
+
+.PHONY: validate-pkgconfig
+
 package:
 ifndef TARGET
 	$(error TARGET is required. Usage: make package TARGET=examples/wc)
