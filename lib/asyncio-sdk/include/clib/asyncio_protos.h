@@ -21,6 +21,11 @@
 
 #define _REG(x)
 #define _ASM
+/* amiport: upstream Aminet AsyncIO 1997 SDK forgot to define _ARGS in
+ * the gcc branch (only defined for _DCC and __SASC__). Older gcc
+ * tolerated the resulting missing-typedef in declarations; bebbo-gcc
+ * 13.3 errors. Empty define matches the gcc convention. */
+#define _ARGS
 
 #else
 
