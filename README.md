@@ -181,6 +181,9 @@ Most porting failures come from the POSIX gap. amiport bridges it with a three-t
 | [libcss](lib/libcss/) | NetSurf libcss CSS parser + selector + cascade (22:10 fixed-point math, no soft-float) | `-lcss -lwapcaplet -lparserutils` |
 | [libnsbmp](lib/libnsbmp/) | NetSurf BMP/ICO image decoder (single TU, no deps) | `-lnsbmp` |
 | [libnsgif](lib/libnsgif/) | NetSurf animated GIF decoder + LZW (no deps) | `-lnsgif` |
+| [libnslog](lib/libnslog/) | NetSurf category logger + filter language (flex/bison, no deps) | `-lnslog` |
+| [libnsutils](lib/libnsutils/) | NetSurf utilities — monotonic time, pwrite/pread emulation, base64 (no deps) | `-lnsutils` |
+| [libnspsl](lib/libnspsl/) | NetSurf Public Suffix List lookup (cookie scope, ~13K LOC table data, no deps) | `-lnspsl` |
 
 **Tier 1** (posix-shim) covers functions where POSIX and AmigaOS semantics map cleanly: `open`, `read`, `stat`, `opendir`, `getopt`, `glob`, `fnmatch`, `scandir`, etc. Drop-in replacements, no caveats.
 

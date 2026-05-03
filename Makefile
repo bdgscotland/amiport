@@ -9,7 +9,7 @@
 #   clean            Remove build artifacts
 #   fetch-ndk        Download AmigaOS NDK 3.2 R4
 
-.PHONY: setup setup-toolchain setup-debug-tools build-shim build-emu build-console build-net build-http build-zlib build-libtommath build-libtomcrypt build-libgit2 build-freetype build-glyph-cache build-libwapcaplet build-libparserutils build-libhubbub build-libdom build-libcss build-libnsbmp build-libnsgif build-softfloat test-libtomcrypt build test test-shim test-emu test-console test-net test-zlib test-libtommath test-libgit2 test-freetype test-glyph-cache test-libwapcaplet test-libparserutils test-libhubbub test-libdom test-libcss test-libnsbmp test-libnsgif test-ports package clean fetch-ndk help doctor smoke-test compare list-ports build-ports install-emu setup-emu emu publish check-aminet build-uaequit build-keyinject test-fsemu check-docs check-agents check-test-coverage check-fix-propagation check-port-metadata check-arexx scrape-adcd
+.PHONY: setup setup-toolchain setup-debug-tools build-shim build-emu build-console build-net build-http build-zlib build-libtommath build-libtomcrypt build-libgit2 build-freetype build-glyph-cache build-libwapcaplet build-libparserutils build-libhubbub build-libdom build-libcss build-libnsbmp build-libnsgif build-libnslog build-libnsutils build-libnspsl build-softfloat test-libtomcrypt build test test-shim test-emu test-console test-net test-zlib test-libtommath test-libgit2 test-freetype test-glyph-cache test-libwapcaplet test-libparserutils test-libhubbub test-libdom test-libcss test-libnsbmp test-libnsgif test-libnslog test-libnsutils test-libnspsl test-ports package clean fetch-ndk help doctor smoke-test compare list-ports build-ports install-emu setup-emu emu publish check-aminet build-uaequit build-keyinject test-fsemu check-docs check-agents check-test-coverage check-fix-propagation check-port-metadata check-arexx scrape-adcd
 
 help:
 	@echo "amiport — AI-powered Amiga porting toolkit"
@@ -36,6 +36,9 @@ help:
 	@echo "  build-libcss     Cross-compile NetSurf libcss (CSS parser + selector + cascade)"
 	@echo "  build-libnsbmp   Cross-compile NetSurf libnsbmp (BMP/ICO image decoder)"
 	@echo "  build-libnsgif   Cross-compile NetSurf libnsgif (animated GIF decoder)"
+	@echo "  build-libnslog   Cross-compile NetSurf libnslog (category logging + filter language)"
+	@echo "  build-libnsutils Cross-compile NetSurf libnsutils (monotonic time, pwrite/pread, base64)"
+	@echo "  build-libnspsl   Cross-compile NetSurf libnspsl (Public Suffix List lookup)"
 	@echo "  build            Build a port (TARGET=examples/wc)"
 	@echo "  test             Test a build via vamos (TARGET=examples/wc)"
 	@echo "  test-shim        Run POSIX shim library tests via vamos"
@@ -55,6 +58,9 @@ help:
 	@echo "  test-libcss      Run lib/libcss tests via vamos -C 68040 -s 4096 -m 8192 (38/38)"
 	@echo "  test-libnsbmp    Run lib/libnsbmp tests via vamos -C 68040 (18/18)"
 	@echo "  test-libnsgif    Run lib/libnsgif tests via vamos -C 68040 (16/16)"
+	@echo "  test-libnslog    Run lib/libnslog tests via vamos -C 68040 (25/25)"
+	@echo "  test-libnsutils  Run lib/libnsutils tests via vamos -C 68040 (22/22)"
+	@echo "  test-libnspsl    Run lib/libnspsl tests via vamos -C 68040 (18/18)"
 	@echo "  package          Create LHA archive (TARGET=examples/wc)"
 	@echo "  fetch-ndk        Download AmigaOS NDK 3.2 R4"
 	@echo "  clean            Remove build artifacts"
@@ -150,6 +156,15 @@ build-libnsbmp:
 build-libnsgif:
 	$(MAKE) -C lib/libnsgif
 
+build-libnslog:
+	$(MAKE) -C lib/libnslog
+
+build-libnsutils:
+	$(MAKE) -C lib/libnsutils
+
+build-libnspsl:
+	$(MAKE) -C lib/libnspsl
+
 build-softfloat:
 	$(MAKE) -C lib/softfloat
 
@@ -215,6 +230,15 @@ test-libnsbmp: build-libnsbmp
 
 test-libnsgif: build-libnsgif
 	$(MAKE) -C tests/libnsgif run
+
+test-libnslog: build-libnslog
+	$(MAKE) -C tests/libnslog run
+
+test-libnsutils: build-libnsutils
+	$(MAKE) -C tests/libnsutils run
+
+test-libnspsl: build-libnspsl
+	$(MAKE) -C tests/libnspsl run
 
 package:
 ifndef TARGET

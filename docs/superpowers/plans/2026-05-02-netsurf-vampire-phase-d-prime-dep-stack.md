@@ -108,9 +108,19 @@ Execute in dependency-DAG order. Each lib follows `.claude/rules/library-pipelin
 
 **Wave 3 — small NetSurf utilities:**
 
-9. **libnsutils** — NetSurf utility funcs, depends on libwapcaplet.
-10. **libnslog** — logging, no NetSurf deps but project-style headers.
-11. **libnspsl** — public suffix list, depends on libwapcaplet.
+9. **libnsutils** — NetSurf utility funcs (monotonic time, base64, pwrite/pread). Standalone. **DONE 2026-05-02 session 5** (3 KB archive, 22/22 tests, KEEP-O1). Note: original plan said "depends on libwapcaplet" but the actual code does not.
+10. **libnslog** — category logging + filter language (flex/bison). Standalone. **DONE 2026-05-02 session 5** (21 KB archive, 25/25 tests, KEEP-O1).
+11. **libnspsl** — public suffix list lookup. Standalone. **DONE 2026-05-02 session 5** (67 KB archive, 18/18 tests, KEEP-O1). Note: original plan said "depends on libwapcaplet" but the actual API is just `const char *` in / `const char *` out.
+
+## Wave 2 finisher: libsvgtiny — DEFERRED 2026-05-02 session 5
+
+**Status:** Skipped. Phase D-prime is "10/11 NetSurf-internal libs landed" instead of 11/11.
+
+**Reason:** libsvgtiny's main entry point `svgtiny_parse()` calls `dom_xml_parser_create` / `_parse_chunk` / `_completed` / `_destroy` from libdom's `bindings/xml/` subtree. We explicitly excluded `bindings/xml/` from our libdom build because it requires either **expat** OR **libxml2** -- neither is shipped in amiport. There is no way to use libsvgtiny without first porting expat (or libxml2) AND enabling libdom's XML binding.
+
+**Implication for Phase D-prime:** acceptable. NetSurf renders HTML+CSS without inline SVG; SVG support is a polish item. ports/netsurf can ship without libsvgtiny initially. When a future phase ports expat (~30K LOC pure C, ~1 day), enable libdom's bindings/xml/ subtree and revisit libsvgtiny.
+
+**Implication for amiga-kb:** captured as a pitfall ("libdom XML binding requires expat or libxml2 -- consumer libs that need DOM-XML APIs are blocked until expat lands").
 
 **External libs (lib/<name>/ ports also, but later):** `libpng`, `libjpeg`, `libwebp`, `libcurl` (with `lib/amissl-sdk/` glue or HTTPS deferred). Aminet research first per `.claude/rules/use-pipeline-agents.md` "aminet-researcher / Check if a library is available on 68k" — many of these may be on Aminet already.
 
